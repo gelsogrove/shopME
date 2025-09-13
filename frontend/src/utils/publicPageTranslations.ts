@@ -69,6 +69,25 @@ export interface PublicPageTexts {
   // Greetings
   hello: string
   welcome: string
+  
+  // Checkout specific
+  yourProducts: string
+  addProducts: string
+  emptyCart: string
+  addProductsToContinue: string
+  confirmOrder: string
+  productSummary: string
+  selectProducts: string
+  loadingProducts: string
+  confirmDelete: string
+  confirmDeleteMessage: string
+  remove: string
+  greeting: string
+  steps: {
+    products: string
+    addresses: string
+    confirm: string
+  }
 }
 
 export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> = {
@@ -138,7 +157,26 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     
     // Greetings
     hello: "Ciao",
-    welcome: "Benvenuto"
+    welcome: "Benvenuto",
+    
+    // Checkout specific
+    yourProducts: "I Tuoi Prodotti",
+    addProducts: "+ Aggiungi Prodotti",
+    emptyCart: "Il tuo carrello è vuoto",
+    addProductsToContinue: "Aggiungi prodotti per continuare",
+    confirmOrder: "Conferma Ordine",
+    productSummary: "Riepilogo Prodotti",
+    selectProducts: "Seleziona Prodotti",
+    loadingProducts: "Caricamento prodotti...",
+    confirmDelete: "Sei sicuro?",
+    confirmDeleteMessage: "Vuoi rimuovere \"{name}\" dal carrello?",
+    remove: "Rimuovi",
+    greeting: "Ciao {name}, completa il tuo ordine in pochi passaggi",
+    steps: {
+      products: "Prodotti",
+      addresses: "Indirizzi",
+      confirm: "Conferma"
+    }
   },
   
   EN: {
@@ -207,7 +245,26 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     
     // Greetings
     hello: "Hello",
-    welcome: "Welcome"
+    welcome: "Welcome",
+    
+    // Checkout specific
+    yourProducts: "Your Products",
+    addProducts: "+ Add Products",
+    emptyCart: "Your cart is empty",
+    addProductsToContinue: "Add products to continue",
+    confirmOrder: "Confirm Order",
+    productSummary: "Product Summary",
+    selectProducts: "Select Products",
+    loadingProducts: "Loading products...",
+    confirmDelete: "Are you sure?",
+    confirmDeleteMessage: "Do you want to remove \"{name}\" from your cart?",
+    remove: "Remove",
+    greeting: "Hello {name}, complete your order in a few steps",
+    steps: {
+      products: "Products",
+      addresses: "Addresses",
+      confirm: "Confirm"
+    }
   },
   
   ES: {
@@ -276,7 +333,26 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     
     // Greetings
     hello: "Hola",
-    welcome: "Bienvenido"
+    welcome: "Bienvenido",
+    
+    // Checkout specific
+    yourProducts: "Tus Productos",
+    addProducts: "+ Agregar Productos",
+    emptyCart: "Tu carrito está vacío",
+    addProductsToContinue: "Agrega productos para continuar",
+    confirmOrder: "Confirmar Pedido",
+    productSummary: "Resumen de Productos",
+    selectProducts: "Seleccionar Productos",
+    loadingProducts: "Cargando productos...",
+    confirmDelete: "¿Estás seguro?",
+    confirmDeleteMessage: "¿Quieres eliminar \"{name}\" de tu carrito?",
+    remove: "Eliminar",
+    greeting: "Hola {name}, completa tu pedido en pocos pasos",
+    steps: {
+      products: "Productos",
+      addresses: "Direcciones",
+      confirm: "Confirmar"
+    }
   },
   
   PT: {
@@ -345,7 +421,26 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     
     // Greetings
     hello: "Olá",
-    welcome: "Bem-vindo"
+    welcome: "Bem-vindo",
+    
+    // Checkout specific
+    yourProducts: "Seus Produtos",
+    addProducts: "+ Adicionar Produtos",
+    emptyCart: "Seu carrinho está vazio",
+    addProductsToContinue: "Adicione produtos para continuar",
+    confirmOrder: "Confirmar Pedido",
+    productSummary: "Resumo de Produtos",
+    selectProducts: "Selecionar Produtos",
+    loadingProducts: "Carregando produtos...",
+    confirmDelete: "Tem certeza?",
+    confirmDeleteMessage: "Você quer remover \"{name}\" do seu carrinho?",
+    remove: "Remover",
+    greeting: "Olá {name}, complete seu pedido em poucos passos",
+    steps: {
+      products: "Produtos",
+      addresses: "Endereços",
+      confirm: "Confirmar"
+    }
   }
 }
 

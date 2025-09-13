@@ -26,7 +26,7 @@ export class CheckoutController {
       }
 
       // Use SecureTokenService for unified token validation
-      const validation = await this.secureTokenService.validateToken(token, 'checkout')
+      const validation = await this.secureTokenService.validateToken(token)
       
       if (!validation.valid) {
         res.status(400).json({
@@ -173,7 +173,7 @@ export class CheckoutController {
       }
 
       // Validate token again using SecureTokenService
-      const validation = await this.secureTokenService.validateToken(token, 'checkout')
+      const validation = await this.secureTokenService.validateToken(token)
       
       if (!validation.valid) {
         res.status(400).json({

@@ -14,6 +14,7 @@ const RegisterPage = () => {
   
   const [workspaceName, setWorkspaceName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   
   // 🔐 Use new token validation hook
   const { 
@@ -33,7 +34,7 @@ const RegisterPage = () => {
     lastName: '',
     company: '',
     email: '',
-    language: 'English',
+    language: 'ENG',
     currency: 'EUR',
     gdprConsent: false,
     pushNotificationsConsent: false
@@ -99,10 +100,22 @@ const RegisterPage = () => {
           logger.info('[Register] Browser language detected:', browserLanguage, '->', languageMatch.code);
         }
       }
-      setLoading(false);
     };
     
-    fetchWorkspaceInfo();
+    if (tokenValid) {
+      // Minimum 1000ms loading + wait for endpoint to finish
+      const startTime = Date.now()
+      
+      fetchWorkspaceInfo().finally(() => {
+        const elapsedTime = Date.now() - startTime
+        const remainingTime = Math.max(0, 1000 - elapsedTime)
+        
+        setTimeout(() => {
+          setLoading(false);
+          setInitialLoading(false);
+        }, remainingTime);
+      });
+    }
   }, [tokenValid, workspaceId]);
   
   // Handle form input changes
@@ -237,7 +250,7 @@ const RegisterPage = () => {
   };
   
   // Loading state
-  if (loading || validatingToken) {
+  if (loading || validatingToken || initialLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-md">

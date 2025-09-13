@@ -2,6 +2,7 @@ import axios from "axios"
 import React, { useEffect, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import { TokenError } from "../components/ui/TokenError"
+import { UnifiedLoading } from "../components/ui/UnifiedLoading"
 import { useTokenValidation } from "../hooks/useTokenValidation"
 import { getPublicPageTexts } from "../utils/publicPageTranslations"
 
@@ -89,28 +90,7 @@ const formatCurrency = (num: number) =>
     num
   )
 
-// 🌐 Get localized text based on customer language (fallback to ENG)
-const getLocalizedText = (language?: string) => {
-  const texts = {
-    'ENG': {
-      yourOrders: 'Your Orders',
-      viewProfile: 'View Profile',
-      viewCart: 'View Cart'
-    },
-    'IT': {
-      yourOrders: 'I Tuoi Ordini',
-      viewProfile: 'Visualizza Profilo',
-      viewCart: 'Visualizza Carrello'
-    },
-    'ES': {
-      yourOrders: 'Tus Pedidos',
-      viewProfile: 'Ver Perfil',
-      viewCart: 'Ver Carrito'
-    }
-  }
-  
-  return texts[language as keyof typeof texts] || texts['ENG']
-}
+// 🌐 Use centralized localization system
 
 const OrdersPublicPage: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -216,11 +196,17 @@ const OrdersPublicPage: React.FC = () => {
     }
     
     if (tokenValid && token) {
-      // Simulate loading time for better UX
-      setTimeout(() => {
-        load()
-        setInitialLoading(false)
-      }, 800) // 800ms loading time
+      // Minimum 1000ms loading + wait for endpoint to finish
+      const startTime = Date.now()
+      
+      load().finally(() => {
+        const elapsedTime = Date.now() - startTime
+        const remainingTime = Math.max(0, 1000 - elapsedTime)
+        
+        setTimeout(() => {
+          setInitialLoading(false)
+        }, remainingTime)
+      })
     }
   }, [orderCode, token, tokenValid, tokenLoading])
 
@@ -237,7 +223,8 @@ const OrdersPublicPage: React.FC = () => {
   }, [orderCode, listData, orderCodeQuery])
 
   // 🔐 Show token validation loading
-  const texts = getPublicPageTexts(ordersData?.customer?.language)
+  const customerLanguage = listData?.customer?.language || detailData?.customer?.language
+  const texts = getPublicPageTexts(customerLanguage)
 
   if (tokenLoading || initialLoading) {
     return (
@@ -312,7 +299,7 @@ const OrdersPublicPage: React.FC = () => {
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
                     </svg>
-                    {getLocalizedText().viewCart}
+                    {texts.viewCart}
                   </button>
                   <button
                     onClick={() => {
@@ -326,7 +313,7 @@ const OrdersPublicPage: React.FC = () => {
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    {getLocalizedText().viewProfile}
+                    {texts.viewProfile}
                   </button>
                 </div>
               </div>
@@ -669,7 +656,7 @@ const OrdersPublicPage: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <h1 className="text-3xl font-bold text-gray-900">
-                    {getLocalizedText().yourOrders}
+                    {texts.viewOrders}
                   </h1>
                 </div>
                 <div className="flex items-center gap-3">
@@ -680,7 +667,7 @@ const OrdersPublicPage: React.FC = () => {
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
                     </svg>
-                    {getLocalizedText().viewCart}
+                    {texts.viewCart}
                   </button>
                   <button
                     onClick={() => {
@@ -694,7 +681,7 @@ const OrdersPublicPage: React.FC = () => {
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    {getLocalizedText().viewProfile}
+                    {texts.viewProfile}
                   </button>
                 </div>
               </div>

@@ -140,6 +140,24 @@
 - **Stato**: PENDING
 - **Note**: CRITICO - Il sistema blocca troppo frequentemente gli utenti, incluso l'utente di prova del MCP. Deve essere risolto immediatamente per permettere il testing e l'uso normale del sistema.
 
+### TASK: Implementare Embedding con Gemma
+- **Descrizione**: Implementare il sistema di embedding utilizzando il modello Gemma per sostituire l'attuale sistema di embedding. Deve essere implementato: 1) Integrazione del modello Gemma per la generazione degli embedding, 2) Configurazione del modello per il sistema di embedding locale, 3) Aggiornamento dei servizi di embedding esistenti per utilizzare Gemma, 4) Test di performance e qualità degli embedding generati, 5) Migrazione degli embedding esistenti al nuovo sistema, 6) Documentazione della nuova implementazione. Comportamento corretto: Sistema di embedding più performante e accurato utilizzando Gemma.
+- **Priorità**: ALTA
+- **Stato**: PENDING
+- **Note**: Migliora la qualità degli embedding e le performance del sistema di ricerca semantica
+
+### TASK: Importare Categorie nel Sistema
+- **Descrizione**: Implementare l'importazione delle categorie di prodotti nel sistema. Deve essere implementato: 1) Analisi del file categorie esistente (docs/category.md), 2) Creazione dello script di importazione categorie, 3) Mapping delle categorie dal formato attuale al database, 4) Validazione dei dati delle categorie, 5) Inserimento nel database delle categorie, 6) Test dell'importazione, 7) Aggiornamento del seed script se necessario. Comportamento corretto: Categorie importate correttamente nel database e disponibili per l'associazione con i prodotti.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Prerequisito per l'importazione dei prodotti con associazione alle categorie corrette
+
+### TASK: Importare Prodotti con Categoria, Formato e Descrizione
+- **Descrizione**: Implementare l'importazione dei prodotti nel sistema con associazione alle categorie corrette e aggiunta dei campi formato e descrizione. Deve essere implementato: 1) Analisi del file prodotti esistente (docs/product.md), 2) Aggiunta del campo "formato" al schema database prodotti (se non presente), 3) Creazione dello script di importazione prodotti, 4) Mapping dei prodotti alle categorie corrette, 5) Generazione automatica delle descrizioni prodotti (inventate in modo realistico), 6) Definizione del formato per ogni prodotto, 7) Validazione dei dati dei prodotti, 8) Inserimento nel database, 9) Test dell'importazione completa, 10) Aggiornamento del seed script. Comportamento corretto: Prodotti importati con categoria corretta, formato definito e descrizione generata, pronti per l'uso nel sistema.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Richiede l'aggiunta del campo formato al schema e la generazione creativa delle descrizioni prodotti
+
 ## ✅ TASK COMPLETATI
 
 ### TASK: Orders - Riorganizzare campo Notes
@@ -181,5 +199,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 26 (18 completati, 8 pending)
+**Task totali**: 29 (18 completati, 11 pending)
 **Task critici**: 1

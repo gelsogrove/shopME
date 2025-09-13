@@ -465,6 +465,41 @@ export class MessageRepository {
         // Generate random 3-digit number for temporary user
         const randomNumber = Math.floor(Math.random() * 900) + 100; // 100-999
         
+        // Detect language from message content
+        let detectedLanguage = 'IT'; // Default to Italian
+        if (data.message) {
+          const lowerMessage = data.message.toLowerCase();
+          
+          // Italian detection
+          const italianWords = ['ciao', 'buongiorno', 'buonasera', 'buonanotte', 'voglio', 'ho bisogno', 'vorrei', 'per favore', 'grazie', 'prego', 'sì', 'no', 'il', 'la', 'i', 'le', 'e', 'o', 'ma', 'con', 'per', 'da', 'in', 'su', 'a', 'di'];
+          
+          // English detection
+          const englishWords = ['hello', 'hi', 'good morning', 'good afternoon', 'good evening', 'i want', 'i need', 'i would like', 'please', 'thank you', 'thanks', 'yes', 'no', 'the', 'and', 'or', 'but', 'with', 'for', 'to', 'from', 'in', 'on', 'at', 'by'];
+          
+          // Spanish detection
+          const spanishWords = ['hola', 'buenos días', 'buenas tardes', 'buenas noches', 'quiero', 'necesito', 'me gustaría', 'por favor', 'gracias', 'sí', 'no', 'el', 'la', 'los', 'las', 'y', 'o', 'pero', 'con', 'para', 'de', 'en', 'por'];
+          
+          // Portuguese detection
+          const portugueseWords = ['olá', 'bom dia', 'boa tarde', 'boa noite', 'quero', 'preciso', 'gostaria', 'por favor', 'obrigado', 'obrigada', 'sim', 'não', 'o', 'a', 'os', 'as', 'e', 'ou', 'mas', 'com', 'para', 'de', 'em', 'por'];
+          
+          // Count matches for each language
+          const italianMatches = italianWords.filter(word => lowerMessage.includes(word)).length;
+          const englishMatches = englishWords.filter(word => lowerMessage.includes(word)).length;
+          const spanishMatches = spanishWords.filter(word => lowerMessage.includes(word)).length;
+          const portugueseMatches = portugueseWords.filter(word => lowerMessage.includes(word)).length;
+          
+          // Determine language based on highest match count
+          if (italianMatches > englishMatches && italianMatches > spanishMatches && italianMatches > portugueseMatches) {
+            detectedLanguage = 'IT';
+          } else if (englishMatches > italianMatches && englishMatches > spanishMatches && englishMatches > portugueseMatches) {
+            detectedLanguage = 'ENG';
+          } else if (spanishMatches > italianMatches && spanishMatches > englishMatches && spanishMatches > portugueseMatches) {
+            detectedLanguage = 'ESP';
+          } else if (portugueseMatches > italianMatches && portugueseMatches > englishMatches && portugueseMatches > spanishMatches) {
+            detectedLanguage = 'PRT';
+          }
+        }
+        
         // Create a temporary customer for new users
         customer = await this.prisma.customers.create({
           data: {
@@ -473,12 +508,12 @@ export class MessageRepository {
             phone: data.phoneNumber,
             workspaceId: workspaceId,
             isActive: false, // Mark as inactive until they register
-            language: "English",
+            language: detectedLanguage,
             currency: "EUR"
           }
         })
         
-        logger.info(`saveMessage: Created temporary customer ${customer.id} (Unknown User-${randomNumber}) for new user ${data.phoneNumber}`)
+        logger.info(`saveMessage: Created temporary customer ${customer.id} (Unknown User-${randomNumber}) for new user ${data.phoneNumber} with detected language: ${detectedLanguage}`)
       }
 
       // Update customer's lastContact field

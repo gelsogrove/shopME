@@ -120,7 +120,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 
   const metrics = [
     {
-      title: "Total Orders",
+      title: "Ordini Totali",
       value: analytics.overview.totalOrders,
       icon: <ShoppingCart className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
@@ -130,10 +130,10 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.totalOrders
           )
         : undefined,
-      description: "Total number of orders received",
+      description: "Numero totale di ordini ricevuti",
     },
     {
-      title: "Customers",
+      title: "Clienti",
       value: analytics.overview.totalCustomers,
       icon: <Users className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
@@ -143,10 +143,10 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.totalCustomers
           )
         : undefined,
-      description: "Number of active customers",
+      description: "Numero di clienti attivi",
     },
     {
-      title: "Messages",
+      title: "Messaggi",
       value: analytics.overview.totalMessages,
       icon: <MessageCircle className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
@@ -156,10 +156,10 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.totalMessages
           )
         : undefined,
-      description: "Messages exchanged with customers",
+      description: "Messaggi scambiati con i clienti",
     },
     {
-      title: "LLM Cost",
+      title: "Costo LLM",
       value: analytics.overview.usageCost,
       icon: <Euro className="h-4 w-4 text-orange-500" />,
       formatter: formatUsageCost,

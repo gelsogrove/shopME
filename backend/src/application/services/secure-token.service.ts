@@ -61,22 +61,39 @@ export class SecureTokenService {
     customerId?: string
   ): Promise<string> {
     try {
-      if (!customerId) {
+      // Special case: registration tokens don't need customerId (customer doesn't exist yet)
+      if (!customerId && type !== 'registration') {
         throw new Error('KISS TOKEN: customerId è obbligatorio')
       }
 
-      logger.info(`[KISS-TOKEN] 🔍 Controllo token per customerId="${customerId}", workspaceId="${workspaceId}"`)
+      logger.info(`[KISS-TOKEN] 🔍 Controllo token per customerId="${customerId}", phoneNumber="${phoneNumber}", workspaceId="${workspaceId}"`)
       
       // 1. Cerca token esistente NON SCADUTO per questo cliente+workspace
-      const existingToken = await this.prisma.secureToken.findFirst({
-        where: {
-          customerId,
-          workspaceId,
-          expiresAt: {
-            gt: new Date() // NON scaduto
+      let existingToken;
+      if (type === 'registration' && phoneNumber) {
+        // For registration tokens, search by phoneNumber
+        existingToken = await this.prisma.secureToken.findFirst({
+          where: {
+            phoneNumber,
+            workspaceId,
+            type: 'registration',
+            expiresAt: {
+              gt: new Date() // NON scaduto
+            }
           }
-        }
-      })
+        })
+      } else if (customerId) {
+        // For other tokens, search by customerId
+        existingToken = await this.prisma.secureToken.findFirst({
+          where: {
+            customerId,
+            workspaceId,
+            expiresAt: {
+              gt: new Date() // NON scaduto
+            }
+          }
+        })
+      }
 
       // 2. Se esiste token valido → RIUTILIZZA
       if (existingToken) {
@@ -98,13 +115,26 @@ export class SecureTokenService {
       logger.info(`[KISS-TOKEN] 🆕 Creo nuovo token (nessun token valido trovato)`)
       
       // Pulisci token scaduti
-      await this.prisma.secureToken.deleteMany({
-        where: {
-          customerId,
-          workspaceId,
-          expiresAt: { lte: new Date() }
-        }
-      })
+      if (type === 'registration' && phoneNumber) {
+        // For registration tokens, clean by phoneNumber
+        await this.prisma.secureToken.deleteMany({
+          where: {
+            phoneNumber,
+            workspaceId,
+            type: 'registration',
+            expiresAt: { lte: new Date() }
+          }
+        })
+      } else if (customerId) {
+        // For other tokens, clean by customerId
+        await this.prisma.secureToken.deleteMany({
+          where: {
+            customerId,
+            workspaceId,
+            expiresAt: { lte: new Date() }
+          }
+        })
+      }
 
       // Genera nuovo token
       const token = this.generateSecureToken()

@@ -44,125 +44,7 @@ interface FormData {
   notes: string
 }
 
-// 🌐 Get localized text based on customer language (fallback to ENG)
-const getLocalizedText = (language?: string) => {
-  const texts = {
-    'ENG': {
-      finalizeOrder: 'Finalize Order',
-      viewCart: 'View Cart',
-      viewOrders: 'View Orders',
-      viewProfile: 'View Profile',
-      greeting: 'Hello {name}, complete your order in a few steps',
-      loadingCheckout: 'Loading Checkout',
-      preparingOrder: 'Preparing your order...',
-      loadingProducts: 'Loading products...',
-      addProducts: '+ Add Products',
-      emptyCart: 'Your cart is empty',
-      addProductsToContinue: 'Add products to continue',
-      yourProducts: 'Your Products',
-      total: 'TOTAL:',
-      continue: 'Continue →',
-      confirmOrder: 'Confirm Order',
-      productSummary: 'Product Summary',
-      selectProducts: 'Select Products',
-      steps: {
-        products: 'Products',
-        addresses: 'Addresses',
-        confirm: 'Confirm'
-      },
-      confirmDelete: 'Are you sure?',
-      confirmDeleteMessage: 'Do you want to remove "{name}" from your cart?',
-      cancel: 'Cancel',
-      remove: 'Remove'
-    },
-    'IT': {
-      finalizeOrder: 'Finalizza Ordine',
-      viewCart: 'Visualizza Carrello',
-      viewOrders: 'Visualizza Ordini',
-      viewProfile: 'Visualizza Profilo',
-      greeting: 'Ciao {name}, completa il tuo ordine in pochi passaggi',
-      loadingCheckout: 'Caricamento Checkout',
-      preparingOrder: 'Stiamo preparando il tuo ordine...',
-      loadingProducts: 'Caricamento prodotti...',
-      addProducts: '+ Aggiungi Prodotti',
-      emptyCart: 'Il tuo carrello è vuoto',
-      addProductsToContinue: 'Aggiungi prodotti per continuare',
-      yourProducts: 'I Tuoi Prodotti',
-      total: 'TOTALE:',
-      continue: 'Continua →',
-      confirmOrder: 'Conferma Ordine',
-      productSummary: 'Riepilogo Prodotti',
-      selectProducts: 'Seleziona Prodotti',
-      steps: {
-        products: 'Prodotti',
-        addresses: 'Indirizzi',
-        confirm: 'Conferma'
-      },
-      confirmDelete: 'Sei sicuro?',
-      confirmDeleteMessage: 'Vuoi rimuovere "{name}" dal carrello?',
-      cancel: 'Annulla',
-      remove: 'Rimuovi'
-    },
-    'ES': {
-      finalizeOrder: 'Finalizar Pedido',
-      viewCart: 'Ver Carrito',
-      viewOrders: 'Ver Pedidos',
-      viewProfile: 'Ver Perfil',
-      greeting: 'Hola {name}, completa tu pedido en pocos pasos',
-      loadingCheckout: 'Cargando Checkout',
-      preparingOrder: 'Preparando tu pedido...',
-      loadingProducts: 'Cargando productos...',
-      addProducts: '+ Agregar Productos',
-      emptyCart: 'Tu carrito está vacío',
-      addProductsToContinue: 'Agrega productos para continuar',
-      yourProducts: 'Tus Productos',
-      total: 'TOTAL:',
-      continue: 'Continuar →',
-      confirmOrder: 'Confirmar Pedido',
-      productSummary: 'Resumen de Productos',
-      selectProducts: 'Seleccionar Productos',
-      steps: {
-        products: 'Productos',
-        addresses: 'Direcciones',
-        confirm: 'Confirmar'
-      },
-      confirmDelete: '¿Estás seguro?',
-      confirmDeleteMessage: '¿Quieres eliminar "{name}" de tu carrito?',
-      cancel: 'Cancelar',
-      remove: 'Eliminar'
-    },
-    'PT': {
-      finalizeOrder: 'Finalizar Pedido',
-      viewCart: 'Ver Carrinho',
-      viewOrders: 'Ver Pedidos',
-      viewProfile: 'Ver Perfil',
-      greeting: 'Olá {name}, complete seu pedido em poucos passos',
-      loadingCheckout: 'Carregando Checkout',
-      preparingOrder: 'Preparando seu pedido...',
-      loadingProducts: 'Carregando produtos...',
-      addProducts: '+ Adicionar Produtos',
-      emptyCart: 'Seu carrinho está vazio',
-      addProductsToContinue: 'Adicione produtos para continuar',
-      yourProducts: 'Seus Produtos',
-      total: 'TOTAL:',
-      continue: 'Continuar →',
-      confirmOrder: 'Confirmar Pedido',
-      productSummary: 'Resumo de Produtos',
-      selectProducts: 'Selecionar Produtos',
-      steps: {
-        products: 'Produtos',
-        addresses: 'Endereços',
-        confirm: 'Confirmar'
-      },
-      confirmDelete: 'Tem certeza?',
-      confirmDeleteMessage: 'Você quer remover "{name}" do seu carrinho?',
-      cancel: 'Cancelar',
-      remove: 'Remover'
-    }
-  }
-  
-  return texts[language as keyof typeof texts] || texts['ENG']
-}
+// 🌐 Use centralized localization system
 
 const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -172,19 +54,7 @@ const CheckoutPage: React.FC = () => {
   // 🎯 Check if we're on cart-public page (don't show "View Cart" button)
   const isCartPublicPage = location.pathname === '/cart-public'
   
-  // 🌐 Get customer language with fallback
-  const getCustomerLanguage = () => {
-    // Map database language codes to our localization keys
-    const languageMap: { [key: string]: string } = {
-      'it': 'IT',
-      'en': 'ENG', 
-      'es': 'ES',
-      'pt': 'PT'
-    }
-    
-    const dbLanguage = customer?.language || 'it' // Default to Italian
-    return languageMap[dbLanguage] || 'IT' // Fallback to Italian
-  }
+  // 🌐 Use centralized localization system
 
   // 🔐 Validate checkout token (TOKEN-ONLY)
   const { valid, loading, error, errorType, expiresAt, tokenData, payload, validateToken } =
@@ -215,8 +85,10 @@ const CheckoutPage: React.FC = () => {
   // Load data from token when validated
   useEffect(() => {
     if (valid && tokenData) {
-      // Simulate loading time for better UX
-      setTimeout(() => {
+      // Minimum 1000ms loading + process data
+      const startTime = Date.now()
+      
+      const processData = async () => {
         setCustomer(tokenData.customer)
         
         // 🔧 Clean up and normalize product data from backend
@@ -280,9 +152,16 @@ const CheckoutPage: React.FC = () => {
         setTimeout(() => {
           checkAndAutoCopyBillingAddress()
         }, 100)
+      }
+      
+      processData().finally(() => {
+        const elapsedTime = Date.now() - startTime
+        const remainingTime = Math.max(0, 1000 - elapsedTime)
         
-        setInitialLoading(false)
-      }, 800) // 800ms loading time
+        setTimeout(() => {
+          setInitialLoading(false)
+        }, remainingTime)
+      })
     }
   }, [valid, tokenData])
 
@@ -509,7 +388,7 @@ const CheckoutPage: React.FC = () => {
     }
   }
 
-  // Show loading state during token validation
+  // Show loading state during token validation - use centralized localization
   const texts = getPublicPageTexts(customer?.language)
 
   if (loading || (valid && initialLoading)) {
@@ -549,7 +428,7 @@ const CheckoutPage: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <h1 className="text-3xl font-bold text-gray-900">
-                {getLocalizedText(getCustomerLanguage()).finalizeOrder}
+                {texts.finalizeOrder}
               </h1>
             </div>
             <div className="flex items-center gap-3">
@@ -565,7 +444,7 @@ const CheckoutPage: React.FC = () => {
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
                   </svg>
-                  {getLocalizedText(getCustomerLanguage()).viewCart}
+                  {texts.viewCart}
                 </button>
               )}
               <button
@@ -578,7 +457,7 @@ const CheckoutPage: React.FC = () => {
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                {getLocalizedText(getCustomerLanguage()).viewOrders}
+                {texts.viewOrders}
               </button>
               <button
                 onClick={() => {
@@ -590,12 +469,12 @@ const CheckoutPage: React.FC = () => {
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                {getLocalizedText(getCustomerLanguage()).viewProfile}
+                {texts.viewProfile}
               </button>
             </div>
           </div>
           <div className="text-sm text-gray-600 ml-10">
-            {getLocalizedText(getCustomerLanguage()).greeting.replace('{name}', customer?.name || '')}
+            {texts.greeting.replace('{name}', customer?.name || '')}
           </div>
         </div>
 
@@ -616,9 +495,9 @@ const CheckoutPage: React.FC = () => {
                 <span className={`mt-2 text-sm ${
                   currentStep >= step ? "text-gray-900 font-semibold" : "text-gray-500"
                 }`}>
-                  {step === 1 ? getLocalizedText(getCustomerLanguage()).steps.products : 
-                   step === 2 ? getLocalizedText(getCustomerLanguage()).steps.addresses : 
-                   getLocalizedText(getCustomerLanguage()).steps.confirm}
+                  {step === 1 ? texts.steps.products : 
+                   step === 2 ? texts.steps.addresses : 
+                   texts.steps.confirm}
                 </span>
               </div>
             ))}
@@ -631,7 +510,7 @@ const CheckoutPage: React.FC = () => {
           {currentStep === 1 && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">📦 {getLocalizedText(getCustomerLanguage()).yourProducts}</h2>
+                <h2 className="text-2xl font-bold">📦 {texts.yourProducts}</h2>
                 <button
                   onClick={() => {
                     setShowAddProducts(true)
@@ -639,7 +518,7 @@ const CheckoutPage: React.FC = () => {
                   }}
                   className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                 >
-                  {getLocalizedText(getCustomerLanguage()).addProducts}
+                  {texts.addProducts}
                 </button>
               </div>
 
@@ -723,15 +602,15 @@ const CheckoutPage: React.FC = () => {
               {/* Empty cart message */}
               {prodotti.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
-                  <p className="text-lg">{getLocalizedText(getCustomerLanguage()).emptyCart}</p>
-                  <p className="text-sm">{getLocalizedText(getCustomerLanguage()).addProductsToContinue}</p>
+                  <p className="text-lg">{texts.emptyCart}</p>
+                  <p className="text-sm">{texts.addProductsToContinue}</p>
                 </div>
               )}
 
               {/* Total */}
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-xl font-bold">
-                  <span>{getLocalizedText(getCustomerLanguage()).total}</span>
+                  <span>{texts.total}</span>
                   <span className="text-green-600 font-bold">€{calculateTotal().toFixed(2)}</span>
                 </div>
               </div>
@@ -743,7 +622,7 @@ const CheckoutPage: React.FC = () => {
                   disabled={prodotti.length === 0}
                   className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  {getLocalizedText(getCustomerLanguage()).continue}
+                  {texts.continue}
                 </button>
               </div>
             </div>
@@ -939,7 +818,7 @@ const CheckoutPage: React.FC = () => {
                   }}
                   className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  {getLocalizedText(getCustomerLanguage()).continue}
+                  {texts.continue}
                 </button>
               </div>
             </div>
@@ -947,11 +826,11 @@ const CheckoutPage: React.FC = () => {
 
           {currentStep === 3 && (
             <div>
-              <h2 className="text-2xl font-bold mb-6">📝 {getLocalizedText(getCustomerLanguage()).confirmOrder}</h2>
+              <h2 className="text-2xl font-bold mb-6">📝 {texts.confirmOrder}</h2>
 
               {/* Order Summary */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">{getLocalizedText(getCustomerLanguage()).productSummary}</h3>
+                <h3 className="text-lg font-semibold mb-4">{texts.productSummary}</h3>
                 {prodotti.map((prodotto, index) => (
                   <div key={index} className="flex justify-between py-2 border-b">
                     <span>{(prodotto.qty || prodotto.quantita || 1)}x {prodotto.descrizione}</span>
@@ -1061,7 +940,7 @@ const CheckoutPage: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">{getLocalizedText(getCustomerLanguage()).selectProducts}</h3>
+                <h3 className="text-xl font-bold">{texts.selectProducts}</h3>
                 <button
                   onClick={() => setShowAddProducts(false)}
                   className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -1073,7 +952,7 @@ const CheckoutPage: React.FC = () => {
               {loadingProducts ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-                  <p className="mt-2 text-gray-600">{getLocalizedText(getCustomerLanguage()).loadingProducts}</p>
+                  <p className="mt-2 text-gray-600">{texts.loadingProducts}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1131,10 +1010,10 @@ const CheckoutPage: React.FC = () => {
               
               <div className="text-center">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {getLocalizedText(getCustomerLanguage()).confirmDelete}
+                  {texts.confirmDelete}
                 </h3>
                 <p className="text-sm text-gray-500 mb-6">
-                  {getLocalizedText(getCustomerLanguage()).confirmDeleteMessage.replace('{name}', productToDelete.name)}
+                  {texts.confirmDeleteMessage.replace('{name}', productToDelete.name)}
                 </p>
                 
                 <div className="flex space-x-3 justify-center">
@@ -1142,13 +1021,13 @@ const CheckoutPage: React.FC = () => {
                     onClick={cancelDelete}
                     className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
                   >
-                    {getLocalizedText(getCustomerLanguage()).cancel}
+                    {texts.cancel}
                   </button>
                   <button
                     onClick={removeProduct}
                     className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
                   >
-                    {getLocalizedText(getCustomerLanguage()).remove}
+                    {texts.remove}
                   </button>
                 </div>
               </div>

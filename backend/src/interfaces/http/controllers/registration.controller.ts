@@ -32,7 +32,7 @@ export class RegistrationController {
       }
       
       // Use SecureTokenService for unified token validation
-      const validation = await this.secureTokenService.validateToken(token, 'registration');
+      const validation = await this.secureTokenService.validateToken(token);
       
       if (!validation.valid) {
         return res.status(404).json({ error: 'Invalid or expired token' });
@@ -81,7 +81,7 @@ export class RegistrationController {
       }
       
       // Use SecureTokenService for unified token validation
-      const validation = await this.secureTokenService.validateToken(token, 'registration');
+      const validation = await this.secureTokenService.validateToken(token);
       
       if (!validation.valid) {
         return res.status(401).json({ error: 'Invalid or expired registration token' });
@@ -143,13 +143,15 @@ export class RegistrationController {
             name: `${first_name} ${last_name}`,
             email: email, // Use the email provided by the user
             company,
-            language: language || 'English',
+            language: language || 'ENG',
             currency: currency || 'EUR',
             last_privacy_version_accepted: '1.0.0', // Current privacy policy version
             privacy_accepted_at: new Date(),
             push_notifications_consent: push_notifications_consent || false,
             push_notifications_consent_at: push_notifications_consent ? new Date() : null,
-            isActive: true // CRITICAL: Activate the customer after registration!
+            isActive: true, // CRITICAL: Activate the customer after registration!
+            isBlacklisted: true, // New users are blocked by default
+            activeChatbot: false // New users have chatbot disabled by default
           }
         });
       } else {
@@ -161,13 +163,15 @@ export class RegistrationController {
             phone,
             company,
             workspaceId: workspace_id,
-            language: language || 'English',
+            language: language || 'ENG',
             currency: currency || 'EUR',
             last_privacy_version_accepted: '1.0.0', // Current privacy policy version
             privacy_accepted_at: new Date(),
             push_notifications_consent: push_notifications_consent || false,
             push_notifications_consent_at: push_notifications_consent ? new Date() : null,
-            isActive: true
+            isActive: true,
+            isBlacklisted: true, // New users are blocked by default
+            activeChatbot: false // New users have chatbot disabled by default
           }
         });
       }

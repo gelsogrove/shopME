@@ -48,6 +48,7 @@ const CustomerProfilePublicPage: React.FC = () => {
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   // 📋 Fetch profile data when token is validated
   useEffect(() => {
@@ -110,7 +111,19 @@ const CustomerProfilePublicPage: React.FC = () => {
       }
     }
 
-    fetchProfile()
+    if (tokenValid && token) {
+      // Minimum 1000ms loading + wait for endpoint to finish
+      const startTime = Date.now()
+      
+      fetchProfile().finally(() => {
+        const elapsedTime = Date.now() - startTime
+        const remainingTime = Math.max(0, 1000 - elapsedTime)
+        
+        setTimeout(() => {
+          setInitialLoading(false)
+        }, remainingTime)
+      })
+    }
   }, [tokenValid, token])
 
   // 💾 Handle profile save
@@ -178,36 +191,12 @@ const CustomerProfilePublicPage: React.FC = () => {
     window.location.href = cartUrl
   }
 
-  // 🌐 Get localized text based on customer language
-  const getLocalizedText = (language: string) => {
-    const texts = {
-      'ENG': {
-        title: 'Customer Profile Management',
-        description: 'Modify your personal data securely',
-        viewOrders: 'View Orders',
-        viewCart: 'View Cart'
-      },
-      'IT': {
-        title: 'Gestione Profilo Cliente',
-        description: 'Modifica i tuoi dati personali in sicurezza',
-        viewOrders: 'Visualizza Ordini',
-        viewCart: 'Visualizza Carrello'
-      },
-      'ES': {
-        title: 'Gestión de Perfil de Cliente',
-        description: 'Modifica tus datos personales de forma segura',
-        viewOrders: 'Ver Pedidos',
-        viewCart: 'Ver Carrito'
-      }
-    }
-    
-    return texts[language as keyof typeof texts] || texts['ENG']
-  }
+  // 🌐 Get localized text based on customer language using centralized system
 
   // Show loading state during token validation
   const texts = getPublicPageTexts(profileData?.language)
 
-  if (tokenLoading || loadingProfile) {
+  if (tokenLoading || loadingProfile || initialLoading) {
     return (
       <UnifiedLoading 
         title={texts.loading}
@@ -246,8 +235,8 @@ const CustomerProfilePublicPage: React.FC = () => {
     )
   }
 
-  // Show profile form
-  const localizedText = profileData ? getLocalizedText(profileData.language) : getLocalizedText('ENG')
+  // Show profile form - use centralized localization system
+  const localizedText = texts
   
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -258,7 +247,7 @@ const CustomerProfilePublicPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <User className="h-8 w-8 text-blue-600" />
               <h1 className="text-3xl font-bold text-gray-900">
-                {localizedText.title}
+                {texts.personalData}
               </h1>
             </div>
             <div className="flex items-center gap-3">
@@ -269,7 +258,7 @@ const CustomerProfilePublicPage: React.FC = () => {
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
                 </svg>
-                {localizedText.viewCart}
+                {texts.viewCart}
               </button>
               <button
                 onClick={handleViewOrders}
@@ -278,12 +267,12 @@ const CustomerProfilePublicPage: React.FC = () => {
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                {localizedText.viewOrders}
+                {texts.viewOrders}
               </button>
             </div>
           </div>
           <div className="text-sm text-gray-600 ml-10">
-            {localizedText.description}
+            {texts.contactInfo}
           </div>
         </div>
 

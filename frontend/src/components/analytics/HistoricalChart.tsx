@@ -117,13 +117,13 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
           />
           <Bar 
             dataKey="orders" 
-            name="Orders"
+            name="Ordini"
             fill="#22c55e" 
             radius={[4, 4, 0, 0]}
           />
           <Bar 
             dataKey="customers" 
-            name="Customers"
+            name="Clienti"
             fill="#3b82f6" 
             radius={[4, 4, 0, 0]}
           />
@@ -158,7 +158,7 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
           yAxisId="left"
           type="monotone" 
           dataKey="orders" 
-          name="Orders"
+          name="Ordini"
           stroke="#22c55e" 
           strokeWidth={3}
           dot={{ fill: '#22c55e', strokeWidth: 2, r: 6 }}
@@ -168,7 +168,7 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
           yAxisId="left"
           type="monotone" 
           dataKey="customers" 
-          name="Customers"
+          name="Clienti"
           stroke="#3b82f6" 
           strokeWidth={3}
           dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
@@ -178,7 +178,7 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
           yAxisId="right"
           type="monotone" 
           dataKey="revenue" 
-          name="Revenue (€)"
+          name="Ricavi (€)"
           stroke="#f59e0b" 
           strokeWidth={3}
           dot={{ fill: '#f59e0b', strokeWidth: 2, r: 6 }}
@@ -188,7 +188,7 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
           yAxisId="right"
           type="monotone" 
           dataKey="usageCost" 
-          name="LLM Costs (€)"
+          name="Costi LLM (€)"
           stroke="#f97316" 
           strokeWidth={2}
           strokeDasharray="5 5"
@@ -204,10 +204,10 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-green-600" />
-          Historical Trends - Orders, Revenue & LLM Costs
+          Andamenti Storici - Ordini, Ricavi e Costi LLM
         </CardTitle>
         <p className="text-sm text-gray-500 mt-1">
-          Performance evolution over the selected period including AI costs tracking
+          Evoluzione delle prestazioni nel periodo selezionato incluso il monitoraggio dei costi AI
         </p>
       </CardHeader>
       <CardContent>
@@ -224,7 +224,7 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
               <ShoppingCart className="h-4 w-4 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-green-800 font-medium">Total Orders</p>
+              <p className="text-sm text-green-800 font-medium">Ordini Totali</p>
               <p className="text-lg font-bold text-green-900">
                 {analytics.overview.totalOrders.toLocaleString('en-US')}
               </p>
@@ -236,7 +236,7 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
               <Users className="h-4 w-4 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-blue-800 font-medium">Active Customers</p>
+              <p className="text-sm text-blue-800 font-medium">Clienti Attivi</p>
               <p className="text-lg font-bold text-blue-900">
                 {analytics.overview.totalCustomers.toLocaleString('en-US')}
               </p>
@@ -248,7 +248,7 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
               <Euro className="h-4 w-4 text-orange-600" />
             </div>
             <div>
-              <p className="text-sm text-orange-800 font-medium">Total Revenue</p>
+              <p className="text-sm text-orange-800 font-medium">Ricavi Totali</p>
               <p className="text-lg font-bold text-orange-900">
                 {new Intl.NumberFormat('en-US', {
                   style: 'currency',
