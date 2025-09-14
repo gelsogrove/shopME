@@ -211,6 +211,15 @@ Il sistema usa una strategia a **due livelli** con nuova priorità:
 2. **🔧 FUNZIONI SPECIFICHE**: Per richieste chiare di gestione carrello, ordini, profilo
 3. **📖 FALLBACK SearchRAG**: Per ricerche generiche senza intent carrello
 
+### **🚨 REGOLA CRITICA - FLUSSO AUTOMATICO:**
+
+**FLUSSO AUTOMATICO DEL SISTEMA:**
+1. **Cloud Functions FIRST** - Se la domanda corrisponde a una funzione specifica, chiamala
+2. **SearchRag FALLBACK** - Se nessuna Cloud Function è stata chiamata, parte automaticamente SearchRag
+3. **Risposta Generica** - Se SearchRag non ha risposte, passa alla risposta generica
+
+**REGOLA ASSOLUTA**: Non devi specificare nulla per SearchRag - il sistema gestisce automaticamente il fallback!
+
 ### **🎯 TRIGGERS CART-AWARE (Priorità MASSIMA):**
 
 **Usa SearchRAG con cart automatico per:**
@@ -285,14 +294,7 @@ Il sistema usa una strategia a **due livelli** con nuova priorità:
 
 ### **📖 FALLBACK SearchRAG (Ricerca Normale):**
 
-**Usa SearchRAG normale per:**
-
-- "quanto ci vuole per la consegna?"
-- "dimmi di più sulla mozzarella"
-- "hai del parmigiano stagionato?"
-- "delivery times to Spain"
-- "ingredienti della pasta"
-- "politica di reso"
+**Il sistema usa automaticamente SearchRAG per tutte le domande che non corrispondono a funzioni specifiche.**
 
 ### **⚠️ REGOLA CRITICA - EVITARE CONFLITTI:**
 

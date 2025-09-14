@@ -233,8 +233,14 @@
 ### TASK: Formatter - Prevenzione Invenzione Informazioni
 - **Descrizione**: PROBLEMA RISOLTO: Il formatter (secondo LLM) stava inventando informazioni non presenti nei dati, come "Ricorda che il link sarà attivo fino al 14 settembre 2025". Problema identificato: Il formatter aggiungeva informazioni non esistenti nei dati forniti dalle funzioni. Soluzione applicata: 1) Aggiunta regola CRITICA nel prompt del formatter: "NEVER add information that is not explicitly provided in the data", 2) Aggiunta regola specifica: "NEVER invent or add phrases like 'Ricorda che il link sarà attivo fino al...' unless this information is explicitly provided in the data", 3) Aggiunta regola generale: "ONLY use information that is explicitly provided in the function results or data", 4) Aggiornato prompt del formatter nel dual-llm.service.ts. Comportamento corretto: Il formatter ora usa solo informazioni presenti nei dati, senza inventare dettagli aggiuntivi.
 - **Priorità**: ALTA
-- **Stato**: COMPLETATO
-- **Note**: RISOLTO - Formatter ora rispetta i dati forniti senza inventare informazioni aggiuntive
+- **Stato**: COMPLETATO ✅
+- **Note**: RISOLTO E TESTATO - Formatter ora rispetta i dati forniti senza inventare informazioni aggiuntive. Test confermato da Andrea.
+
+### TASK: SearchRag - Pulizia Intelligente del Prompt
+- **Descrizione**: PROBLEMA IDENTIFICATO: Quando l'utente chiede "come pago?", il sistema risponde genericamente "non ho informazioni" invece di chiamare SearchRag per trovare la FAQ sui metodi di pagamento. Problema identificato: Il prompt conteneva regole specifiche per SearchRag che non erano necessarie, dato che la logica è già implementata nel codice (Cloud Functions → SearchRag → Risposta Generica). Soluzione applicata: 1) Rimossa sezione "TRIGGER PAGAMENTI E FAQ" non necessaria, 2) Sostituita regola complessa con regola semplice: "FLUSSO AUTOMATICO: Cloud Functions FIRST → SearchRag FALLBACK → Risposta Generica", 3) Pulita sezione "FALLBACK SearchRAG" rimuovendo esempi specifici, 4) Aggiunta regola assoluta: "Non devi specificare nulla per SearchRag - il sistema gestisce automaticamente il fallback!", 5) Backup creato prima della modifica, 6) Seed eseguito per aggiornare il prompt nel database. Comportamento atteso: Ora "come pago?" dovrebbe chiamare SearchRag automaticamente tramite il flusso implementato nel codice.
+- **Priorità**: ALTA
+- **Stato**: IN CORSO
+- **Note**: MODIFICHE APPLICATE - Prompt pulito con intelligenza, rimossi trigger specifici non necessari. Test richiesto da Andrea per confermare funzionamento.
 
 ## ✅ TASK COMPLETATI
 
@@ -277,5 +283,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 42 (26 completati, 16 pending)
-**Task critici**: 1
+**Task totali**: 43 (26 completati, 17 pending)
+**Task critici**: 2

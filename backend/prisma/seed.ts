@@ -74,10 +74,10 @@ async function generateEmbeddingsAfterSeed() {
   try {
     // Import the embedding services
     const { EmbeddingService } = require("../src/services/embeddingService")
-    const { DocumentService } = require("../src/services/documentService")
+    // const { DocumentService } = require("../src/services/documentService") // RIMOSSO - documenti non esistono più
 
     const embeddingService = new EmbeddingService()
-    const documentService = new DocumentService()
+    // const documentService = new DocumentService() // RIMOSSO - documenti non esistono più
 
     console.log("🔄 1. Generating FAQ embeddings...")
     try {
@@ -121,21 +121,22 @@ async function generateEmbeddingsAfterSeed() {
       console.log("❌ Product embeddings failed:", error.message)
     }
 
-    console.log("🔄 4. Generating Document embeddings...")
-    try {
-      const documentResult =
-        await documentService.generateEmbeddingsForActiveDocuments(
-          mainWorkspaceId
-        )
-      console.log(
-        `✅ Document embeddings: ${documentResult.processed} processed, ${documentResult.errors.length} errors`
-      )
-      if (documentResult.errors.length > 0) {
-        console.log("⚠️ Document errors:", documentResult.errors)
-      }
-    } catch (error) {
-      console.log("❌ Document embeddings failed:", error.message)
-    }
+    // console.log("🔄 4. Generating Document embeddings...")
+    // try {
+    //   const documentResult =
+    //     await documentService.generateEmbeddingsForActiveDocuments(
+    //       mainWorkspaceId
+    //     )
+    //   console.log(
+    //     `✅ Document embeddings: ${documentResult.processed} processed, ${documentResult.errors.length} errors`
+    //   )
+    //   if (documentResult.errors.length > 0) {
+    //     console.log("⚠️ Document errors:", documentResult.errors)
+    //   }
+    // } catch (error) {
+    //   console.log("❌ Document embeddings failed:", error.message)
+    // }
+    console.log("🔄 4. Document embeddings: SKIPPED (documents no longer exist in system)")
 
     console.log("🎉 EMBEDDING GENERATION COMPLETED!")
     console.log("=================================")
@@ -154,7 +155,8 @@ async function cleanAndImportN8NWorkflow() {
   return
 }
 
-// Function to seed Aviso Legal document
+// Function to seed Aviso Legal document - RIMOSSA (documenti non esistono più nel sistema)
+/*
 async function seedAvisoLegalDocument(workspaceId: string) {
   console.log("Seeding Aviso Legal document...")
 
@@ -228,6 +230,7 @@ async function seedAvisoLegalDocument(workspaceId: string) {
     console.error("Error seeding Aviso Legal document:", error)
   }
 }
+*/
 
 async function main() {
   console.log("🚀 STARTING COMPLETE DATABASE SEED")
@@ -2959,8 +2962,8 @@ async function main() {
     console.log("⚠️ No products found, skipping order creation")
   }
 
-  // Seed Aviso Legal document
-  await seedAvisoLegalDocument(mainWorkspaceId)
+  // Seed Aviso Legal document - RIMOSSO (documenti non esistono più nel sistema)
+  // await seedAvisoLegalDocument(mainWorkspaceId)
 
   console.log("🎉 SEED COMPLETED SUCCESSFULLY!")
   console.log("=".repeat(50))
@@ -2986,6 +2989,15 @@ async function main() {
   )
   console.log(`- 7 sample orders created with different statuses (5 for Mario Rossi, 1 for John Smith, 1 for Maria Garcia)`)
   console.log(`- Embeddings ready for manual generation via API`)
+
+  // 🚨 REGOLA ASSOLUTA: Generazione automatica embedding dopo seed
+  console.log("\n🚨 REGOLA CRITICA: GENERAZIONE AUTOMATICA EMBEDDINGS")
+  console.log("================================================")
+  console.log("⚠️  QUESTA È UNA REGOLA ASSOLUTA CHE NON DEVE ESSERE BYPASSATA")
+  console.log("⚠️  Gli embeddings DEVONO essere generati automaticamente dopo ogni seed")
+  console.log("⚠️  Senza embeddings, SearchRag non funziona e il chatbot fallisce")
+  
+  await generateEmbeddingsAfterSeed()
 }
 
 main()

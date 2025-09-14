@@ -189,6 +189,34 @@ const secureToken = await prisma.secureToken.findFirst({
 - **Fallback**: If `prompt_agent.md` cannot be read, the system falls back to the default `SOFIA_PROMPT`
 - **Consistency**: Both `agentConfig.prompt` and `prompts.content` are kept in sync during seeding
 
+### 🚨 REGOLA CRITICA: Generazione Automatica Embeddings
+
+**REGOLA ASSOLUTA - NON BYPASSABILE:**
+
+- **`npm run seed`** DEVE generare automaticamente gli embeddings per TUTTE le tabelle coinvolte:
+  - ✅ **FAQ Embeddings** (`faq_chunks`) - Obbligatorio per SearchRag FAQ
+  - ✅ **Product Embeddings** (`product_chunks`) - Obbligatorio per ricerca prodotti
+  - ✅ **Service Embeddings** (`service_chunks`) - Obbligatorio per ricerca servizi
+  - ❌ **Document Embeddings** (`document_chunks`) - RIMOSSO (documenti non esistono più nel sistema)
+
+**CONSEGUENZE CRITICHE SE BYPASSATA:**
+- ❌ SearchRag restituisce risultati vuoti
+- ❌ Chatbot non trova FAQ (es. "come pago?" fallisce)
+- ❌ Ricerca prodotti non funziona
+- ❌ Sistema fallisce completamente
+
+**TRIGGER AUTOMATICI:**
+- ✅ Dopo ogni `npm run seed` - Generazione completa automatica
+- ✅ Dopo creazione/modifica FAQ - Rigenerazione automatica FAQ embeddings
+- ✅ Dopo creazione/modifica Prodotto - Rigenerazione automatica Product embeddings  
+- ✅ Dopo creazione/modifica Servizio - Rigenerazione automatica Service embeddings
+- ❌ Dopo upload/modifica Documento - RIMOSSO (documenti non esistono più nel sistema)
+
+**IMPLEMENTAZIONE:**
+- **File**: `backend/prisma/seed.ts` - Funzione `generateEmbeddingsAfterSeed()`
+- **Servizi**: `EmbeddingService` (DocumentService rimosso)
+- **Endpoint**: Fallback manuale via frontend se necessario
+
 # ShopMe - WhatsApp E-commerce Platform PRD
 
 ---
