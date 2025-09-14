@@ -322,16 +322,16 @@ export class CallingFunctionsService {
     try {
       console.log('🔧 Calling getCustomerProfileLink with:', request);
       
-      // Generate secure token for profile access
-      const token = await this.secureTokenService.createToken(
-        'profile',
-        request.workspaceId,
-        { customerId: request.customerId },
-        '1h'
-      );
+      // 🔧 CRITICAL FIX: Use the actual GetCustomerProfileLink function
+      const { GetCustomerProfileLink } = require('../chatbot/calling-functions/GetCustomerProfileLink');
       
-      if (!token) {
-        console.error('❌ Failed to generate profile token');
+      const result = await GetCustomerProfileLink({
+        workspaceId: request.workspaceId,
+        customerId: request.customerId
+      });
+      
+      if (!result) {
+        console.error('❌ Failed to generate profile link');
         return {
           success: false,
           error: 'Errore nella generazione del link profilo',
@@ -343,14 +343,11 @@ export class CallingFunctionsService {
         };
       }
       
-      // Generate profile link
-      const profileUrl = `http://localhost:3000/customer-profile?token=${token}`;
-      
-      console.log('✅ Profile link generated successfully:', profileUrl);
+      console.log('✅ Profile link generated successfully:', result.profileUrl);
       
       return {
         success: true,
-        linkUrl: profileUrl,
+        linkUrl: result.profileUrl,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour
         action: 'profile',
         timestamp: new Date().toISOString()

@@ -17,6 +17,16 @@ export interface GetCustomerProfileLinkResult {
 export async function GetCustomerProfileLink(params: GetCustomerProfileLinkParams): Promise<GetCustomerProfileLinkResult | null> {
   logger.info(`[PROFILE-LINK] Starting GetCustomerProfileLink for customer ${params.customerId} in workspace ${params.workspaceId}`)
   
+  // 🔧 CRITICAL DEBUG: Log parameters to file
+  const fs = require('fs');
+  const debugData = {
+    timestamp: new Date().toISOString(),
+    function: "GetCustomerProfileLink",
+    params: params,
+    message: "Function called with parameters"
+  };
+  fs.appendFileSync('/tmp/profile-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
+  
   const prisma = new PrismaClient()
   
   try {

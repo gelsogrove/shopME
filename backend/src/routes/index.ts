@@ -449,6 +449,9 @@ router.post("/chat", async (req, res) => {
           messages: chatHistory, // 🔧 NOW INCLUDES REAL CHAT HISTORY like webhook
           prompt: agentPrompt // 🔧 Now includes processed prompt with variables
         }
+        
+        console.log(`🔧 /api/chat: LLM Request customerid: "${customer?.id || ""}" for customer: ${customer?.name || "Unknown"}`)
+        console.log(`🔧 /api/chat: LLM Request workspaceId: "${body.workspaceId}"`)
 
         const response = await dualLLMService.processMessage(llmRequest)
         
@@ -969,6 +972,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
         prompt: agentPrompt,
         welcomeBackMessage: welcomeBackMessage || null // 🎯 TASK: Pass welcome back message to LLM
       };
+      
+      console.log(`🔧 WEBHOOK: LLM Request customerid: "${customerId}" workspaceId: "${workspaceId}"`)
       
       // Process with dual LLM service
       console.log('🚀 WEBHOOK: About to call dual LLM service with input:', messageContent);

@@ -46,6 +46,34 @@ export class DualLLMService {
     console.log("📥 Request workspaceId:", request.workspaceId)
     console.log("💥💥💥 CUSTOMER ID FROM REQUEST:", request.customerid)
     console.log("🔍 CHAT HISTORY RECEIVED:", JSON.stringify(request.messages || [], null, 2)) // 🔧 DEBUG CHAT HISTORY
+    
+    // 🔧 CRITICAL DEBUG: Check if this is a profile modification request
+    if (request.chatInput && (
+      request.chatInput.includes("devo modificare") || 
+      request.chatInput.includes("profilo") ||
+      request.chatInput.includes("modifica") ||
+      request.chatInput.includes("cambia")
+    )) {
+      console.log("🎯🎯🎯 PROFILE MODIFICATION REQUEST DETECTED! 🎯🎯🎯")
+      console.log("🎯 Input:", request.chatInput)
+      
+      // 🔧 CRITICAL: Write to file for debugging
+      const fs = require('fs');
+      const debugData = {
+        timestamp: new Date().toISOString(),
+        input: request.chatInput,
+        customerId: request.customerid,
+        workspaceId: request.workspaceId,
+        message: "PROFILE MODIFICATION REQUEST DETECTED"
+      };
+      fs.appendFileSync('/tmp/profile-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
+      
+      // 🔧 CRITICAL: Also log to console with ERROR level to make it visible
+      console.error("🚨🚨🚨 PROFILE MODIFICATION REQUEST DETECTED! 🚨🚨🚨");
+      console.error("🚨 Input:", request.chatInput);
+      console.error("🚨 CustomerId:", request.customerid);
+      console.error("🚨 WorkspaceId:", request.workspaceId);
+    }
 
     let requestWithPrompt = request // Initialize with original request
 
@@ -64,10 +92,13 @@ export class DualLLMService {
         "� WEBHOOK HAS ALREADY PROCESSED VARIABLES - Using prompt as-is"
       )
 
-      // Use the prompt directly from webhook (already processed)
+      // 🔧 CRITICAL: Include real values in prompt for function parameters
       if (request.prompt) {
         agentPrompt = request.prompt
-        // console.log("✅ Using pre-processed prompt from webhook")
+          .replace(/\{\{workspaceId\}\}/g, request.workspaceId || "UNKNOWN_WORKSPACE")
+          .replace(/\{\{customerId\}\}/g, request.customerid || "UNKNOWN_CUSTOMER")
+          .replace(/\{\{phoneNumber\}\}/g, request.phone || "UNKNOWN_PHONE")
+        console.log("✅ Using pre-processed prompt with real values for function parameters")
       }
 
       // 🌐 UPDATE REQUEST WITH USER'S LANGUAGE FROM PROFILE
@@ -448,6 +479,43 @@ export class DualLLMService {
       console.log("🔧🔧🔧 CLOUD FUNCTIONS ANALYSIS 🔧🔧🔧")
       console.log("🔧 Tool calls found:", toolCalls.length)
       console.log("🔧 Tool calls details:", JSON.stringify(toolCalls, null, 2))
+      
+      // 🔧 CRITICAL: Always log function calls to file
+      const fs = require('fs');
+      const debugData = {
+        timestamp: new Date().toISOString(),
+        toolCallsCount: toolCalls.length,
+        functionNames: toolCalls.map(call => call.function?.name),
+        allToolCalls: toolCalls
+      };
+      fs.appendFileSync('/tmp/profile-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
+      
+      // 🔧 DEBUG: Check if GetCustomerProfileLink is being called
+      const profileLinkCall = toolCalls.find(call => call.function?.name === "GetCustomerProfileLink")
+      if (profileLinkCall) {
+        console.log("🎯🎯🎯 GetCustomerProfileLink CALLED! 🎯🎯🎯")
+        console.log("🎯 Function arguments:", JSON.stringify(profileLinkCall.function?.arguments, null, 2))
+      } else {
+        console.log("❌❌❌ GetCustomerProfileLink NOT CALLED! ❌❌❌")
+        console.log("❌ Available function calls:", toolCalls.map(call => call.function?.name))
+        
+        // 🔧 DEBUG: Check if SearchRag is being called instead
+        const searchRagCall = toolCalls.find(call => call.function?.name === "SearchRag")
+        if (searchRagCall) {
+          console.log("🔍🔍🔍 SearchRag CALLED INSTEAD! 🔍🔍🔍")
+          console.log("🔍 SearchRag arguments:", JSON.stringify(searchRagCall.function?.arguments, null, 2))
+          
+          // 🔧 CRITICAL: Write to file for debugging
+          const fs = require('fs');
+          const debugData = {
+            timestamp: new Date().toISOString(),
+            message: "SearchRag called instead of GetCustomerProfileLink",
+            searchRagArgs: searchRagCall.function?.arguments,
+            allFunctionCalls: toolCalls.map(call => call.function?.name)
+          };
+          fs.appendFileSync('/tmp/profile-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
+        }
+      }
 
       if (toolCalls.length > 0) {
         // Execute tool calls
@@ -1069,11 +1137,14 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
         function: {
           name: "GetCustomerProfileLink",
           description:
-            '🚨🚨🚨 CRITICAL: Generate secure link for customer profile management. MANDATORY TRIGGERS: "modifica profilo", "cambia indirizzo", "aggiorna indirizzo", "modifica indirizzo", "indirizzo di spedizione", "voglio modificare indirizzo", "cambia profilo", "aggiorna profilo", "dammi link profilo", "link profilo", "modifica i miei dati", "cambia i miei dati", "aggiorna i miei dati". ABSOLUTE PRIORITY over SearchRAG!',
+            '🚨🚨🚨 CRITICAL: Generate secure link for customer profile management. MANDATORY TRIGGERS: "modifica profilo", "cambia indirizzo", "aggiorna indirizzo", "modifica indirizzo", "indirizzo di spedizione", "voglio modificare indirizzo", "cambia profilo", "aggiorna profilo", "dammi link profilo", "link profilo", "modifica i miei dati", "cambia i miei dati", "aggiorna i miei dati", "devo modificare", "devo cambiare", "profilo". ABSOLUTE PRIORITY over SearchRAG!',
           parameters: {
             type: "object",
-            properties: {},
-            required: [],
+            properties: {
+              workspaceId: { type: "string" },
+              customerId: { type: "string" },
+            },
+            required: ["workspaceId", "customerId"],
           },
         },
       },
@@ -1373,12 +1444,41 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
             )
             break
 
-          case "GetCustomerProfileLink":
+        case "GetCustomerProfileLink":
+          console.log(`🔧 GetCustomerProfileLink: Using request.customerid="${request.customerid}" request.workspaceId="${request.workspaceId}"`)
+          // 🔧 CRITICAL FIX: Always use real parameters from request, never default values
+          // The LLM might pass wrong parameters, so we override them with real values
+          const realCustomerId = request.customerid || ""
+          const realWorkspaceId = request.workspaceId || ""
+          
+          console.log(`🔧 GetCustomerProfileLink: Overriding with real values - customerId: "${realCustomerId}", workspaceId: "${realWorkspaceId}"`)
+          
+          // 🔧 CRITICAL: Log to file for debugging
+          const fs = require('fs');
+          const debugData = {
+            timestamp: new Date().toISOString(),
+            function: "GetCustomerProfileLink execution",
+            realCustomerId: realCustomerId,
+            realWorkspaceId: realWorkspaceId,
+            message: "About to call getCustomerProfileLink"
+          };
+          fs.appendFileSync('/tmp/profile-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
+          
+          if (!realCustomerId || realCustomerId === "Unknown Customer" || !realWorkspaceId) {
+            console.error(`❌ GetCustomerProfileLink: Invalid real parameters - customerId: "${realCustomerId}", workspaceId: "${realWorkspaceId}"`)
+            result = {
+              success: false,
+              message: "Customer information not available. Please try again later."
+            }
+          } else {
+            console.log(`🔧 GetCustomerProfileLink: Calling getCustomerProfileLink with correct parameters`)
             result = await this.callingFunctionsService.getCustomerProfileLink({
-              customerId: request.customerid || "",
-              workspaceId: request.workspaceId,
+              customerId: realCustomerId,
+              workspaceId: realWorkspaceId,
             })
-            break
+            console.log(`🔧 GetCustomerProfileLink: Result received:`, result)
+          }
+          break
 
           case "GetUserInfo":
             result = await GetUserInfo({
@@ -1659,7 +1759,8 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       if (
         request.customerid &&
         request.customerid.length > 10 &&
-        !request.customerid.includes("test-customer")
+        !request.customerid.includes("test-customer") &&
+        !request.customerid.includes("Unknown")
       ) {
         console.log("🔍 Searching by Customer ID...")
         customer = await prisma.customers.findFirst({
@@ -1771,15 +1872,16 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       console.error("❌ Error collecting prompt variables:", error)
       await prisma.$disconnect()
 
-      // Return safe defaults
-      return {
-        nameUser: "Cliente",
-        discountUser: "Nessuno sconto attivo",
-        companyName: "L'Altra Italia",
-        lastorder: "Nessun ordine precedente",
-        lastordercode: "N/A",
-        languageUser: "it",
-      }
+    // Return safe defaults - BUT DON'T USE THESE FOR FUNCTION PARAMETERS
+    // 🔧 CRITICAL: Use generic values that won't confuse the LLM for function parameters
+    return {
+      nameUser: "Cliente",
+      discountUser: "Nessuno sconto attivo",
+      companyName: "Azienda", // Changed from "L'Altra Italia" to avoid confusion
+      lastorder: "Nessun ordine precedente",
+      lastordercode: "N/A",
+      languageUser: "it",
+    }
     }
   }
 
