@@ -2748,6 +2748,7 @@ async function main() {
         status: "CONFIRMED",
         totalAmount: 25.50,
         notes: "Ordine di test per Mario Rossi - Prodotti italiani premium",
+        trackingNumber: "DHL1234456",
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2) // 2 hours ago
       }
     })
@@ -2782,6 +2783,7 @@ async function main() {
         status: "PENDING",
         totalAmount: 18.90,
         notes: "Test order for John Smith - VIP customer with 10% discount",
+        trackingNumber: "DHL1234456",
         createdAt: new Date(Date.now() - 1000 * 60 * 30) // 30 minutes ago
       }
     })
@@ -2806,6 +2808,7 @@ async function main() {
         status: "DELIVERED",
         totalAmount: 32.80,
         notes: "Pedido de prueba para Maria Garcia - Cliente frecuente",
+        trackingNumber: "DHL1234456",
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24) // 1 day ago
       }
     })
@@ -2840,6 +2843,7 @@ async function main() {
         status: "DELIVERED",
         totalAmount: 45.20,
         notes: "Ordine premium per Mario Rossi - Prodotti DOP",
+        trackingNumber: "DHL1234456",
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2) // 2 days ago
       }
     })
@@ -2862,6 +2866,7 @@ async function main() {
         status: "CONFIRMED",
         totalAmount: 67.80,
         notes: "Ordine grande per Mario Rossi - Prodotti artigianali",
+        trackingNumber: "DHL1234456",
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12) // 12 hours ago
       }
     })
@@ -2894,6 +2899,7 @@ async function main() {
         status: "PENDING",
         totalAmount: 28.90,
         notes: "Ordine recente per Mario Rossi - Prodotti freschi",
+        trackingNumber: "DHL1234456",
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6) // 6 hours ago
       }
     })
@@ -2916,6 +2922,7 @@ async function main() {
         status: "DELIVERED",
         totalAmount: 89.50,
         notes: "Ordine VIP per Mario Rossi - Selezione premium",
+        trackingNumber: "DHL1234456",
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) // 1 week ago
       }
     })

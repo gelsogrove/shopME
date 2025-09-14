@@ -224,6 +224,12 @@
 - **Stato**: COMPLETATO
 - **Note**: RISOLTO - Pagina ordini pubblici ora visualizza correttamente tutti gli indirizzi dei clienti
 
+### TASK: Seed Tracking Number - Aggiunta DHL1234456 a Tutti gli Ordini
+- **Descrizione**: MIGLIORAMENTO APPLICATO: Aggiunto tracking number DHL1234456 a tutti gli ordini nel seed. Modifiche applicate: 1) Aggiunto trackingNumber: "DHL1234456" a tutti e 7 gli ordini (ORD-001-2024 a ORD-007-2024), 2) Tracking number uguale per tutti gli ordini come richiesto, 3) Applicato a ordini di tutti i clienti (Mario Rossi, John Smith, Maria Garcia), 4) Tracking number visibile nelle pagine ordini pubbliche e private. Comportamento corretto: Tutti gli ordini ora hanno il tracking number DHL1234456 per il tracciamento delle spedizioni.
+- **Priorità**: MEDIA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Seed ora include tracking number DHL1234456 per tutti gli ordini
+
 ## ✅ TASK COMPLETATI
 
 ### TASK: Orders - Riorganizzare campo Notes
@@ -265,5 +271,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 40 (24 completati, 16 pending)
+**Task totali**: 41 (25 completati, 16 pending)
 **Task critici**: 2
