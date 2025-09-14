@@ -230,6 +230,12 @@
 - **Stato**: COMPLETATO
 - **Note**: RISOLTO - Seed ora include tracking number DHL1234456 per tutti gli ordini
 
+### TASK: Formatter - Prevenzione Invenzione Informazioni
+- **Descrizione**: PROBLEMA RISOLTO: Il formatter (secondo LLM) stava inventando informazioni non presenti nei dati, come "Ricorda che il link sarà attivo fino al 14 settembre 2025". Problema identificato: Il formatter aggiungeva informazioni non esistenti nei dati forniti dalle funzioni. Soluzione applicata: 1) Aggiunta regola CRITICA nel prompt del formatter: "NEVER add information that is not explicitly provided in the data", 2) Aggiunta regola specifica: "NEVER invent or add phrases like 'Ricorda che il link sarà attivo fino al...' unless this information is explicitly provided in the data", 3) Aggiunta regola generale: "ONLY use information that is explicitly provided in the function results or data", 4) Aggiornato prompt del formatter nel dual-llm.service.ts. Comportamento corretto: Il formatter ora usa solo informazioni presenti nei dati, senza inventare dettagli aggiuntivi.
+- **Priorità**: ALTA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Formatter ora rispetta i dati forniti senza inventare informazioni aggiuntive
+
 ## ✅ TASK COMPLETATI
 
 ### TASK: Orders - Riorganizzare campo Notes
@@ -271,5 +277,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 41 (25 completati, 16 pending)
-**Task critici**: 2
+**Task totali**: 42 (26 completati, 16 pending)
+**Task critici**: 1

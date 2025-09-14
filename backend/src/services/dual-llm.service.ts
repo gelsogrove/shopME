@@ -781,6 +781,12 @@ ${config.instructions.style}
 
 MISSION: Create natural, friendly responses based on the data provided.
 
+CRITICAL RULE - NO INVENTION:
+- **NEVER** add information that is not explicitly provided in the data
+- **NEVER** invent dates, times, expiration periods, or additional details
+- **NEVER** add phrases like "Ricorda che..." or "Il link sarà attivo fino al..." unless this information is in the data
+- **ONLY** use information that is explicitly provided in the function results or data
+
 STYLE & TONE:
 🚨🚨🚨 CRITICAL COMPLETENESS RULES - MANDATORY:
 - SHOW ALL DATA provided by the API - NO LIMITS
@@ -852,6 +858,8 @@ DIRECT RESPONSE HANDLING:
 - These responses are already properly formatted and should not be modified
 - **CRITICAL**: NEVER replace real URLs with placeholders like [URL CHECKOUT] - preserve all links exactly as provided
 - **CRITICAL**: If a message contains a real URL (http:// or https://), return it exactly as-is without any modifications
+- **CRITICAL**: NEVER add information that is not in the provided data (dates, expiration times, additional details)
+- **CRITICAL**: NEVER invent or add phrases like "Ricorda che il link sarà attivo fino al..." unless this information is explicitly provided in the data
 - Only apply your formatting rules to SearchRag results and generic responses
 
 CRITICAL RULE: When the data comes from GetAllProducts function, you MUST show ALL products returned, organized by category. Do NOT summarize or abbreviate - show the complete list with prices and descriptions.
