@@ -623,6 +623,10 @@ export class DualLLMService {
       ]
 
       console.log("🔧🔧🔧 SEARCHRAG ANALYSIS 🔧🔧🔧")
+      console.log("🔧 Raw RAG response:", JSON.stringify(ragResponse.data, null, 2))
+      console.log("🔧 Product results:", JSON.stringify(productResults, null, 2))
+      console.log("🔧 Service results:", JSON.stringify(serviceResults, null, 2))
+      console.log("🔧 FAQ results:", JSON.stringify(faqResults, null, 2))
       console.log("🔧 SearchRag results:", JSON.stringify(allResults, null, 2))
       console.log("🔧 SearchRag results count:", allResults.length)
 
@@ -856,88 +860,8 @@ CRITICAL RULE - NO INVENTION:
 - **ONLY** use information that is explicitly provided in the function results or data
 
 STYLE & TONE:
-🚨🚨🚨 CRITICAL COMPLETENESS RULES - MANDATORY:
-- SHOW ALL DATA provided by the API - NO LIMITS
-- For products: Show EVERY product with [CODE] - Name (Format) - €price
-- For categories: Show EVERY category with icon and name
-- NO truncation, NO summarization, NO "main products" - SHOW EVERYTHING
-- Complete lists are REQUIRED - length is not a problem
-- EXAMPLE: Show all 82 products if that's what the API returns
-
-TONE & PERSONALITY:
-- Professional but friendly tone
-- Use customer's name occasionally (~30% of the time) naturally
-- Mention customer discount in initial greetings
-- Be conversational and warm
-- Use emojis appropriately
-- Always be helpful and professional
-- Examples with name: "Ciao Mario! 🧀", "Perfetto Mario!", "Mario, ecco..."
-
-DISCOUNT RESPONSE TEMPLATE (when user asks about their discount):
-"💰 Il tuo sconto: {discountUser}% su tutti gli ordini! ✨
-🛒 Applicato automaticamente al checkout.
-Vuoi vedere come funziona? Aggiungi prodotti al carrello! 🧀"
-
-PRODUCT DISPLAY RULES - CRITICAL:
-- **OBBLIGO ASSOLUTO**: Quando mostri prodotti, AGGIUNGI SEMPRE il ProductCode e il formato
-- **FORMATO OBBLIGATORIO**: • [CODICE] - Nome Prodotto (Formato) - €prezzo
-- **ESEMPI ESATTI**:
-  - • [0212000024] - Mozzarella di Bufala Campana DOP (125gr * 12) - €9.50
-  - • [0212000019] - Burrata al Tartufo (100gr * 12) - €12.80
-  - • [0217000031] - Gorgonzola Dolce (250gr) - €18.90
-- **MAI** mostrare prodotti senza ProductCode e formato nella risposta finale
-- **SEMPRE** includere formato quando disponibile nei dati
-
-COMPLETE PRODUCT LIST RULES - PRIORITY:
-- **OBBLIGO ASSOLUTO**: Quando GetAllProducts() viene chiamata, devi mostrare TUTTI i prodotti restituiti
-- **VIETATO RIASSUMERE**: NON riassumere, NON abbreviare, NON limitare la lista, NON dire "principali"
-- **VIETATO DIRE**: "Vuoi vedere altri prodotti?" - MOSTRA TUTTO SUBITO SENZA CHIEDERE
-- **ORGANIZZAZIONE**: Raggruppa per categoria ma mostra OGNI prodotto di OGNI categoria
-- **COMPLETEZZA OBBLIGATORIA**: L'utente DEVE vedere OGNI SINGOLO prodotto disponibile
-- **COMPORTAMENTI VIETATI**: ❌ Mostrare solo alcuni prodotti ❌ Dire "prodotti principali" ❌ Limitare la lista
-
-COMPLETE CATEGORIES LIST RULES - PRIORITY:
-- **OBBLIGO ASSOLUTO**: Quando GetAllCategories() viene chiamata, devi mostrare TUTTE le categorie restituite
-- **VIETATO RIASSUMERE**: NON riassumere, NON abbreviare, NON limitare la lista, NON dire "principali"
-- **VIETATO DIRE**: "Vuoi vedere altre categorie?" - MOSTRA TUTTO SUBITO SENZA CHIEDERE
-- **FORMATO OBBLIGATORIO**: Mostra OGNI categoria con icona e nome: • [ICONA] Nome Categoria
-- **COMPLETEZZA OBBLIGATORIA**: L'utente DEVE vedere OGNI SINGOLA categoria disponibile
-- **COMPORTAMENTI VIETATI**: ❌ Mostrare solo alcune categorie ❌ Dire "categorie principali" ❌ Limitare la lista
-
-CRITICAL WHATSAPP FORMATTING RULES:
-- ALWAYS use newlines after colons (:) before starting lists
-- ALWAYS put each list item on a separate line  
-- ALWAYS use line breaks between sections
-- NEVER put list items on same line as the intro text
-- Example CORRECT format:
-  "I can help you with:
-  • Item 1
-  • Item 2" 
-- Example WRONG format:
-  "I can help you with: • Item 1 • Item 2"
-
-CONTEXT: You receive data from either Cloud Functions or SearchRag.
-- Cloud Functions: Structured data (orders, offers, contacts) - some responses are already formatted and should be returned as-is
-- SearchRag: Semantic search results about products/services
-- No data: When no specific information is found, provide helpful guidance
-
-DIRECT RESPONSE HANDLING:
-- When you receive pre-formatted responses from Cloud Functions, return them exactly as provided
-- These responses are already properly formatted and should not be modified
-- **CRITICAL**: NEVER replace real URLs with placeholders like [URL CHECKOUT] - preserve all links exactly as provided
-- **CRITICAL**: If a message contains a real URL (http:// or https://), return it exactly as-is without any modifications
-- **CRITICAL**: NEVER add information that is not in the provided data (dates, expiration times, additional details)
-- **CRITICAL**: NEVER invent or add phrases like "Ricorda che il link sarà attivo fino al..." unless this information is explicitly provided in the data
-- Only apply your formatting rules to SearchRag results and generic responses
-
-CRITICAL RULE: When the data comes from GetAllProducts function, you MUST show ALL products returned, organized by category. Do NOT summarize or abbreviate - show the complete list with prices and descriptions.
-
+// All formatting rules moved to formatter.service.ts
 ${FormatterService.getAllFormattingInstructions(language)}
-
-DISAMBIGUATION HANDLING:
-- CRITICAL: When you receive a disambiguation_required error, use the EXACT error message provided - do NOT reformat it
-- The backend provides precise instructions on how users should respond - preserve these instructions exactly
-- Do NOT change phrases like "aggiungi al carrello [00004]" or similar specific commands
 
 IMPORTANT: When no data is found, don't just say "no data" - instead:
 ${config.instructions.noData.acknowledge}
@@ -1010,7 +934,7 @@ Format the response naturally based on the data type and user's request.`
     let dataContext = ""
     if (functionResults.length > 0) {
       // Check for direct Cloud Function responses that should be returned as-is
-      const directResponseFunctions = ['add_to_cart', 'confirmOrderFromConversation', 'SearchRag', 'GetAllProducts', 'GetProductsByCategory', 'GetOrdersListLink', 'GetCustomerProfileLink', 'GetShipmentTrackingLink', 'ContactOperator', 'GetServices', 'GetUserInfo', 'GetActiveOffers', 'GetAllCategories', 'ragSearch', 'remove_from_cart', 'resolve_disambiguation', 'clear_cart']
+      const directResponseFunctions = ['add_to_cart', 'confirmOrderFromConversation', 'SearchRag', 'GetAllProducts', 'GetProductsByCategory', 'GetOrdersListLink', 'GetCustomerProfileLink', 'GetShipmentTrackingLink', 'ContactOperator', 'GetServices', 'GetUserInfo', 'GetActiveOffers', 'GetAllCategories', 'remove_from_cart', 'resolve_disambiguation', 'clear_cart']
       
       const directResult = functionResults.find(result => 
         directResponseFunctions.includes(result.functionName) && result.result?.success
@@ -1381,24 +1305,6 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
           },
         },
       },
-      {
-        type: "function",
-        function: {
-          name: "ragSearch",
-          description:
-            'Semantic search for general queries about products, services, FAQs, and company information. Use when user asks general questions like: "quanto costa la spedizione", "politica di reso", "how long does it take for my order to arrive", "delivery time", "return policy", "shipping cost", "what are your hours", "contact information". This function searches through FAQs, documents, and knowledge base.',
-          parameters: {
-            type: "object",
-            properties: {
-              query: {
-                type: "string",
-                description: "The search query to find relevant information",
-              },
-            },
-            required: ["query"],
-          },
-        },
-      },
     ]
   }
 
@@ -1593,7 +1499,7 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
             })
             break
 
-          case "ragSearch":
+          case "SearchRag":
             result = await this.callingFunctionsService.SearchRag({
               query: args.query || request.chatInput,
               workspaceId: request.workspaceId,

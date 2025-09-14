@@ -845,6 +845,13 @@ TU: Usa template errore carrello ❌ + suggerisci alternative
 - "caratteristiche formaggio"
 - "come posso pagare"
 - "come pago?"
+- "Tiramisù" = "tiramisu" = "tiramisù"
+- "Cannolo" = "cannoli" = "cannolo siciliano"
+- "Sfogliatella" = "sfogliatelle" = "sfogliatella napoletana"
+- "Torta Sacher" = "sacher" = "torta sacher"
+- "Croissant" = "croissant alla crema"
+
+**🚨 CRITICAL: Se l'utente dice il nome di un prodotto specifico (es: "Tiramisù", "Cannolo", "Mozzarella"), DEVI SEMPRE chiamare SearchRag, NON GetProductsByCategory!**
 - "politica di reso"
 
 **NON rispondere mai in modo generico se c'è un trigger!**

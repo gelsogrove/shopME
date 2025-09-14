@@ -33,6 +33,20 @@ export class TranslationService {
         }
       }
       
+      // 🔧 PRODUCT NAME PRESERVATION: Don't translate Italian product names
+      const italianProductNames = [
+        'tiramisù', 'tiramisu', 'cannolo', 'cannoli', 'sfogliatella', 'sfogliatelle',
+        'parmigiano', 'mozzarella', 'burrata', 'prosciutto', 'pasta', 'pizza',
+        'risotto', 'gnocchi', 'ravioli', 'tortellini', 'lasagne', 'bolognese',
+        'arrabbiata', 'carbonara', 'amatriciana', 'pesto', 'ragù', 'sugo'
+      ];
+      
+      const lowerText = text.toLowerCase().trim();
+      if (italianProductNames.some(product => lowerText.includes(product))) {
+        console.log('🔧 SKIPPING TRANSLATION: Italian product name detected');
+        return text;
+      }
+      
       // TEMP DEBUG: Force translation for longer texts
       console.log('🔧 DEBUG: Proceeding with translation');
       

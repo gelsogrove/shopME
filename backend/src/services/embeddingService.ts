@@ -26,7 +26,7 @@ export class EmbeddingService {
   // 🎯 CONFIGURABLE SIMILARITY THRESHOLDS (Andrea's Request)
   private readonly SIMILARITY_THRESHOLDS = {
     FAQ: 0.35, // 🎯 BALANCED: Higher than before but allows legitimate FAQ matches
-    PRODUCTS: 0.4, // 🎯 BALANCED: Blocks "chi sei" (32.5%) but allows legitimate product searches
+    PRODUCTS: 0.3, // 🎯 FIXED: Lowered from 0.4 to allow Tiramisù (0.337 similarity)
     SERVICES: 0.35, // 🎯 BALANCED: Higher threshold for service precision
     DOCUMENTS: 0.35, // 🎯 BALANCED: More restrictive document matching
   }

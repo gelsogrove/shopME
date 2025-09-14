@@ -2147,13 +2147,13 @@ async function main() {
   // Define sample offers
   const specialOffers = [
     {
-      name: "Offerta Alcolici 20%",
-      description: "Sconto del 20% su tutti gli alcolici!",
+      name: "Offerta Frozen Products 20%",
+      description: "Sconto del 20% su tutti i prodotti surgelati!",
       discountPercent: 20,
       startDate: new Date(new Date().setDate(new Date().getDate() - 30)), // 30 days ago
       endDate: new Date(new Date().setDate(new Date().getDate() + 365)), // 1 year from now
       isActive: true,
-      categoryId: null as string | null, // Will be set to Beverages category below
+      categoryId: null as string | null, // Will be set to Frozen Products category below
     },
     {
       name: "Black Friday Special",
@@ -2186,19 +2186,19 @@ async function main() {
   // Create new offers
   for (const offer of specialOffers) {
     try {
-      // For "Offerta Alcolici 20%", find and assign Beverages category
+      // For "Offerta Frozen Products 20%", find and assign Frozen Products category
       let finalCategoryId = offer.categoryId
-      if (offer.name === "Offerta Alcolici 20%") {
-        const beverageCategory = await prisma.categories.findFirst({
+      if (offer.name === "Offerta Frozen Products 20%") {
+        const frozenCategory = await prisma.categories.findFirst({
           where: {
             workspaceId: mainWorkspaceId,
-            name: "Beverages",
+            name: "Frozen Products",
           },
         })
-        if (beverageCategory) {
-          finalCategoryId = beverageCategory.id
+        if (frozenCategory) {
+          finalCategoryId = frozenCategory.id
           console.log(
-            `Assigning Offerta Alcolici to Beverages category: ${beverageCategory.id}`
+            `Assigning Offerta Frozen Products to Frozen Products category: ${frozenCategory.id}`
           )
         }
       }
