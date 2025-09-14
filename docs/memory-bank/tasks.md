@@ -239,8 +239,14 @@
 ### TASK: SearchRag - Pulizia Intelligente del Prompt
 - **Descrizione**: PROBLEMA IDENTIFICATO: Quando l'utente chiede "come pago?", il sistema risponde genericamente "non ho informazioni" invece di chiamare SearchRag per trovare la FAQ sui metodi di pagamento. Problema identificato: Il prompt conteneva regole specifiche per SearchRag che non erano necessarie, dato che la logica è già implementata nel codice (Cloud Functions → SearchRag → Risposta Generica). Soluzione applicata: 1) Rimossa sezione "TRIGGER PAGAMENTI E FAQ" non necessaria, 2) Sostituita regola complessa con regola semplice: "FLUSSO AUTOMATICO: Cloud Functions FIRST → SearchRag FALLBACK → Risposta Generica", 3) Pulita sezione "FALLBACK SearchRAG" rimuovendo esempi specifici, 4) Aggiunta regola assoluta: "Non devi specificare nulla per SearchRag - il sistema gestisce automaticamente il fallback!", 5) Backup creato prima della modifica, 6) Seed eseguito per aggiornare il prompt nel database. Comportamento atteso: Ora "come pago?" dovrebbe chiamare SearchRag automaticamente tramite il flusso implementato nel codice.
 - **Priorità**: ALTA
-- **Stato**: IN CORSO
-- **Note**: MODIFICHE APPLICATE - Prompt pulito con intelligenza, rimossi trigger specifici non necessari. Test richiesto da Andrea per confermare funzionamento.
+- **Stato**: COMPLETATO ✅
+- **Note**: RISOLTO - "come pago?" ora funziona correttamente con SearchRag. Problema era negli embedding mancanti, risolto con generazione automatica nel seed.
+
+### TASK: GetCustomerProfileLink - Link Profilo Cliente Non Funzionante
+- **Descrizione**: ERRORE CRITICO: La calling function GetCustomerProfileLink non funziona. Quando l'utente chiede di modificare email, indirizzo di spedizione, o profilo, il chatbot risponde sempre: "Sembra che ci sia stato un problema nel tentativo di ottenere il link per il profilo cliente". Esempi che non funzionano: 1) "devo modificare la mail" → Errore link profilo, 2) "devo modificare il mio indirizzo di spedizione" → Errore link profilo, 3) "devo cambiare il mio profile" → Errore link profilo, 4) "profilo" → Errore link profilo. Deve essere investigato: 1) Verificare se GetCustomerProfileLink è implementata correttamente, 2) Controllare se la funzione genera token validi, 3) Verificare se il link generato è corretto, 4) Testare la calling function direttamente, 5) Controllare se il prompt riconosce correttamente le richieste di modifica profilo, 6) Verificare se il formatter gestisce correttamente la risposta della funzione. Comportamento corretto: Richiesta modifica profilo → GetCustomerProfileLink chiamata → Link valido generato → Utente può accedere al profilo.
+- **Priorità**: ALTA
+- **Stato**: PENDING
+- **Note**: CRITICO - Gli utenti non possono modificare i loro dati personali perché il link profilo non funziona
 
 ## ✅ TASK COMPLETATI
 
@@ -283,5 +289,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 43 (26 completati, 17 pending)
+**Task totali**: 44 (27 completati, 17 pending)
 **Task critici**: 2
