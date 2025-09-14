@@ -16,6 +16,18 @@
 - **PRIORITÀ**: ALTA per problemi critici, MEDIA per miglioramenti, BASSA per feature opzionali
 - **STATO**: PENDING per nuovi task, IN PROGRESS per task in corso, COMPLETATO per task finiti
 
+### TASK: Debug Traduzione nel Frontend WhatsApp
+- **Descrizione**: Aggiungere la visualizzazione della traduzione nel debug della chat WhatsApp quando l'utente clicca sul bottone di debug. Mostrare "Translated: [frase tradotta]" nella sezione Function Calls.
+- **Priorità**: ALTA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Aggiunta visualizzazione della traduzione nel frontend WhatsApp. Quando l'utente clicca sul bottone debug (icona Code), ora vede "🌐 Translated: [frase tradotta]" nella sezione Function Calls. Il sistema preserva correttamente i nomi dei prodotti italiani (es. "fior di latte cubettata" non viene tradotto).
+
+### TASK: Refactoring Translation Service - LLM Dedicato
+- **Descrizione**: Sostituire l'attuale sistema di traduzione con hardcoded rules con un LLM dedicato che analizzi e decida quando tradurre o preservare i nomi dei prodotti italiani. Il sistema attuale con liste hardcoded non è elegante e non scalabile.
+- **Priorità**: ALTA
+- **Stato**: PENDING
+- **Note**: Andrea ha identificato che la soluzione attuale con debug ovunque e liste hardcoded non è elegante. Serve un LLM dedicato che analizzi il contesto e decida intelligentemente quando tradurre o preservare i nomi dei prodotti.
+
 ### TASK: Controllare ordine della chatHistory
 - **Descrizione**: Verificare e correggere l'ordine di visualizzazione dei messaggi nella cronologia chat
 - **Priorità**: MEDIA

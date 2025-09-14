@@ -71,7 +71,7 @@ CART RESPONSE FORMAT:
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
-- ALWAYS include cart link at the end when cartUrl is provided: "🔗 Vedi il carrello: [URL]"
+- ONLY include cart link when user explicitly asks to see the cart: "🔗 Vedi il carrello: [URL]"
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -139,7 +139,7 @@ CART RESPONSE FORMAT:
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
-- ALWAYS include cart link at the end when cartUrl is provided: "🔗 View cart: [URL]"
+- ONLY include cart link when user explicitly asks to see the cart: "🔗 View cart: [URL]"
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -173,7 +173,7 @@ CART RESPONSE FORMAT:
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
-- ALWAYS include cart link at the end when cartUrl is provided: "🔗 Ver carrito: [URL]"
+- ONLY include cart link when user explicitly asks to see the cart: "🔗 Ver carrito: [URL]"
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -207,7 +207,7 @@ CART RESPONSE FORMAT:
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
-- ALWAYS include cart link at the end when cartUrl is provided: "🔗 Ver carrinho: [URL]"
+- ONLY include cart link when user explicitly asks to see the cart: "🔗 Ver carrinho: [URL]"
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -301,8 +301,11 @@ export class FormatterService {
       formatted = formatted.replace(regex, '$1• ')
     })
 
-    // 2. 🔧 Convert dashes (-) to bullet points (•)
+    // 2. 🔧 Convert dashes (-) to bullet points (•) - but only if not already a bullet point
     formatted = formatted.replace(/^(\s*)- /gm, '$1• ')
+    
+    // 2.1. 🔧 Remove duplicate bullet points (• •)
+    formatted = formatted.replace(/^(\s*)• • /gm, '$1• ')
 
     // 3. ✨ Add titles with * when missing for payment lists
     if ((formatted.includes('• Carta di credito') || formatted.includes('• PayPal')) && 

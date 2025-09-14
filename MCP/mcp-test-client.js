@@ -428,6 +428,11 @@ Cosa desideri fare?
                 console.log(`${this.colors.yellow}      Args: ${JSON.stringify(args)}${this.colors.reset}`);
               }
               
+              // Mostra traduzione se disponibile
+              if (response.data.debug && response.data.debug.translatedQuery) {
+                console.log(`${this.colors.magenta}      Translated: ${response.data.debug.translatedQuery}${this.colors.reset}`);
+              }
+              
               if (call.result) {
                 // Mostra solo un summary del result, non tutto il JSON
                 let resultSummary;
@@ -474,7 +479,9 @@ Cosa desideri fare?
               console.log(`${this.colors.magenta}🔍 Translated Query: ${response.data.debug.translatedQuery}${this.colors.reset}`);
             }
           }
-        } else if (response.data && response.data.success) {
+        }
+        
+        if (response.data && response.data.success) {
           console.log(`${this.colors.yellow}✅ Richiesta processata ma nessun messaggio di risposta${this.colors.reset}`);
         } else {
           console.log(`${this.colors.yellow}⚠️ Risposta ricevuta ma formato inaspettato${this.colors.reset}`);

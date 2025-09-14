@@ -38,12 +38,16 @@ export class TranslationService {
         'tiramisù', 'tiramisu', 'cannolo', 'cannoli', 'sfogliatella', 'sfogliatelle',
         'parmigiano', 'mozzarella', 'burrata', 'prosciutto', 'pasta', 'pizza',
         'risotto', 'gnocchi', 'ravioli', 'tortellini', 'lasagne', 'bolognese',
-        'arrabbiata', 'carbonara', 'amatriciana', 'pesto', 'ragù', 'sugo'
+        'arrabbiata', 'carbonara', 'amatriciana', 'pesto', 'ragù', 'sugo',
+        'cubettata', 'cubetti', 'boccone', 'bocconi', 'julienne', 'fiammifero',
+        'fiordilatte', 'fior di latte', 'ricotta', 'bufala', 'campana', 'dop'
       ];
       
       const lowerText = text.toLowerCase().trim();
-      if (italianProductNames.some(product => lowerText.includes(product))) {
-        console.log('🔧 SKIPPING TRANSLATION: Italian product name detected');
+      const foundProduct = italianProductNames.find(product => lowerText.includes(product));
+      if (foundProduct) {
+        console.log('🔧 SKIPPING TRANSLATION: Italian product name detected:', foundProduct);
+        console.log('🔧 ORIGINAL TEXT:', text);
         return text;
       }
       
@@ -82,7 +86,9 @@ export class TranslationService {
       });
 
       const translation = response.data.choices[0]?.message?.content?.trim() || text;
-      console.log('✅ Translation successful:', translation);
+      console.log('✅ Translation successful:');
+      console.log('🔧 ORIGINAL:', text);
+      console.log('🔧 TRANSLATED:', translation);
       return translation;
 
     } catch (error) {

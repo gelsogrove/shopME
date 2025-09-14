@@ -901,6 +901,15 @@ export function WhatsAppChatModal({
                                     : `⚡ Function Calls (${message.functionCalls.length}):`
                                   }
                                 </div>
+                                
+                                {/* Show translation if available */}
+                                {message.translatedQuery && (
+                                  <div className="bg-pink-50 border border-pink-200 rounded p-2 mb-2">
+                                    <div className="text-xs font-medium text-pink-700">
+                                      🌐 Translated: {message.translatedQuery}
+                                    </div>
+                                  </div>
+                                )}
                                 <div className="space-y-2 max-h-40 overflow-y-auto">
                                   {message.functionCalls.map((call, index) => (
                                     <div key={index} className="bg-white border border-purple-100 rounded p-2">
