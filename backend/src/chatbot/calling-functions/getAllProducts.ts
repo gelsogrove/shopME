@@ -108,8 +108,7 @@ Contatta il nostro staff per maggiori informazioni sui prodotti disponibili.`;
         const stockText = product.stock > 0 ? `✅ Disponibile (${product.stock})` : '❌ Esaurito';
         const formatoText = product.formato ? ` - Formato: ${product.formato}` : '';
         
-        const productCode = product.ProductCode || product.sku || `00${index + 1}`.padStart(5, '0');
-        return `   • [${productCode}] - **${product.name}**${formatoText} - ${priceText} - ${stockText}${product.description ? `\n      _${product.description}_` : ''}`;
+        return `   • **${product.name}**${formatoText} - ${priceText} - ${stockText}${product.description ? `\n      _${product.description}_` : ''}`;
       }).join('\n');
       
       return `📂 **${categoryName}**\n${productItems}`;

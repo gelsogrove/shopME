@@ -66,8 +66,8 @@ Dopo i test in italiano, provare in **inglese** e **spagnolo**:
 ### 🛒 **CATEGORIA 2: GESTIONE CARRELLO**
 | # | Comando | Risultato Atteso | CF da Chiamare |
 |---|---------|------------------|----------------|
-| 2 | `aggiungi al carrello un prosecco` | Aggiunge al carrello | `add_to_cart` |
-| 3 | `aggiungi al carrello una mozzarella` | **Mostra 2 prodotti** per scelta utente | `SearchRag_product` |
+| 2 | `aggiungi al carrello un prosecco` | Aggiunge al carrello automaticamente | `SearchRag` (cart-aware) |
+| 3 | `aggiungi al carrello una mozzarella` | **Mostra 2 prodotti** per scelta utente | `SearchRag` (cart-aware) |
 | 4 | `fammi vedere il carrello` | Mostra carrello + LINK | `confirmOrderFromConversation` |
 | 4b | `show me cart` | Mostra carrello + LINK | `confirmOrderFromConversation` |
 | 4c | `muéstrame carrito` | Mostra carrello + LINK | `confirmOrderFromConversation` |
@@ -95,18 +95,27 @@ Dopo i test in italiano, provare in **inglese** e **spagnolo**:
 ### 🛍️ **CATEGORIA 4: CATALOGO PRODOTTI E SERVIZI**
 | # | Comando | Risultato Atteso | CF da Chiamare |
 |---|---------|------------------|----------------|
-| 15 | `fammi vedere i prodotti` | Lista prodotti | `SearchRag_product` |
-| 16 | `fammi vedere i servizi` | Lista servizi | `SearchRag_service` |
-| 17 | `avete prodotti freschi` | Lista prodotti freschi | `SearchRag_product` |
-| 18 | `che servizi offrite` | Lista servizi (2) | `SearchRag_service` |
-| 19 | `quanto costa il limoncello` | Prezzo scontato | `SearchRag_product` |
-| 19b | `prezzo del limoncello` | Prezzo scontato | `SearchRag_product` |
+| 15 | `che prodotti avete` | Lista categorie con icone e conteggio | `GetAllProducts` |
+| 15b | `dammi tutti i prodotti che vendete` | Lista categorie con icone e conteggio | `GetAllProducts` |
+| 15c | `cosa vendete` | Lista categorie con icone e conteggio | `GetAllProducts` |
+| 16 | `che categorie hai di prodotti` | Lista categorie con icone e conteggio | `GetAllCategories` |
+| 16b | `che categorie avete` | Lista categorie con icone e conteggio | `GetAllCategories` |
+| 17 | `Formaggi e Latticini` | Lista prodotti della categoria formaggi | `GetProductsByCategory` |
+| 17b | `formaggi` | Lista prodotti della categoria formaggi | `GetProductsByCategory` |
+| 17c | `le spezie` | Lista prodotti della categoria spezie | `GetProductsByCategory` |
+| 18 | `hai la mozzarella di bufala` | Ricerca mozzarella di bufala | `SearchRag` |
+| 18b | `avete il parmigiano` | Ricerca parmigiano | `SearchRag` |
+| 19 | `che servizi offrite` | Lista servizi (2) | `GetServices` |
+| 19b | `che servizi avete` | Lista servizi (2) | `GetServices` |
+| 20 | `che offerte avete` | Lista offerte attive | `GetActiveOffers` |
 
 ### ❓ **CATEGORIA 5: FAQ E INFORMAZIONI**
 | # | Comando | Risultato Atteso | CF da Chiamare |
 |---|---------|------------------|----------------|
-| 20 | `come pago` | FAQ pagamenti | `SearchRag_faq` |
-| 21 | `come gestite la catena del freddo` | Risposta in italiano | `SearchRag_faq` |
+| 21 | `come pago` | FAQ pagamenti | `SearchRag` |
+| 21b | `come gestite la catena del freddo` | Risposta in italiano | `SearchRag` |
+| 21c | `quanto ci vuole per la consegna` | Info tempi consegna | `SearchRag` |
+| 21d | `politica di reso` | Info resi | `SearchRag` |
 
 ### 👤 **CATEGORIA 6: GESTIONE PROFILO E SUPPORTO**
 | # | Comando | Risultato Atteso | CF da Chiamare |
@@ -131,11 +140,14 @@ Dopo i test in italiano, provare in **inglese** e **spagnolo**:
 
 ## 📊 **MAPPATURA CF COMPLETA:**
 - `GetUserInfo`: 0 casi
-- `add_to_cart`: 4 casi
+- `add_to_cart`: 3 casi (solo per modifiche quantità)
 - `confirmOrderFromConversation`: 9 casi
-- `SearchRag_product`: 5 casi
-- `SearchRag_service`: 2 casi
-- `SearchRag_faq`: 5 casi
+- `SearchRag`: 8 casi (cart-aware + ricerca prodotti + FAQ)
+- `GetAllProducts`: 3 casi (lista categorie)
+- `GetAllCategories`: 2 casi (categorie disponibili)
+- `GetProductsByCategory`: 3 casi (prodotti per categoria)
+- `GetServices`: 2 casi (lista servizi)
+- `GetActiveOffers`: 1 caso (offerte attive)
 - `GetOrdersListLink`: 6 casi
 - `GetShipmentTrackingLink`: 3 casi
 - `GetCustomerProfileLink`: 1 caso
@@ -143,23 +155,28 @@ Dopo i test in italiano, provare in **inglese** e **spagnolo**:
 
 ## 📊 **REPORT IN TEMPO REALE:**
 **MANTENGO SEMPRE AGGIORNATO** il report durante i test con:
-- ✅ **Test passati**: #6 "come pago" - SearchRag_faq chiamata correttamente (ma errore formattazione)
-- ❌ **Test falliti**: #1 "chi sei" - GENERIC (CORRETTO secondo Andrea)
-- ❌ **Test falliti**: #2 "aggiungi al carrello un prosecco" - SearchRag_product invece di add_to_cart
-- ❌ **Test falliti**: #3 "fammi vedere il carrello" - SearchRag_faq invece di confirmOrderFromConversation
-- ❌ **Test falliti**: #4 "dammi link ordini" - SearchRag_faq invece di GetOrdersListLink
-- ❌ **Test falliti**: #5 "fammi vedere i prodotti" - SearchRag_product invece di GetAllProducts
-- ❌ **Test falliti**: #7 "voglio modificare il mio indirizzo di fatturazione" - GENERIC invece di GetCustomerProfileLink
-- ❌ **Test falliti**: #8 "who are you" (EN) - SearchRag_faq chiamata ma errore formattazione
-- ❌ **Test falliti**: #9 "quién eres" (ES) - GENERIC invece di SearchRag_faq
-- ⚠️ **Errori risolti**: Nessuno ancora
-- 🚨 **Problemi OpenRouter**: Nessuno
-- 🚨 **PROBLEMA CRITICO**: LLM non riconosce le Cloud Functions, usa solo SearchRag
-- 🚨 **PROBLEMA FORMATTAZIONE**: Tutti i test con SearchRag hanno errore formattazione
+
+### ✅ **NUOVO SISTEMA CATEGORIE:**
+- **GetAllProducts**: Mostra categorie con icone e conteggio prodotti
+- **GetProductsByCategory**: Mostra tutti i prodotti di una categoria specifica
+- **SearchRag**: Ricerca semantica per prodotti specifici e FAQ
+- **SearchRag (cart-aware)**: Aggiunge automaticamente al carrello
+
+### 🎯 **TEST CASES AGGIORNATI:**
+- **Totale test cases**: 40+ (organizzati per flusso categorie)
+- **Categorie**: 6 (Utente, Carrello, Ordini, Catalogo, FAQ, Profilo)
+- **Lingue**: Italiano, Inglese, Spagnolo
+- **Flusso**: Categorie → Prodotti per categoria → Ricerca specifica
+
+### 🚨 **PROBLEMI DA RISOLVERE:**
+1. **SearchRag_faq**: Errore "Unknown function" - deve essere `SearchRag`
+2. **Temperature**: Main LLM 0.0, Formatter 0.3 (✅ CORRETTO)
+3. **Prompt structure**: Regole per domande sui prodotti aggiunte
 
 ## 🚀 **STATO SISTEMA:**
-**PRONTO PER I TEST** - 35 test cases organizzati in 6 categorie (IT/EN/ES)
-**TUTTI I PROBLEMI RISOLTI** - Sistema al 100% funzionante
+**AGGIORNATO CON NUOVO FLUSSO CATEGORIE** - 40+ test cases organizzati per flusso categorie
+**TEMPERATURE CORRETTE** - Main LLM 0.0, Formatter 0.3
+**PROBLEMA SearchRag_faq** - Da correggere nel prompt
 
 
 il report lo devi salvare dentro chek_report.md dentro docs

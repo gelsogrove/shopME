@@ -379,7 +379,15 @@ router.get('/public/orders/:orderCode', async (req: Request, res: Response) => {
           }
         },
         customer: {
-          select: { id: true, name: true, email: true, phone: true, language: true }
+          select: { 
+            id: true, 
+            name: true, 
+            email: true, 
+            phone: true, 
+            language: true,
+            address: true,
+            invoiceAddress: true
+          }
         },
         workspace: {
           select: { id: true, name: true }
@@ -392,6 +400,29 @@ router.get('/public/orders/:orderCode', async (req: Request, res: Response) => {
         success: false,
         error: 'Order not found'
       });
+    }
+
+    // Parse customer addresses if they're JSON strings
+    let parsedCustomer = { ...order.customer };
+    
+    // Parse invoiceAddress if it's a JSON string
+    if (parsedCustomer.invoiceAddress && typeof parsedCustomer.invoiceAddress === 'string') {
+      try {
+        parsedCustomer.invoiceAddress = JSON.parse(parsedCustomer.invoiceAddress);
+      } catch (error) {
+        logger.warn('[PUBLIC-ORDERS] Failed to parse invoiceAddress JSON:', error);
+        parsedCustomer.invoiceAddress = null;
+      }
+    }
+    
+    // Parse address if it's a JSON string
+    if (parsedCustomer.address && typeof parsedCustomer.address === 'string') {
+      try {
+        parsedCustomer.address = JSON.parse(parsedCustomer.address);
+      } catch (error) {
+        logger.warn('[PUBLIC-ORDERS] Failed to parse address JSON:', error);
+        parsedCustomer.address = null;
+      }
     }
 
     // Format order items
@@ -427,7 +458,7 @@ router.get('/public/orders/:orderCode', async (req: Request, res: Response) => {
       success: true,
       data: {
         order: formattedOrder,
-        customer: order.customer,
+        customer: parsedCustomer,
         workspace: order.workspace
       }
     });

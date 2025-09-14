@@ -176,6 +176,54 @@
 - **Stato**: PENDING
 - **Note**: Importante per avere controllo completo sulla configurazione LLM e mantenere temperature diverse per RAG Processor (0.3) e Formatter (0.7)
 
+### TASK: Messaggio Automatico di Riattivazione Chat
+- **Descrizione**: IMPLEMENTARE: Quando l'utente clicca per riattivare la chat (isChatActive = true e block = false), il sistema deve inviare automaticamente un messaggio di benvenuto nella chat. Deve essere implementato: 1) Rilevamento del cambio di stato da isChatActive = false a isChatActive = true, 2) Verifica che block = false (utente non bloccato), 3) Invio automatico del messaggio "Il chatbot è ritornato attivo, come posso aiutarti oggi?" nella lingua appropriata dell'utente, 4) Registrazione del messaggio automatico nella cronologia chat, 5) Aggiunta di 0,5 centesimi di guadagno per il messaggio automatico, 6) Gestione multilingue del messaggio (IT/EN/ES/PT), 7) Integrazione con il sistema di messaggistica esistente, 8) Test del flusso completo di riattivazione. Comportamento corretto: Utente clicca riattiva chat → Sistema rileva cambio stato → Invia messaggio automatico → Registra in cronologia → Aggiunge guadagno 0,5 centesimi.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Migliora l'esperienza utente fornendo feedback immediato quando la chat viene riattivata, con messaggio multilingue e tracking del guadagno
+
+### TASK: Link Checkout Non Funzionante - Placeholder URL
+- **Descrizione**: ERRORE CRITICO: Il sistema genera link di checkout con placeholder invece di URL reali. Quando l'utente conferma un ordine, riceve un messaggio con link "http://link-per-completare-checkout/" invece del link reale di checkout. Problema identificato: 1) LLM sostituisce URL reali con placeholder, 2) Messaggio di conferma ordine non usa le calling functions corrette, 3) Link di checkout non funzionante, 4) Variabile d'ambiente FRONTEND_URL potrebbe non essere configurata, 5) Formatter potrebbe modificare URL reali. Deve essere risolto: 1) Verificare configurazione FRONTEND_URL nel backend, 2) Controllare se il messaggio viene generato dalle calling functions o dal LLM, 3) Assicurarsi che il formatter preservi URL reali, 4) Testare generazione link checkout, 5) Verificare che confirmOrderFromConversation funzioni correttamente. Comportamento corretto: Conferma ordine → Link checkout reale → Accesso funzionante al checkout.
+- **Priorità**: ALTA
+- **Stato**: PENDING
+- **Note**: CRITICO - Il link di checkout deve funzionare per permettere agli utenti di completare gli ordini
+
+### TASK: Sconto 20% Erroneo su Tutti i Prodotti - Offerta Alcolici
+- **Descrizione**: ERRORE RISOLTO: Il sistema applicava erroneamente uno sconto del 20% a tutti i prodotti (inclusa la mozzarella di bufala) a causa di un'offerta "Offerta Alcolici 20%" configurata senza categoria specifica. Problema identificato: 1) Offerta "Offerta Alcolici 20%" senza categoryId si applicava a tutti i prodotti, 2) Mozzarella di bufala aveva sconto del 20% (sbagliato), 3) Non esistono prodotti alcolici nel sistema, 4) Offerta creata per errore o mal configurata. Soluzione applicata: 1) Disattivata l'offerta "Offerta Alcolici 20%" nel database, 2) Verificato che non ci siano prodotti alcolici nel sistema, 3) Confermato che l'offerta era configurata male. Comportamento corretto: Prodotti senza sconti non voluti, solo sconti cliente specifici applicati.
+- **Priorità**: ALTA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Offerta "Offerta Alcolici 20%" disattivata, mozzarella di bufala ora senza sconto errato
+
+### TASK: Seed Senza Ordini - Aggiunta Ordini di Test
+- **Descrizione**: PROBLEMA RISOLTO: Il seed del database non creava ordini di esempio, causando un sistema senza ordini per i test. Problema identificato: 1) Seed creava solo prodotti, clienti, chat e FAQ, 2) Nessun ordine di esempio nel database, 3) Sistema di ordini non testabile, 4) Frontend ordini vuoto, 5) Errore TypeScript: campo 'currency' non esiste nel modello Orders. Soluzione applicata: 1) Aggiunta creazione di 3 ordini di esempio nel seed, 2) Ordine per Mario Rossi (CONFIRMED) - €25.50, 3) Ordine per John Smith (PENDING) - €18.90, 4) Ordine per Maria Garcia (DELIVERED) - €32.80, 5) Ogni ordine con items e prodotti reali, 6) Date diverse per testare filtri temporali, 7) Rimosso campo 'currency' non esistente dal modello Orders. Comportamento corretto: Seed crea ordini di esempio per testare il sistema completo.
+- **Priorità**: MEDIA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Seed ora crea 3 ordini di esempio con status diversi per testare il sistema, errore TypeScript risolto
+
+### TASK: Messaggi Sistema Non Verdi - Metadati Mancanti nel Seed
+- **Descrizione**: PROBLEMA RISOLTO: I messaggi del sistema nel seed non apparivano verdi nel frontend perché mancavano i metadati necessari per l'identificazione del chatbot. Problema identificato: 1) Messaggi OUTBOUND senza campo aiGenerated, 2) Messaggi senza metadata.agentSelected, 3) Frontend non riconosceva i messaggi come chatbot, 4) Messaggi sistema appaiono bianchi invece che verdi. Soluzione applicata: 1) Aggiunto aiGenerated: true a tutti i messaggi OUTBOUND, 2) Aggiunto metadata con agentSelected: "CHATBOT_DUAL_LLM", 3) Aggiunto metadata con sentBy: "AI", 4) Applicato a tutti i 4 clienti di test (Mario, John, Maria, João). Comportamento corretto: Messaggi del sistema ora appaiono verdi nel frontend come previsto.
+- **Priorità**: MEDIA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Messaggi del sistema ora hanno metadati corretti e appaiono verdi nel frontend
+
+### TASK: Seed Messaggi e Ordini - Semplificazione e Aggiunta Ordini Mario Rossi
+- **Descrizione**: MIGLIORAMENTO APPLICATO: Semplificati i messaggi iniziali nel seed e aggiunti ordini per Mario Rossi. Modifiche applicate: 1) Messaggi iniziali semplificati a solo "Ciao!", "Hello!", "¡Hola!", "Olá!" per tutti i clienti, 2) Aggiunti 4 ordini aggiuntivi per Mario Rossi (ORD-004 a ORD-007), 3) Ordini con status diversi (DELIVERED, CONFIRMED, PENDING), 4) Date diverse per testare filtri temporali, 5) Importi variabili (€45.20, €67.80, €28.90, €89.50), 6) Note descrittive per ogni ordine. Comportamento corretto: Seed ora crea 7 ordini totali (5 per Mario Rossi, 1 per John Smith, 1 per Maria Garcia) con messaggi iniziali semplici.
+- **Priorità**: MEDIA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Seed migliorato con messaggi semplici e più ordini per testare il sistema
+
+### TASK: Seed Indirizzi Completi - Fatturazione e Spedizione per Tutti i Clienti
+- **Descrizione**: MIGLIORAMENTO APPLICATO: Aggiunti indirizzi di fatturazione e spedizione completi per tutti i clienti nel seed. Modifiche applicate: 1) Aggiunto campo invoiceAddress (JSON) con dati completi per tutti i 4 clienti, 2) Modificato campo address per contenere indirizzo di spedizione (JSON) diverso da fatturazione, 3) Indirizzi realistici per ogni paese (Italia, UK, Spagna, Portogallo), 4) Partite IVA valide per ogni paese, 5) Codici postali corretti, 6) Indirizzi di spedizione diversi da quelli di fatturazione per testare il sistema completo. Comportamento corretto: Tutti i clienti ora hanno indirizzi completi per fatturazione e spedizione, pronti per il checkout e la gestione ordini.
+- **Priorità**: MEDIA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Seed ora include indirizzi completi per tutti i clienti, sistema di checkout e fatturazione completamente funzionale
+
+### TASK: Pagina Ordini Pubblici - Indirizzi Non Visibili
+- **Descrizione**: PROBLEMA RISOLTO: Gli indirizzi di fatturazione e spedizione non apparivano nella pagina pubblica degli ordini. Problema identificato: 1) Backend non includeva address e invoiceAddress nella query del customer, 2) Frontend non gestiva la visualizzazione degli indirizzi del cliente, 3) API restituiva solo nome e ID del cliente, 4) Indirizzi JSON non venivano parsati correttamente. Soluzione applicata: 1) Aggiunto address e invoiceAddress alla query del customer nel backend, 2) Aggiunto parsing degli indirizzi JSON nel backend, 3) Aggiornato frontend per mostrare indirizzo di fatturazione completo, 4) Aggiornato frontend per mostrare indirizzo di spedizione (ordine o cliente), 5) Gestione fallback per indirizzi mancanti. Comportamento corretto: Pagina ordini pubblici ora mostra indirizzi completi di fatturazione e spedizione.
+- **Priorità**: MEDIA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Pagina ordini pubblici ora visualizza correttamente tutti gli indirizzi dei clienti
+
 ## ✅ TASK COMPLETATI
 
 ### TASK: Orders - Riorganizzare campo Notes
@@ -217,5 +265,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 32 (18 completati, 14 pending)
+**Task totali**: 40 (24 completati, 16 pending)
 **Task critici**: 2

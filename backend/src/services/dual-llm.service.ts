@@ -286,8 +286,122 @@ export class DualLLMService {
       console.log(`🔧 Cloud Functions: Using agent prompt from DB with language enforcement for: ${languageParam}`)
       console.log(`🌐 Language enforcement added: ${languageEnforcement.substring(0, 50)}...`)
       
+      // 🚨 CRITICAL TRIGGER DETECTION - Force GetAllProducts() for specific triggers
+      const criticalTriggers = ["cosa vendete", "che prodotti avete", "what do you sell", "che prodotti avete?", "cosa vendete?"]
+      console.log(`🔍 TRIGGER DETECTION: Checking "${translatedQuery}" against triggers:`, criticalTriggers)
+      
+      const isCriticalTrigger = criticalTriggers.some(trigger => {
+        const match = translatedQuery.toLowerCase().includes(trigger.toLowerCase())
+        console.log(`🔍 Checking "${trigger}" in "${translatedQuery.toLowerCase()}" = ${match}`)
+        return match
+      })
+      
+      console.log(`🔍 CRITICAL TRIGGER RESULT: ${isCriticalTrigger}`)
+      
+      // 🚨 CRITICAL CATEGORY DETECTION - Force GetProductsByCategory() for specific categories
+      const categoryTriggers = [
+        "formaggi e latticini", "cheeses & dairy", "salumi", "cured meats",
+        "farine e prodotti da forno", "flour & baking", "prodotti surgelati", "frozen products",
+        "pasta e riso", "pasta & rice", "salami e affettati", "salami & cold cuts",
+        "salse e conserve", "sauces & preserves", "prodotti al pomodoro", "tomato products",
+        "varie e spezie", "various & spices", "acqua e bevande", "water & beverages"
+      ]
+      console.log(`🔍 CATEGORY DETECTION: Checking "${translatedQuery}" against categories:`, categoryTriggers)
+      
+      const isCategoryTrigger = categoryTriggers.some(trigger => {
+        const match = translatedQuery.toLowerCase().includes(trigger.toLowerCase())
+        console.log(`🔍 Checking category "${trigger}" in "${translatedQuery.toLowerCase()}" = ${match}`)
+        return match
+      })
+      
+      console.log(`🔍 CATEGORY TRIGGER RESULT: ${isCategoryTrigger}`)
+      
+      // 🚨 CRITICAL ORDER CONFIRMATION DETECTION - Force confirmOrderFromConversation() for specific triggers
+      const orderConfirmationTriggers = [
+        "procedi con l'ordine", "conferma ordine", "finalizza ordine", "procedi al checkout",
+        "confirm order", "finalize order", "proceed with order", "proceed to checkout",
+        "conferma", "procedi", "confirm", "proceed", "va bene così", "ok procedi",
+        "acquista", "ordina", "completa ordine", "finalizza acquisto", "checkout"
+      ]
+      console.log(`🔍 ORDER CONFIRMATION DETECTION: Checking "${translatedQuery}" against triggers:`, orderConfirmationTriggers)
+      
+      const isOrderConfirmationTrigger = orderConfirmationTriggers.some(trigger => {
+        const match = translatedQuery.toLowerCase().includes(trigger.toLowerCase())
+        console.log(`🔍 Checking order confirmation "${trigger}" in "${translatedQuery.toLowerCase()}" = ${match}`)
+        return match
+      })
+      
+      console.log(`🔍 ORDER CONFIRMATION TRIGGER RESULT: ${isOrderConfirmationTrigger}`)
+      
+      let toolChoice: string | { type: string; function: { name: string } } = "auto"
+      if (isOrderConfirmationTrigger) {
+        console.log(`🚨 ORDER CONFIRMATION TRIGGER DETECTED: "${translatedQuery}" - BYPASSING LLM AND CALLING FUNCTION DIRECTLY`)
+        
+        // 🚨 BYPASS LLM - Call function directly for order confirmation
+        try {
+          const directResult = await this.executeToolCalls([{
+            toolCall: {
+              index: 0,
+              id: "direct_call_" + Date.now(),
+              type: "function",
+              function: {
+                name: "confirmOrderFromConversation",
+                arguments: JSON.stringify({
+                  useCartData: true,
+                  generateCartLink: false
+                })
+              }
+            }
+          }], request)
+          
+          console.log(`🚨 DIRECT FUNCTION CALL RESULT:`, directResult)
+          
+          if (directResult && directResult.length > 0 && directResult[0].result?.success) {
+            // 🚨 PRIORITY: response > data.message > message (response contains the full formatted message with link)
+            const message = directResult[0].result.response || directResult[0].result.data?.message || directResult[0].result.message
+            console.log(`🚨 DIRECT FUNCTION RESULT - response:`, directResult[0].result.response)
+            console.log(`🚨 DIRECT FUNCTION RESULT - data.message:`, directResult[0].result.data?.message)
+            console.log(`🚨 DIRECT FUNCTION RESULT - final message:`, message)
+            if (message) {
+              // 🚨 CRITICAL: Return the message directly without any processing - BYPASS FORMATTER COMPLETELY
+              return {
+                success: true,
+                output: message,
+                translatedQuery,
+                functionCalls: directResult,
+                debugInfo: {
+                  directFunctionCall: true,
+                  trigger: translatedQuery,
+                  bypassFormatter: true
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`❌ DIRECT FUNCTION CALL FAILED:`, error)
+        }
+        
+        toolChoice = {
+          type: "function",
+          function: { name: "confirmOrderFromConversation" }
+        }
+        console.log(`🚨 FORCED TOOL CHOICE SET TO:`, JSON.stringify(toolChoice))
+      } else if (isCategoryTrigger) {
+        console.log(`🚨 CATEGORY TRIGGER DETECTED: "${translatedQuery}" - Forcing GetProductsByCategory() call`)
+        toolChoice = {
+          type: "function",
+          function: { name: "GetProductsByCategory" }
+        }
+      } else if (isCriticalTrigger) {
+        console.log(`🚨 CRITICAL TRIGGER DETECTED: "${translatedQuery}" - Forcing GetAllProducts() call`)
+        toolChoice = {
+          type: "function",
+          function: { name: "GetAllProducts" }
+        }
+      }
+      
       const openRouterPayload = {
-        model: agentConfig.model || "openai/gpt-4o",
+        model: agentConfig.model || "openai/gpt-4o-mini",
         messages: this.buildConversationMessages(
           [
             {
@@ -302,11 +416,12 @@ export class DualLLMService {
           request.messages || []
         ),
         tools: functionDefinitions,
-        tool_choice: "auto", // Let AI decide when to use functions
-          temperature: 0.0, // Zero temperature for maximum determinism - no hallucinations
+        tool_choice: toolChoice, // Force GetAllProducts() for critical triggers, auto for others
+          temperature: 0.0, // Zero temperature for precise function calling
         max_tokens: agentConfig.maxTokens || 1000,
       }
 
+      console.log(`🚨 SENDING TO LLM - tool_choice:`, JSON.stringify(toolChoice))
       console.log(
         "🚀 CLOUD FUNCTIONS PAYLOAD:",
         JSON.stringify(openRouterPayload, null, 2)
@@ -539,7 +654,7 @@ export class DualLLMService {
       const response = await axios.post(
         this.openRouterUrl,
         {
-          model: "anthropic/claude-3-5-sonnet-20241022",
+          model: "openai/gpt-4o-mini",
           messages: this.buildConversationMessages(
             [
               {
@@ -553,8 +668,8 @@ export class DualLLMService {
             ],
             request.messages || []
           ),
-        temperature: 0.0, // Zero temperature for formatter - no creative variations
-          max_tokens: 700,
+        temperature: 0.0, // Zero temperature for precise formatting
+          max_tokens: 8000, // Increased for complete product lists
         },
         {
         headers: {
@@ -563,7 +678,7 @@ export class DualLLMService {
             "HTTP-Referer": "http://localhost:3001",
             "X-Title": "ShopMe Formatter",
           },
-          timeout: 30000,
+          timeout: 60000, // Increased timeout for long product lists
         }
       )
 
@@ -667,21 +782,20 @@ ${config.instructions.style}
 MISSION: Create natural, friendly responses based on the data provided.
 
 STYLE & TONE:
-🚨🚨🚨 CRITICAL BREVITY RULES - MANDATORY:
-- MAX 30-40 WORDS TOTAL per response
-- ONE LINE per product: [CODE] - Name - €price
-- NO long descriptions
-- NO repetitions
-- NO extra details
-- NO obvious instructions like "per aggiungere al carrello scrivi aggiungi al carrello"
-- EXAMPLE: "Sì! • [00004] - Mozzarella DOP - €9.99 • [00005] - Mozzarella Premium - €12.50. Quale vuoi?"
+🚨🚨🚨 CRITICAL COMPLETENESS RULES - MANDATORY:
+- SHOW ALL DATA provided by the API - NO LIMITS
+- For products: Show EVERY product with [CODE] - Name (Format) - €price
+- For categories: Show EVERY category with icon and name
+- NO truncation, NO summarization, NO "main products" - SHOW EVERYTHING
+- Complete lists are REQUIRED - length is not a problem
+- EXAMPLE: Show all 82 products if that's what the API returns
 
 TONE & PERSONALITY:
-- Professional but slightly friendly tone
+- Professional but friendly tone
 - Use customer's name occasionally (~30% of the time) naturally
 - Mention customer discount in initial greetings
-- Be conversational and warm but EXTREMELY BRIEF
-- Use emojis appropriately (max 2-3 per response)
+- Be conversational and warm
+- Use emojis appropriately
 - Always be helpful and professional
 - Examples with name: "Ciao Mario! 🧀", "Perfetto Mario!", "Mario, ecco..."
 
@@ -689,6 +803,32 @@ DISCOUNT RESPONSE TEMPLATE (when user asks about their discount):
 "💰 Il tuo sconto: {discountUser}% su tutti gli ordini! ✨
 🛒 Applicato automaticamente al checkout.
 Vuoi vedere come funziona? Aggiungi prodotti al carrello! 🧀"
+
+PRODUCT DISPLAY RULES - CRITICAL:
+- **OBBLIGO ASSOLUTO**: Quando mostri prodotti, AGGIUNGI SEMPRE il ProductCode e il formato
+- **FORMATO OBBLIGATORIO**: • [CODICE] - Nome Prodotto (Formato) - €prezzo
+- **ESEMPI ESATTI**:
+  - • [0212000024] - Mozzarella di Bufala Campana DOP (125gr * 12) - €9.50
+  - • [0212000019] - Burrata al Tartufo (100gr * 12) - €12.80
+  - • [0217000031] - Gorgonzola Dolce (250gr) - €18.90
+- **MAI** mostrare prodotti senza ProductCode e formato nella risposta finale
+- **SEMPRE** includere formato quando disponibile nei dati
+
+COMPLETE PRODUCT LIST RULES - PRIORITY:
+- **OBBLIGO ASSOLUTO**: Quando GetAllProducts() viene chiamata, devi mostrare TUTTI i prodotti restituiti
+- **VIETATO RIASSUMERE**: NON riassumere, NON abbreviare, NON limitare la lista, NON dire "principali"
+- **VIETATO DIRE**: "Vuoi vedere altri prodotti?" - MOSTRA TUTTO SUBITO SENZA CHIEDERE
+- **ORGANIZZAZIONE**: Raggruppa per categoria ma mostra OGNI prodotto di OGNI categoria
+- **COMPLETEZZA OBBLIGATORIA**: L'utente DEVE vedere OGNI SINGOLO prodotto disponibile
+- **COMPORTAMENTI VIETATI**: ❌ Mostrare solo alcuni prodotti ❌ Dire "prodotti principali" ❌ Limitare la lista
+
+COMPLETE CATEGORIES LIST RULES - PRIORITY:
+- **OBBLIGO ASSOLUTO**: Quando GetAllCategories() viene chiamata, devi mostrare TUTTE le categorie restituite
+- **VIETATO RIASSUMERE**: NON riassumere, NON abbreviare, NON limitare la lista, NON dire "principali"
+- **VIETATO DIRE**: "Vuoi vedere altre categorie?" - MOSTRA TUTTO SUBITO SENZA CHIEDERE
+- **FORMATO OBBLIGATORIO**: Mostra OGNI categoria con icona e nome: • [ICONA] Nome Categoria
+- **COMPLETEZZA OBBLIGATORIA**: L'utente DEVE vedere OGNI SINGOLA categoria disponibile
+- **COMPORTAMENTI VIETATI**: ❌ Mostrare solo alcune categorie ❌ Dire "categorie principali" ❌ Limitare la lista
 
 CRITICAL WHATSAPP FORMATTING RULES:
 - ALWAYS use newlines after colons (:) before starting lists
@@ -708,8 +848,10 @@ CONTEXT: You receive data from either Cloud Functions or SearchRag.
 - No data: When no specific information is found, provide helpful guidance
 
 DIRECT RESPONSE HANDLING:
-- When you receive "DIRECT_RESPONSE: [message]", return the message exactly as provided
-- These are pre-formatted responses from Cloud Functions that should not be modified
+- When you receive pre-formatted responses from Cloud Functions, return them exactly as provided
+- These responses are already properly formatted and should not be modified
+- **CRITICAL**: NEVER replace real URLs with placeholders like [URL CHECKOUT] - preserve all links exactly as provided
+- **CRITICAL**: If a message contains a real URL (http:// or https://), return it exactly as-is without any modifications
 - Only apply your formatting rules to SearchRag results and generic responses
 
 CRITICAL RULE: When the data comes from GetAllProducts function, you MUST show ALL products returned, organized by category. Do NOT summarize or abbreviate - show the complete list with prices and descriptions.
@@ -792,7 +934,7 @@ Format the response naturally based on the data type and user's request.`
     let dataContext = ""
     if (functionResults.length > 0) {
       // Check for direct Cloud Function responses that should be returned as-is
-      const directResponseFunctions = ['add_to_cart', 'confirmOrderFromConversation', 'SearchRag_faq', 'GetAllProducts', 'GetOrdersListLink', 'GetCustomerProfileLink', 'GetShipmentTrackingLink', 'ContactOperator', 'GetServices', 'GetUserInfo', 'GetActiveOffers', 'GetAllCategories', 'ragSearch', 'remove_from_cart', 'resolve_disambiguation', 'clear_cart']
+      const directResponseFunctions = ['add_to_cart', 'confirmOrderFromConversation', 'SearchRag', 'GetAllProducts', 'GetProductsByCategory', 'GetOrdersListLink', 'GetCustomerProfileLink', 'GetShipmentTrackingLink', 'ContactOperator', 'GetServices', 'GetUserInfo', 'GetActiveOffers', 'GetAllCategories', 'ragSearch', 'remove_from_cart', 'resolve_disambiguation', 'clear_cart']
       
       const directResult = functionResults.find(result => 
         directResponseFunctions.includes(result.functionName) && result.result?.success
@@ -800,9 +942,10 @@ Format the response naturally based on the data type and user's request.`
       
       if (directResult) {
         // For direct responses, return the message as-is (already formatted by the function)
-        const message = directResult.result.message || directResult.result.data?.message
+        // Priority: response > data.message > message (response contains the full formatted message)
+        const message = directResult.result.response || directResult.result.data?.message || directResult.result.message
         if (message) {
-          dataContext = `DIRECT_RESPONSE: ${message}`
+          dataContext = message // Return message directly without DIRECT_RESPONSE prefix
         } else {
           dataContext = `Data from ${dataSource}:\n${JSON.stringify(functionResults, null, 2)}`
         }
@@ -828,12 +971,7 @@ Please provide a helpful response that:
       `\nIMPORTANT: The customer is returning after a period of inactivity. Include this welcome back message: "${request.welcomeBackMessage}"\n` : 
       '';
 
-    // Check if this is a direct response that should be returned as-is
-    if (dataContext.startsWith('DIRECT_RESPONSE: ')) {
-      const directMessage = dataContext.replace('DIRECT_RESPONSE: ', '')
-      // Apply WhatsApp formatting to direct responses too
-      return FormatterService.formatResponse(directMessage, language)
-    }
+    // Direct responses are now returned without prefix, so we can format them normally
 
     return `User asked: "${userQuery}"
 ${welcomeBackContext}
@@ -903,7 +1041,7 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       {
         type: "function",
         function: {
-          name: "SearchRag_faq",
+          name: "SearchRag",
           description:
             '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for bot presentation and general questions. MANDATORY TRIGGERS: "chi sei", "who are you", "quién eres", "presentati", "cosa fai", "aiuto", "help", "ayuda", "ajuda", "cosa puoi fare", "what can you do", "qué puedes hacer", "o que você pode fazer". CRITICAL: This function has ABSOLUTE PRIORITY over GetCustomerProfileLink for bot identity questions!',
           parameters: {
@@ -1088,7 +1226,7 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
         function: {
           name: "confirmOrderFromConversation",
           description:
-            '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for ORDER CONFIRMATION requests! Use ONLY when user wants to CONFIRM/FINALIZE/CHECKOUT: "conferma ordine", "finalizza ordine", "procedi al checkout", "confirm order", "finalize order", "proceed to checkout", "checkout", "conferma", "procedi", "confirm", "proceed". CRITICAL: Do NOT use for simple cart viewing - use get_cart_info instead!',
+            '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for ORDER CONFIRMATION requests! Use ONLY when user wants to CONFIRM/FINALIZE/CHECKOUT: "conferma ordine", "finalizza ordine", "procedi con l\'ordine", "procedi al checkout", "confirm order", "finalize order", "proceed with order", "proceed to checkout", "checkout", "conferma", "procedi", "confirm", "proceed", "va bene così", "ok procedi", "acquista", "ordina", "completa ordine", "finalizza acquisto". CRITICAL: Do NOT use for simple cart viewing - use get_cart_info instead!',
           parameters: {
             type: "object",
             properties: {
@@ -1143,6 +1281,24 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
             type: "object",
             properties: {},
             required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "GetProductsByCategory",
+          description:
+            'Get all products from a specific category. Use SPECIFICALLY when user mentions a category name. CRITICAL: Use the EXACT category name from the database: "Cheeses & Dairy", "Cured Meats", "Flour & Baking", "Frozen Products", "Pasta & Rice", "Salami & Cold Cuts", "Sauces & Preserves", "Tomato Products", "Various & Spices", "Water & Beverages". MAPPING: "Formaggi e Latticini" → "Cheeses & Dairy", "Salumi" → "Cured Meats", "Farine e Prodotti da Forno" → "Flour & Baking", "Prodotti Surgelati" → "Frozen Products", "Pasta e Riso" → "Pasta & Rice", "Salami e Affettati" → "Salami & Cold Cuts", "Salse e Conserve" → "Sauces & Preserves", "Prodotti al Pomodoro" → "Tomato Products", "Varie e Spezie" → "Various & Spices", "Acqua e Bevande" → "Water & Beverages". This function has PRIORITY over GetAllProducts for specific category requests.',
+          parameters: {
+            type: "object",
+            properties: {
+              categoryName: {
+                type: "string",
+                description: "The EXACT category name from database: 'Cheeses & Dairy', 'Cured Meats', 'Flour & Baking', 'Frozen Products', 'Pasta & Rice', 'Salami & Cold Cuts', 'Sauces & Preserves', 'Tomato Products', 'Various & Spices', 'Water & Beverages'. Use mapping: 'Formaggi e Latticini' → 'Cheeses & Dairy'",
+              },
+            },
+            required: ["categoryName"],
           },
         },
       },
@@ -1242,6 +1398,14 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
             result = await this.callingFunctionsService.getAllProducts({
               customerId: request.customerid || "",
               workspaceId: request.workspaceId,
+            })
+            break
+
+          case "GetProductsByCategory":
+            result = await this.callingFunctionsService.getProductsByCategory({
+              customerId: request.customerid || "",
+              workspaceId: request.workspaceId,
+              categoryName: args.categoryName,
             })
             break
 
@@ -1415,6 +1579,7 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
 
     return accountKeywords.some((keyword) => lowerInput.includes(keyword))
   }
+
 
   /**
    * Build conversation messages including chat history for context

@@ -381,7 +381,7 @@ export class FunctionHandlerService {
         
         // Altrimenti, mostra disambiguazione per ricerca per nome
         const productOptions = products.map((product) => 
-          `• [${product.ProductCode || 'N/A'}] - ${product.name} - €${product.price.toFixed(2)}`
+          `• ${product.name} - €${product.price.toFixed(2)}`
         ).join('\n')
 
         return {

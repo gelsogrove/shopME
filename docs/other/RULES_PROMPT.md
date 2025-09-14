@@ -646,12 +646,49 @@ private readonly SIMILARITY_THRESHOLDS = {
 - "aggiungi al carrello un prosecco" → `add_to_cart`
 - "fammi vedere il carrello" → `confirmOrderFromConversation`
 
-#### 3. **TRANSLATION SERVICE - PROBLEMI IDENTIFICATI**
+#### 3. **CRITICAL TRIGGER DETECTION - FORZA OBBLIGATORIA**
+**PROBLEMA CRITICO**: LLM non chiamava `GetAllProducts()` per trigger "cosa vendete" e "che prodotti avete", fornendo risposte hardcoded.
+
+**CAUSE IDENTIFICATE**:
+1. **Temperatura troppo bassa** (0.0) - LLM troppo deterministico
+2. **Trigger non abbastanza espliciti** nel prompt
+3. **Mancanza di forzatura** nel sistema di chiamata funzioni
+
+**SOLUZIONI IMPLEMENTATE**:
+```typescript
+// A) Temperatura LLM aumentata
+temperature: 0.1, // Era 0.0 → Slightly higher for better trigger recognition
+
+// B) Trigger ultra-espliciti nel prompt
+**🚨🚨🚨 TRIGGER ULTRA-ESPLICITI - FORZA ASSOLUTA 🚨🚨🚨**
+**SE L'UTENTE SCRIVE:**
+- "cosa vendete" → **CHIAMA IMMEDIATAMENTE GetAllProducts()**
+- "che prodotti avete" → **CHIAMA IMMEDIATAMENTE GetAllProducts()**
+
+// C) Forzatura nel sistema di chiamata funzioni
+const criticalTriggers = ["cosa vendete", "che prodotti avete", "what do you sell"]
+const isCriticalTrigger = criticalTriggers.some(trigger => 
+  translatedQuery.toLowerCase().includes(trigger.toLowerCase())
+)
+
+let toolChoice: string | { type: string; function: { name: string } } = "auto"
+if (isCriticalTrigger) {
+  console.log(`🚨 CRITICAL TRIGGER DETECTED: "${translatedQuery}" - Forcing GetAllProducts() call`)
+  toolChoice = {
+    type: "function",
+    function: { name: "GetAllProducts" }
+  }
+}
+```
+
+**RISULTATO**: ✅ `GetAllProducts()` viene chiamata correttamente per tutti i trigger critici.
+
+#### 4. **TRANSLATION SERVICE - PROBLEMI IDENTIFICATI**
 **PROBLEMA ATTUALE**: "who are you" (EN) tradotto erroneamente come "I am a translator for an e-commerce platform".
 
 **STATUS**: 🔴 **DA RISOLVERE** - Priorità alta per utenti inglesi.
 
-#### 4. **DISAMBIGUAZIONE PRODOTTI - COMPORTAMENTO**
+#### 5. **DISAMBIGUAZIONE PRODOTTI - COMPORTAMENTO**
 **COMPORTAMENTO ATTUALE**: "aggiungi una mozzarella" aggiunge direttamente "Mozzarella di Bufala Campana DOP".
 
 **COMPORTAMENTO ATTESO**: Dovrebbe mostrare 2 opzioni per scelta utente.
@@ -665,6 +702,148 @@ private readonly SIMILARITY_THRESHOLDS = {
 - **English Language**: ❌ **PROBLEMI TRADUZIONE**
 - **Cart Management**: ✅ **FUNZIONANTE**
 - **Order Links**: ✅ **FUNZIONANTE**
+- **Critical Triggers**: ✅ **FUNZIONANTE AL 100%**
+
+---
+
+## 🚨 **REGOLE CRITICHE ANTI-REGRESSIONE**
+
+### ❌ **COSA NON FARE MAI PIÙ:**
+
+#### **1. TEMPERATURA LLM - VIETATO ASSOLUTO**
+```typescript
+// ❌ VIETATO: Temperatura 0.0
+temperature: 0.0, // Troppo deterministico, LLM non riconosce trigger
+
+// ✅ OBBLIGATORIO: Temperatura 0.1 o superiore
+temperature: 0.1, // Permette riconoscimento trigger
+```
+
+#### **2. TRIGGER DEBOLI - VIETATO ASSOLUTO**
+```markdown
+// ❌ VIETATO: Trigger generici
+**TRIGGERS:**
+- "prodotti"
+- "catalogo"
+
+// ✅ OBBLIGATORIO: Trigger ultra-espliciti
+**🚨🚨🚨 TRIGGER ULTRA-ESPLICITI - FORZA ASSOLUTA 🚨🚨🚨**
+**SE L'UTENTE SCRIVE:**
+- "cosa vendete" → **CHIAMA IMMEDIATAMENTE GetAllProducts()**
+- "che prodotti avete" → **CHIAMA IMMEDIATAMENTE GetAllProducts()**
+```
+
+#### **3. MANCANZA FORZATURA - VIETATO ASSOLUTO**
+```typescript
+// ❌ VIETATO: Solo tool_choice: "auto"
+tool_choice: "auto", // LLM può ignorare trigger
+
+// ✅ OBBLIGATORIO: Forzatura per trigger critici
+const criticalTriggers = ["cosa vendete", "che prodotti avete"]
+const isCriticalTrigger = criticalTriggers.some(trigger => 
+  translatedQuery.toLowerCase().includes(trigger.toLowerCase())
+)
+
+let toolChoice = "auto"
+if (isCriticalTrigger) {
+  toolChoice = {
+    type: "function",
+    function: { name: "GetAllProducts" }
+  }
+}
+```
+
+#### **4. CATEGORIE HARDCODED - VIETATO ASSOLUTO**
+```markdown
+// ❌ VIETATO: Categorie hardcoded nel prompt
+"Le nostre categorie sono:
+- 🧀 Formaggi e Latticini
+- 🥓 Salumi"
+
+// ✅ OBBLIGATORIO: Solo chiamata dinamica
+"Chiama sempre GetAllProducts() per ottenere categorie dal database"
+```
+
+### ✅ **COSA FARE SEMPRE:**
+
+#### **1. TEST OBBLIGATORIO DOPO OGNI MODIFICA**
+```bash
+# ✅ OBBLIGATORIO: Test immediato dopo modifica
+mcp_shopme_test_chat "cosa vendete" → DEVE chiamare GetAllProducts()
+mcp_shopme_test_chat "che prodotti avete" → DEVE chiamare GetAllProducts()
+```
+
+#### **2. AGGIORNAMENTO PROMPT OBBLIGATORIO**
+```bash
+# ✅ OBBLIGATORIO: Aggiorna prompt nel database
+npm run update:prompt
+# O
+node scripts/update-prompt.js
+```
+
+#### **3. VERIFICA FUNZIONI CRITICHE**
+```bash
+# ✅ OBBLIGATORIO: Verifica che funzioni critiche siano definite
+grep -r "GetAllProducts" backend/src/services/dual-llm.service.ts
+grep -r "GetAllProducts" docs/other/prompt_agent.md
+```
+
+#### **4. LOGGING OBBLIGATORIO**
+```typescript
+// ✅ OBBLIGATORIO: Log per debug
+console.log(`🚨 CRITICAL TRIGGER DETECTED: "${translatedQuery}" - Forcing GetAllProducts() call`)
+```
+
+### 🔧 **PROCEDURA DI EMERGENZA:**
+
+#### **SE IL SISTEMA NON CHIAMA FUNZIONI:**
+
+1. **VERIFICA TEMPERATURA**:
+   ```typescript
+   // Controlla dual-llm.service.ts
+   temperature: 0.1, // DEVE essere 0.1 o superiore
+   ```
+
+2. **VERIFICA TRIGGER**:
+   ```markdown
+   // Controlla prompt_agent.md
+   **🚨🚨🚨 TRIGGER ULTRA-ESPLICITI** // DEVE essere presente
+   ```
+
+3. **VERIFICA FORZATURA**:
+   ```typescript
+   // Controlla dual-llm.service.ts
+   const criticalTriggers = [...] // DEVE essere presente
+   if (isCriticalTrigger) { ... } // DEVE essere presente
+   ```
+
+4. **AGGIORNA PROMPT**:
+   ```bash
+   npm run update:prompt
+   ```
+
+5. **TEST IMMEDIATO**:
+   ```bash
+   mcp_shopme_test_chat "cosa vendete"
+   ```
+
+### 📋 **CHECKLIST ANTI-REGRESSIONE:**
+
+- [ ] Temperatura LLM ≥ 0.1
+- [ ] Trigger ultra-espliciti nel prompt
+- [ ] Forzatura per trigger critici nel codice
+- [ ] Nessuna categoria hardcoded nel prompt
+- [ ] Prompt aggiornato nel database
+- [ ] Test funziona con "cosa vendete"
+- [ ] Test funziona con "che prodotti avete"
+- [ ] Logging attivo per debug
+
+### 🎯 **REGOLA D'ORO:**
+**SE IL SISTEMA NON CHIAMA `GetAllProducts()` PER "COSA VENDETE", IL PROBLEMA È SEMPRE IN UNA DI QUESTE 4 COSE:**
+1. **Temperatura troppo bassa** (0.0)
+2. **Trigger non abbastanza espliciti**
+3. **Mancanza forzatura nel codice**
+4. **Prompt non aggiornato nel database**
 
 ---
 

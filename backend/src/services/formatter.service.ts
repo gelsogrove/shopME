@@ -16,25 +16,58 @@ interface Messages {
 const MESSAGES: Messages = {
   it: {
     cartFormatting: `
+PRODUCT DISPLAY RULES - CRITICAL:
+- **OBBLIGO ASSOLUTO**: Quando mostri prodotti, AGGIUNGI SEMPRE il formato
+- **FORMATO OBBLIGATORIO**: • Nome Prodotto (Formato) - €prezzo
+- **NON INCLUDERE ICONE**: Solo nome, formato e prezzo (niente emoji sui prodotti)
+- **ESEMPI ESATTI**:
+  - • Mozzarella di Bufala Campana DOP (125gr * 12) - €9.50
+  - • Burrata al Tartufo (100gr * 12) - €12.80
+  - • Gorgonzola Dolce (250gr) - €18.90
+- **MAI** mostrare prodotti senza formato nella risposta finale
+- **SEMPRE** includere formato quando disponibile nei dati
+
+GETALLPRODUCTS RULES - CATEGORIES DISPLAY:
+- **OBBLIGO ASSOLUTO**: Quando GetAllProducts() viene chiamata, mostra le categorie disponibili
+- **FORMATO OBBLIGATORIO**: Mostra ogni categoria con icona e numero di prodotti
+- **ESEMPIO FORMATO**: • 🧀 Formaggi e Latticini (66 prodotti)
+- **CHIEDI SEMPRE**: "Quale categoria ti interessa esplorare?"
+- **NON MOSTRARE**: Tutti i prodotti in una volta (troppo lungo)
+
+GETPRODUCTSBYCATEGORY RULES - PRODUCTS DISPLAY:
+- **OBBLIGO ASSOLUTO**: Quando GetProductsByCategory() viene chiamata, mostra TUTTI i prodotti della categoria
+- **VIETATO RIASSUMERE**: NON riassumere, NON abbreviare, NON limitare la lista
+- **FORMATO OBBLIGATORIO**: Mostra ogni prodotto con nome, formato e prezzo
+- **ESEMPIO FORMATO**: • Mozzarella di Bufala Campana DOP (125gr * 12) - €9.50
+- **NON INCLUDERE ICONE**: Solo nome, formato e prezzo (niente emoji sui prodotti)
+- **COMPLETEZZA OBBLIGATORIA**: L'utente DEVE vedere OGNI SINGOLO prodotto della categoria
+
+COMPLETE CATEGORIES LIST RULES - PRIORITY:
+- **OBBLIGO ASSOLUTO**: Quando GetAllCategories() viene chiamata, devi mostrare TUTTE le categorie restituite
+- **VIETATO RIASSUMERE**: NON riassumere, NON abbreviare, NON limitare la lista, NON dire "principali"
+- **VIETATO DIRE**: "Vuoi vedere altre categorie?" - MOSTRA TUTTO SUBITO SENZA CHIEDERE
+- **FORMATO OBBLIGATORIO**: Mostra OGNI categoria con icona e nome: • [ICONA] Nome Categoria
+- **COMPLETEZZA OBBLIGATORIA**: L'utente DEVE vedere OGNI SINGOLA categoria disponibile
+- **COMPORTAMENTI VIETATI**: ❌ Mostrare solo alcune categorie ❌ Dire "categorie principali" ❌ Limitare la lista
+
 CART FORMATTING RULES:
-- When showing cart contents, ALWAYS include the ProductCode in the format: "[CODE] - Product Name"
-- Example: "[00004] - Mozzarella di Bufala Campana DOP a €9.99"
-- If ProductCode is missing or "N/A", use the format: "• Product Name a €price"
+- When showing cart contents, use the format: "• Product Name a €price"
+- Example: "• Mozzarella di Bufala Campana DOP a €9.99"
 - Example: "• Pasta Artigianale a €4.50"
 
 PRODUCT DISAMBIGUATION RULES:
-- When showing product options for disambiguation, show ProductCode in brackets: "• [CODE] - Product Name - €price"
-- Example: "• [00004] - Mozzarella di Bufala Campana DOP - €9.99"
-- Example: "• [000500] - Mozzarella di Bufala - €12.50"
+- When showing product options for disambiguation, use the format: "• Product Name - €price"
+- Example: "• Mozzarella di Bufala Campana DOP - €9.99"
+- Example: "• Mozzarella di Bufala - €12.50"
 
 PRODUCT SELECTION RULES:
-- Always prioritize ProductCode matching over name matching for precision
-- When user provides ProductCode, use exact match: "[00004]" → exact product
-- When user provides name only, search and disambiguate if multiple matches found
+- Always prioritize name matching for product selection
+- When user provides product name, search and disambiguate if multiple matches found
+- Use exact name matching when possible for precision
 
 CART RESPONSE FORMAT:
 - Empty cart: When cart data shows isEmpty=true or items=[], respond naturally in the user's language with helpful suggestions
-- Non-empty cart: Show itemized list with ProductCodes and totals
+- Non-empty cart: Show itemized list with product names and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
@@ -51,25 +84,58 @@ GENERAL RESPONSE FORMATTING:
   },
   en: {
     cartFormatting: `
+PRODUCT DISPLAY RULES - CRITICAL:
+- **MANDATORY**: When showing products, ALWAYS include format
+- **REQUIRED FORMAT**: • Product Name (Format) - €price
+- **NO ICONS**: Only name, format and price (no emojis on products)
+- **EXACT EXAMPLES**:
+  - • Mozzarella di Bufala Campana DOP (125gr * 12) - €9.50
+  - • Burrata al Tartufo (100gr * 12) - €12.80
+  - • Gorgonzola Dolce (250gr) - €18.90
+- **NEVER** show products without format in final response
+- **ALWAYS** include format when available in data
+
+GETALLPRODUCTS RULES - CATEGORIES DISPLAY:
+- **MANDATORY**: When GetAllProducts() is called, show available categories
+- **REQUIRED FORMAT**: Show each category with icon and product count
+- **EXAMPLE FORMAT**: • 🧀 Cheeses & Dairy (66 products)
+- **ALWAYS ASK**: "Which category interests you to explore?"
+- **DO NOT SHOW**: All products at once (too long)
+
+GETPRODUCTSBYCATEGORY RULES - PRODUCTS DISPLAY:
+- **MANDATORY**: When GetProductsByCategory() is called, show ALL products in the category
+- **FORBIDDEN TO SUMMARIZE**: DO NOT summarize, abbreviate, or limit the list
+- **REQUIRED FORMAT**: Show each product with name, format and price
+- **EXAMPLE FORMAT**: • Mozzarella di Bufala Campana DOP (125gr * 12) - €9.50
+- **NO ICONS**: Only name, format and price (no emojis on products)
+- **COMPLETENESS MANDATORY**: User MUST see EVERY SINGLE product in the category
+
+COMPLETE CATEGORIES LIST RULES - PRIORITY:
+- **MANDATORY**: When GetAllCategories() is called, you must show ALL returned categories
+- **FORBIDDEN TO SUMMARIZE**: DO NOT summarize, abbreviate, limit list, or say "main categories"
+- **FORBIDDEN TO SAY**: "Want to see more categories?" - SHOW EVERYTHING IMMEDIATELY
+- **REQUIRED FORMAT**: Show EVERY category with icon and name: • [ICON] Category Name
+- **COMPLETENESS MANDATORY**: User MUST see EVERY SINGLE available category
+- **FORBIDDEN BEHAVIORS**: ❌ Show only some categories ❌ Say "main categories" ❌ Limit list
+
 CART FORMATTING RULES:
-- When showing cart contents, ALWAYS include the ProductCode in the format: "[CODE] - Product Name"
-- Example: "[00004] - Mozzarella di Bufala Campana DOP at €9.99"
-- If ProductCode is missing or "N/A", use the format: "• Product Name at €price"
+- When showing cart contents, use the format: "• Product Name at €price"
+- Example: "• Mozzarella di Bufala Campana DOP at €9.99"
 - Example: "• Artisan Pasta at €4.50"
 
 PRODUCT DISAMBIGUATION RULES:
-- When showing product options for disambiguation, show ProductCode in brackets: "• [CODE] - Product Name - €price"
-- Example: "• [00004] - Mozzarella di Bufala Campana DOP - €9.99"
-- Example: "• [000500] - Mozzarella di Bufala - €12.50"
+- When showing product options for disambiguation, use the format: "• Product Name - €price"
+- Example: "• Mozzarella di Bufala Campana DOP - €9.99"
+- Example: "• Mozzarella di Bufala - €12.50"
 
 PRODUCT SELECTION RULES:
-- Always prioritize ProductCode matching over name matching for precision
-- When user provides ProductCode, use exact match: "[00004]" → exact product
-- When user provides name only, search and disambiguate if multiple matches found
+- Always prioritize name matching for product selection
+- When user provides product name, search and disambiguate if multiple matches found
+- Use exact name matching when possible for precision
 
 CART RESPONSE FORMAT:
 - Empty cart: Show friendly message with suggestions
-- Non-empty cart: Show itemized list with ProductCodes and totals
+- Non-empty cart: Show itemized list with product names and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
@@ -87,24 +153,23 @@ GENERAL RESPONSE FORMATTING:
   es: {
     cartFormatting: `
 CART FORMATTING RULES:
-- When showing cart contents, ALWAYS include the ProductCode in the format: "[CODE] - Product Name"
-- Example: "[00004] - Mozzarella di Bufala Campana DOP a €9.99"
-- If ProductCode is missing or "N/A", use the format: "• Product Name a €price"
+- When showing cart contents, use the format: "• Product Name a €price"
+- Example: "• Mozzarella di Bufala Campana DOP a €9.99"
 - Example: "• Pasta Artesanal a €4.50"
 
 PRODUCT DISAMBIGUATION RULES:
-- When showing product options for disambiguation, show ProductCode in brackets: "• [CODE] - Product Name - €price"
-- Example: "• [00004] - Mozzarella di Bufala Campana DOP - €9.99"
-- Example: "• [000500] - Mozzarella di Bufala - €12.50"
+- When showing product options for disambiguation, use the format: "• Product Name - €price"
+- Example: "• Mozzarella di Bufala Campana DOP - €9.99"
+- Example: "• Mozzarella di Bufala - €12.50"
 
 PRODUCT SELECTION RULES:
-- Always prioritize ProductCode matching over name matching for precision
-- When user provides ProductCode, use exact match: "[00004]" → exact product
-- When user provides name only, search and disambiguate if multiple matches found
+- Always prioritize name matching for product selection
+- When user provides product name, search and disambiguate if multiple matches found
+- Use exact name matching when possible for precision
 
 CART RESPONSE FORMAT:
 - Empty cart: Show friendly message with suggestions
-- Non-empty cart: Show itemized list with ProductCodes and totals
+- Non-empty cart: Show itemized list with product names and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
@@ -122,24 +187,23 @@ GENERAL RESPONSE FORMATTING:
   pt: {
     cartFormatting: `
 CART FORMATTING RULES:
-- When showing cart contents, ALWAYS include the ProductCode in the format: "[CODE] - Product Name"
-- Example: "[00004] - Mozzarella di Bufala Campana DOP por €9.99"
-- If ProductCode is missing or "N/A", use the format: "• Product Name por €price"
+- When showing cart contents, use the format: "• Product Name por €price"
+- Example: "• Mozzarella di Bufala Campana DOP por €9.99"
 - Example: "• Massa Artesanal por €4.50"
 
 PRODUCT DISAMBIGUATION RULES:
-- When showing product options for disambiguation, show ProductCode in brackets: "• [CODE] - Product Name - €price"
-- Example: "• [00004] - Mozzarella di Bufala Campana DOP - €9.99"
-- Example: "• [000500] - Mozzarella di Bufala - €12.50"
+- When showing product options for disambiguation, use the format: "• Product Name - €price"
+- Example: "• Mozzarella di Bufala Campana DOP - €9.99"
+- Example: "• Mozzarella di Bufala - €12.50"
 
 PRODUCT SELECTION RULES:
-- Always prioritize ProductCode matching over name matching for precision
-- When user provides ProductCode, use exact match: "[00004]" → exact product
-- When user provides name only, search and disambiguate if multiple matches found
+- Always prioritize name matching for product selection
+- When user provides product name, search and disambiguate if multiple matches found
+- Use exact name matching when possible for precision
 
 CART RESPONSE FORMAT:
 - Empty cart: Show friendly message with suggestions
-- Non-empty cart: Show itemized list with ProductCodes and totals
+- Non-empty cart: Show itemized list with product names and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
@@ -275,8 +339,8 @@ export class FormatterService {
     // Pattern for subtotals: "Subtotale: €XX.XX" → "*Subtotale: €XX.XX*"
     formatted = formatted.replace(/(\b(?:Subtotale|Subtotal|Subtotal|Subtotal):\s*€[\d,]+\.?\d*)/gi, '*$1*')
 
-    // 7. 🎯 ADD PRODUCT ICONS - Apply specific icons for product types
-    formatted = this.applyProductIcons(formatted)
+    // 7. 🎯 PRODUCT ICONS DISABLED - No extra icons on products (only on categories)
+    // formatted = this.applyProductIcons(formatted)
 
     // 8. ✂️ Remove extra spaces before and after
     formatted = formatted.trim()
@@ -333,12 +397,7 @@ export class FormatterService {
    */
   static formatCartItem(productCode: string, productName: string, price: number, quantity?: number): string {
     const quantityText = quantity && quantity > 1 ? `${quantity}x ` : ""
-    
-    if (productCode && productCode !== "N/A") {
-      return `${quantityText}[${productCode}] - ${productName} a €${price.toFixed(2)}`
-    } else {
-      return `${quantityText}• ${productName} a €${price.toFixed(2)}`
-    }
+    return `${quantityText}• ${productName} a €${price.toFixed(2)}`
   }
 
   /**
@@ -348,7 +407,7 @@ export class FormatterService {
    * @param price - Product price
    */
   static formatProductOption(productCode: string, productName: string, price: number): string {
-    return `• [${productCode}] - ${productName} - €${price.toFixed(2)}`
+    return `• ${productName} - €${price.toFixed(2)}`
   }
 
   /**

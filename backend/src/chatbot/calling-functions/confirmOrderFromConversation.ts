@@ -46,7 +46,7 @@ export interface ConfirmOrderFromConversationResult {
 export async function confirmOrderFromConversation(
   params: ConfirmOrderFromConversationParams
 ): Promise<ConfirmOrderFromConversationResult> {
-  const { customerId, workspaceId, conversationContext, prodottiSelezionati, useCartData = false, generateCartLink = false } =
+  const { customerId, workspaceId, conversationContext, prodottiSelezionati, useCartData = true, generateCartLink = false } =
     params
 
   logger.info(
@@ -180,19 +180,21 @@ ${cartUrl}
         const baseUrl = workspace.url || process.env.FRONTEND_URL || 'https://laltroitalia.shop'
         const checkoutUrl = `${baseUrl}/checkout?token=${checkoutToken}`
 
-        // Create checkout message
-        const checkoutMessage = `✅ **Ordine confermato dal carrello!**
+        // Create checkout message with embedded link in a format that prevents formatter replacement
+        const checkoutMessage = `✅ Ordine confermato dal carrello!
 
 ${cartProducts.map(item => 
   `• ${item.descrizione} [${item.codice}]\n  Quantità: ${item.qty} x €${item.prezzo.toFixed(2)} = €${(item.prezzo * item.qty).toFixed(2)}`
 ).join('\n\n')}
 
-💰 *TOTALE: €${totalAmount.toFixed(2)}*
+💰 TOTALE: €${totalAmount.toFixed(2)}
 
-🔗 **Completa il checkout:**
+🔗 Clicca qui per completare il checkout:
 ${checkoutUrl}
 
-⏰ Link valido per 1 ora`
+⏰ Link valido per 1 ora
+
+Grazie per il tuo ordine! 🎉`
 
         // Clear cart after creating checkout
         await prisma.cartItems.deleteMany({

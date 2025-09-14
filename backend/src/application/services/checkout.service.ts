@@ -218,12 +218,12 @@ export class CheckoutService {
    */
   getCheckoutMessage(checkoutUrl: string, customerName: string, language: string = 'en'): string {
     const messages = {
-      'en': `Hi ${customerName}! 🛒 Ready to complete your order? Click here to proceed with checkout: ${checkoutUrl}\n\n⏰ This link expires in 1 hour for security.`,
-      'it': `Ciao ${customerName}! 🛒 Pronto a completare il tuo ordine? Clicca qui per procedere al checkout: ${checkoutUrl}\n\n⏰ Questo link scade tra 1 ora per sicurezza.`,
-      'es': `¡Hola ${customerName}! 🛒 ¿Listo para completar tu pedido? Haz clic aquí para proceder al checkout: ${checkoutUrl}\n\n⏰ Este enlace expira en 1 hora por seguridad.`,
-      'pt': `Olá ${customerName}! 🛒 Pronto para completar seu pedido? Clique aqui para prosseguir com o checkout: ${checkoutUrl}\n\n⏰ Este link expira em 1 hora por segurança.`,
-      'fr': `Salut ${customerName}! 🛒 Prêt à compléter votre commande? Cliquez ici pour procéder au checkout: ${checkoutUrl}\n\n⏰ Ce lien expire dans 1 heure pour la sécurité.`,
-      'de': `Hallo ${customerName}! 🛒 Bereit, Ihre Bestellung abzuschließen? Klicken Sie hier, um zum Checkout zu gelangen: ${checkoutUrl}\n\n⏰ Dieser Link läuft in 1 Stunde aus Sicherheitsgründen ab.`
+      'en': `Hi ${customerName}! 🛒 Ready to complete your order? Click here to proceed with checkout: ${checkoutUrl}\n\n⏰ Link valid for 1 hour`,
+      'it': `Ciao ${customerName}! 🛒 Pronto a completare il tuo ordine? Clicca qui per procedere al checkout: ${checkoutUrl}\n\n⏰ Link valido per 1 ora`,
+      'es': `¡Hola ${customerName}! 🛒 ¿Listo para completar tu pedido? Haz clic aquí para proceder al checkout: ${checkoutUrl}\n\n⏰ Enlace válido por 1 hora`,
+      'pt': `Olá ${customerName}! 🛒 Pronto para completar seu pedido? Clique aqui para prosseguir com o checkout: ${checkoutUrl}\n\n⏰ Link válido por 1 hora`,
+      'fr': `Salut ${customerName}! 🛒 Prêt à compléter votre commande? Cliquez ici pour procéder au checkout: ${checkoutUrl}\n\n⏰ Lien valide pendant 1 heure`,
+      'de': `Hallo ${customerName}! 🛒 Bereit, Ihre Bestellung abzuschließen? Klicken Sie hier, um zum Checkout zu gelangen: ${checkoutUrl}\n\n⏰ Link gültig für 1 Stunde`
     }
 
     // Normalize language code

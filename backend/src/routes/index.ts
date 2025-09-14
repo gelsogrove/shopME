@@ -890,7 +890,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
         chatSession = await prisma.chatSession.findFirst({
           where: {
             customerId: customerId,
-            workspaceId: workspaceId
+            workspaceId: workspaceId,
+            status: 'active' // 🔧 FIX: Only find active sessions
           },
           include: {
             messages: {

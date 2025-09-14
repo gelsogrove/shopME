@@ -2243,9 +2243,9 @@ async function main() {
     const existingService = await prisma.services.findFirst({
       where: {
         code: service.code,
-        workspaceId: mainWorkspaceId,
-      },
-    })
+            workspaceId: mainWorkspaceId,
+          },
+        })
 
     if (!existingService) {
       await prisma.services.create({
@@ -2423,13 +2423,30 @@ async function main() {
       name: "Mario Rossi",
       email: "mario.rossi@rossilimited.it",
       phone: "+390212345678", // Real Italian phone number
-      address: "Via Roma 123, Milano, Italia",
+      address: JSON.stringify({
+        name: "Mario Rossi",
+        street: "Via Garibaldi 45",
+        city: "Milano",
+        postalCode: "20121",
+        country: "Italia"
+      }),
       company: "Rossi Limited S.r.l.",
       discount: 0,
       language: "it",
       currency: "EUR",
       notes: "Cliente premium - Preferisce prodotti DOP",
       workspaceId: mainWorkspaceId,
+      invoiceAddress: {
+        firstName: "Mario",
+        lastName: "Rossi",
+        company: "Rossi Limited S.r.l.",
+        address: "Via Roma 123",
+        city: "Milano",
+        postalCode: "20100",
+        country: "Italia",
+        vatNumber: "IT12345678901",
+        phone: "+390212345678"
+      }
     },
   })
 
@@ -2443,13 +2460,30 @@ async function main() {
       name: "John Smith",
       email: "john.smith@shopme.com",
       phone: "+44123456789",
-      address: "123 Oxford Street, London, UK",
+      address: JSON.stringify({
+        name: "John Smith",
+        street: "456 Regent Street",
+        city: "London",
+        postalCode: "W1B 5AH",
+        country: "United Kingdom"
+      }),
       company: "Smith & Co Ltd",
       discount: 10, // 10% discount
       language: "en",
       currency: "EUR",
       notes: "VIP customer - Prefers organic products",
       workspaceId: mainWorkspaceId,
+      invoiceAddress: {
+        firstName: "John",
+        lastName: "Smith",
+        company: "Smith & Co Ltd",
+        address: "123 Oxford Street",
+        city: "London",
+        postalCode: "W1D 2HG",
+        country: "United Kingdom",
+        vatNumber: "GB123456789",
+        phone: "+44123456789"
+      }
     },
   })
 
@@ -2464,13 +2498,30 @@ async function main() {
       name: "Maria Garcia",
       email: "maria.garcia@shopme.com",
       phone: "+34666777888",
-      address: "Calle Mayor 45, Madrid, España",
+      address: JSON.stringify({
+        name: "Maria Garcia",
+        street: "Calle Gran Vía 78",
+        city: "Madrid",
+        postalCode: "28013",
+        country: "España"
+      }),
       company: "Garcia Imports S.L.",
       discount: 5, // 5% discount
       language: "es",
       currency: "EUR",
       notes: "Cliente frecuente - Le gustan los productos artesanales",
       workspaceId: mainWorkspaceId,
+      invoiceAddress: {
+        firstName: "Maria",
+        lastName: "Garcia",
+        company: "Garcia Imports S.L.",
+        address: "Calle Mayor 45",
+        city: "Madrid",
+        postalCode: "28013",
+        country: "España",
+        vatNumber: "ES12345678Z",
+        phone: "+34666777888"
+      }
     },
   })
 
@@ -2484,13 +2535,30 @@ async function main() {
       name: "João Silva",
       email: "joao.silva@shopme.com",
       phone: "+351123456789",
-      address: "Rua Augusta 100, Lisboa, Portugal",
+      address: JSON.stringify({
+        name: "João Silva",
+        street: "Rua da Liberdade 200",
+        city: "Lisboa",
+        postalCode: "1250-096",
+        country: "Portugal"
+      }),
       company: "Silva & Filhos Lda",
       discount: 0,
       language: "pt",
       currency: "EUR",
       notes: "Novo cliente - Interessado em produtos gourmet",
       workspaceId: mainWorkspaceId,
+      invoiceAddress: {
+        firstName: "João",
+        lastName: "Silva",
+        company: "Silva & Filhos Lda",
+        address: "Rua Augusta 100",
+        city: "Lisboa",
+        postalCode: "1100-053",
+        country: "Portugal",
+        vatNumber: "PT123456789",
+        phone: "+351123456789"
+      }
     },
   })
 
@@ -2498,9 +2566,391 @@ async function main() {
     `✅ Portuguese customer created: ${testCustomer4.name} (${testCustomer4.email})`
   )
 
-  console.log(
-    "✅ Test customers with active chats and welcome messages created successfully!"
-  )
+  // Create chat sessions and welcome messages for each customer
+  console.log("🔄 Creating chat sessions and welcome messages...")
+
+  // Italian customer - Mario Rossi
+  const chatSession1 = await prisma.chatSession.create({
+    data: {
+      customerId: testCustomer.id,
+      workspaceId: mainWorkspaceId,
+      status: "active",
+      context: {
+        language: "it",
+        customerName: "Mario Rossi"
+      }
+    }
+  })
+
+  await prisma.message.create({
+    data: {
+      chatSessionId: chatSession1.id,
+      direction: "INBOUND",
+      content: "Ciao!",
+      type: "TEXT",
+      createdAt: new Date(Date.now() - 1000 * 60 * 5) // 5 minutes ago
+    }
+  })
+
+  await prisma.message.create({
+    data: {
+      chatSessionId: chatSession1.id,
+      direction: "OUTBOUND",
+      content: "Ciao Mario! Benvenuto da L'Altra Italia! 🇮🇹 Sono qui per aiutarti a scoprire i nostri prodotti italiani di qualità. Come posso esserti utile oggi?",
+      type: "TEXT",
+      aiGenerated: true,
+      metadata: {
+        agentSelected: "CHATBOT_DUAL_LLM",
+        sentBy: "AI"
+      },
+      createdAt: new Date(Date.now() - 1000 * 60 * 4) // 4 minutes ago
+    }
+  })
+
+  // English customer - John Smith
+  const chatSession2 = await prisma.chatSession.create({
+    data: {
+      customerId: testCustomer2.id,
+      workspaceId: mainWorkspaceId,
+      status: "active",
+      context: {
+        language: "en",
+        customerName: "John Smith"
+      }
+    }
+  })
+
+    await prisma.message.create({
+      data: {
+      chatSessionId: chatSession2.id,
+      direction: "INBOUND",
+      content: "Hello!",
+      type: "TEXT",
+      createdAt: new Date(Date.now() - 1000 * 60 * 3) // 3 minutes ago
+    }
+  })
+
+    await prisma.message.create({
+      data: {
+        chatSessionId: chatSession2.id,
+      direction: "OUTBOUND",
+      content: "Hello John! Welcome to L'Altra Italia! 🇮🇹 I'm here to help you discover our quality Italian products. How can I assist you today?",
+      type: "TEXT",
+      aiGenerated: true,
+      metadata: {
+        agentSelected: "CHATBOT_DUAL_LLM",
+        sentBy: "AI"
+      },
+      createdAt: new Date(Date.now() - 1000 * 60 * 2) // 2 minutes ago
+    }
+  })
+
+  // Spanish customer - Maria Garcia
+  const chatSession3 = await prisma.chatSession.create({
+    data: {
+      customerId: testCustomerMCP.id,
+      workspaceId: mainWorkspaceId,
+      status: "active",
+      context: {
+        language: "es",
+        customerName: "Maria Garcia"
+      }
+    }
+  })
+
+    await prisma.message.create({
+      data: {
+        chatSessionId: chatSession3.id,
+      direction: "INBOUND",
+      content: "¡Hola!",
+      type: "TEXT",
+      createdAt: new Date(Date.now() - 1000 * 60 * 1) // 1 minute ago
+    }
+  })
+
+    await prisma.message.create({
+      data: {
+      chatSessionId: chatSession3.id,
+      direction: "OUTBOUND",
+      content: "¡Hola Maria! ¡Bienvenida a L'Altra Italia! 🇮🇹 Estoy aquí para ayudarte a descubrir nuestros productos italianos de calidad. ¿Cómo puedo ayudarte hoy?",
+      type: "TEXT",
+      aiGenerated: true,
+      metadata: {
+        agentSelected: "CHATBOT_DUAL_LLM",
+        sentBy: "AI"
+      },
+      createdAt: new Date() // Now
+    }
+  })
+
+  // Portuguese customer - João Silva
+  const chatSession4 = await prisma.chatSession.create({
+          data: {
+      customerId: testCustomer4.id,
+            workspaceId: mainWorkspaceId,
+      status: "active",
+      context: {
+        language: "pt",
+        customerName: "João Silva"
+      }
+    }
+  })
+
+  await prisma.message.create({
+          data: {
+      chatSessionId: chatSession4.id,
+      direction: "INBOUND",
+      content: "Olá!",
+      type: "TEXT",
+      createdAt: new Date(Date.now() - 1000 * 30) // 30 seconds ago
+    }
+  })
+
+  await prisma.message.create({
+      data: {
+      chatSessionId: chatSession4.id,
+      direction: "OUTBOUND",
+      content: "Olá João! Bem-vindo à L'Altra Italia! 🇮🇹 Estou aqui para ajudá-lo a descobrir nossos produtos italianos de qualidade. Como posso ajudá-lo hoje?",
+      type: "TEXT",
+      aiGenerated: true,
+      metadata: {
+        agentSelected: "CHATBOT_DUAL_LLM",
+        sentBy: "AI"
+      },
+      createdAt: new Date(Date.now() - 1000 * 15) // 15 seconds ago
+    }
+  })
+
+  console.log("✅ Chat sessions and welcome messages created successfully!")
+  console.log(`   🇮🇹 Mario Rossi (Italian) - Chat ID: ${chatSession1.id}`)
+  console.log(`   🇬🇧 John Smith (English) - Chat ID: ${chatSession2.id}`)
+  console.log(`   🇪🇸 Maria Garcia (Spanish) - Chat ID: ${chatSession3.id}`)
+  console.log(`   🇵🇹 João Silva (Portuguese) - Chat ID: ${chatSession4.id}`)
+
+  console.log("✅ Test customers with active chats and welcome messages created successfully!")
+
+  // Create sample orders for test customers
+  console.log("🔄 Creating sample orders for test customers...")
+
+  // Get some products for orders
+  const sampleProducts = await prisma.products.findMany({
+    where: { workspaceId: mainWorkspaceId },
+    take: 5
+  })
+
+  if (sampleProducts.length > 0) {
+    // Create order for Mario Rossi (Italian customer)
+    const order1 = await prisma.orders.create({
+      data: {
+        orderCode: "ORD-001-2024",
+        customerId: testCustomer.id,
+        workspaceId: mainWorkspaceId,
+        status: "CONFIRMED",
+        totalAmount: 25.50,
+        notes: "Ordine di test per Mario Rossi - Prodotti italiani premium",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2) // 2 hours ago
+      }
+    })
+
+    // Add items to Mario's order
+    await prisma.orderItems.create({
+      data: {
+        orderId: order1.id,
+        productId: sampleProducts[0].id,
+        quantity: 2,
+        unitPrice: sampleProducts[0].price,
+        totalPrice: sampleProducts[0].price * 2
+      }
+    })
+
+    await prisma.orderItems.create({
+      data: {
+        orderId: order1.id,
+        productId: sampleProducts[1].id,
+        quantity: 1,
+        unitPrice: sampleProducts[1].price,
+        totalPrice: sampleProducts[1].price
+      }
+    })
+
+    // Create order for John Smith (English customer with discount)
+    const order2 = await prisma.orders.create({
+      data: {
+        orderCode: "ORD-002-2024",
+        customerId: testCustomer2.id,
+        workspaceId: mainWorkspaceId,
+        status: "PENDING",
+        totalAmount: 18.90,
+        notes: "Test order for John Smith - VIP customer with 10% discount",
+        createdAt: new Date(Date.now() - 1000 * 60 * 30) // 30 minutes ago
+      }
+    })
+
+    // Add items to John's order
+    await prisma.orderItems.create({
+      data: {
+        orderId: order2.id,
+        productId: sampleProducts[2].id,
+        quantity: 1,
+        unitPrice: sampleProducts[2].price,
+        totalPrice: sampleProducts[2].price
+      }
+    })
+
+    // Create order for Maria Garcia (Spanish customer)
+    const order3 = await prisma.orders.create({
+      data: {
+        orderCode: "ORD-003-2024",
+        customerId: testCustomerMCP.id,
+        workspaceId: mainWorkspaceId,
+        status: "DELIVERED",
+        totalAmount: 32.80,
+        notes: "Pedido de prueba para Maria Garcia - Cliente frecuente",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24) // 1 day ago
+      }
+    })
+
+    // Add items to Maria's order
+    await prisma.orderItems.create({
+      data: {
+        orderId: order3.id,
+        productId: sampleProducts[3].id,
+        quantity: 3,
+        unitPrice: sampleProducts[3].price,
+        totalPrice: sampleProducts[3].price * 3
+      }
+    })
+
+    await prisma.orderItems.create({
+      data: {
+        orderId: order3.id,
+        productId: sampleProducts[4].id,
+        quantity: 1,
+        unitPrice: sampleProducts[4].price,
+        totalPrice: sampleProducts[4].price
+      }
+    })
+
+    // Create additional orders for Mario Rossi
+    const order4 = await prisma.orders.create({
+      data: {
+        orderCode: "ORD-004-2024",
+        customerId: testCustomer.id,
+        workspaceId: mainWorkspaceId,
+        status: "DELIVERED",
+        totalAmount: 45.20,
+        notes: "Ordine premium per Mario Rossi - Prodotti DOP",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2) // 2 days ago
+      }
+    })
+
+    await prisma.orderItems.create({
+      data: {
+        orderId: order4.id,
+        productId: sampleProducts[0].id,
+        quantity: 3,
+        unitPrice: sampleProducts[0].price,
+        totalPrice: sampleProducts[0].price * 3
+      }
+    })
+
+    const order5 = await prisma.orders.create({
+      data: {
+        orderCode: "ORD-005-2024",
+        customerId: testCustomer.id,
+        workspaceId: mainWorkspaceId,
+        status: "CONFIRMED",
+        totalAmount: 67.80,
+        notes: "Ordine grande per Mario Rossi - Prodotti artigianali",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12) // 12 hours ago
+      }
+    })
+
+    await prisma.orderItems.create({
+      data: {
+        orderId: order5.id,
+        productId: sampleProducts[1].id,
+        quantity: 2,
+        unitPrice: sampleProducts[1].price,
+        totalPrice: sampleProducts[1].price * 2
+      }
+    })
+
+    await prisma.orderItems.create({
+      data: {
+        orderId: order5.id,
+        productId: sampleProducts[2].id,
+        quantity: 1,
+        unitPrice: sampleProducts[2].price,
+        totalPrice: sampleProducts[2].price
+      }
+    })
+
+    const order6 = await prisma.orders.create({
+      data: {
+        orderCode: "ORD-006-2024",
+        customerId: testCustomer.id,
+        workspaceId: mainWorkspaceId,
+        status: "PENDING",
+        totalAmount: 28.90,
+        notes: "Ordine recente per Mario Rossi - Prodotti freschi",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6) // 6 hours ago
+      }
+    })
+
+    await prisma.orderItems.create({
+      data: {
+        orderId: order6.id,
+        productId: sampleProducts[3].id,
+        quantity: 1,
+        unitPrice: sampleProducts[3].price,
+        totalPrice: sampleProducts[3].price
+      }
+    })
+
+    const order7 = await prisma.orders.create({
+      data: {
+        orderCode: "ORD-007-2024",
+        customerId: testCustomer.id,
+        workspaceId: mainWorkspaceId,
+        status: "DELIVERED",
+        totalAmount: 89.50,
+        notes: "Ordine VIP per Mario Rossi - Selezione premium",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) // 1 week ago
+      }
+    })
+
+    await prisma.orderItems.create({
+      data: {
+        orderId: order7.id,
+        productId: sampleProducts[4].id,
+        quantity: 4,
+        unitPrice: sampleProducts[4].price,
+        totalPrice: sampleProducts[4].price * 4
+      }
+    })
+
+    await prisma.orderItems.create({
+      data: {
+        orderId: order7.id,
+        productId: sampleProducts[0].id,
+        quantity: 2,
+        unitPrice: sampleProducts[0].price,
+        totalPrice: sampleProducts[0].price * 2
+      }
+    })
+
+    console.log("✅ Sample orders created successfully!")
+    console.log(`   📦 Order ORD-001-2024 for Mario Rossi (CONFIRMED) - €25.50`)
+    console.log(`   📦 Order ORD-002-2024 for John Smith (PENDING) - €18.90`)
+    console.log(`   📦 Order ORD-003-2024 for Maria Garcia (DELIVERED) - €32.80`)
+    console.log(`   📦 Order ORD-004-2024 for Mario Rossi (DELIVERED) - €45.20`)
+    console.log(`   📦 Order ORD-005-2024 for Mario Rossi (CONFIRMED) - €67.80`)
+    console.log(`   📦 Order ORD-006-2024 for Mario Rossi (PENDING) - €28.90`)
+    console.log(`   📦 Order ORD-007-2024 for Mario Rossi (DELIVERED) - €89.50`)
+  } else {
+    console.log("⚠️ No products found, skipping order creation")
+  }
 
   // Seed Aviso Legal document
   await seedAvisoLegalDocument(mainWorkspaceId)
@@ -2514,6 +2964,7 @@ async function main() {
   console.log("   ✅ Services configured")
   console.log("   ✅ FAQs loaded")
   console.log("   ✅ Test customers created")
+  console.log("   ✅ Sample orders created")
   console.log("   ✅ System ready for WhatsApp")
 
   console.log(`Seed completato con successo!`)
@@ -2524,8 +2975,9 @@ async function main() {
   console.log(`- Services creati/aggiornati: ${services.length}`)
   console.log(`- FAQs create: ${faqsData.length}`)
   console.log(
-    `- 4 test customers with active chats created: Mario Rossi (🇮🇹), John Smith (🇬🇧), Maria Garcia (🇪🇸), João Silva (🇵🇹)`
+    `- 4 test customers with active chats and conversation history created: Mario Rossi (🇮🇹), John Smith (🇬🇧), Maria Garcia (🇪🇸), João Silva (🇵🇹)`
   )
+  console.log(`- 7 sample orders created with different statuses (5 for Mario Rossi, 1 for John Smith, 1 for Maria Garcia)`)
   console.log(`- Embeddings ready for manual generation via API`)
 }
 

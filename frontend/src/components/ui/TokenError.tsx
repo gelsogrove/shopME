@@ -106,7 +106,7 @@ export const TokenError: React.FC<TokenErrorProps> = ({
         {/* Expiration Time for Expired Tokens */}
         {errorType === 'EXPIRED_TOKEN' && expiresAt && (
           <div className={`text-sm ${config.messageColor} bg-white bg-opacity-50 rounded-lg px-4 py-2`}>
-            <p>⏰ Expired on: {new Date(expiresAt).toLocaleString('en-US')}</p>
+            <p>⏰ Link expired</p>
           </div>
         )}
         

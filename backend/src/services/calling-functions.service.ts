@@ -1,16 +1,16 @@
 import axios from 'axios';
 import { SecureTokenService } from '../application/services/secure-token.service';
 import {
-    CategoriesResponse,
-    ErrorResponse,
-    OffersResponse,
-    ProductsResponse,
-    RagSearchRequest,
-    RagSearchResponse,
-    ServicesResponse,
-    StandardResponse,
-    SuccessResponse,
-    TokenResponse
+  CategoriesResponse,
+  ErrorResponse,
+  OffersResponse,
+  ProductsResponse,
+  RagSearchRequest,
+  RagSearchResponse,
+  ServicesResponse,
+  StandardResponse,
+  SuccessResponse,
+  TokenResponse
 } from '../types/whatsapp.types';
 import { TranslationService } from './translation.service';
 
@@ -65,11 +65,92 @@ export class CallingFunctionsService {
     };
   }
 
-  public async getAllProducts(request: GetAllProductsRequest): Promise<ProductsResponse> {
+  public async getAllProducts(request: GetAllProductsRequest): Promise<CategoriesResponse> {
     try {
-      console.log('🔧 Calling getAllProducts with:', request);
+      console.log('🔧 Calling getAllProducts (now returns categories) with:', request);
       
-      // Direct database query with Prisma for complete product list
+      // Direct database query with Prisma for categories list
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+      
+      // Get all categories with product counts, filtering out categories with 0 products
+      const categories = await prisma.categories.findMany({
+        where: {
+          workspaceId: request.workspaceId,
+          isActive: true,
+          products: {
+            some: {
+              isActive: true
+            }
+          }
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          _count: {
+            select: {
+              products: {
+                where: {
+                  isActive: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: { name: 'asc' }
+      });
+      
+      await prisma.$disconnect();
+      
+      if (!categories || categories.length === 0) {
+        return {
+          success: false,
+          error: 'Nessuna categoria disponibile',
+          message: 'Nessuna categoria disponibile',
+          timestamp: new Date().toISOString()
+        } as CategoriesResponse;
+      }
+      
+      // Mappatura icone per categoria
+      const categoryIcons: { [key: string]: string } = {
+        'Cheeses & Dairy': '🧀',
+        'Cured Meats': '🥓',
+        'Salami & Cold Cuts': '🥩',
+        'Pasta & Rice': '🍝',
+        'Tomato Products': '🍅',
+        'Flour & Baking': '🌾',
+        'Sauces & Preserves': '🍯',
+        'Water & Beverages': '💧',
+        'Frozen Products': '🧊',
+        'Various & Spices': '🌿'
+      };
+
+      return {
+        success: true,
+        data: {
+          categories: categories.map(category => ({
+            id: category.id,
+            name: `${categoryIcons[category.name] || ''} ${category.name}`, // Add icon to name
+            description: category.description,
+            productCount: category._count.products
+          })),
+          totalCategories: categories.length
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+    } catch (error) {
+      console.error('❌ Error in getAllProducts:', error);
+      return this.createErrorResponse(error, 'getAllProducts') as CategoriesResponse;
+    }
+  }
+
+  public async getProductsByCategory(request: GetAllProductsRequest & { categoryName: string }): Promise<ProductsResponse> {
+    try {
+      console.log('🔧 Calling getProductsByCategory with:', request);
+      
+      // Direct database query with Prisma for products in specific category
       const { PrismaClient } = require('@prisma/client');
       const prisma = new PrismaClient();
       
@@ -91,13 +172,14 @@ export class CallingFunctionsService {
         }
       });
       
-      console.log('🎯 Active offers found:', activeOffers.length);
-      
-      // Get all products with categories, ordered by category name alphabetically
+      // Get products in the specific category
       const products = await prisma.products.findMany({
         where: {
           workspaceId: request.workspaceId,
-          isActive: true
+          isActive: true,
+          category: {
+            name: request.categoryName
+          }
         },
         select: {
           id: true,
@@ -115,10 +197,7 @@ export class CallingFunctionsService {
             }
           }
         },
-        orderBy: [
-          { category: { name: 'asc' } },
-          { name: 'asc' }
-        ]
+        orderBy: { name: 'asc' }
       });
       
       await prisma.$disconnect();
@@ -126,23 +205,15 @@ export class CallingFunctionsService {
       if (!products || products.length === 0) {
         return {
           success: false,
-          error: 'Nessun prodotto disponibile',
-          message: 'Nessun prodotto disponibile',
+          error: `Nessun prodotto disponibile nella categoria "${request.categoryName}"`,
+          message: `Nessun prodotto disponibile nella categoria "${request.categoryName}"`,
           timestamp: new Date().toISOString()
         } as ProductsResponse;
       }
       
-      // Group products by category and apply discounts
-      const groupedProducts = products.reduce((acc, product) => {
-        const categoryName = product.category?.name || 'Senza Categoria';
+      // Apply discounts to products
+      const productsWithDiscounts = products.map(product => {
         const categoryId = product.category?.id;
-        
-        if (!acc[categoryName]) {
-          acc[categoryName] = {
-            categoryName,
-            products: []
-          };
-        }
         
         // Check if there's an active offer for this category
         const categoryOffer = activeOffers.find(offer => 
@@ -161,7 +232,7 @@ export class CallingFunctionsService {
           console.log(`💰 Applied ${discountPercent}% discount to ${product.name}: €${originalPrice} → €${finalPrice.toFixed(2)}`);
         }
         
-        acc[categoryName].products.push({
+        return {
           code: product.ProductCode || product.sku || product.id,
           ProductCode: product.ProductCode,
           name: product.name,
@@ -172,26 +243,27 @@ export class CallingFunctionsService {
           discountPercent: hasDiscount ? discountPercent : undefined,
           hasDiscount: hasDiscount,
           stock: product.stock
-        });
-        
-        return acc;
-      }, {});
+        };
+      });
       
-      console.log('✅ Products grouped by category with discounts applied:', Object.keys(groupedProducts));
+      console.log(`✅ Found ${products.length} products in category "${request.categoryName}"`);
       
       return {
         success: true,
         data: {
-          categories: Object.values(groupedProducts),
+          categories: [{
+            categoryName: request.categoryName,
+            products: productsWithDiscounts
+          }],
           totalProducts: products.length,
-          totalCategories: Object.keys(groupedProducts).length
+          totalCategories: 1
         },
         timestamp: new Date().toISOString()
       };
       
     } catch (error) {
-      console.error('❌ Error in getAllProducts:', error);
-      return this.createErrorResponse(error, 'getAllProducts') as ProductsResponse;
+      console.error('❌ Error in getProductsByCategory:', error);
+      return this.createErrorResponse(error, 'getProductsByCategory') as ProductsResponse;
     }
   }
 

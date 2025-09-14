@@ -9,6 +9,7 @@ import { getPublicPageTexts } from "../utils/publicPageTranslations"
 interface Product {
   codice: string
   descrizione: string
+  formato?: string // 🧀 Include formato field
   qty: number
   prezzo: number
   prezzoOriginale?: number
@@ -93,6 +94,7 @@ const CheckoutPage: React.FC = () => {
         const cleanedProdotti = (tokenData.prodotti || []).map(prodotto => ({
           ...prodotto,
           descrizione: prodotto.descrizione === 'Unknown Product' ? 'Prodotto senza nome' : prodotto.descrizione,
+          formato: prodotto.formato, // 🧀 Preserve formato field
           qty: prodotto.quantita || 1, // Map quantita to qty for frontend compatibility
           prezzoOriginale: prodotto.prezzo, // Original price
           prezzo: prodotto.prezzoScontato || prodotto.prezzo, // Use discounted price as display price
