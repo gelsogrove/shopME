@@ -52,7 +52,13 @@ export class DualLLMService {
             success: true,
             output: formattedMessage || "Offerte trovate!",
             translatedQuery,
-            functionCalls: [result],
+            functionCalls: [{
+              name: "GetActiveOffers",
+              functionName: "GetActiveOffers", 
+              success: result.success,
+              result: result,
+              source: "GetActiveOffers"
+            }],
             debugInfo: {
               stage: "getActiveOffers",
               success: true,
@@ -62,44 +68,7 @@ export class DualLLMService {
         }
       }
 
-      // Step 2b: Check if it's about products
-      const isProductsQuery = this.isAboutProducts(translatedQuery)
-      console.log(`🔍 Is about products: ${isProductsQuery}`)
-
-      if (isProductsQuery) {
-        // Call GetAllProducts directly
-        console.log("🛍️ Calling GetAllProducts...")
-        const result = await this.callingFunctionsService.getAllProducts({
-          customerId: request.customerid || "",
-          workspaceId: request.workspaceId,
-        })
-        
-        console.log("🚨🚨🚨 ANDREA: GetAllProducts result:", JSON.stringify(result, null, 2))
-        
-        // Log to file for MCP
-        const logMessage2 = `[${new Date().toISOString()}] 🚨🚨🚨 ANDREA: GetAllProducts result: ${JSON.stringify(result, null, 2)}\n`
-        fs.appendFileSync('/tmp/shopme-server.log', logMessage2)
-
-        if (result.success) {
-          // Step 3: Format the response with FormatterService LLM
-          console.log("🎨 Formatting GetAllProducts response with FormatterService LLM...")
-          const formattedMessage = await this.executeFormatter(request, result, "GetAllProducts")
-
-          return {
-            success: true,
-            output: formattedMessage || "Prodotti trovati!",
-            translatedQuery,
-            functionCalls: [result],
-            debugInfo: {
-              stage: "getAllProducts",
-              success: true,
-              functionCalled: "GetAllProducts"
-            }
-          }
-        }
-      }
-
-      // Step 2c: Check if it's about specific category products
+      // Step 2b: Check if it's about specific category products (PRIMA DI products generali!)
       const isCategoryQuery = this.isAboutCategory(translatedQuery)
       console.log(`🔍 Is about category: ${isCategoryQuery}`)
 
@@ -132,11 +101,70 @@ export class DualLLMService {
             success: true,
             output: formattedMessage || "Prodotti della categoria trovati!",
             translatedQuery,
-            functionCalls: [result],
+            functionCalls: [{
+              name: "GetProductsByCategory",
+              functionName: "GetProductsByCategory",
+              success: result.success,
+              result: result,
+              source: "GetProductsByCategory"
+            }],
             debugInfo: {
               stage: "getProductsByCategory",
               success: true,
               functionCalled: "GetProductsByCategory"
+            }
+          }
+        }
+      }
+
+      // Step 2c: Check if it's about products (DOPO category specifiche!)
+      const isProductsQuery = this.isAboutProducts(translatedQuery)
+      console.log(`🔍 Is about products: ${isProductsQuery}`)
+
+      // CRITICAL TRIGGERS FORCING - Memory Bank Rule
+      const criticalProductTriggers = ["cosa vendete", "che prodotti avete", "what do you sell", "what products do you have"]
+      const isCriticalProductTrigger = criticalProductTriggers.some(trigger => 
+        translatedQuery.toLowerCase().includes(trigger.toLowerCase())
+      )
+      
+      if (isCriticalProductTrigger) {
+        console.log(`🚨 CRITICAL PRODUCT TRIGGER DETECTED: "${translatedQuery}" - Forcing GetAllProducts() call`)
+      }
+
+      if (isProductsQuery || isCriticalProductTrigger) {
+        // Call GetAllProducts directly
+        console.log("🛍️ Calling GetAllProducts...")
+        const result = await this.callingFunctionsService.getAllProducts({
+          customerId: request.customerid || "",
+          workspaceId: request.workspaceId,
+        })
+        
+        console.log("🚨🚨🚨 ANDREA: GetAllProducts result:", JSON.stringify(result, null, 2))
+        
+        // Log to file for MCP
+        const logMessage2 = `[${new Date().toISOString()}] 🚨🚨🚨 ANDREA: GetAllProducts result: ${JSON.stringify(result, null, 2)}\n`
+        fs.appendFileSync('/tmp/shopme-server.log', logMessage2)
+
+        if (result.success) {
+          // Step 3: Format the response with FormatterService LLM
+          console.log("🎨 Formatting GetAllProducts response with FormatterService LLM...")
+          const formattedMessage = await this.executeFormatter(request, result, "GetAllProducts")
+
+          return {
+            success: true,
+            output: formattedMessage || "Prodotti trovati!",
+            translatedQuery,
+            functionCalls: [{
+              name: "GetAllProducts",
+              functionName: "GetAllProducts",
+              success: result.success,
+              result: result,
+              source: "GetAllProducts"
+            }],
+            debugInfo: {
+              stage: "getAllProducts",
+              success: true,
+              functionCalled: "GetAllProducts"
             }
           }
         }
