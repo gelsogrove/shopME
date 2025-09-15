@@ -153,15 +153,28 @@ export class DualLLMService {
 
       // Final fallback: generic response
       console.log("❌ SearchRag fallback found nothing - Generic response")
+      
+      // Check if it's a bot identity query
+      const isBotIdentityQuery = this.isAboutBotIdentity(translatedQuery)
+      let genericOutput = "Ciao! Come posso aiutarti oggi? 😊"
+      
+      if (isBotIdentityQuery) {
+        // Detect user language from original message
+        const originalMessage = request.chatInput || ""
+        const language = this.detectLanguageFromMessage(originalMessage)
+        genericOutput = this.getBotIdentityResponse(language)
+        console.log(`🤖 Bot identity query detected - Language: ${language}`)
+      }
+      
       return {
         success: true,
-        output: "Ciao! Come posso aiutarti oggi? 😊",
+        output: genericOutput,
         translatedQuery,
         functionCalls: [],
         debugInfo: {
           stage: "generic",
           success: true,
-          reason: "no_cf_called_and_no_searchrag_results"
+          reason: isBotIdentityQuery ? "bot_identity_response" : "no_cf_called_and_no_searchrag_results"
         }
       }
 
@@ -242,6 +255,44 @@ export class DualLLMService {
     
     // Default fallback
     return "Cheeses & Dairy"
+  }
+
+  private isAboutBotIdentity(query: string): boolean {
+    const identityTriggers = [
+      "chi sei", "who are you", "quién eres", "quem você é",
+      "what are you", "cosa sei", "qué eres", "o que você é",
+      "tell me about yourself", "dimmi di te", "háblame de ti", "fale sobre você"
+    ]
+    return identityTriggers.some(trigger => 
+      query.toLowerCase().includes(trigger.toLowerCase())
+    )
+  }
+
+  private detectLanguageFromMessage(message: string): string {
+    const lowerMessage = message.toLowerCase()
+    
+    if (lowerMessage.includes("chi sei") || lowerMessage.includes("cosa sei") || lowerMessage.includes("dimmi di te")) {
+      return "it"
+    } else if (lowerMessage.includes("quién eres") || lowerMessage.includes("qué eres") || lowerMessage.includes("háblame de ti")) {
+      return "es"  
+    } else if (lowerMessage.includes("quem você é") || lowerMessage.includes("o que você é") || lowerMessage.includes("fale sobre")) {
+      return "pt"
+    } else if (lowerMessage.includes("who are you") || lowerMessage.includes("what are you") || lowerMessage.includes("tell me about")) {
+      return "en"
+    }
+    
+    return "it" // Default to Italian
+  }
+
+  private getBotIdentityResponse(language: string): string {
+    const responses = {
+      it: "Ciao! 👋 Sono l'assistente virtuale di L'Altra Italia, il tuo negozio specializzato in prodotti italiani di alta qualità! 🇮🇹\n\nSono qui per aiutarti a:\n• 🛍️ Scoprire i nostri prodotti\n• 🎉 Trovare le migliori offerte\n• 📦 Gestire i tuoi ordini\n• ❓ Rispondere alle tue domande\n\nCome posso aiutarti oggi? 😊",
+      en: "Hello! 👋 I'm the virtual assistant for L'Altra Italia, your shop specialized in high-quality Italian products! 🇮🇹\n\nI'm here to help you:\n• 🛍️ Discover our products\n• 🎉 Find the best offers\n• 📦 Manage your orders\n• ❓ Answer your questions\n\nHow can I help you today? 😊",
+      es: "¡Hola! 👋 Soy el asistente virtual de L'Altra Italia, tu tienda especializada en productos italianos de alta calidad! 🇮🇹\n\nEstoy aquí para ayudarte a:\n• 🛍️ Descubrir nuestros productos\n• 🎉 Encontrar las mejores ofertas\n• 📦 Gestionar tus pedidos\n• ❓ Responder tus preguntas\n\n¿Cómo puedo ayudarte hoy? 😊",
+      pt: "Olá! 👋 Sou o assistente virtual da L'Altra Italia, sua loja especializada em produtos italianos de alta qualidade! 🇮🇹\n\nEstou aqui para ajudá-lo a:\n• 🛍️ Descobrir nossos produtos\n• 🎉 Encontrar as melhores ofertas\n• 📦 Gerenciar seus pedidos\n• ❓ Responder suas perguntas\n\nComo posso ajudá-lo hoje? 😊"
+    }
+    
+    return responses[language] || responses.it
   }
 
   private async executeFormatter(request: LLMRequest, ragResult: any, functionName: string = "GetActiveOffers"): Promise<string> {
