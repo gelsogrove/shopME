@@ -49,7 +49,7 @@ export class DualLLMService {
           const formattedMessage = await this.executeFormatter(request, result, "GetActiveOffers")
 
           return {
-            success: true,
+          success: true,
             output: formattedMessage || "Offerte trovate!",
             translatedQuery,
             functionCalls: [{
@@ -61,14 +61,95 @@ export class DualLLMService {
             }],
             debugInfo: {
               stage: "getActiveOffers",
-              success: true,
+            success: true,
               functionCalled: "GetActiveOffers"
             }
           }
         }
       }
 
-      // Step 2b: Check if it's about specific category products (PRIMA DI products generali!)
+      // Step 2b: Check if user wants to contact operator (PRIORITÀ ALTA!)
+      const isOperatorQuery = this.isAboutOperator(translatedQuery)
+      console.log(`🔍 Is about operator: ${isOperatorQuery}`)
+
+      if (isOperatorQuery) {
+        // Call ContactOperator directly
+        console.log("📞 Calling ContactOperator...")
+        const result = await this.callingFunctionsService.contactOperator({
+          customerId: request.customerid || "",
+          workspaceId: request.workspaceId,
+          phoneNumber: request.phone || ""
+        })
+        
+        console.log("🚨🚨🚨 ANDREA: ContactOperator result:", JSON.stringify(result, null, 2))
+        
+        // Log to file for MCP
+        const logMessage6 = `[${new Date().toISOString()}] 🚨🚨🚨 ANDREA: ContactOperator result: ${JSON.stringify(result, null, 2)}\n`
+        fs.appendFileSync('/tmp/shopme-server.log', logMessage6)
+
+        return {
+          success: true,
+          output: result.message || "Certo, verrà contattato il prima possibile dal nostro operatore.",
+          translatedQuery,
+          functionCalls: [{
+            name: "ContactOperator",
+            functionName: "ContactOperator",
+            success: result.success,
+            result: result,
+            source: "ContactOperator"
+          }],
+          debugInfo: {
+            stage: "contactOperator",
+            success: true,
+            functionCalled: "ContactOperator"
+          }
+        }
+      }
+
+      // Step 2c: Check if it's about categories list (PRIMA DI category specifiche!)
+      const isCategoriesQuery = this.isAboutCategories(translatedQuery)
+      console.log(`🔍 Is about categories: ${isCategoriesQuery}`)
+
+      if (isCategoriesQuery) {
+        // Call GetAllCategories directly
+        console.log("📂 Calling GetAllCategories...")
+        const result = await this.callingFunctionsService.getAllCategories({
+          customerId: request.customerid || "",
+          workspaceId: request.workspaceId,
+        })
+        
+        console.log("🚨🚨🚨 ANDREA: GetAllCategories result:", JSON.stringify(result, null, 2))
+        
+        // Log to file for MCP
+        const logMessage5 = `[${new Date().toISOString()}] 🚨🚨🚨 ANDREA: GetAllCategories result: ${JSON.stringify(result, null, 2)}\n`
+        fs.appendFileSync('/tmp/shopme-server.log', logMessage5)
+
+        if (result.success) {
+          // Step 3: Format the response with FormatterService LLM
+          console.log("🎨 Formatting GetAllCategories response with FormatterService LLM...")
+          const formattedMessage = await this.executeFormatter(request, result, "GetAllCategories")
+
+              return {
+                success: true,
+            output: formattedMessage || "Categorie trovate!",
+                translatedQuery,
+            functionCalls: [{
+              name: "GetAllCategories",
+              functionName: "GetAllCategories",
+              success: result.success,
+              result: result,
+              source: "GetAllCategories"
+            }],
+                debugInfo: {
+              stage: "getAllCategories",
+              success: true,
+              functionCalled: "GetAllCategories"
+            }
+          }
+        }
+      }
+
+      // Step 2c: Check if it's about specific category products (DOPO categories generali!)
       const isCategoryQuery = this.isAboutCategory(translatedQuery)
       console.log(`🔍 Is about category: ${isCategoryQuery}`)
 
@@ -97,8 +178,8 @@ export class DualLLMService {
           console.log("🎨 Formatting GetProductsByCategory response with FormatterService LLM...")
           const formattedMessage = await this.executeFormatter(request, result, "GetProductsByCategory")
 
-          return {
-            success: true,
+        return {
+          success: true,
             output: formattedMessage || "Prodotti della categoria trovati!",
             translatedQuery,
             functionCalls: [{
@@ -149,8 +230,8 @@ export class DualLLMService {
           // Step 3: Format the response with FormatterService LLM
           console.log("🎨 Formatting GetAllProducts response with FormatterService LLM...")
           const formattedMessage = await this.executeFormatter(request, result, "GetAllProducts")
-
-          return {
+      
+      return {
             success: true,
             output: formattedMessage || "Prodotti trovati!",
             translatedQuery,
@@ -209,7 +290,7 @@ export class DualLLMService {
         genericOutput = this.getBotIdentityResponse(language)
         console.log(`🤖 Bot identity query detected - Language: ${language}`)
       }
-      
+
       return {
         success: true,
         output: genericOutput,
@@ -260,6 +341,20 @@ export class DualLLMService {
     return productsTriggers.some(trigger => lowerQuery.includes(trigger.toLowerCase()))
   }
 
+  private isAboutCategories(query: string): boolean {
+    const categoriesTriggers = [
+      "categories", "categorias", "categorie", "catégories",
+      "che categorie", "quali categorie", "tipi di prodotti", "che tipi di prodotti",
+      "categorie disponibili", "categorie prodotti", "lista categorie",
+      "fammi vedere le categorie", "mostrami le categorie", "dammi le categorie",
+      "show me categories", "what categories", "product categories",
+      "categorías disponibles", "qué categorías tienen", "mostrar categorías"
+    ]
+    
+    const lowerQuery = query.toLowerCase()
+    return categoriesTriggers.some(trigger => lowerQuery.includes(trigger.toLowerCase()))
+  }
+
   private isAboutCategory(query: string): boolean {
     const categoryTriggers = [
       "cheese", "cheeses", "dairy", "formaggi", "latticini", "mozzarella", "burrata",
@@ -307,10 +402,11 @@ export class DualLLMService {
       "what are you", "cosa sei", "qué eres", "o que você é",
       "tell me about yourself", "dimmi di te", "háblame de ti", "fale sobre você"
     ]
-    return identityTriggers.some(trigger => 
+    return identityTriggers.some(trigger =>
       query.toLowerCase().includes(trigger.toLowerCase())
     )
   }
+
 
   private detectLanguageFromMessage(message: string): string {
     const lowerMessage = message.toLowerCase()
@@ -382,6 +478,17 @@ When showing product categories, format them clearly and ask for user preference
 - Make the response comprehensive and detailed
 
 When showing category products, display the complete list without omissions.`
+      } else if (functionName === "GetAllCategories") {
+        formatRules = `FORMATTING RULES FOR CATEGORIES:
+- Use friendly, professional ${langInfo.lang}
+- Include relevant emoji (📂 for categories, 🧀 🧊 🍯 🌿 from data)
+- Show ALL categories with name and description
+- Format as: • 🧀 Category Name - Description
+- Include product counts if available
+- Make the response engaging and informative
+- End with question asking which category interests them
+
+When showing categories, make them sound appealing and highlight their unique characteristics.`
       } else {
         formatRules = `FORMATTING RULES FOR OFFERS:
 - Use friendly, professional ${langInfo.lang}
@@ -434,7 +541,7 @@ Format this into a natural ${langInfo.lang} response for the user.`
       
       return formattedResponse || "Offerte trovate!"
 
-    } catch (error) {
+      } catch (error) {
       console.error("❌ Formatter error:", error)
       return "Offerte trovate!"
     }
@@ -460,7 +567,7 @@ Format this into a natural ${langInfo.lang} response for the user.`
       const logSearchRag = `[${new Date().toISOString()}] 🚨🚨🚨 ANDREA: SearchRag raw result: ${JSON.stringify(ragResult, null, 2)}\n`
       fs.appendFileSync('/tmp/shopme-server.log', logSearchRag)
 
-      if (ragResult.success && ragResult.results && ragResult.results.results && ragResult.results.results.total > 0) {
+      if (ragResult.success && ragResult.results && (ragResult.results as any).results && (ragResult.results as any).results.total > 0) {
         // Log to file for MCP
         const logMessage4 = `[${new Date().toISOString()}] 🚨🚨🚨 ANDREA: SearchRag result: ${JSON.stringify(ragResult, null, 2)}\n`
         fs.appendFileSync('/tmp/shopme-server.log', logMessage4)
@@ -468,12 +575,12 @@ Format this into a natural ${langInfo.lang} response for the user.`
         // Extract the most relevant FAQ content
         let formattedOutput = "Ho trovato queste informazioni per te."
         
-        if (ragResult.results.results.faqs && ragResult.results.results.faqs.length > 0) {
-          const topFaq = ragResult.results.results.faqs[0]
+        if ((ragResult.results as any).results.faqs && (ragResult.results as any).results.faqs.length > 0) {
+          const topFaq = (ragResult.results as any).results.faqs[0]
           const content = topFaq.content
           
           // Extract the answer part (after "Answer: ")
-          const answerMatch = content.match(/Answer:\s*(.+)$/s)
+          const answerMatch = content.match(/Answer:\s*(.+)$/)
           if (answerMatch) {
             formattedOutput = answerMatch[1].trim()
           }
@@ -515,7 +622,7 @@ Format this into a natural ${langInfo.lang} response for the user.`
 
     } catch (error) {
       console.error("❌ SearchRag fallback error:", error)
-      return {
+    return {
         success: false,
         output: "",
         translatedQuery,

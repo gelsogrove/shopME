@@ -6,7 +6,6 @@
  */
 
 import { generateCartLink } from './generateCartLink'
-import { GetCustomerProfileLink } from './GetCustomerProfileLink'
 
 interface ReplaceLinkWithTokenParams {
   response: string
@@ -83,7 +82,8 @@ export async function ReplaceLinkWithToken(
     // Generate appropriate link based on type
     switch (finalLinkType) {
       case 'profile':
-        const profileResult = await GetCustomerProfileLink({ workspaceId, customerId })
+        // const profileResult = await GetCustomerProfileLink({ workspaceId, customerId })
+        const profileResult = null // REMOVED - GetCustomerProfileLink deleted
         if (profileResult && profileResult.profileUrl) {
           generatedLink = profileResult.profileUrl
         } else {

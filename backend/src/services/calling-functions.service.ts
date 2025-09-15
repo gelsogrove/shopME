@@ -2,16 +2,16 @@ import axios from 'axios';
 import { SecureTokenService } from '../application/services/secure-token.service';
 import { ReplaceLinkWithToken } from '../chatbot/calling-functions/ReplaceLinkWithToken';
 import {
-    CategoriesResponse,
-    ErrorResponse,
-    OffersResponse,
-    ProductsResponse,
-    RagSearchRequest,
-    RagSearchResponse,
-    ServicesResponse,
-    StandardResponse,
-    SuccessResponse,
-    TokenResponse
+  CategoriesResponse,
+  ErrorResponse,
+  OffersResponse,
+  ProductsResponse,
+  RagSearchRequest,
+  RagSearchResponse,
+  ServicesResponse,
+  StandardResponse,
+  SuccessResponse,
+  TokenResponse
 } from '../types/whatsapp.types';
 
 export interface GetAllProductsRequest {
@@ -326,46 +326,6 @@ export class CallingFunctionsService {
     }
   }
 
-  public async getCustomerProfileLink(request: GetOrdersListLinkRequest): Promise<TokenResponse> {
-    try {
-      console.log('🔧 Calling getCustomerProfileLink with:', request);
-      
-      // 🔧 CRITICAL FIX: Use the actual GetCustomerProfileLink function
-      const { GetCustomerProfileLink } = require('../chatbot/calling-functions/GetCustomerProfileLink');
-      
-      const result = await GetCustomerProfileLink({
-        workspaceId: request.workspaceId,
-        customerId: request.customerId
-      });
-      
-      if (!result) {
-        console.error('❌ Failed to generate profile link');
-        return {
-          success: false,
-          error: 'Errore nella generazione del link profilo',
-          message: 'Errore nella generazione del link profilo',
-          linkUrl: '',
-          expiresAt: new Date().toISOString(),
-          action: 'profile',
-          timestamp: new Date().toISOString()
-        };
-      }
-      
-      console.log('✅ Profile link generated successfully:', result.profileUrl);
-      
-      return {
-        success: true,
-        linkUrl: result.profileUrl,
-        expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour
-        action: 'profile',
-        timestamp: new Date().toISOString()
-      };
-      
-    } catch (error) {
-      console.error('❌ Error in getCustomerProfileLink:', error);
-      return this.createErrorResponse(error, 'getCustomerProfileLink') as TokenResponse;
-    }
-  }
 
   public async getAllCategories(request: GetAllProductsRequest): Promise<CategoriesResponse> {
     try {
@@ -667,6 +627,36 @@ export class CallingFunctionsService {
     } catch (error) {
       console.error('❌ Error in SearchRag:', error);
       return this.createErrorResponse(error, 'SearchRag') as RagSearchResponse;
+    }
+  }
+
+  public async contactOperator(request: { customerId: string, workspaceId: string, phoneNumber: string }): Promise<StandardResponse> {
+    try {
+      console.log('🔧 Calling ContactOperator with:', request);
+      
+      // Import the ContactOperator function
+      const { ContactOperator } = require('../chatbot/calling-functions/ContactOperator');
+      
+      const result = await ContactOperator({
+        phone: request.phoneNumber,
+        workspaceId: request.workspaceId
+      });
+      
+      console.log('✅ ContactOperator result:', result);
+      
+      return {
+        success: true,
+        message: result.message || "Certo, verrà contattato il prima possibile dal nostro operatore.",
+        timestamp: new Date().toISOString()
+      };
+      
+    } catch (error) {
+      console.error('❌ Error in contactOperator:', error);
+      return {
+        success: false,
+        message: "Si è verificato un errore nel contattare l'operatore. Riprova più tardi.",
+        timestamp: new Date().toISOString()
+      };
     }
   }
 

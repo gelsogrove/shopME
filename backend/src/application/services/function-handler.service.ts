@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client"
-import { confirmOrderFromConversation } from "../../chatbot/calling-functions/confirmOrderFromConversation"
 import { generateCartLink } from "../../chatbot/calling-functions/generateCartLink"
 import { getAllCategories } from "../../chatbot/calling-functions/getAllCategories"
 import { getAllProducts } from "../../chatbot/calling-functions/getAllProducts"
@@ -169,14 +168,14 @@ export class FunctionHandlerService {
             functionName
           }
 
-        // 🚚 ORDER OPERATIONS & 🛒 CART OPERATIONS
-        case 'confirm_order':
-          return {
-            data: await confirmOrderFromConversation({
-                ...params
-              }),
-              functionName
-            }
+        // 🚚 ORDER OPERATIONS & 🛒 CART OPERATIONS (REMOVED)
+        // case 'confirm_order':
+        //   return {
+        //     data: await confirmOrderFromConversation({
+        //         ...params
+        //       }),
+        //       functionName
+        //     }
 
         case 'generateCartLink':
           return {
