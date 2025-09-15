@@ -334,10 +334,22 @@ export class DualLLMService {
     const productsTriggers = [
       "products", "productos", "prodotti", "produits", "what do you have", 
       "che prodotti", "que productos", "what products", "show me products",
-      "catalog", "catalogo", "catálogo", "catalogue", "inventory", "inventario"
+      "inventory", "inventario"
+    ]
+    
+    // 🚨 REGOLA CRITICA: NON chiamare GetAllProducts per "catalogo"
+    const catalogTriggers = [
+      "catalogo", "catalog", "catalogue", "catálogo", "scaricare catalogo", 
+      "download catalog", "vedere catalogo", "see catalog", "mostrare catalogo", "show catalog"
     ]
     
     const lowerQuery = query.toLowerCase()
+    
+    // Se contiene trigger per catalogo, NON è una query sui prodotti
+    if (catalogTriggers.some(trigger => lowerQuery.includes(trigger.toLowerCase()))) {
+      return false
+    }
+    
     return productsTriggers.some(trigger => lowerQuery.includes(trigger.toLowerCase()))
   }
 
@@ -405,6 +417,34 @@ export class DualLLMService {
     return identityTriggers.some(trigger =>
       query.toLowerCase().includes(trigger.toLowerCase())
     )
+  }
+
+  private isAboutOperator(query: string): boolean {
+    const operatorTriggers = [
+      // Italiano
+      "voglio operatore", "chiama operatore", "servizio clienti", "parlare con qualcuno", 
+      "aiuto umano", "contatta operatore", "assistenza clienti", "supporto clienti", 
+      "parla con operatore", "operatore umano", "assistenza umana", "customer care", 
+      "help desk", "contatto diretto", "assistenza telefonica", "operatore telefonico",
+      // Inglese
+      "i want operator", "i want customer service", "call operator", "customer service", 
+      "speak with someone", "human help", "contact operator", "customer assistance", 
+      "customer support", "talk to operator", "human operator", "human assistance", 
+      "direct contact", "phone assistance", "phone operator",
+      // Spagnolo
+      "quiero operador", "llama operador", "servicio cliente", "hablar con alguien", 
+      "ayuda humana", "contacta operador", "asistencia cliente", "soporte cliente", 
+      "habla con operador", "operador humano", "asistencia humana", "atención cliente", 
+      "contacto directo", "asistencia telefónica", "operador telefónico",
+      // Portoghese
+      "quero operador", "chame operador", "atendimento cliente", "falar com alguém", 
+      "ajuda humana", "contate operador", "assistência cliente", "suporte cliente", 
+      "fale com operador", "operador humano", "assistência humana", "cuidado cliente", 
+      "contato direto", "assistência telefônica", "operador telefônico"
+    ]
+    
+    const lowerQuery = query.toLowerCase()
+    return operatorTriggers.some(trigger => lowerQuery.includes(trigger.toLowerCase()))
   }
 
 
