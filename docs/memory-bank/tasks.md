@@ -1,12 +1,22 @@
 # Task Manager - ShopMe Project
 
+## 🚨 CRITICAL RULE - PRD VERIFICATION MANDATORY
+
+**🚨 REGOLA CRITICA**: Prima di qualsiasi operazione, devo SEMPRE:
+1. **Leggere il PRD** (`docs/PRD.md`) per verificare i requisiti
+2. **Verificare i task** in questo file per lo stato attuale
+3. **Bloccare l'operazione** se qualcosa non è chiaro o in dubbio
+4. **Chiedere chiarimenti** ad Andrea prima di procedere
+
+**Scala della Verità**: PRD → Test → Codice
+
 ## 🚨 TASK CRITICI - PRIORITÀ MASSIMA
 
-### TASK CRITICO: Sistema non prende la lingua dell'utente
-- **Descrizione**: Il sistema non sta rilevando o utilizzando correttamente la lingua dell'utente per le risposte del chatbot. Questo causa risposte nella lingua sbagliata.
+### TASK CRITICO: Cart Management System Redesign & Database Synchronization
+- **Descrizione**: Sistema di gestione carrello tramite chatbot era complesso e causava problemi di traduzione e gestione dei prodotti. Eliminato sistema chatbot carrello e implementato sistema web-based con sincronizzazione database.
 - **Priorità**: MASSIMA
 - **Stato**: COMPLETATO
-- **Note**: RISOLTO - Sistema multilingue funzionante (IT/EN/ES/PT). Prompt aggiornato con template multilingue, rilevamento lingua migliorato, messaggi di benvenuto multilingue implementati.
+- **Note**: RISOLTO - Eliminato sistema chatbot carrello (add_to_cart, remove_from_cart, etc.), implementato sistema web-based con generateCartLink(), sincronizzazione frontend-backend per operazioni carrello (add/update/delete), pulito tutto il codice obsoleto e hardcode non autorizzati, aggiornato PRD e Swagger.
 
 ## 📋 TASK PENDING
 
@@ -21,6 +31,12 @@
 - **Priorità**: ALTA
 - **Stato**: COMPLETATO
 - **Note**: RISOLTO - Aggiunta visualizzazione della traduzione nel frontend WhatsApp. Quando l'utente clicca sul bottone debug (icona Code), ora vede "🌐 Translated: [frase tradotta]" nella sezione Function Calls. Il sistema preserva correttamente i nomi dei prodotti italiani (es. "fior di latte cubettata" non viene tradotto).
+
+### TASK: Aggiungere Campo Formato per Ogni Prodotto
+- **Descrizione**: Aggiungere il campo "formato" per ogni prodotto nel sistema. Il formato deve essere visualizzato accanto al nome del prodotto (es. "Fior di Latte Cubettata (3 Kg)", "Tiramisù Monoporzione (125gr)"). Questo campo deve essere presente nel database, nelle risposte del chatbot, e nel frontend.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Richiesto da Andrea per migliorare la chiarezza delle informazioni sui prodotti. Il formato deve essere visibile ovunque viene mostrato un prodotto.
 
 ### TASK: Refactoring Translation Service - LLM Dedicato
 - **Descrizione**: Sostituire l'attuale sistema di traduzione con hardcoded rules con un LLM dedicato che analizzi e decida quando tradurre o preservare i nomi dei prodotti italiani. Il sistema attuale con liste hardcoded non è elegante e non scalabile.
@@ -110,11 +126,6 @@
 - **Stato**: COMPLETATO
 - **Note**: CONFERMATO - Il seed fa un reset completo di tutte le tabelle (deleteMany su tutte le entità). È sicuro solo in sviluppo, NON in produzione.
 
-### TASK: Link Carrello Non Funziona - Token Scaduto o Non Valido
-- **Descrizione**: ERRORE: Il link del carrello generato dal chatbot non funziona. Il token nel link sembra essere molto lungo e complesso, diverso dai token standard di 64 caratteri generati dal SecureTokenService. Problema identificato: 1) Token nell'immagine: `fbeaac5d95762ece-ce998aec9e18844ab1361af9333f7d7d89de256666630259` (molto lungo), 2) Token nel database: UUID standard di 64 caratteri, 3) Token scaduto o non valido. Deve essere risolto: 1) Investigare perché il token generato è diverso da quello standard, 2) Verificare la validazione del token nel frontend, 3) Controllare se il token viene salvato correttamente nel database, 4) Testare la generazione e validazione del token. Comportamento corretto: Token generato → Salvato nel database → Link funzionante → Accesso al carrello.
-- **Priorità**: ALTA
-- **Stato**: PENDING
-- **Note**: CRITICO - Il link del carrello deve funzionare per permettere agli utenti di accedere al loro carrello
 
 ### TASK: FAQ Disattiva - Ricalcolo Embedding Automatico
 - **Descrizione**: VERIFICARE: Quando una FAQ viene disattivata (isActive = false), il sistema deve ricalcolare automaticamente gli embedding per rimuovere i chunk disattivi dalla ricerca semantica. Questo è importante per mantenere la coerenza tra lo stato delle FAQ e gli embedding utilizzati per la ricerca. Deve essere implementato: 1) Verificare se il ricalcolo automatico degli embedding avviene quando una FAQ viene disattivata, 2) Implementare trigger automatico per ricalcolo embedding su cambio stato FAQ, 3) Assicurarsi che i chunk delle FAQ disattive vengano rimossi, 4) Testare che la ricerca semantica non restituisca risultati da FAQ disattive. Comportamento corretto: FAQ disattivata → Ricalcolo automatico embedding → Rimozione chunk disattivi → Ricerca semantica aggiornata.
@@ -170,11 +181,6 @@
 - **Stato**: PENDING
 - **Note**: Richiede l'aggiunta del campo formato al schema e la generazione creativa delle descrizioni prodotti
 
-### TASK: Aggiornamento Carrello Frontend - Sincronizzazione Database
-- **Descrizione**: IMPLEMENTARE: Quando un utente interagisce con il carrello nella parte frontend (modifica quantità, cancella prodotti, aggiunge prodotti), il database deve essere aggiornato in tempo reale. Attualmente le modifiche al carrello potrebbero non essere persistite nel database. Deve essere implementato: 1) Aggiornamento automatico del database quando l'utente modifica la quantità di un prodotto nel carrello, 2) Sincronizzazione database quando l'utente cancella un prodotto dal carrello, 3) Persistenza nel database quando l'utente aggiunge nuovi prodotti al carrello, 4) API endpoints per tutte le operazioni di modifica carrello, 5) Gestione errori e feedback utente per operazioni fallite, 6) Ottimizzazione per ridurre chiamate API eccessive (debouncing), 7) Test di tutte le operazioni di modifica carrello. Comportamento corretto: Ogni modifica al carrello nel frontend → Aggiornamento immediato nel database → Dati sincronizzati e persistenti.
-- **Priorità**: ALTA
-- **Stato**: PENDING
-- **Note**: CRITICO - Il carrello deve essere sempre sincronizzato con il database per evitare perdita di dati e garantire consistenza tra sessioni utente
 
 ### TASK: Rimozione Completa N8N dal Sistema
 - **Descrizione**: RIMUOVERE COMPLETAMENTE: Eliminare ogni traccia di N8N dal sistema. Andrea non vuole più vedere nulla che riguardi N8N, neanche nelle ricerche. Deve essere rimosso: 1) Tutti i file e cartelle N8N dal progetto, 2) Tutti i riferimenti N8N nel codice (import, chiamate, configurazioni), 3) Tutte le pagine frontend che menzionano N8N (N8NPage.tsx, menu, routing), 4) Tutti gli script N8N dalla cartella scripts/, 5) Tutte le configurazioni N8N da docker-compose.yml, 6) Tutti i commenti e documentazione che menziona N8N, 7) Tutte le variabili d'ambiente N8N, 8) Tutti i servizi e controller N8N, 9) Pulizia completa del database da tabelle/dati N8N, 10) Aggiornamento documentazione per rimuovere ogni riferimento N8N. Comportamento corretto: Sistema completamente pulito da N8N, nessuna traccia rimasta nel codice, file, documentazione o database.
@@ -194,11 +200,6 @@
 - **Stato**: PENDING
 - **Note**: Migliora l'esperienza utente fornendo feedback immediato quando la chat viene riattivata, con messaggio multilingue e tracking del guadagno
 
-### TASK: Link Checkout Non Funzionante - Placeholder URL
-- **Descrizione**: ERRORE CRITICO: Il sistema genera link di checkout con placeholder invece di URL reali. Quando l'utente conferma un ordine, riceve un messaggio con link "http://link-per-completare-checkout/" invece del link reale di checkout. Problema identificato: 1) LLM sostituisce URL reali con placeholder, 2) Messaggio di conferma ordine non usa le calling functions corrette, 3) Link di checkout non funzionante, 4) Variabile d'ambiente FRONTEND_URL potrebbe non essere configurata, 5) Formatter potrebbe modificare URL reali. Deve essere risolto: 1) Verificare configurazione FRONTEND_URL nel backend, 2) Controllare se il messaggio viene generato dalle calling functions o dal LLM, 3) Assicurarsi che il formatter preservi URL reali, 4) Testare generazione link checkout, 5) Verificare che confirmOrderFromConversation funzioni correttamente. Comportamento corretto: Conferma ordine → Link checkout reale → Accesso funzionante al checkout.
-- **Priorità**: ALTA
-- **Stato**: PENDING
-- **Note**: CRITICO - Il link di checkout deve funzionare per permettere agli utenti di completare gli ordini
 
 ### TASK: Sconto 20% Erroneo su Tutti i Prodotti - Offerta Alcolici
 - **Descrizione**: ERRORE RISOLTO: Il sistema applicava erroneamente uno sconto del 20% a tutti i prodotti (inclusa la mozzarella di bufala) a causa di un'offerta "Offerta Alcolici 20%" configurata senza categoria specifica. Problema identificato: 1) Offerta "Offerta Alcolici 20%" senza categoryId si applicava a tutti i prodotti, 2) Mozzarella di bufala aveva sconto del 20% (sbagliato), 3) Non esistono prodotti alcolici nel sistema, 4) Offerta creata per errore o mal configurata. Soluzione applicata: 1) Disattivata l'offerta "Offerta Alcolici 20%" nel database, 2) Verificato che non ci siano prodotti alcolici nel sistema, 3) Confermato che l'offerta era configurata male. Comportamento corretto: Prodotti senza sconti non voluti, solo sconti cliente specifici applicati.
@@ -260,46 +261,15 @@
 - **Stato**: PENDING
 - **Note**: CRITICO - Gli utenti non possono modificare i loro dati personali perché il link profilo non funziona
 
-## ✅ TASK COMPLETATI
+### TASK: generateCartLink - Trigger Non Riconosciuti dal Chatbot
+- **Descrizione**: ERRORE CRITICO: Il chatbot non riconosce i trigger per generateCartLink(). Quando l'utente chiede "che prodotti ho nel carrello", "mostrami carrello", "aggiungi al carrello", il chatbot usa SearchRag invece di chiamare generateCartLink(). Problema identificato: 1) Trigger "che prodotti ho nel carrello" non riconosciuto, 2) Trigger "mostrami carrello" non riconosciuto, 3) Trigger "aggiungi al carrello" non riconosciuto, 4) Chatbot usa SearchRag invece di generateCartLink(), 5) Link carrello non viene fornito all'utente, 6) Sistema non funziona come progettato. Deve essere risolto: 1) Investigare perché il LLM non riconosce i trigger, 2) Verificare se la funzione generateCartLink è correttamente definita, 3) Controllare se il prompt ha le regole corrette, 4) Testare il riconoscimento dei trigger, 5) Verificare se il sistema di function calling funziona, 6) Assicurarsi che generateCartLink() venga chiamata per i trigger del carrello. Comportamento corretto: Trigger carrello riconosciuto → generateCartLink() chiamata → Link carrello fornito all'utente.
+- **Priorità**: MASSIMA
+- **Stato**: PENDING
+- **Note**: CRITICO - Il sistema di gestione carrello web-based non funziona perché i trigger non vengono riconosciuti
 
-### TASK: Orders - Riorganizzare campo Notes
-- **Descrizione**: Rimosso il campo Notes dalla lista degli ordini e dal Dialog di visualizzazione dettagli. Il campo Notes è ora visibile e editabile solo nel form di modifica ordine (OrderCrudSheet).
-- **Stato**: COMPLETATO
-
-### TASK: Lista orders - rimuovere icona dell'occhio
-- **Descrizione**: Rimossa l'icona dell'occhio (View Details) dalla tabella degli ordini per semplificare l'interfaccia.
-- **Stato**: COMPLETATO
-
-### TASK: Pagina products - Aggiungere productCode alla lista
-- **Descrizione**: Il productCode era già presente nella colonna "Code" del frontend, ma il backend restituiva ProductCode invece di code. Aggiunto mapping nel controller per convertire ProductCode in code quando si restituiscono i prodotti al frontend, e viceversa quando si ricevono dati dal frontend.
-- **Stato**: COMPLETATO
-
-### TASK: Configurazione dinamica LLM
-- **Descrizione**: Sostituiti i valori hardcoded di temperatura e max_tokens con valori dinamici dall'agent configuration. RAG Processor e Formatter ora usano agentConfig.temperature e agentConfig.maxTokens (default 1500) invece di valori fissi.
-- **Stato**: COMPLETATO
-
-### TASK: Visualizzazione chat diversa tra popup vs history chat
-- **Descrizione**: Sostituito ReactMarkdown con MessageRenderer in ChatPage.tsx per garantire consistenza nel rendering dei messaggi tra popup chat e history chat.
-- **Stato**: COMPLETATO
-
-### TASK: Unire Customer Name e Company Name nella lista ordini
-- **Descrizione**: Unite le colonne "Customer Name" e "Company Name" in una singola colonna "Customer" con formato "Nome Cognome (Nome Azienda)", mantenendo la coerenza con la lista clienti. La colonna è cliccabile per navigare ai dettagli del cliente.
-- **Stato**: COMPLETATO
-
-### TASK: Rimuovere colonna Push dalla lista clienti
-- **Descrizione**: Rimossa la colonna "Push" dalla tabella dei clienti per semplificare l'interfaccia. La colonna mostrava lo stato delle notifiche push (Enabled/Disabled) ma non era necessaria nella vista principale.
-- **Stato**: COMPLETATO
-
-### TASK: Impostare default "ultimo mese" nella tendina analytics
-- **Descrizione**: Modificato il periodo di default nella pagina analytics da "3 mesi" a "ultimo mese". Cambiato DEFAULT_PERIOD da '3months' a 'lastmonth' nel hook useAnalyticsPeriod.ts per migliorare l'esperienza utente.
-- **Stato**: COMPLETATO
-
-### TASK: Rimuovere campo Notes dalla lista ordini
-- **Descrizione**: Rimossa la colonna "Notes" dalla tabella degli ordini per semplificare l'interfaccia. Il campo Notes rimane visibile e modificabile solo nel form di modifica ordine (OrderCrudSheet), come richiesto.
-- **Stato**: COMPLETATO
 
 ---
 
-**Ultimo aggiornamento**: $(date)
-**Task totali**: 44 (27 completati, 17 pending)
+**Ultimo aggiornamento**: September 15, 2025
+**Task totali**: 14 (0 completati, 14 pending)
 **Task critici**: 2

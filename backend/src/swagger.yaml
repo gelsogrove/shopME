@@ -1057,7 +1057,7 @@ paths:
 
         **Automatic Spam Detection:**
         The system automatically detects and blocks spam behavior:
-        - **Threshold**: 10 messages in 30 seconds
+        - **Threshold**: 30 messages in 60 seconds
         - **Action**: Automatic blacklisting (customer.isBlacklisted = true + phone added to workspace.blocklist)
         - **Duration**: Unlimited (manual admin unlock required)
         - **Scope**: Both customer-level and workspace-level blocking
@@ -1217,7 +1217,7 @@ paths:
     post:
       tags:
         - Internal API
-      summary: Confirm order from conversation and generate checkout link
+      summary: Confirm order from conversation and generate cart link
       description: |
         **🛒 CONVERSATIONAL ORDER FLOW** - Confirma ordine da conversazione WhatsApp e genera link checkout sicuro.
         
@@ -1713,7 +1713,7 @@ paths:
         **Authentication**: Requires Basic Auth (admin:admin) for N8N workflow compatibility.
 
         **Supported Actions**:
-        - `checkout`: Creates checkout link with cart data (1h validity)
+        - `checkout`: Creates cart link with cart data (1h validity)
         - `invoice`: Creates invoice access link (24h validity)
         - `cart`: Creates cart access link (2h validity)
         - `orders`: Creates orders history access link (1h validity)

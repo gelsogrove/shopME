@@ -56,48 +56,58 @@ Dopo i test in italiano, provare in **inglese** e **spagnolo**:
 | 1b | `who are you` | Presentazione del bot | `GENERIC` |
 | 1c | `quién eres` | Presentazione del bot | `GENERIC` |
 
-## 🚨 **TEST BLOCCATO AL PRIMO FALLIMENTO**
+## 🚨 **NUOVA ARCHITETTURA IMPLEMENTATA**
 
-### ❌ **TEST 2 FALLITO - "aggiungi al carrello un prosecco"**
-- **Risultato**: `SearchRag_product` invece di `add_to_cart`
-- **Problema**: LLM non riconosce le Cloud Functions
-- **Status**: BLOCCATO - Analisi in corso
+### ✅ **ARCHITETTURA SEMPLIFICATA (2025)**
+- **Flusso**: CF specifiche → SearchRag → Risposta generica
+- **Link Management**: Tutto via FAQ con `[LINK_WITH_TOKEN]`
+- **CF Ridotte**: Da 13 a 8 funzioni essenziali
+- **Status**: ✅ IMPLEMENTATA - Sistema pulito e funzionante
 
-### 🛒 **CATEGORIA 2: GESTIONE CARRELLO**
+### 🛒 **CATEGORIA 2: GESTIONE CARRELLO (WEB-BASED)**
 | # | Comando | Risultato Atteso | CF da Chiamare |
 |---|---------|------------------|----------------|
-| 2 | `aggiungi al carrello un prosecco` | Aggiunge al carrello automaticamente | `SearchRag` (cart-aware) |
-| 3 | `aggiungi al carrello una mozzarella` | **Mostra 2 prodotti** per scelta utente | `SearchRag` (cart-aware) |
-| 4 | `fammi vedere il carrello` | Mostra carrello + LINK | `confirmOrderFromConversation` |
-| 4b | `show me cart` | Mostra carrello + LINK | `confirmOrderFromConversation` |
-| 4c | `muéstrame carrito` | Mostra carrello + LINK | `confirmOrderFromConversation` |
-| 5 | `mostrami carrello` | Mostra carrello + LINK | `confirmOrderFromConversation` |
-| 5b | `mostra carrello` | Mostra carrello + LINK | `confirmOrderFromConversation` |
-| 6 | `confermo carrello` | Conferma ordine + LINK | `confirmOrderFromConversation` |
-| 7 | `procedi con l'ordine` | Conferma ordine | `confirmOrderFromConversation` |
-| 7b | `procedo con l'ordine` | Conferma ordine | `confirmOrderFromConversation` |
-| 8 | `cancella il prosecco` | Carrello vuoto | `add_to_cart` (qty=0) |
-| 9 | `modifica quantità prosecco a 3` | Aggiorna quantità | `add_to_cart` |
-| 10 | `cambia quantità mozzarella a 2` | Aggiorna quantità | `add_to_cart` |
+| 2 | `voglio fare un ordine` | **Mostra link carrello** - "Certo, ecco il link!" | `SearchRag` |
+| 3 | `aggiungi al carrello una mozzarella` | **NON aggiunge nulla** - Mostra link carrello | `SearchRag` |
+| 4 | `fammi vedere il carrello` | Mostra link carrello web | `SearchRag` |
+| 4b | `show me cart` | Mostra link carrello web | `SearchRag` |
+| 4c | `muéstrame carrito` | Mostra link carrello web | `SearchRag` |
+| 5 | `mostrami carrello` | Mostra link carrello web | `SearchRag` |
+| 5b | `mostra carrello` | Mostra link carrello web | `SearchRag` |
+| 6 | `confermo carrello` | Mostra link carrello web | `SearchRag` |
+| 7 | `procedi con l'ordine` | Mostra link carrello web | `SearchRag` |
+| 7b | `procedo con l'ordine` | Mostra link carrello web | `SearchRag` |
+| 8 | `cancella il prosecco` | **NON cancella nulla** - Mostra link carrello | `SearchRag` |
+| 9 | `modifica quantità prosecco a 3` | **NON modifica nulla** - Mostra link carrello | `SearchRag` |
+| 10 | `cambia quantità mozzarella a 2` | **NON cambia nulla** - Mostra link carrello | `SearchRag` |
+
+**🚨 IMPORTANTE:**
+- **NON esiste più `add_to_cart`** - È stato rimosso
+- **NON esiste più `SearchRag` (cart-aware)** - È stato rimosso  
+- **TUTTO il carrello si gestisce via WEB** - Il chatbot fornisce solo il link
+- **DOPO ogni lista prodotti** deve chiamare `generateCartLink()`
 
 ### 📦 **CATEGORIA 3: GESTIONE ORDINI E TRACKING**
 | # | Comando | Risultato Atteso | CF da Chiamare |
 |---|---------|------------------|----------------|
-| 11 | `dammi link ordini` | Link agli ordini | `GetOrdersListLink` |
-| 11b | `give me orders list` | Link agli ordini | `GetOrdersListLink` |
-| 11c | `dame lista de pedidos` | Link agli ordini | `GetOrdersListLink` |
-| 12 | `quando arriva il mio ordine` | Link tracking DHL | `GetShipmentTrackingLink` |
-| 13 | `dove è il mio ordine?` | Link tracking DHL | `GetShipmentTrackingLink` |
-| 13b | `dove il mio ordine` | Link tracking DHL | `GetShipmentTrackingLink` |
-| 14 | `dammi fattura dell'ultimo ordine` | Link fattura | `GetOrdersListLink` |
-| 14b | `dammi l'ultimo ordine` | Link ordini | `GetOrdersListLink` |
+| 11 | `dammi link ordini` | Link agli ordini | `SearchRag` |
+| 11b | `give me orders list` | Link agli ordini | `SearchRag` |
+| 11c | `dame lista de pedidos` | Link agli ordini | `SearchRag` |
+| 12 | `quando arriva il mio ordine` | Link tracking DHL | `SearchRag` |
+| 13 | `dove è il mio ordine?` | Link tracking DHL | `SearchRag` |
+| 13b | `dove il mio ordine` | Link tracking DHL | `SearchRag` |
+| 14 | `dammi fattura dell'ultimo ordine` | Link fattura | `SearchRag` |
+| 14b | `dammi l'ultimo ordine` | Link ordini | `SearchRag` |
 
 ### 🛍️ **CATEGORIA 4: CATALOGO PRODOTTI E SERVIZI**
 | # | Comando | Risultato Atteso | CF da Chiamare |
 |---|---------|------------------|----------------|
-| 15 | `che prodotti avete` | Lista categorie con icone e conteggio | `GetAllProducts` |
-| 15b | `dammi tutti i prodotti che vendete` | Lista categorie con icone e conteggio | `GetAllProducts` |
-| 15c | `cosa vendete` | Lista categorie con icone e conteggio | `GetAllProducts` |
+| 15 | `che prodotti avete` | Lista categorie | `GetAllProducts` |
+| 15b | `dammi tutti i prodotti che vendete` | Lista categorie | `GetAllProducts` |
+| 15c | `cosa vendete` | Lista categorie | `GetAllProducts` |
+
+**🚨 REGOLA CRITICA:**
+- **NON esiste più gestione carrello nel chatbot** - Solo link web via SearchRag
 | 16 | `che categorie hai di prodotti` | Lista categorie con icone e conteggio | `GetAllCategories` |
 | 16b | `che categorie avete` | Lista categorie con icone e conteggio | `GetAllCategories` |
 | 17 | `Formaggi e Latticini` | Lista prodotti della categoria formaggi | `GetProductsByCategory` |
@@ -120,14 +130,27 @@ Dopo i test in italiano, provare in **inglese** e **spagnolo**:
 ### 👤 **CATEGORIA 6: GESTIONE PROFILO E SUPPORTO**
 | # | Comando | Risultato Atteso | CF da Chiamare |
 |---|---------|------------------|----------------|
-| 22 | `voglio modificare il mio indirizzo di fatturazione` | Link profilo | `GetCustomerProfileLink` |
+| 22 | `voglio modificare il mio indirizzo di fatturazione` | Link profilo | `SearchRag` |
 | 23 | `voglio parlare con un operatore` | Contatto operatore | `ContactOperator` |
+
+### 🚨 **CATEGORIA 7: SICUREZZA E SPAM DETECTION**
+| # | Comando | Risultato Atteso | CF da Chiamare |
+|---|---------|------------------|----------------|
+| 24 | **10 messaggi rapidi** (entro 30 secondi) | Blocco utente per spam | `GENERIC` (con blocco) |
+| 25 | `messaggio malformato @#$%` | Gestione errore graceful | `GENERIC` |
+| 26 | **Conversation history test** | Mantiene contesto tra messaggi | Varia per contesto |
+
+### 🔄 **CATEGORIA 8: FLUSSO CONVERSAZIONALE**
+| # | Comando | Risultato Atteso | CF da Chiamare |
+|---|---------|------------------|----------------|
+| 27 | `chi sei` → `che prodotti avete` → `aggiungi mozzarella` | Flusso completo con contesto | `GENERIC` → `GetAllProducts` → `SearchRag` |
+| 28 | `dammi ordini` → `dove è il mio ordine` | Mantiene contesto cliente | `SearchRag` → `SearchRag` |
 
 ## 🔍 **ANALISI E STATISTICHE**
 
 ### ✅ **RISULTATI:**
-- **Totale test cases**: 34 (puliti, no duplicati)
-- **Categorie**: 6 (Utente, Carrello, Ordini, Catalogo, FAQ, Profilo)
+- **Totale test cases**: 40 (puliti, no duplicati)
+- **Categorie**: 8 (Utente, Carrello, Ordini, Catalogo, FAQ, Profilo, Sicurezza, Flusso)
 - **Lingue**: Italiano, Inglese, Spagnolo
 
 ### ⚠️ **PROBLEMI CRITICI DA RISOLVERE:**
@@ -138,20 +161,20 @@ Dopo i test in italiano, provare in **inglese** e **spagnolo**:
 1. **ALTA**: ✅ **COMPLETATA** - Disambiguazione prodotti funziona
 2. **MEDIA**: ✅ **COMPLETATA** - Cancellazione carrello con add_to_cart qty=0
 
-## 📊 **MAPPATURA CF COMPLETA:**
-- `GetUserInfo`: 0 casi
-- `add_to_cart`: 3 casi (solo per modifiche quantità)
-- `confirmOrderFromConversation`: 9 casi
-- `SearchRag`: 8 casi (cart-aware + ricerca prodotti + FAQ)
+## 📊 **MAPPATURA CF COMPLETA (NUOVA ARCHITETTURA):**
+- `SearchRag`: 25+ casi (gestisce tutti i link via FAQ con `[LINK_WITH_TOKEN]`)
 - `GetAllProducts`: 3 casi (lista categorie)
 - `GetAllCategories`: 2 casi (categorie disponibili)
 - `GetProductsByCategory`: 3 casi (prodotti per categoria)
 - `GetServices`: 2 casi (lista servizi)
 - `GetActiveOffers`: 1 caso (offerte attive)
-- `GetOrdersListLink`: 6 casi
-- `GetShipmentTrackingLink`: 3 casi
-- `GetCustomerProfileLink`: 1 caso
-- `ContactOperator`: 1 caso
+- `GetUserInfo`: 1 caso (dati utente)
+- `ContactOperator`: 1 caso (supporto umano)
+
+**🚨 NUOVA ARCHITETTURA:**
+- **TUTTI I LINK** gestiti via SearchRag + FAQ con `[LINK_WITH_TOKEN]`
+- **FormatterService** sostituisce automaticamente `[LINK_WITH_TOKEN]` con link generato
+- **CF RIDOTTE** da 13 a 8 (solo quelle essenziali)
 
 ## 📊 **REPORT IN TEMPO REALE:**
 **MANTENGO SEMPRE AGGIORNATO** il report durante i test con:

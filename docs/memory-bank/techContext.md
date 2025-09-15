@@ -84,6 +84,8 @@ service_chunks (id, serviceId, content, embedding, createdAt)
 - **Role-based Access**: User roles (OWNER, ADMIN, USER)
 - **JWT Authentication**: Secure token-based authentication
 - **Rate Limiting**: API rate limiting for security
+- **Spam Detection**: Automatic blocking of users sending >30 messages/minute
+- **Blacklist Management**: Customer and workspace-level blocking
 
 ---
 
@@ -120,11 +122,24 @@ User Input → LLM 1 (RAG Processor) → Structured Data → LLM 2 (Formatter) �
 - getFaqsForCustomer()
 - getDocumentsForCustomer()
 - confirmOrderFromConversation()
+- generateCartLink() // NEW: Web-based cart management
 - ContactOperator()
 - CreateOrder()
 - getOrderStatus()
 - getCustomerInfo()
 - getBusinessInfo()
+```
+
+### 🛒 **Cart Management Architecture**
+```typescript
+// Web-based cart management with database synchronization
+- generateCartLink() // Generates secure cart access token
+- CheckoutService.createCheckoutLink() // Creates secure checkout link
+- Frontend /checkout page // Web-based cart management interface
+- Token-based access // Secure cart access with expiration
+- Database synchronization // Real-time sync between frontend and database
+- API endpoints: /api/cart/{token}/items (POST, PUT, DELETE)
+- refreshCartFromBackend() // Refreshes cart data after operations
 ```
 
 ---
@@ -177,6 +192,17 @@ services:
 - **Workspace Isolation**: Complete data separation
 - **Role-based Access**: Granular permission control
 - **API Rate Limiting**: Protection against abuse
+
+### 🚨 **Spam Detection System**
+```typescript
+// SpamDetectionService configuration
+- SPAM_THRESHOLD: 30 messages
+- TIME_WINDOW_SECONDS: 60 seconds (1 minute)
+- Automatic blocking: Users exceeding threshold
+- Database integration: Blocked users added to workspace blocklist
+- Customer blacklisting: isBlacklisted flag set to true
+- Audit logging: All spam events logged for monitoring
+```
 
 ### 🔐 **Data Protection**
 - **GDPR Compliance**: Data privacy and protection
@@ -247,9 +273,10 @@ __tests__/
 
 ### 🔒 **Security Requirements**
 - **Workspace Isolation**: All queries must filter by workspaceId
-- **No Hardcoding**: All configuration from database
+- **No Hardcoding**: All configuration from database (except translate and formatter prompts)
 - **API Security**: Rate limiting and authentication
 - **Data Privacy**: GDPR compliance
+- **Token-based Cart Access**: Secure cart management with expiration
 
 ### 🏗️ **Architecture Constraints**
 - **DDD Pattern**: Follow domain-driven design principles

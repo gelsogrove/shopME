@@ -411,7 +411,11 @@ Cosa desideri fare?
       if (response.status === 200) {
         // Mostra la risposta del LLM
         if (response.data && response.data.data && response.data.data.message) {
+          console.log(`${this.colors.green}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${this.colors.reset}`);
+          console.log(`${this.colors.green}🎯 RISPOSTA FINALE DELL'LLM PER L'UTENTE:${this.colors.reset}`);
+          console.log(`${this.colors.green}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${this.colors.reset}`);
           console.log(`${this.colors.blue}🤖 BOT > ${this.colors.reset}${response.data.data.message}`);
+          console.log(`${this.colors.green}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${this.colors.reset}`);
           
           // Mostra debug info dettagliata se disponibile (solo se log=true)
           if (this.showLogs && response.data.debug && response.data.debug.functionCalls && response.data.debug.functionCalls.length > 0) {

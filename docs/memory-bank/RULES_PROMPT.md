@@ -2,6 +2,18 @@
 
 ## 🏗️ **ARCHITETTURA DEL SISTEMA**
 
+### 🚨 **NUOVA ARCHITETTURA SEMPLIFICATA (2025)**
+
+**FLUSSO PRINCIPALE:**
+1. **CF Specifiche First**: GetAllProducts, GetUserInfo, ContactOperator, etc.
+2. **SearchRag Fallback**: Se nessuna CF specifica, usa SearchRag
+3. **Risposta Generica**: Se SearchRag vuoto, risposta generica
+
+**GESTIONE LINK:**
+- **Tutti i link** via FAQ con `[LINK_WITH_TOKEN]`
+- **FormatterService** sostituisce automaticamente i token
+- **CF ridotte** da 13 a 8 funzioni essenziali
+
 Il sistema è composto da 4 componenti principali che devono funzionare in modo coordinato:
 
 ### 1. **PROMPT_AGENT** (`docs/other/prompt_agent.md`)

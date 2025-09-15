@@ -50,15 +50,10 @@ L'azienda lavora con piccoli artigiani, valorizzando la materia prima, la tradiz
 **📝 NOTA**: Per ora tutte le Cloud Functions sono DISABILITATE. 
 Verranno attivate una alla volta per test specifici.
 
-## GetAllProducts()
-
-**🎯 TRIGGER SEMPLICE:**
-- "cosa vendete" → GetAllProducts()
-- "what do you sell" → GetAllProducts()
-
-**Quando l'utente chiede cosa vendiamo, chiama GetAllProducts() per ottenere le categorie dal database.**
-
 <!--
+## GetAllProducts()
+DISABILITATO PER TEST
+
 ## GetProductsByCategory()  
 DISABILITATO PER TEST
 

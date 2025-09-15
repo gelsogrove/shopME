@@ -1,22 +1,30 @@
 import axios from 'axios';
 import { SecureTokenService } from '../application/services/secure-token.service';
+import { ReplaceLinkWithToken } from '../chatbot/calling-functions/ReplaceLinkWithToken';
 import {
-  CategoriesResponse,
-  ErrorResponse,
-  OffersResponse,
-  ProductsResponse,
-  RagSearchRequest,
-  RagSearchResponse,
-  ServicesResponse,
-  StandardResponse,
-  SuccessResponse,
-  TokenResponse
+    CategoriesResponse,
+    ErrorResponse,
+    OffersResponse,
+    ProductsResponse,
+    RagSearchRequest,
+    RagSearchResponse,
+    ServicesResponse,
+    StandardResponse,
+    SuccessResponse,
+    TokenResponse
 } from '../types/whatsapp.types';
-import { TranslationService } from './translation.service';
 
 export interface GetAllProductsRequest {
   workspaceId: string;
   customerId: string;
+}
+
+export interface GetProductsByCategoryRequest {
+  workspaceId: string;
+  customerId?: string;
+  categoryName: string;
+  phoneNumber?: string;
+  message?: string;
 }
 
 export interface GetOrdersListLinkRequest {
@@ -602,7 +610,7 @@ export class CallingFunctionsService {
         };
       }
       
-      // Generate checkout link
+      // Generate cart link
       const checkoutUrl = `http://localhost:3000/checkout?token=${token}`;
       
       console.log('✅ Checkout link generated successfully:', checkoutUrl);
@@ -626,10 +634,10 @@ export class CallingFunctionsService {
     try {
       console.log('🔧 Calling SearchRag with:', request);
       
-      // Translate query to English for better search results
-      const translationService = new TranslationService();
-      const translatedQuery = await translationService.translateToEnglish(request.query);
-      console.log('🌐 Translated query:', translatedQuery);
+      // Use the query directly without translation to preserve Italian product names
+      // The TranslationService in DualLLMService already handles translation correctly
+      const translatedQuery = request.query;
+      console.log('🌐 Using original query (no translation):', translatedQuery);
       
       const response = await axios.post(`${this.baseUrl}/rag-search`, {
         query: translatedQuery, // Use translated query
@@ -735,6 +743,45 @@ export class CallingFunctionsService {
 
     } catch (error) {
       return this.createErrorResponse(error, 'getShipmentTrackingLink') as TokenResponse;
+    }
+  }
+
+
+  /**
+   * Replace [LINK_WITH_TOKEN] with generated link
+   */
+  public async replaceLinkWithToken(
+    response: string, 
+    linkType: string = 'auto', 
+    customerId: string, 
+    workspaceId: string
+  ): Promise<StandardResponse> {
+    try {
+      console.log('🔧 Calling replaceLinkWithToken with:', { response, linkType, customerId, workspaceId });
+      
+      const result = await ReplaceLinkWithToken(
+        { response, linkType: linkType as any },
+        customerId,
+        workspaceId
+      );
+      
+      if (result.success) {
+        return {
+          success: true,
+          message: result.response || response,
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error || 'Failed to replace link token',
+          message: response, // Return original response if replacement fails
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+    } catch (error) {
+      return this.createErrorResponse(error, 'replaceLinkWithToken') as StandardResponse;
     }
   }
 }

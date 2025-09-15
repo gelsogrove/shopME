@@ -43,6 +43,9 @@ async function checkCustomerBlacklist(
       }
     });
 
+    // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
+    console.log(`🚫 ${format}: Checking blacklist status for ${phoneNumber}`);
+    
     if (customer?.isBlacklisted) {
       console.log(`🚫 ${format}: Customer ${phoneNumber} is blacklisted - IGNORING MESSAGE`);
       res.status(200).json({
@@ -115,6 +118,7 @@ async function handleNewUserWelcomeFlow(
     // Check if user is blocked due to too many registration attempts
     const isBlocked = await registrationAttemptsService.isBlocked(phoneNumber, workspaceId);
     if (isBlocked) {
+      // ✅ REGISTRATION ATTEMPTS CHECK ENABLED - Block users with too many attempts
       console.log(`🚫 ${format}: User ${phoneNumber} is blocked due to too many registration attempts - IGNORING MESSAGE`);
       res.status(200).json({
         success: true,
@@ -132,6 +136,7 @@ async function handleNewUserWelcomeFlow(
 
     // If user is now blocked after this attempt, ignore completely (blacklist totale)
     if (attempt.isBlocked) {
+      // ✅ REGISTRATION ATTEMPTS CHECK ENABLED - Block users after too many attempts
       console.log(`🚫 ${format}: User ${phoneNumber} blocked after ${attempt.attemptCount} attempts - IGNORING MESSAGE`);
       res.status(200).json({
         success: true,
@@ -256,8 +261,8 @@ import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
 import {
-  customersRouter,
-  workspaceCustomersRouter,
+    customersRouter,
+    workspaceCustomersRouter,
 } from "../interfaces/http/routes/customers.routes"
 
 import { faqsRouter } from "../interfaces/http/routes/faqs.routes"
@@ -515,9 +520,11 @@ router.post("/whatsapp/webhook", async (req, res) => {
   fs.appendFileSync('/tmp/webhook-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
   
   try {
+    console.log("🚨🚨🚨 WEBHOOK: INITIALIZING DUAL LLM SERVICE")
     // Initialize services
     const dualLLMService = new DualLLMService();
     const messageRepository = new MessageRepository();
+    console.log("🚨🚨🚨 WEBHOOK: DUAL LLM SERVICE INITIALIZED")
     
     // For GET requests (verification)
     if (req.method === "GET") {
@@ -569,7 +576,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
         });
 
         if (customer) {
-          // 🔒 Check if customer is blacklisted - ignore completely if so
+          // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
           const isBlacklisted = await checkCustomerBlacklist(phoneNumber, workspaceId, res, 'WHATSAPP');
           if (isBlacklisted) {
             return; // Response already sent
@@ -628,7 +635,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
         });
 
         if (customer) {
-          // 🔒 Check if customer is blacklisted - ignore completely if so
+          // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
           if (customer.isBlacklisted) {
             console.log(`🚫 FRONTEND FORMAT: Customer ${phoneNumber} is blacklisted - IGNORING MESSAGE`);
             res.status(200).json({
@@ -690,7 +697,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
         // console.log(`🔍 TEST FORMAT: Customer search result:`, customer);
 
         if (customer) {
-          // 🔒 Check if customer is blacklisted - ignore completely if so
+          // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
           const isBlacklisted = await checkCustomerBlacklist(phoneNumber, workspaceId, res, 'TEST');
           if (isBlacklisted) {
             return; // Response already sent
@@ -727,7 +734,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
     // 🔧 DECLARE CHAT SESSION FOR GLOBAL SCOPE (used throughout the webhook)
     let chatSession: any = null;
 
-    // 🚨 SPAM DETECTION - Check for spam behavior (15 messages in 30 seconds)
+    // 🚨 SPAM DETECTION - Check for spam behavior (50 messages in 60 seconds)
     try {
       const spamDetectionService = new SpamDetectionService();
       const spamResult = await spamDetectionService.checkSpamBehavior(phoneNumber, workspaceId);
@@ -742,7 +749,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
           spamResult.reason || 'Spam behavior detected'
         );
         
-        // Return spam response
+        // 🚨 SPAM DETECTION ENABLED - Block spam users
         res.status(200).json({
           success: true,
           data: {

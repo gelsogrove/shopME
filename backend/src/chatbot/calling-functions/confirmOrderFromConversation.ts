@@ -24,7 +24,7 @@ export interface ConfirmOrderFromConversationParams {
   prodottiSelezionati?: ConversationProduct[] // Products identified by LLM
   // 🆕 NEW CART INTEGRATION PARAMETERS
   useCartData?: boolean // If true, use cart data instead of conversation parsing
-  generateCartLink?: boolean // If true, generate cart link instead of checkout link
+  generateCartLink?: boolean // If true, generate cart link for cart management
 }
 
 export interface ConfirmOrderFromConversationResult {
@@ -41,7 +41,7 @@ export interface ConfirmOrderFromConversationResult {
 }
 
 /**
- * Conferma ordine dalla conversazione e crea checkout link
+ * Conferma ordine dalla conversazione e crea link carrello
  */
 export async function confirmOrderFromConversation(
   params: ConfirmOrderFromConversationParams
@@ -180,7 +180,7 @@ ${cartUrl}
         const baseUrl = workspace.url || process.env.FRONTEND_URL || 'https://laltroitalia.shop'
         const checkoutUrl = `${baseUrl}/checkout?token=${checkoutToken}`
 
-        // Create checkout message with embedded link in a format that prevents formatter replacement
+        // Create cart message with embedded link in a format that prevents formatter replacement
         const checkoutMessage = `✅ Ordine confermato dal carrello!
 
 ${cartProducts.map(item => 
@@ -379,7 +379,7 @@ function generateSecureToken(): string {
 export const confirmOrderFromConversationFunction = {
   name: "confirmOrderFromConversation",
   description:
-    "Confirm order from current conversation and generate secure checkout link. To be called when the customer confirms they want to proceed with the order of products discussed in the chat.",
+    "Confirm order from current conversation and generate secure cart link. To be called when the customer confirms they want to proceed with the order of products discussed in the chat.",
   parameters: {
     type: "object",
     properties: {
@@ -429,7 +429,7 @@ export const confirmOrderFromConversationFunction = {
       },
       generateCartLink: {
         type: "boolean", 
-        description: "If true, generate cart link instead of checkout link (default: false)",
+        description: "If true, generate cart link for cart management (default: false)",
         default: false
       },
     },

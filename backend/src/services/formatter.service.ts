@@ -16,16 +16,16 @@ interface Messages {
 const MESSAGES: Messages = {
   it: {
     cartFormatting: `
-PRODUCT DISPLAY RULES - CRITICAL:
-- **OBBLIGO ASSOLUTO**: Quando mostri prodotti, AGGIUNGI SEMPRE il formato
-- **FORMATO OBBLIGATORIO**: • Nome Prodotto (Formato) - €prezzo
-- **NON INCLUDERE ICONE**: Solo nome, formato e prezzo (niente emoji sui prodotti)
+PRODUCT DISPLAY RULES --- CRITICAL: 
+- **OBBLIGO ASSOLUTO**: Quando mostri prodotti, AGGIUNGI SEMPRE il ProductCode E il formato
+- **FORMATO OBBLIGATORIO**: • [CODICE] - Nome Prodotto (Formato) - €prezzo
+- **NON INCLUDERE ICONE**: Solo codice, nome, formato e prezzo (niente emoji sui prodotti)
 - **ESEMPI ESATTI**:
-  - • Mozzarella di Bufala Campana DOP (125gr * 12) - €9.50
-  - • Burrata al Tartufo (100gr * 12) - €12.80
-  - • Gorgonzola Dolce (250gr) - €18.90
-- **MAI** mostrare prodotti senza formato nella risposta finale
-- **SEMPRE** includere formato quando disponibile nei dati
+  - • [MOZ001] - Mozzarella di Bufala Campana DOP (125gr x 12) - €9.50
+  - • [BUR002] - Burrata al Tartufo (100gr x 12) - €12.80
+  - • [GOR003] - Gorgonzola Dolce (250gr) - €18.90
+- **MAI** mostrare prodotti senza ProductCode e formato nella risposta finale
+- **SEMPRE** includere ProductCode e formato quando disponibili nei dati
 
 GETALLPRODUCTS RULES - CATEGORIES DISPLAY:
 - **OBBLIGO ASSOLUTO**: Quando GetAllProducts() viene chiamata, mostra le categorie disponibili
@@ -37,10 +37,10 @@ GETALLPRODUCTS RULES - CATEGORIES DISPLAY:
 GETPRODUCTSBYCATEGORY RULES - PRODUCTS DISPLAY:
 - **OBBLIGO ASSOLUTO**: Quando GetProductsByCategory() viene chiamata, mostra TUTTI i prodotti della categoria
 - **VIETATO RIASSUMERE**: NON riassumere, NON abbreviare, NON limitare la lista
-- **FORMATO OBBLIGATORIO**: Mostra ogni prodotto con nome, formato e prezzo
-- **ESEMPIO FORMATO**: • Mozzarella di Bufala Campana DOP (125gr * 12) - €9.50
-- **NON INCLUDERE ICONE**: Solo nome, formato e prezzo (niente emoji sui prodotti)
-- **COMPLETEZZA OBBLIGATORIA**: L'utente DEVE vedere OGNI SINGOLO prodotto della categoria
+- **FORMATO OBBLIGATORIO**: Mostra ogni prodotto con ProductCode, nome, formato e prezzo
+- **ESEMPIO FORMATO**: • [MOZ001] - Mozzarella di Bufala Campana DOP (125gr x 12) - €9.50
+- **NON INCLUDERE ICONE**: Solo ProductCode, nome, formato e prezzo (niente emoji sui prodotti)
+- **COMPLETEZZA OBBLIGATORIA**: L'utente DEVE vedere OGNI SINGOLO prodotto della categoria con ProductCode
 
 COMPLETE CATEGORIES LIST RULES - PRIORITY:
 - **OBBLIGO ASSOLUTO**: Quando GetAllCategories() viene chiamata, devi mostrare TUTTE le categorie restituite
@@ -51,9 +51,10 @@ COMPLETE CATEGORIES LIST RULES - PRIORITY:
 - **COMPORTAMENTI VIETATI**: ❌ Mostrare solo alcune categorie ❌ Dire "categorie principali" ❌ Limitare la lista
 
 CART FORMATTING RULES:
-- When showing cart contents, use the format: "• Product Name a €price"
-- Example: "• Mozzarella di Bufala Campana DOP a €9.99"
-- Example: "• Pasta Artigianale a €4.50"
+- When showing cart contents, use the format: "• Product Name (Format) a €price"
+- Example: "• Mozzarella di Bufala Campana DOP (125gr) a €9.99"
+- Example: "• Pasta Artigianale (500gr) a €4.50"
+- ALWAYS include format when available in product data
 
 PRODUCT DISAMBIGUATION RULES:
 - When showing product options for disambiguation, use the format: "• Product Name - €price"
@@ -85,15 +86,15 @@ GENERAL RESPONSE FORMATTING:
   en: {
     cartFormatting: `
 PRODUCT DISPLAY RULES - CRITICAL:
-- **MANDATORY**: When showing products, ALWAYS include format
-- **REQUIRED FORMAT**: • Product Name (Format) - €price
-- **NO ICONS**: Only name, format and price (no emojis on products)
+- **MANDATORY**: When showing products, ALWAYS include ProductCode AND format
+- **REQUIRED FORMAT**: • [CODE] - Product Name (Format) - €price
+- **NO ICONS**: Only code, name, format and price (no emojis on products)
 - **EXACT EXAMPLES**:
-  - • Mozzarella di Bufala Campana DOP (125gr * 12) - €9.50
-  - • Burrata al Tartufo (100gr * 12) - €12.80
-  - • Gorgonzola Dolce (250gr) - €18.90
-- **NEVER** show products without format in final response
-- **ALWAYS** include format when available in data
+  - • [MOZ001] - Mozzarella di Bufala Campana DOP (125gr x 12) - €9.50
+  - • [BUR002] - Burrata al Tartufo (100gr x 12) - €12.80
+  - • [GOR003] - Gorgonzola Dolce (250gr) - €18.90
+- **NEVER** show products without ProductCode and format in final response
+- **ALWAYS** include ProductCode and format when available in data
 
 GETALLPRODUCTS RULES - CATEGORIES DISPLAY:
 - **MANDATORY**: When GetAllProducts() is called, show available categories
@@ -105,10 +106,10 @@ GETALLPRODUCTS RULES - CATEGORIES DISPLAY:
 GETPRODUCTSBYCATEGORY RULES - PRODUCTS DISPLAY:
 - **MANDATORY**: When GetProductsByCategory() is called, show ALL products in the category
 - **FORBIDDEN TO SUMMARIZE**: DO NOT summarize, abbreviate, or limit the list
-- **REQUIRED FORMAT**: Show each product with name, format and price
-- **EXAMPLE FORMAT**: • Mozzarella di Bufala Campana DOP (125gr * 12) - €9.50
-- **NO ICONS**: Only name, format and price (no emojis on products)
-- **COMPLETENESS MANDATORY**: User MUST see EVERY SINGLE product in the category
+- **REQUIRED FORMAT**: Show each product with ProductCode, name, format and price
+- **EXAMPLE FORMAT**: • [MOZ001] - Mozzarella di Bufala Campana DOP (125gr x 12) - €9.50
+- **NO ICONS**: Only ProductCode, name, format and price (no emojis on products)
+- **COMPLETENESS MANDATORY**: User MUST see EVERY SINGLE product in the category with ProductCode
 
 COMPLETE CATEGORIES LIST RULES - PRIORITY:
 - **MANDATORY**: When GetAllCategories() is called, you must show ALL returned categories
@@ -119,9 +120,10 @@ COMPLETE CATEGORIES LIST RULES - PRIORITY:
 - **FORBIDDEN BEHAVIORS**: ❌ Show only some categories ❌ Say "main categories" ❌ Limit list
 
 CART FORMATTING RULES:
-- When showing cart contents, use the format: "• Product Name at €price"
-- Example: "• Mozzarella di Bufala Campana DOP at €9.99"
-- Example: "• Artisan Pasta at €4.50"
+- When showing cart contents, use the format: "• Product Name (Format) at €price"
+- Example: "• Mozzarella di Bufala Campana DOP (125gr) at €9.99"
+- Example: "• Artisan Pasta (500gr) at €4.50"
+- ALWAYS include format when available in product data
 
 PRODUCT DISAMBIGUATION RULES:
 - When showing product options for disambiguation, use the format: "• Product Name - €price"
@@ -153,9 +155,10 @@ GENERAL RESPONSE FORMATTING:
   es: {
     cartFormatting: `
 CART FORMATTING RULES:
-- When showing cart contents, use the format: "• Product Name a €price"
-- Example: "• Mozzarella di Bufala Campana DOP a €9.99"
-- Example: "• Pasta Artesanal a €4.50"
+- When showing cart contents, use the format: "• Product Name (Format) a €price"
+- Example: "• Mozzarella di Bufala Campana DOP (125gr) a €9.99"
+- Example: "• Pasta Artesanal (500gr) a €4.50"
+- ALWAYS include format when available in product data
 
 PRODUCT DISAMBIGUATION RULES:
 - When showing product options for disambiguation, use the format: "• Product Name - €price"
@@ -187,9 +190,10 @@ GENERAL RESPONSE FORMATTING:
   pt: {
     cartFormatting: `
 CART FORMATTING RULES:
-- When showing cart contents, use the format: "• Product Name por €price"
-- Example: "• Mozzarella di Bufala Campana DOP por €9.99"
-- Example: "• Massa Artesanal por €4.50"
+- When showing cart contents, use the format: "• Product Name (Format) por €price"
+- Example: "• Mozzarella di Bufala Campana DOP (125gr) por €9.99"
+- Example: "• Massa Artesanal (500gr) por €4.50"
+- ALWAYS include format when available in product data
 
 PRODUCT DISAMBIGUATION RULES:
 - When showing product options for disambiguation, use the format: "• Product Name - €price"
@@ -260,26 +264,18 @@ export class FormatterService {
    * Format response from Cloud Functions or SearchRag
    * Handles both direct Cloud Function responses and SearchRag results
    */
-  static formatResponse(response: string, language: string = 'it'): string {
-    console.log("🔧 FormatterService.formatResponse called with response type:", typeof response)
-    console.log("🔧 FormatterService.formatResponse response content:", response)
-    
+  static async formatResponse(response: string, language: string = 'it'): Promise<string> {
     if (!response) {
-      console.error("❌ FormatterService: response is null/undefined!")
       throw new Error("Response is null or undefined")
     }
     
     if (typeof response !== 'string') {
-      console.error("❌ FormatterService: response is not a string!", typeof response, response)
       throw new Error("Response is not a string")
     }
     
-    // First apply WhatsApp formatting
-    const whatsappFormatted = this.applyWhatsAppFormatting(response)
+    // Apply WhatsApp formatting
+    const whatsappFormatted = await this.applyWhatsAppFormatting(response)
     
-    console.log("✅ FormatterService.formatResponse completed successfully")
-    
-    // Then apply language-specific formatting if needed
     return whatsappFormatted
   }
 
@@ -287,11 +283,8 @@ export class FormatterService {
    * Apply WhatsApp formatting to any response
    * Centralized formatting for all responses (Cloud Functions and SearchRag)
    */
-  static applyWhatsAppFormatting(response: string): string {
+  static async applyWhatsAppFormatting(response: string): Promise<string> {
     let formatted = response
-
-    console.log("📱 Applying WhatsApp formatting...")
-    console.log("📱 Original input:", formatted)
 
     // 1. 🚫 Remove emoji used as bullet points and replace with •
     const emojiBullets = ['💳', '🏦', '📱', '💰', '💶', '🍷', '🍝', '🍇', '📦', '🔒', '🎯']
@@ -347,9 +340,6 @@ export class FormatterService {
 
     // 8. ✂️ Remove extra spaces before and after
     formatted = formatted.trim()
-
-    console.log("📱 Formatted output:", formatted)
-    console.log("📱 WhatsApp formatting applied successfully")
     
     return formatted
   }
@@ -420,4 +410,5 @@ export class FormatterService {
   static formatPrice(price: number): string {
     return `€${price.toFixed(2)}`
   }
+
 }

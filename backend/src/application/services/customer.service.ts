@@ -230,6 +230,7 @@ export class CustomerService {
 
   /**
    * Unblock a customer by setting isBlacklisted to false
+   * Also clears registration attempts to give the user a fresh start
    */
   async unblockCustomer(id: string, workspaceId: string): Promise<Customer> {
     try {
@@ -240,9 +241,27 @@ export class CustomerService {
       }
 
       // Set isBlacklisted to false
-      return await this.customerRepository.update(id, workspaceId, {
+      const updatedCustomer = await this.customerRepository.update(id, workspaceId, {
         isBlacklisted: false,
       })
+
+      // 🔄 RESET REGISTRATION ATTEMPTS - Clear attempts when unblocking
+      try {
+        const { RegistrationAttemptsService } = await import("./registration-attempts.service")
+        const { PrismaClient } = await import("@prisma/client")
+        const prisma = new PrismaClient()
+        const registrationAttemptsService = new RegistrationAttemptsService(prisma)
+        
+        await registrationAttemptsService.clearAttempts(customer.phone, workspaceId)
+        logger.info(`[CUSTOMER_SERVICE] Cleared registration attempts for unblocked customer ${customer.phone} in workspace ${workspaceId}`)
+        
+        await prisma.$disconnect()
+      } catch (clearError) {
+        logger.error(`[CUSTOMER_SERVICE] Error clearing registration attempts for customer ${customer.phone}:`, clearError)
+        // Don't fail the unblock operation if clearing attempts fails
+      }
+
+      return updatedCustomer
     } catch (error) {
       logger.error(`Error unblocking customer with id ${id}:`, error)
       throw error

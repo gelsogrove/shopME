@@ -122,6 +122,7 @@ export class CheckoutController {
           productId: item.productId,
           codice: item.product.ProductCode || item.product.sku || 'N/A',
           descrizione: item.product.name,
+          formato: item.product.formato,
           prezzo: priceInfo.finalPrice,
           prezzoOriginale: priceInfo.originalPrice,
           scontoApplicato: priceInfo.appliedDiscount,

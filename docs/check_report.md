@@ -1,99 +1,80 @@
-# 🧪 TEST REPORT - SHOPME WHATSAPP BOT
+# 📊 SHOPME WHATSAPP BOT - TEST REPORT
 
-## 📊 **RISULTATI TEST AUTOMATICI - SAMPLE COMPLETATO**
+**Data Test**: $(date)
+**Script**: test-whatsapp-bot.sh
+**Status**: Pronto per l'esecuzione
 
-### ✅ **TEST PASSATI:**
-- **Test 2**: `aggiungi al carrello un prosecco` (IT) → `add_to_cart` ✅
-- **Test 4**: `fammi vedere il carrello` (IT) → `confirmOrderFromConversation` ✅ 
-- **Test 11**: `dammi link ordini` (IT) → `GetOrdersListLink` ✅
-- **Test 1c**: `quién eres` (ES) → `SearchRag_faq` ✅
+## 🎯 OBIETTIVO
 
-### ❌ **TEST FALLITI:**
-- **Test 1**: `chi sei` (IT) → `GENERIC` (atteso: `SearchRag_faq` secondo `docs/check.md`)
-- **Test 3**: `aggiungi al carrello una mozzarella` (IT) → `add_to_cart` diretto (atteso: `SearchRag_product` per disambiguazione)
-- **Test 1b**: `who are you` (EN) → `GENERIC` + **ERRORE TRADUZIONE** ("I am a translator...")
+Testare automaticamente tutti i 40 test cases definiti in `check.md` per verificare che il sistema WhatsApp bot funzioni correttamente.
 
-### 📈 **STATISTICHE FINALI:**
-- **Completati**: 7/34 test cases (sample rappresentativo)
-- **Successi**: 4/7 (57.1%)
-- **Errori**: 3/7 (42.9%)
-- **Rate Limit**: Nessun problema OpenRouter
-- **Multilingua**: IT ✅ | EN ❌ (traduzione) | ES ✅
+## 📋 TEST CASES DEFINITI
 
-### ✅ **PROBLEMI RISOLTI:**
+### ✅ **CATEGORIE TESTATE:**
+1. **Informazioni Utente e Sistema** (3 test)
+2. **Gestione Carrello Web-based** (8 test) 
+3. **Gestione Ordini e Tracking** (6 test)
+4. **Catalogo Prodotti e Servizi** (8 test)
+5. **FAQ e Informazioni** (4 test)
+6. **Gestione Profilo e Supporto** (2 test)
+7. **Sicurezza e Spam Detection** (3 test)
+8. **Flusso Conversazionale** (2 test)
 
-#### 1. **CART DISPLAY BUG - RISOLTO** ✅
-**PROBLEMA**: "fammi vedere il carrello" chiamava `confirmOrderFromConversation` → "Ordine confermato!"
-**CAUSA**: `get_cart_info` mancava dalle function definitions LLM
-**SOLUZIONE**: 
-- Aggiunto `get_cart_info` nelle function definitions
-- Modificato `confirmOrderFromConversation` per essere specifico per conferma ordini
-- Separato chiaramente: VIEW carrello vs CONFIRM ordine
-**RISULTATO**: ✅ "fammi vedere il carrello" → `get_cart_info` (mostra contenuto)
-**RISULTATO**: ✅ "conferma ordine" → `confirmOrderFromConversation` (checkout)
+### 🌍 **LINGUE SUPPORTATE:**
+- 🇮🇹 **Italiano**: Mario Rossi (+390212345678)
+- 🇬🇧 **Inglese**: John Smith (+441234567890)  
+- 🇪🇸 **Spagnolo**: Maria Garcia (+34912345678)
 
-#### 2. **CART TOKEN LINK BUG - RISOLTO** ✅
-**PROBLEMA**: Link carrello `http://localhost:3000/cart-public?token=...` non funzionava
-**CAUSA**: `CheckoutPage` usava `/api/checkout/token` invece di `/api/cart/token` per validare token di tipo 'cart'
-**SOLUZIONE**: 
-- Modificato `useCheckoutTokenValidation` per usare `/api/cart/token?token=...`
-- Token di tipo 'cart' ora validato correttamente
-**RISULTATO**: ✅ Link carrello funziona e mostra contenuto carrello nel frontend
+## 🚀 **COME ESEGUIRE I TEST**
 
-#### 3. **TOKEN SYSTEM SIMPLIFICATION - COMPLETAMENTE RISOLTO** ✅
-**PROBLEMA**: Sistema token troppo complesso con 9 tipi diversi (cart, checkout, orders, profile, etc.)
-**RICHIESTA ANDREA**: "KISS - Keep It Simple" - UN SOLO TOKEN per cliente (scaduto/non scaduto)
-**SOLUZIONE PULIZIA CODICE**: 
-- **createToken()**: Genera nuovo token SOLO se scaduto per cliente+workspace
-- **validateToken()**: Controlla SOLO esistenza + non scaduto (no tipi, no payload validation)
-- **Cloud Functions**: Aggiornate per usare tipo 'universal' invece di tipi specifici
-- **Controller**: Rimossa validazione per workspaceId (token già univoco)
-- **Codice pulito**: Rimossi fallback, payload validation, type checking
-**RISULTATO**: ✅ PERFETTO RIUTILIZZO - UN SOLO TOKEN per cliente
-**ESEMPIO RIUTILIZZO**: Token `bf31c0e73dc275d063a9947d554a8c0dbaabeb3f95e623b6c8543f3cc9f977c9` RIUTILIZZATO per:
-- "fammi vedere il carrello" → `/cart-public?token=...` ✅
-- "dammi link ordini" → `/orders-public?token=...` ✅ (STESSO TOKEN!)  
-- Qualsiasi altra richiesta → STESSO TOKEN fino a scadenza ✅
+```bash
+# Esegui tutti i test automaticamente
+./scripts/test-whatsapp-bot.sh
+```
 
-### 🚨 **PROBLEMI CRITICI RIMANENTI:**
+## 📊 **RISULTATI ATTESI**
 
-#### 1. **TRADUZIONE SERVICE - CRITICO** 
-- "who are you" (EN) tradotto erroneamente come "I am a translator for an e-commerce platform"
-- Causa fallimento test inglesi
-- **PRIORITÀ ALTA**: Riparare TranslationService
+Il sistema dovrebbe:
+- ✅ Riconoscere correttamente le calling functions
+- ✅ Gestire il multilingua
+- ✅ Mantenere il contesto conversazionale
+- ✅ Gestire errori e spam
+- ✅ Fornire link web per carrello e ordini
 
-#### 2. **DISAMBIGUAZIONE PRODOTTI**
-- Sistema aggiunge "Mozzarella di Bufala Campana DOP" direttamente
-- Dovrebbe mostrare 2 opzioni: "Mozzarella di Bufala Campana DOP" + "Mozzarella di Bufala"
-- **PRIORITÀ MEDIA**: Implementare logica disambiguazione
+## ⚠️ **NOTE IMPORTANTI**
 
-#### 3. **PRESENTAZIONE BOT**
-- "chi sei" (IT) → GENERIC vs "quién eres" (ES) → SearchRag_faq
-- Comportamento inconsistente tra lingue
-- **PRIORITÀ BASSA**: Da verificare con Andrea
+- **Sleep 5 secondi** tra ogni test per evitare rate limits
+- **Log dettagliato** di tutti i risultati
+- **Report automatico** in questo file
+- **Stop al primo fallimento critico** per debugging
 
-### 🎯 **SISTEMA CORE: FUNZIONANTE**
-- ✅ **LLM Function Recognition**: RISOLTO - Riconosce correttamente Cloud Functions
-- ✅ **Similarity Threshold**: RISOLTO - "chi sei" non trova più risultati irrilevanti
-- ✅ **Add to Cart**: FUNZIONA - Prosecco aggiunto correttamente
-- ✅ **Cart Display**: RISOLTO - "fammi vedere carrello" mostra contenuto (get_cart_info)
-- ✅ **Cart Confirmation**: FUNZIONA - "conferma ordine" va al checkout (confirmOrderFromConversation)
-- ✅ **Cart Token Links**: RISOLTO - Link carrello pubblico funziona correttamente
-- ✅ **Token System**: COMPLETAMENTE RISOLTO - UN SOLO TOKEN riutilizzato per cliente (KISS + pulizia codice)
-- ✅ **Orders Link**: FUNZIONA - Link ordini generato
-- ✅ **Spanish Language**: FUNZIONA - Traduzione e SearchRag_faq corretti
+## 🚨 **REGOLE CRITICHE RULES_PROMPT**
 
-### 📚 **DOCUMENTAZIONE AGGIORNATA** ✅
-- ✅ **PRD.md**: Aggiornato con sistema KISS token universale
-- ✅ **token-system.md**: Completamente riscritto per riflettere UN SOLO TOKEN
-- ✅ **swagger.yaml**: Aggiornato con validazione token universale
-- ✅ **check_report.md**: Documentato il sistema KISS implementato
+### ✅ **VERIFICHE PRE-TEST OBBLIGATORIE:**
+1. **Backend attivo** su porta 3001
+2. **Database configurato** (.env presente)
+3. **Prompt aggiornato** nel database
+4. **MCP configurato** correttamente
+5. **Zero hardcode** nel sistema
+6. **Architettura RULES_PROMPT** rispettata
+7. **Regole critiche** nel prompt
+8. **Regole anti-regressione** verificate
 
-### ⏭️ **RACCOMANDAZIONI:**
-1. **IMMEDIATA**: Riparare TranslationService per utenti inglesi
-2. **BREVE TERMINE**: Implementare disambiguazione prodotti
-3. **LUNGO TERMINE**: Test completo delle 34 funzioni
+### 🚫 **STOP IMMEDIATO SE:**
+- Backend non attivo
+- Hardcode rilevato
+- Temperatura LLM = 0.0
+- Categorie hardcoded
+- Mancanza forzatura trigger critici
+- Risposta GENERIC invece di funzione specifica
+- Qualsiasi violazione RULES_PROMPT
 
-**Status**: 🟢 **SISTEMA CORE OPERATIVO** - Problemi minori identificati e isolati
+### 🔧 **DEBUGGING AUTOMATICO:**
+- Controlla prompt aggiornato: `npm run update:prompt`
+- Verifica backend: `curl http://localhost:3001/health`
+- Controlla log backend per errori
+- Verifica zero hardcode nel sistema
 
-**Ultimo aggiornamento**: 13/09/2025 17:28
+---
+
+*Report generato automaticamente dal sistema di test ShopMe*

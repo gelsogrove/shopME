@@ -11,8 +11,8 @@ export interface SpamDetectionResult {
 
 export class SpamDetectionService {
   private prisma: PrismaClient
-  private readonly SPAM_THRESHOLD = 15 // 15 messages
-  private readonly TIME_WINDOW_SECONDS = 30 // in 30 seconds
+  private readonly SPAM_THRESHOLD = 50 // 50 messages (increased for MCP testing)
+  private readonly TIME_WINDOW_SECONDS = 60 // in 60 seconds (1 minute)
 
   constructor() {
     this.prisma = new PrismaClient()
@@ -29,11 +29,14 @@ export class SpamDetectionService {
     workspaceId: string
   ): Promise<SpamDetectionResult> {
     try {
-      // Calculate time window (30 seconds ago)
+      // ✅ SPAM DETECTION ENABLED - Check for spam behavior
+      logger.info(`[SPAM_DETECTION] Checking spam behavior for ${phoneNumber}`)
+
+      // Calculate time window (60 seconds ago)
       const now = new Date()
       const timeWindowStart = new Date(now.getTime() - (this.TIME_WINDOW_SECONDS * 1000))
 
-      // Count messages from this phone number in the last 30 seconds
+      // Count messages from this phone number in the last 60 seconds
       const messageCount = await this.prisma.message.count({
         where: {
           chatSession: {

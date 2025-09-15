@@ -12,6 +12,11 @@ export interface ProductWithPrice {
   name: string;
   price: number;
   categoryId?: string | null;
+  formato?: string | null;
+  ProductCode?: string | null;
+  description?: string | null;
+  stock?: number;
+  sku?: string | null;
   originalPrice?: number;
   finalPrice?: number;
   appliedDiscount?: number;
@@ -168,7 +173,12 @@ export class PriceCalculationService {
         id: true,
         name: true,
         price: true,
-        categoryId: true
+        categoryId: true,
+        formato: true,
+        ProductCode: true,
+        description: true,
+        stock: true,
+        sku: true
       }
     });
   }

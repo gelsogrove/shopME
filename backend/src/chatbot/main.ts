@@ -56,7 +56,7 @@ export class ChatbotMain {
       
       logger.info(`[CHATBOT] API limit OK for workspace ${workspaceId}: ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`);
       
-      // STEP 2: Spam Detection (15 messages in 30 seconds)
+      // STEP 2: Spam Detection (30 messages in 60 seconds)
       const { SpamDetectionService } = await import('../application/services/spam-detection.service');
       const spamDetectionService = new SpamDetectionService();
       const spamResult = await spamDetectionService.checkSpamBehavior(phoneNumber, workspaceId);

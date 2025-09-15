@@ -91,15 +91,23 @@ const CheckoutPage: React.FC = () => {
         setCustomer(tokenData.customer)
         
         // 🔧 Clean up and normalize product data from backend
-        const cleanedProdotti = (tokenData.prodotti || []).map(prodotto => ({
-          ...prodotto,
-          descrizione: prodotto.descrizione === 'Unknown Product' ? 'Prodotto senza nome' : prodotto.descrizione,
-          formato: prodotto.formato, // 🧀 Preserve formato field
-          qty: prodotto.quantita || 1, // Map quantita to qty for frontend compatibility
-          prezzoOriginale: prodotto.prezzo, // Original price
-          prezzo: prodotto.prezzoScontato || prodotto.prezzo, // Use discounted price as display price
-          scontoApplicato: prodotto.sconto || 0 // Discount percentage
-        }))
+        console.log('🔍 DEBUG: tokenData.prodotti from backend:', tokenData.prodotti)
+        const cleanedProdotti = (tokenData.prodotti || []).map(prodotto => {
+          console.log('🔍 DEBUG: Processing product:', {
+            name: prodotto.descrizione,
+            formato: prodotto.formato,
+            hasFormato: !!prodotto.formato
+          })
+          return {
+            ...prodotto,
+            descrizione: prodotto.descrizione === 'Unknown Product' ? 'Prodotto senza nome' : prodotto.descrizione,
+            formato: prodotto.formato, // 🧀 Preserve formato field
+            qty: prodotto.quantita || 1, // Map quantita to qty for frontend compatibility
+            prezzoOriginale: prodotto.prezzo, // Original price
+            prezzo: prodotto.prezzoScontato || prodotto.prezzo, // Use discounted price as display price
+            scontoApplicato: prodotto.sconto || 0 // Discount percentage
+          }
+        })
         
         setProdotti(cleanedProdotti)
         
@@ -190,12 +198,48 @@ const CheckoutPage: React.FC = () => {
   }
 
   // Handle quantity change
-  const handleQuantityChange = (index: number, newQuantity: number) => {
+  const handleQuantityChange = async (index: number, newQuantity: number) => {
     if (newQuantity < 1) return
-    
-    const updatedProdotti = [...prodotti]
-    updatedProdotti[index].qty = newQuantity
-    setProdotti(updatedProdotti)
+    if (!token) {
+      toast.error('Token non valido per aggiornare la quantità')
+      return
+    }
+
+    try {
+      const product = prodotti[index]
+      if (!product.id) {
+        toast.error('ID prodotto non valido')
+        return
+      }
+
+      // 🚀 Call backend API to update quantity
+      const response = await fetch(`/api/cart/${token}/items/${product.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          quantity: newQuantity
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update quantity')
+      }
+
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update quantity')
+      }
+
+      // 🔄 Refresh cart data from backend
+      await refreshCartFromBackend()
+      
+    } catch (error) {
+      console.error('❌ Error updating quantity:', error)
+      toast.error('Errore nell\'aggiornare la quantità')
+    }
   }
 
   // Show delete confirmation
@@ -205,13 +249,51 @@ const CheckoutPage: React.FC = () => {
   }
 
   // Remove product after confirmation
-  const removeProduct = () => {
-    if (productToDelete) {
-      const updatedProdotti = prodotti.filter((_, i) => i !== productToDelete.index)
-      setProdotti(updatedProdotti)
+  const removeProduct = async () => {
+    if (!productToDelete) return
+    if (!token) {
+      toast.error('Token non valido per rimuovere il prodotto')
+      return
+    }
+
+    try {
+      const product = prodotti[productToDelete.index]
+      if (!product.id) {
+        toast.error('ID prodotto non valido')
+        return
+      }
+
+      // 🚀 Call backend API to remove product
+      const response = await fetch(`/api/cart/${token}/items/${product.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to remove product')
+      }
+
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to remove product')
+      }
+
+      // 🔄 Refresh cart data from backend
+      await refreshCartFromBackend()
+      
+      // Close confirmation dialog
       setShowDeleteConfirm(false)
       setProductToDelete(null)
+      
+      // Show success message
       toast.success(`${productToDelete.name} rimosso dal carrello`)
+      
+    } catch (error) {
+      console.error('❌ Error removing product:', error)
+      toast.error('Errore nel rimuovere il prodotto')
     }
   }
 
@@ -219,6 +301,43 @@ const CheckoutPage: React.FC = () => {
   const cancelDelete = () => {
     setShowDeleteConfirm(false)
     setProductToDelete(null)
+  }
+
+  // Refresh cart data from backend
+  const refreshCartFromBackend = async () => {
+    if (!token) return
+
+    try {
+      const response = await fetch(`/api/cart/${token}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to refresh cart')
+      }
+
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        // Convert backend cart items to frontend format
+        const updatedProdotti = result.data.items.map((item: any) => ({
+          id: item.id,
+          productId: item.productId,
+          codice: item.product?.code || item.product?.sku || 'Non disponibile',
+          descrizione: item.product?.name || 'Prodotto senza nome',
+          formato: item.product?.formato || null,
+          prezzo: item.product?.price || 0,
+          prezzoOriginale: item.product?.price || 0,
+          scontoApplicato: 0,
+          fonteSconto: null,
+          nomeSconto: null,
+          qty: item.quantity
+        }))
+        
+        setProdotti(updatedProdotti)
+        console.log('✅ Cart refreshed from backend:', updatedProdotti)
+      }
+    } catch (error) {
+      console.error('❌ Error refreshing cart from backend:', error)
+    }
   }
 
   // Load available products
@@ -264,52 +383,59 @@ const CheckoutPage: React.FC = () => {
   }
 
   // Add product to cart
-  const addProductToCart = (product: any) => {
-    // 🔍 DEBUG: Log product data to understand the structure
-    console.log('🔍 Adding product to cart:', {
-      id: product.id,
-      name: product.name,
-      ProductCode: product.ProductCode,
-      sku: product.sku,
-      price: product.price,
-      finalPrice: product.finalPrice
-    })
-    
-    // 🔧 Clean up existing products with "Unknown Product" names
-    const cleanedProdotti = prodotti.map(p => ({
-      ...p,
-      descrizione: p.descrizione === 'Unknown Product' ? 'Prodotto senza nome' : p.descrizione
-    }))
-    
-    const existingIndex = cleanedProdotti.findIndex(p => p.productId === product.id)
-    
-    if (existingIndex >= 0) {
-      // Product already exists, increase quantity
-      const updatedProdotti = [...cleanedProdotti]
-      updatedProdotti[existingIndex].qty += 1
-      setProdotti(updatedProdotti)
-    } else {
-      // Add new product
-      const newProduct: Product = {
-        id: `temp-${Date.now()}`,
-        productId: product.id,
-        codice: product.ProductCode || product.sku || 'Non disponibile',
-        descrizione: product.name || 'Prodotto senza nome',
-        prezzo: product.finalPrice || product.price,
-        prezzoOriginale: product.price,
-        scontoApplicato: product.appliedDiscount,
-        fonteSconto: product.discountSource,
-        nomeSconto: product.discountName,
-        qty: 1
-      }
-      setProdotti([...cleanedProdotti, newProduct])
+  const addProductToCart = async (product: any) => {
+    if (!token) {
+      toast.error('Token non valido per aggiungere prodotti al carrello')
+      return
     }
-    
-    // Close popup and show updated cart
-    setShowAddProducts(false)
-    
-    // Show success message
-    toast.success(`${product.name || 'Prodotto'} aggiunto al carrello!`)
+
+    try {
+      // 🔍 DEBUG: Log product data to understand the structure
+      console.log('🔍 Adding product to cart:', {
+        id: product.id,
+        name: product.name,
+        ProductCode: product.ProductCode,
+        sku: product.sku,
+        price: product.price,
+        finalPrice: product.finalPrice
+      })
+      
+      // 🚀 Call backend API to add product to cart
+      const response = await fetch(`/api/cart/${token}/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          quantity: 1,
+          notes: `Added from checkout page - ${product.name}`
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to add product to cart')
+      }
+
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to add product to cart')
+      }
+
+      // 🔄 Refresh cart data from backend
+      await refreshCartFromBackend()
+      
+      // Close popup and show updated cart
+      setShowAddProducts(false)
+      
+      // Show success message
+      toast.success(`${product.name || 'Prodotto'} aggiunto al carrello!`)
+      
+    } catch (error) {
+      console.error('❌ Error adding product to cart:', error)
+      toast.error('Errore nell\'aggiungere il prodotto al carrello')
+    }
   }
 
   // Handle form input changes
@@ -533,17 +659,17 @@ const CheckoutPage: React.FC = () => {
                           {prodotto.codice !== 'N/A' ? prodotto.codice : 'Non disponibile'}
                         </div>
                         
-                        {/* Product Format */}
-                        {prodotto.formato && (
-                          <div className="text-sm text-blue-600 mb-1 font-medium">
-                            Formato: {prodotto.formato}
-                          </div>
-                        )}
-                        
                         {/* Product Name */}
-                        <div className="text-lg font-semibold text-gray-900 mb-2">
+                        <div className="text-lg font-semibold text-gray-900 mb-1">
                           {prodotto.descrizione}
                         </div>
+                        
+                        {/* Format */}
+                        {prodotto.formato && (
+                          <div className="text-sm text-blue-600 mb-2 font-medium">
+                            Format: {prodotto.formato}
+                          </div>
+                        )}
                         
                         {/* Quantity and Price */}
                         <div className="flex items-center space-x-4">
@@ -841,10 +967,12 @@ const CheckoutPage: React.FC = () => {
                 {prodotti.map((prodotto, index) => (
                   <div key={index} className="flex justify-between py-2 border-b">
                     <div className="flex-1">
-                      <span>{(prodotto.qty || prodotto.quantita || 1)}x {prodotto.descrizione}</span>
-                      {prodotto.formato && (
-                        <div className="text-sm text-blue-600 ml-2">({prodotto.formato})</div>
-                      )}
+                      <div>
+                        <span>{(prodotto.qty || prodotto.quantita || 1)}x {prodotto.descrizione}</span>
+                        {prodotto.formato && (
+                          <div className="text-sm text-blue-600">Format: {prodotto.formato}</div>
+                        )}
+                      </div>
                     </div>
                     <span>€{((prodotto.prezzoScontato || prodotto.prezzo) * (prodotto.qty || prodotto.quantita || 1)).toFixed(2)}</span>
                   </div>
@@ -970,11 +1098,11 @@ const CheckoutPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {availableProducts.map((product) => (
                     <div key={product.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <h4 className="font-semibold text-sm mb-2">{product.name}</h4>
-                      <p className="text-xs text-gray-600 mb-1">Codice: {product.ProductCode || product.sku || 'Non disponibile'}</p>
+                      <h4 className="font-semibold text-sm mb-1">{product.name}</h4>
                       {product.formato && (
-                        <p className="text-xs text-blue-600 mb-2 font-medium">Formato: {product.formato}</p>
+                        <div className="text-xs text-blue-600 mb-1 font-medium">Format: {product.formato}</div>
                       )}
+                      <p className="text-xs text-gray-600 mb-1">Codice: {product.ProductCode || product.sku || 'Non disponibile'}</p>
                       <div className="mb-3">
                         {product.finalPrice && product.finalPrice < product.price ? (
                           <div className="flex items-center space-x-2">

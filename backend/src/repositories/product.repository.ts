@@ -90,7 +90,7 @@ export class ProductRepository implements IProductRepository {
       }
 
       const page = filters?.page || 1
-      const limit = filters?.limit || 50
+      const limit = filters?.limit || 1000  // No limit - show all products
       const skip = (page - 1) * limit
 
       logger.info("Query Prisma products con:", { where, skip, take: limit })

@@ -131,13 +131,22 @@ export class CheckoutService {
     baseUrl?: string
   ): Promise<CheckoutLinkResult> {
     try {
+      console.log("🔧 CHECKOUT_DEBUG: createCheckoutLink called with:", { customerId, workspaceId })
+      
       // Validate customer exists
       const customer = await this.prisma.customers.findUnique({
         where: { id: customerId },
         include: { workspace: true }
       })
 
+      console.log("🔧 CHECKOUT_DEBUG: Customer found:", customer ? "YES" : "NO")
+      if (customer) {
+        console.log("🔧 CHECKOUT_DEBUG: Customer workspaceId:", customer.workspaceId)
+        console.log("🔧 CHECKOUT_DEBUG: Expected workspaceId:", workspaceId)
+      }
+
       if (!customer) {
+        console.log("❌ CHECKOUT_DEBUG: Customer not found")
         return {
           success: false,
           error: 'Customer not found'
@@ -145,6 +154,7 @@ export class CheckoutService {
       }
 
       if (customer.workspaceId !== workspaceId) {
+        console.log("❌ CHECKOUT_DEBUG: Customer workspace mismatch")
         return {
           success: false,
           error: 'Customer does not belong to this workspace'

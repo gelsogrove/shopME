@@ -272,6 +272,9 @@ export class MessageRepository {
     workspaceId?: string
   ): Promise<boolean> {
     try {
+      // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
+      logger.info(`[BLACKLIST] Checking blacklist status for ${phoneNumber}`)
+
       // Check if customer has isBlacklisted flag
       const customer = await this.prisma.customers.findFirst({
         where: {

@@ -40,44 +40,8 @@ export class DualLLMService {
   }
 
   public async processMessage(request: LLMRequest): Promise<LLMResponse> {
-    console.log("🚀🚀🚀 DUAL LLM PROCESSING STARTED 🚀🚀🚀")
-    console.log("📥 Request chatInput:", request.chatInput)
-    console.log("📥 Request language:", request.language)
-    console.log("📥 Request workspaceId:", request.workspaceId)
-    console.log("💥💥💥 CUSTOMER ID FROM REQUEST:", request.customerid)
-    console.log("🔍 CHAT HISTORY RECEIVED:", JSON.stringify(request.messages || [], null, 2)) // 🔧 DEBUG CHAT HISTORY
-    
-    // 🔧 CRITICAL DEBUG: Check if this is a profile modification request
-    if (request.chatInput && (
-      request.chatInput.includes("devo modificare") || 
-      request.chatInput.includes("profilo") ||
-      request.chatInput.includes("modifica") ||
-      request.chatInput.includes("cambia")
-    )) {
-      console.log("🎯🎯🎯 PROFILE MODIFICATION REQUEST DETECTED! 🎯🎯🎯")
-      console.log("🎯 Input:", request.chatInput)
-      
-      // 🔧 CRITICAL: Write to file for debugging
-      const fs = require('fs');
-      const debugData = {
-        timestamp: new Date().toISOString(),
-        input: request.chatInput,
-        customerId: request.customerid,
-        workspaceId: request.workspaceId,
-        message: "PROFILE MODIFICATION REQUEST DETECTED"
-      };
-      fs.appendFileSync('/tmp/profile-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
-      
-      // 🔧 CRITICAL: Also log to console with ERROR level to make it visible
-      console.error("🚨🚨🚨 PROFILE MODIFICATION REQUEST DETECTED! 🚨🚨🚨");
-      console.error("🚨 Input:", request.chatInput);
-      console.error("🚨 CustomerId:", request.customerid);
-      console.error("🚨 WorkspaceId:", request.workspaceId);
-    }
-
-    let requestWithPrompt = request // Initialize with original request
-
     try {
+      let requestWithPrompt = request // Initialize with original request
       // 🔧 GET AGENT CONFIG AND PROMPT FROM DATABASE IF NOT PROVIDED
       let agentPrompt = request.prompt
       if (!agentPrompt) {
@@ -88,9 +52,6 @@ export class DualLLMService {
       }
 
       // � NO MORE VARIABLE REPLACEMENT - ALREADY DONE IN WEBHOOK!
-      console.log(
-        "� WEBHOOK HAS ALREADY PROCESSED VARIABLES - Using prompt as-is"
-      )
 
       // 🔧 CRITICAL: Include real values in prompt for function parameters
       if (request.prompt) {
@@ -98,7 +59,6 @@ export class DualLLMService {
           .replace(/\{\{workspaceId\}\}/g, request.workspaceId || "UNKNOWN_WORKSPACE")
           .replace(/\{\{customerId\}\}/g, request.customerid || "UNKNOWN_CUSTOMER")
           .replace(/\{\{phoneNumber\}\}/g, request.phone || "UNKNOWN_PHONE")
-        console.log("✅ Using pre-processed prompt with real values for function parameters")
       }
 
       // 🌐 UPDATE REQUEST WITH USER'S LANGUAGE FROM PROFILE
@@ -107,35 +67,36 @@ export class DualLLMService {
         prompt: agentPrompt,
         language: request.language || "it", // 🔥 USE LANGUAGE FROM WEBHOOK
       }
-      console.log(`🌐 Using language from webhook: ${request.language || "it"}`)
 
       // 🔧 STORE PROCESSED PROMPT FOR DEBUG
       this.lastProcessedPrompt = agentPrompt
 
       // NEW APPROACH: CLOUD FUNCTIONS FIRST, SEARCHRAG AS LAST RESORT
-      console.log("🔍 NEW FLOW: Cloud Functions FIRST, SearchRag as LAST RESORT")
 
       // Stage 1A: CLOUD FUNCTIONS FIRST (for specific actions)
-      console.log("⚡ Stage 1A: Cloud Functions PRIMARY processor")
       const functionResult = await this.tryCloudFunctions(requestWithPrompt)
-
-      console.log("📊 CLOUD FUNCTIONS DEBUG ANALYSIS:")
-      console.log(`   ⚡ Cloud Functions success: ${functionResult.success}`)
-      console.log(
-        `   📝 Cloud Functions functionResults length: ${functionResult.functionResults?.length || 0}`
-      )
-      console.log(
-        `   📋 Cloud Functions functionResults:`,
-        functionResult.functionResults
-      )
 
       let finalResult = functionResult
       let finalStage = "unknown"
 
+      console.log("🚨🚨🚨 DEBUG CLOUD FUNCTIONS RESULT:")
+      console.log("functionResult.success:", functionResult.success)
+      console.log("functionResult.functionResults:", functionResult.functionResults)
+      console.log("functionResult.functionResults?.length:", functionResult.functionResults?.length)
+      
+      // 🔧 DEBUG FILE LOG
+      const fs = require('fs');
+      const debugData = {
+        timestamp: new Date().toISOString(),
+        chatInput: request.chatInput,
+        translatedQuery: this.lastTranslatedQuery,
+        functionResult_success: functionResult.success,
+        functionResult_functionResults: functionResult.functionResults,
+        functionResult_length: functionResult.functionResults?.length
+      };
+      fs.appendFileSync('/tmp/dual-llm-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
+
       if (functionResult.success && functionResult.functionResults?.length > 0) {
-        console.log(
-          "✅ FLOW DECISION: Cloud Functions succeeded with actions, using CF result"
-        )
         finalStage = "cloud_functions_primary"
         this.lastDebugInfo = {
           stage: "cloud_functions",
@@ -144,22 +105,11 @@ export class DualLLMService {
           resultsCount: functionResult.functionResults.length,
         }
       } else {
-        console.log(
-          "⚠️ FLOW DECISION: Cloud Functions found no actions, trying SearchRag fallback"
-        )
 
         // Stage 1B: FALLBACK TO SEARCHRAG IF CLOUD FUNCTIONS HAS NO ACTIONS
         const ragResult = await this.executeSearchRagFallback(requestWithPrompt)
 
-        console.log("📊 SEARCHRAG DEBUG ANALYSIS:")
-        console.log(`   🔍 SearchRag success: ${ragResult.success}`)
-        console.log(
-          `   📝 SearchRag functionResults length: ${ragResult.functionResults?.length || 0}`
-        )
-        console.log(`   📋 SearchRag functionResults:`, ragResult.functionResults)
-
         if (ragResult.success && ragResult.functionResults?.length > 0) {
-          console.log("✅ FLOW DECISION: SearchRag fallback succeeded")
           finalStage = "searchrag_fallback"
           finalResult = ragResult
           this.lastDebugInfo = {
@@ -169,9 +119,6 @@ export class DualLLMService {
             resultsCount: ragResult.functionResults?.length || 0,
           }
         } else {
-          console.log(
-            "❌ FLOW DECISION: Both Cloud Functions and SearchRag found nothing, will use generic response"
-          )
           finalStage = "generic_fallback"
           // Keep Cloud Functions result (empty) for generic response
           finalResult = functionResult
@@ -185,38 +132,11 @@ export class DualLLMService {
         }
       }
 
-      console.log(`🎯 FINAL DECISION: Using stage "${finalStage}"`)
-
-      console.log("✅ Final Result:", JSON.stringify(finalResult, null, 2))
-
       // 🎯 SIMPLIFIED FLOW: ALL RESPONSES GO THROUGH FORMATTER
-      console.log("🔧 Stage 2: Formatter - ALL responses go through Formatter for consistency")
-      
       const formattedResponse = await this.executeFormatter(
         requestWithPrompt,
         finalResult
       )
-      
-      // FINAL DEBUG SUMMARY
-      console.log("🏁 FINAL RESULT SUMMARY:")
-      console.log(`   🎯 Final Stage Used: ${finalStage}`)
-      console.log(`   📊 Had Results: ${finalResult.functionResults?.length > 0}`)
-      console.log(`   🔍 Data Source: ${finalResult.source}`)
-      console.log(`   📝 Response Length: ${formattedResponse?.length || 0} chars`)
-      console.log(`   🐛 Debug Info:`, this.lastDebugInfo)
-      
-      
-      console.log(
-        "✅ Formatted Response:",
-        JSON.stringify(formattedResponse, null, 2)
-      )
-
-      console.log("🎯 DUAL LLM SUCCESS RESULT:", {
-        translatedQuery: this.lastTranslatedQuery,
-        hasProcessedPrompt: !!this.lastProcessedPrompt,
-        outputLength: formattedResponse?.length || 0,
-        debugInfo: this.lastDebugInfo,
-      })
       
       return {
         output: formattedResponse,
@@ -227,14 +147,11 @@ export class DualLLMService {
         debugInfo: this.lastDebugInfo, // 🔧 NEW: Debug info
       }
     } catch (error) {
-      console.error("❌❌❌ DUAL LLM ERROR:", error)
-      console.error("❌ Error stack:", error.stack)
       return {
         output: "Mi dispiace, si è verificato un errore. Riprova più tardi.",
         success: false,
         translatedQuery:
           this.lastTranslatedQuery ||
-          requestWithPrompt?.chatInput ||
           request.chatInput,
         processedPrompt: this.lastProcessedPrompt,
       }
@@ -242,12 +159,6 @@ export class DualLLMService {
   }
 
   private async tryCloudFunctions(request: LLMRequest): Promise<any> {
-    console.log("🔧🔧🔧 TRY CLOUD FUNCTIONS STARTED 🔧🔧🔧")
-    console.log("🔧 Input request:", {
-      chatInput: request.chatInput,
-      language: request.language,
-    })
-
     try {
       // Check if translation is needed
       const userLanguage = request.language || 'it'
@@ -256,35 +167,22 @@ export class DualLLMService {
       if (userLanguage === 'en' || userLanguage === 'English') {
         // Skip translation for English users
         translatedQuery = request.chatInput
-        console.log("🇬🇧 User is English - skipping translation, using original query:", translatedQuery)
       } else {
         // Translate query for non-English users
-        console.log(
-          "🌐 About to call translation service for:",
-          request.chatInput
-        )
         const hasConversationHistory = request.messages && request.messages.length > 0;
         translatedQuery = await this.translationService.translateToEnglish(
           request.chatInput,
           hasConversationHistory // 🔧 Pass conversation history info
         )
-        console.log("🔧 Translated query:", translatedQuery)
       }
       
       this.lastTranslatedQuery = translatedQuery // Store for debug
       
-      // 🚨 REMOVED FORCED RECOGNITION - USING LLM ONLY
-      
       // Get function definitions
       const functionDefinitions = this.getRAGProcessorFunctionDefinitions()
-      console.log(
-        "🔧 Function definitions:",
-        JSON.stringify(functionDefinitions, null, 2)
-      )
       
       // Get agent config from database
       const agentConfig = await this.getAgentConfig(request.workspaceId)
-      console.log("🔧 Agent config from DB:", agentConfig)
 
       // STAGE 1A: USA IL PROMPT DELL'AGENT DAL DB
       let systemMessage
@@ -316,6 +214,13 @@ export class DualLLMService {
       
       console.log(`🔧 Cloud Functions: Using agent prompt from DB with language enforcement for: ${languageParam}`)
       console.log(`🌐 Language enforcement added: ${languageEnforcement.substring(0, 50)}...`)
+      console.log(`🚀🚀🚀 DUAL LLM PROCESSING STARTED - MODIFIED VERSION 🚀🚀🚀`)
+      console.log(`🔧 DEBUG: Server is using modified code with temperature 0.1`)
+      console.log(`🔧 DEBUG: FORCE RELOAD - TRIGGERS SHOULD WORK NOW`)
+      console.log(`🔧 DEBUG: SERVER IS USING MODIFIED CODE - TEMPERATURE 0.1`)
+      console.log(`🔧 DEBUG: FINAL TEST - TRIGGERS MUST WORK NOW`)
+      console.log(`🔧 DEBUG: DUAL-LLM-SERVICE.TS IS BEING USED - TRIGGERS SHOULD WORK`)
+      console.log(`🚨🚨🚨 SERVER IS USING MODIFIED CODE - TRIGGERS MUST WORK NOW 🚨🚨🚨`)
       
       // 🚨 CRITICAL TRIGGER DETECTION - Force GetAllProducts() for specific triggers
       const criticalTriggers = ["cosa vendete", "che prodotti avete", "what do you sell", "che prodotti avete?", "cosa vendete?"]
@@ -324,10 +229,37 @@ export class DualLLMService {
       const isCriticalTrigger = criticalTriggers.some(trigger => {
         const match = translatedQuery.toLowerCase().includes(trigger.toLowerCase())
         console.log(`🔍 Checking "${trigger}" in "${translatedQuery.toLowerCase()}" = ${match}`)
+        
+        // 🚨 FORCE DEBUG LOG
+        const fs = require('fs');
+        const triggerDebug = {
+          timestamp: new Date().toISOString(),
+          action: "trigger_check",
+          trigger: trigger,
+          translatedQuery: translatedQuery.toLowerCase(),
+          match: match
+        };
+        fs.appendFileSync('/tmp/dual-llm-debug.log', JSON.stringify(triggerDebug, null, 2) + '\n---\n');
+        
+        return match
+      })
+      
+
+      // 🚨 CART TRIGGER DETECTION - Force generateCartLink() for cart-related triggers
+      const cartTriggers = ["aggiungi al carrello", "fammi vedere il carrello", "mostrami carrello", "mostra carrello", "confermo carrello", "procedi con l'ordine", "procedo con l'ordine", "add to cart", "show me cart", "muéstrame carrito", "add a prosecco to the cart", "add prosecco to cart", "add to the cart", "show me the cart", "let me see the cart"]
+      console.log(`🔍 CART TRIGGER DETECTION: Checking "${translatedQuery}" against cart triggers:`, cartTriggers)
+      
+      const isCartTrigger = cartTriggers.some(trigger => {
+        // Remove punctuation for better matching
+        const cleanQuery = translatedQuery.toLowerCase().replace(/[.,!?;:]/g, '').trim()
+        const cleanTrigger = trigger.toLowerCase().replace(/[.,!?;:]/g, '').trim()
+        const match = cleanQuery.includes(cleanTrigger)
+        console.log(`🔍 Checking cart trigger "${cleanTrigger}" in "${cleanQuery}" = ${match}`)
         return match
       })
       
       console.log(`🔍 CRITICAL TRIGGER RESULT: ${isCriticalTrigger}`)
+      console.log(`🛒 CART TRIGGER RESULT: ${isCartTrigger}`)
       
       // 🚨 CRITICAL CATEGORY DETECTION - Force GetProductsByCategory() for specific categories
       const categoryTriggers = [
@@ -363,6 +295,43 @@ export class DualLLMService {
       })
       
       console.log(`🔍 ORDER CONFIRMATION TRIGGER RESULT: ${isOrderConfirmationTrigger}`)
+      
+      // 🚨 CRITICAL CATALOG PDF DETECTION - Immediate response for catalog requests
+      const catalogTriggers = [
+        "catalogo", "listino", "listino prezzi", "brochure", "catalog", "price list",
+        "dove trovo", "voglio", "dammi", "hai"
+      ]
+      console.log(`🔍 CATALOG DETECTION: Checking "${translatedQuery}" against catalog triggers:`, catalogTriggers)
+      
+      const isCatalogTrigger = catalogTriggers.some(trigger => {
+        const match = translatedQuery.toLowerCase().includes(trigger.toLowerCase())
+        console.log(`🔍 Checking catalog "${trigger}" in "${translatedQuery.toLowerCase()}" = ${match}`)
+        return match
+      })
+      
+      console.log(`🔍 CATALOG TRIGGER RESULT: ${isCatalogTrigger}`)
+      
+      // 🚨 IMMEDIATE CATALOG RESPONSE (no function calling needed)
+      if (isCatalogTrigger) {
+        console.log(`🚨 CATALOG TRIGGER DETECTED: "${translatedQuery}" - Returning immediate PDF response`)
+        
+        const catalogResponse = `📋 Ecco il nostro catalogo completo con tutti i prodotti italiani:
+
+🔗 **Catalogo L'Altra Italia - Agosto 2024**
+https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf
+
+Nel catalogo trovi tutti i nostri prodotti con descrizioni dettagliate, formati e informazioni complete! 🇮🇹`
+        
+        return {
+          response: catalogResponse,
+          functionCalled: null,
+          debugInfo: {
+            trigger: "catalog_pdf_immediate",
+            detectedQuery: translatedQuery,
+            timestamp: new Date().toISOString()
+          }
+        }
+      }
       
       let toolChoice: string | { type: string; function: { name: string } } = "auto"
       if (isOrderConfirmationTrigger) {
@@ -423,6 +392,12 @@ export class DualLLMService {
           type: "function",
           function: { name: "GetProductsByCategory" }
         }
+      } else if (isCartTrigger) {
+        console.log(`🚨 CART TRIGGER DETECTED: "${translatedQuery}" - Forcing generateCartLink() call`)
+        toolChoice = {
+          type: "function",
+          function: { name: "generateCartLink" }
+        }
       } else if (isCriticalTrigger) {
         console.log(`🚨 CRITICAL TRIGGER DETECTED: "${translatedQuery}" - Forcing GetAllProducts() call`)
         toolChoice = {
@@ -448,7 +423,7 @@ export class DualLLMService {
         ),
         tools: functionDefinitions,
         tool_choice: toolChoice, // Force GetAllProducts() for critical triggers, auto for others
-          temperature: 0.0, // Zero temperature for precise function calling
+          temperature: 0.1, // Slightly higher temperature for better trigger recognition
         max_tokens: agentConfig.maxTokens || 1000,
       }
 
@@ -581,6 +556,17 @@ export class DualLLMService {
 
   private async executeSearchRagFallback(request: LLMRequest): Promise<any> {
     console.log("🔧🔧🔧 SEARCHRAG FALLBACK STARTED 🔧🔧🔧")
+    
+    // 🔧 DEBUG: Log dei parametri che arrivano
+    const fs = require('fs');
+    const debugData = {
+      timestamp: new Date().toISOString(),
+      action: "searchrag_fallback_params",
+      workspaceId: request.workspaceId,
+      customerId: request.customerid,
+      chatInput: request.chatInput
+    };
+    fs.appendFileSync('/tmp/searchrag-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
 
     try {
       // Translate query specifically for SearchRag with language detection
@@ -607,14 +593,6 @@ export class DualLLMService {
       const serviceResults = ragResponse.data.results.services || [];
       const faqResults = ragResponse.data.results.faqs || [];
       
-      // ✨ Cart-awareness data from SearchRAG
-      const cartIntent = ragResponse.data.cartIntent || null;
-      const cartOperation = ragResponse.data.cartOperation || null;
-
-      console.log("🛒 CART INTENT ANALYSIS:", JSON.stringify(cartIntent, null, 2));
-      if (cartOperation) {
-        console.log("🛒 CART OPERATION RESULT:", JSON.stringify(cartOperation, null, 2));
-      }
 
       const allResults = [
         ...productResults.map((r) => ({ ...r, type: "product" })),
@@ -670,27 +648,73 @@ export class DualLLMService {
         contentPreview: result.content ? result.content.substring(0, 100) + '...' : 'No content'
       }))
 
-      // ✨ Add cart operation result if available
-      if (cartOperation) {
-        formattedResults.push({
-          name: "Cart_Operation",
-          type: "cart_operation_result", 
-          data: cartOperation,
-          source: "searchrag",
-          sourceName: "Cart Operation",
-          similarity: 1.0,
-          contentPreview: cartOperation.success ? 
-            `Added ${cartOperation.addedProduct?.quantity}x ${cartOperation.addedProduct?.name} to cart` :
-            `Cart operation failed: ${cartOperation.message}`
-        });
+
+      // 🔗 CHECK FOR TOKEN REPLACEMENT IN SEARCHRAG FALLBACK
+      let updatedResults = formattedResults
+      
+      // Cerchiamo token specifici nei risultati
+      let foundToken = false
+      let tokenContent = ""
+      let linkType = "auto"
+      
+      const resultsStr = JSON.stringify(formattedResults)
+      console.log("🔍 SEARCHRAG FALLBACK: Checking for tokens in results:", resultsStr.substring(0, 200) + "...")
+      
+      // Controlliamo i diversi tipi di token
+      if (resultsStr.includes('[LINK_CART_WITH_TOKEN]')) {
+        foundToken = true
+        tokenContent = resultsStr
+        linkType = "cart"
+        console.log("🛒 SEARCHRAG FALLBACK: ESISTE [LINK_CART_WITH_TOKEN] nei risultati!")
+      } else if (resultsStr.includes('[LINK_PROFILE_WITH_TOKEN]')) {
+        foundToken = true
+        tokenContent = resultsStr
+        linkType = "profile"
+        console.log("👤 SEARCHRAG FALLBACK: ESISTE [LINK_PROFILE_WITH_TOKEN] nei risultati!")
+      } else if (resultsStr.includes('[LINK_ORDERS_WITH_TOKEN]')) {
+        foundToken = true
+        tokenContent = resultsStr
+        linkType = "orders"
+        console.log("📋 SEARCHRAG FALLBACK: ESISTE [LINK_ORDERS_WITH_TOKEN] nei risultati!")
+      } else if (resultsStr.includes('[LINK_TRACKING_WITH_TOKEN]')) {
+        foundToken = true
+        tokenContent = resultsStr
+        linkType = "tracking"
+        console.log("🚚 SEARCHRAG FALLBACK: ESISTE [LINK_TRACKING_WITH_TOKEN] nei risultati!")
+      } else if (resultsStr.includes('[LINK_CHECKOUT_WITH_TOKEN]')) {
+        foundToken = true
+        tokenContent = resultsStr
+        linkType = "checkout"
+        console.log("💳 SEARCHRAG FALLBACK: ESISTE [LINK_CHECKOUT_WITH_TOKEN] nei risultati!")
+      }
+      
+      if (foundToken) {
+        try {
+          console.log("🔗 SEARCHRAG FALLBACK: Calling ReplaceLinkWithToken...")
+          const linkResult = await this.callingFunctionsService.replaceLinkWithToken(
+            tokenContent,
+            linkType,
+            request.customerid || "",
+            request.workspaceId
+          )
+          
+          if (linkResult.success && linkResult.message) {
+            // Sostituiamo il token nei risultati
+            const updatedResultsData = JSON.parse(linkResult.message)
+            updatedResults = updatedResultsData
+            console.log("✅ SEARCHRAG FALLBACK: Link generato e sostituito con successo nei risultati")
+          } else {
+            console.log("⚠️ SEARCHRAG FALLBACK: Errore nella generazione del link")
+          }
+        } catch (error) {
+          console.error("❌ SEARCHRAG FALLBACK: Errore nella sostituzione del link:", error)
+        }
       }
 
       return {
-        functionResults: formattedResults,
+        functionResults: updatedResults,
         success: true,
-        source: "searchrag",
-        cartIntent,
-        cartOperation
+        source: "searchrag"
       }
     } catch (error) {
       console.error("❌ SearchRag Fallback Error:", error)
@@ -740,7 +764,7 @@ export class DualLLMService {
             ],
             request.messages || []
           ),
-        temperature: 0.0, // Zero temperature for precise formatting
+        temperature: 0.3, // Higher temperature for better formatting
           max_tokens: 8000, // Increased for complete product lists
         },
         {
@@ -757,9 +781,10 @@ export class DualLLMService {
       const rawResponse =
         response.data.choices[0]?.message?.content?.trim()
       console.log("✅ Raw response:", rawResponse)
+      console.log("🔍 Checking for [LINK_WITH_TOKEN] in rawResponse:", rawResponse?.includes('[LINK_WITH_TOKEN]'))
 
       // 📱 Apply formatting to all responses
-      const formattedResponse = FormatterService.formatResponse(
+      const formattedResponse = await FormatterService.formatResponse(
         rawResponse || "Mi dispiace, non sono riuscito a generare una risposta.",
         request.language || "it"
       )
@@ -934,7 +959,7 @@ Format the response naturally based on the data type and user's request.`
     let dataContext = ""
     if (functionResults.length > 0) {
       // Check for direct Cloud Function responses that should be returned as-is
-      const directResponseFunctions = ['add_to_cart', 'confirmOrderFromConversation', 'SearchRag', 'GetAllProducts', 'GetProductsByCategory', 'GetOrdersListLink', 'GetCustomerProfileLink', 'GetShipmentTrackingLink', 'ContactOperator', 'GetServices', 'GetUserInfo', 'GetActiveOffers', 'GetAllCategories', 'remove_from_cart', 'resolve_disambiguation', 'clear_cart']
+      const directResponseFunctions = ['confirmOrderFromConversation', 'SearchRag', 'GetAllProducts', 'GetProductsByCategory', 'GetOrdersListLink', 'GetCustomerProfileLink', 'GetShipmentTrackingLink', 'ContactOperator', 'GetServices', 'GetUserInfo', 'GetActiveOffers', 'GetAllCategories']
       
       const directResult = functionResults.find(result => 
         directResponseFunctions.includes(result.functionName) && result.result?.success
@@ -980,7 +1005,7 @@ ${dataContext}
 Please create a natural, helpful response in ${languageName}.${request.welcomeBackMessage ? ' Make sure to include the welcome back message naturally in your response.' : ''}`
   }
 
-  private buildFallbackResponse(request: LLMRequest, ragResult: any): string {
+  private async buildFallbackResponse(request: LLMRequest, ragResult: any): Promise<string> {
     const userQuery = request.chatInput
     const language = request.language || "it"
 
@@ -1011,10 +1036,10 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
     const welcomeBackPrefix = request.welcomeBackMessage ? `${request.welcomeBackMessage}\n\n` : '';
 
     if (ragResult.functionResults && ragResult.functionResults.length > 0) {
-      return FormatterService.formatResponse(welcomeBackPrefix + messages.found, language)
+      return await FormatterService.formatResponse(welcomeBackPrefix + messages.found, language)
     }
 
-    return FormatterService.formatResponse(welcomeBackPrefix + messages.notFound, language)
+    return await FormatterService.formatResponse(welcomeBackPrefix + messages.notFound, language)
   }
 
   private getRAGProcessorFunctionDefinitions(): any[] {
@@ -1107,6 +1132,29 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       {
         type: "function",
         function: {
+          name: "ReplaceLinkWithToken",
+          description:
+            "Replace [LINK_WITH_TOKEN] placeholders with actual generated links. Use when SearchRag returns a response containing [LINK_WITH_TOKEN]. This function automatically detects the link type (cart, profile, orders, tracking, checkout) based on response content and generates the appropriate link.",
+          parameters: {
+            type: "object",
+            properties: {
+              response: {
+                type: "string",
+                description: "Response containing [LINK_WITH_TOKEN] placeholder"
+              },
+              linkType: {
+                type: "string",
+                enum: ["cart", "profile", "orders", "tracking", "checkout", "auto"],
+                description: "Type of link to generate (auto detects if not specified)"
+              }
+            },
+            required: ["response"],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
           name: "GetAllProducts",
           description:
             "Get complete detailed product catalog with all products, descriptions and prices. Use SPECIFICALLY when user says: 'dammi la lista dei prodotti', 'dammi i prodotti', 'lista prodotti', 'che prodotti avete', 'fammi vedere i prodotti', 'mostrami i prodotti', 'visualizza prodotti', 'show me products', 'product list', 'product catalog'. This function has PRIORITY over SearchRAG for complete product listing requests.",
@@ -1133,7 +1181,6 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       {
         type: "function",
         function: {
-          name: "add_to_cart",
           description:
             '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for ANY request containing "aggiungi", "voglio", "compra", "add", "want", "buy" + product name. EXAMPLES: "aggiungi prosecco", "voglio prosecco", "compra prosecco", "add prosecco", "want prosecco", "buy prosecco". CRITICAL: This function has ABSOLUTE PRIORITY over SearchRAG. ALWAYS call this function for product addition requests!',
           parameters: {
@@ -1156,7 +1203,6 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       {
         type: "function",
         function: {
-          name: "remove_from_cart",
           description:
             'Remove product from shopping cart. ONLY use when user explicitly says: "rimuovi/remove/eliminar X dal carrello/from cart/del carrito" or similar removal phrases. DO NOT use for general questions about products.',
           parameters: {
@@ -1178,7 +1224,6 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       {
         type: "function",
         function: {
-          name: "resolve_disambiguation",
           description:
             'Resolve product disambiguation. Use when user responds to a disambiguation message with a specific product code like [00004] or 00004, or a product name. This function handles the user\'s choice from a disambiguation list.',
           parameters: {
@@ -1201,7 +1246,6 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       {
         type: "function",
         function: {
-          name: "clear_cart",
           description:
             'Clear/empty the entire shopping cart. ONLY use when user explicitly says: "svuota carrello/clear cart/vaciar carrito", "cancella tutto/delete all/borrar todo" or similar clear/empty phrases. DO NOT use for single item removal.',
           parameters: {
@@ -1214,7 +1258,6 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       {
         type: "function",
         function: {
-          name: "get_cart_info",
           description:
             '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for CART DISPLAY requests! Use when user wants to VIEW/SEE cart contents WITHOUT confirming: "fammi vedere il carrello", "mostra carrello", "cosa ho nel carrello", "show me cart", "what\'s in my cart", "carrello", "cart", "vedere il carrello", "see the cart", "my cart". CRITICAL: This function ONLY shows cart contents - does NOT confirm or checkout. Use confirmOrderFromConversation ONLY for actual order confirmation!',
           parameters: {
@@ -1229,7 +1272,7 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
         function: {
           name: "confirmOrderFromConversation",
           description:
-            '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for ORDER CONFIRMATION requests! Use ONLY when user wants to CONFIRM/FINALIZE/CHECKOUT: "conferma ordine", "finalizza ordine", "procedi con l\'ordine", "procedi al checkout", "confirm order", "finalize order", "proceed with order", "proceed to checkout", "checkout", "conferma", "procedi", "confirm", "proceed", "va bene così", "ok procedi", "acquista", "ordina", "completa ordine", "finalizza acquisto". CRITICAL: Do NOT use for simple cart viewing - use get_cart_info instead!',
+            '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for ORDER CONFIRMATION requests! Use ONLY when user wants to CONFIRM/FINALIZE/CHECKOUT: "conferma ordine", "finalizza ordine", "procedi con l\'ordine", "procedi al checkout", "confirm order", "finalize order", "proceed with order", "proceed to checkout", "checkout", "conferma", "procedi", "confirm", "proceed", "va bene così", "ok procedi", "acquista", "ordina", "completa ordine", "finalizza acquisto".',
           parameters: {
             type: "object",
             properties: {
@@ -1240,13 +1283,26 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
               },
               generateCartLink: {
                 type: "boolean", 
-                description: "Generate cart link instead of checkout link",
+                description: "Generate cart link for cart management",
                 default: true
               }
             },
             required: [],
           },
         },
+      },
+      {
+        type: "function",
+        function: {
+          name: "generateCartLink",
+          description:
+            '🚨🚨🚨 CART MANAGEMENT: MANDATORY for CART MANAGEMENT requests! Use when user wants to manage their cart: "aggiungi al carrello", "metti nel carrello", "voglio comprare", "fammi vedere carrello", "cosa ho nel carrello", "inserisci nel carrello", "aggiungi nel carrello", "compra questo", "prendi questo", "vorrei comprare", "contenuto carrello", "carrello della spesa", "mostra carrello", "visualizza carrello", "vedi carrello", "controlla carrello", "carrello acquisti", "add to cart", "put in cart", "I want to buy", "show me cart", "what\'s in my cart", "insert in cart", "add in cart", "buy this", "take this", "I would like to buy", "cart content", "shopping cart", "show cart", "view cart", "see cart", "check cart", "purchase cart".',
+          parameters: {
+            type: "object",
+            properties: {},
+            required: []
+          }
+        }
       },
       {
         type: "function",
@@ -1430,55 +1486,6 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
             })
             break
 
-          case "add_to_cart":
-            result = await this.functionHandlerService.handleFunctionCall(
-              "add_to_cart", 
-              { product_name: args.product_name, quantity: args.quantity || 1 },
-              { id: request.customerid || "" },
-              request.workspaceId,
-              request.phone || ""
-            )
-            break
-
-          case "remove_from_cart":
-            result = await this.functionHandlerService.handleFunctionCall(
-              "remove_from_cart", 
-              { product_name: args.product_code, quantity: args.quantity },
-              { id: request.customerid || "" },
-              request.workspaceId,
-              request.phone || ""
-            )
-            break
-
-          case "resolve_disambiguation":
-            result = await this.functionHandlerService.handleFunctionCall(
-              "resolve_disambiguation", 
-              { product_choice: args.product_choice, quantity: args.quantity || 1 },
-              { id: request.customerid || "" },
-              request.workspaceId,
-              request.phone || ""
-            )
-            break
-
-          case "clear_cart":
-            result = await this.functionHandlerService.handleFunctionCall(
-              "clear_cart", 
-              {},
-              { id: request.customerid || "" },
-              request.workspaceId,
-              request.phone || ""
-            )
-            break
-
-          case "get_cart_info":
-            result = await this.functionHandlerService.handleFunctionCall(
-              "get_cart_info",
-              {},
-              { id: request.customerid || "" },
-              request.workspaceId,
-              request.phone || ""
-            )
-            break
 
           case "confirmOrderFromConversation":
             // Determine if this is a cart request or order confirmation
@@ -1499,13 +1506,94 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
             })
             break
 
-          case "SearchRag":
-            result = await this.callingFunctionsService.SearchRag({
-              query: args.query || request.chatInput,
-              workspaceId: request.workspaceId,
-              customerId: request.customerid || "",
-              messages: request.messages || [],
-            })
+          case "generateCartLink":
+            result = await this.functionHandlerService.handleFunctionCall(
+              "generateCartLink",
+              {},
+              { id: request.customerid || "" },
+              request.workspaceId,
+              request.phone || ""
+            )
+            break
+
+        case "SearchRag":
+          result = await this.callingFunctionsService.SearchRag({
+            query: args.query || request.chatInput,
+            workspaceId: request.workspaceId,
+            customerId: request.customerid || "",
+            messages: request.messages || [],
+          })
+          
+          // 🔗 IF [LINK_WITH_TOKEN] presente → genera token e fa replace
+          console.log("🔍 SearchRag result:", result.success)
+          
+          // Cerchiamo token specifici nei risultati
+          let foundToken = false
+          let tokenContent = ""
+          let linkType = "auto"
+          
+          if (result.success && result.results) {
+            const resultsStr = JSON.stringify(result.results)
+            
+            // Controlliamo i diversi tipi di token
+            if (resultsStr.includes('[LINK_CART_WITH_TOKEN]')) {
+              foundToken = true
+              tokenContent = resultsStr
+              linkType = "cart"
+              console.log("🛒 ESISTE [LINK_CART_WITH_TOKEN] nei risultati SearchRag!")
+            } else if (resultsStr.includes('[LINK_PROFILE_WITH_TOKEN]')) {
+              foundToken = true
+              tokenContent = resultsStr
+              linkType = "profile"
+              console.log("👤 ESISTE [LINK_PROFILE_WITH_TOKEN] nei risultati SearchRag!")
+            } else if (resultsStr.includes('[LINK_ORDERS_WITH_TOKEN]')) {
+              foundToken = true
+              tokenContent = resultsStr
+              linkType = "orders"
+              console.log("📋 ESISTE [LINK_ORDERS_WITH_TOKEN] nei risultati SearchRag!")
+            } else if (resultsStr.includes('[LINK_TRACKING_WITH_TOKEN]')) {
+              foundToken = true
+              tokenContent = resultsStr
+              linkType = "tracking"
+              console.log("🚚 ESISTE [LINK_TRACKING_WITH_TOKEN] nei risultati SearchRag!")
+            } else if (resultsStr.includes('[LINK_CHECKOUT_WITH_TOKEN]')) {
+              foundToken = true
+              tokenContent = resultsStr
+              linkType = "checkout"
+              console.log("💳 ESISTE [LINK_CHECKOUT_WITH_TOKEN] nei risultati SearchRag!")
+            }
+          }
+          
+          if (foundToken) {
+            try {
+              const linkResult = await this.callingFunctionsService.replaceLinkWithToken(
+                tokenContent,
+                linkType,
+                request.customerid || "",
+                request.workspaceId
+              )
+              
+              if (linkResult.success && linkResult.message) {
+                // Sostituiamo il token nei risultati
+                const updatedResults = JSON.parse(linkResult.message)
+                result.results = updatedResults
+                console.log("✅ Link generato e sostituito con successo nei risultati")
+              } else {
+                console.log("⚠️ Errore nella generazione del link")
+              }
+            } catch (error) {
+              console.error("❌ Errore nella sostituzione del link:", error)
+            }
+          }
+          break
+
+          case "ReplaceLinkWithToken":
+            result = await this.callingFunctionsService.replaceLinkWithToken(
+              args.response,
+              args.linkType || 'auto',
+              request.customerid || "",
+              request.workspaceId
+            )
             break
 
           default:

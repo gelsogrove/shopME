@@ -15,58 +15,19 @@ export class TranslationService {
       console.log('🌐 Translating text to English:', text);
       console.log('🧠 Has conversation history:', hasConversationHistory);
       
-      // 🔧 SMART TRANSLATION: Don't translate short/numeric responses when there's conversation history
-      if (hasConversationHistory) {
-        const trimmedText = text.trim();
-        
-        // Don't translate single numbers or very short responses
-        if (/^[0-9]+$/.test(trimmedText) || trimmedText.length <= 3) {
-          console.log('🔧 SKIPPING TRANSLATION: Short/numeric response with conversation history');
-          return text;
-        }
-        
-        // Don't translate common short responses
-        const shortResponses = ['si', 'sí', 'no', 'ok', 'yes', 'grazie', 'bene', 'ciao'];
-        if (shortResponses.includes(trimmedText.toLowerCase())) {
-          console.log('🔧 SKIPPING TRANSLATION: Common short response with conversation history');
-          return text;
-        }
-      }
+      // All text should be translated - no hardcoded exceptions
       
-      // 🔧 PRODUCT NAME PRESERVATION: Don't translate Italian product names
-      const italianProductNames = [
-        'tiramisù', 'tiramisu', 'cannolo', 'cannoli', 'sfogliatella', 'sfogliatelle',
-        'parmigiano', 'mozzarella', 'burrata', 'prosciutto', 'pasta', 'pizza',
-        'risotto', 'gnocchi', 'ravioli', 'tortellini', 'lasagne', 'bolognese',
-        'arrabbiata', 'carbonara', 'amatriciana', 'pesto', 'ragù', 'sugo',
-        'cubettata', 'cubetti', 'boccone', 'bocconi', 'julienne', 'fiammifero',
-        'fiordilatte', 'fior di latte', 'ricotta', 'bufala', 'campana', 'dop'
-      ];
+      // Translation should work for all text - no hardcoded product names
       
-      const lowerText = text.toLowerCase().trim();
-      const foundProduct = italianProductNames.find(product => lowerText.includes(product));
-      if (foundProduct) {
-        console.log('🔧 SKIPPING TRANSLATION: Italian product name detected:', foundProduct);
-        console.log('🔧 ORIGINAL TEXT:', text);
-        return text;
-      }
-      
-      // TEMP DEBUG: Force translation for longer texts
-      console.log('🔧 DEBUG: Proceeding with translation');
-      
-      // const isTextEnglish = this.isEnglish(text);
-      
-      // if (isTextEnglish) {
-      //   console.log('🔄 Text appears to be English, returning as-is');
-      //   return text;
-      // }
+      // Proceed with translation for all text
+      console.log('🔧 Proceeding with translation');
 
       const response = await axios.post(this.openRouterUrl, {
         model: 'openai/gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
-            content: 'You are a translator for an e-commerce platform. Translate the user\'s message to English using e-commerce terminology. For questions about delivery times, shipping, receiving goods, use keywords like "delivery time", "shipping time", "delivery", "shipping". Return ONLY the English translation, no explanations.'
+            content: 'You are a translator for an Italian e-commerce platform. Translate the user\'s message to English using e-commerce terminology. CRITICAL RULE: NEVER translate Italian product names, food names, or brand names. Keep them exactly as they are in Italian and put them in quotes. Examples: "Bocconcino Di Bufala" stays "Bocconcino Di Bufala", "Mozzarella di Bufala Campana DOP" stays "Mozzarella di Bufala Campana DOP", "Burrata" stays "Burrata", "Torta Sacher" stays "Torta Sacher" (NOT "Sacher Torte"), "Tiramisù" stays "Tiramisù", "Cannolo Siciliano" stays "Cannolo Siciliano", "Sfogliatella" stays "Sfogliatella", "Parmigiano Reggiano" stays "Parmigiano Reggiano", "Prosciutto di Parma" stays "Prosciutto di Parma". Only translate common words like "aggiungi" (add), "quanto costa" (how much does it cost), "quando arriva" (when does it arrive), "cerco" (I am looking for), "hai" (do you have), "avete" (do you have). For questions about delivery times, shipping, receiving goods, use keywords like "delivery time", "shipping time", "delivery", "shipping". Return ONLY the English translation, no explanations.'
           },
           {
             role: 'user',
@@ -97,12 +58,5 @@ export class TranslationService {
     }
   }
 
-  private isEnglish(text: string): boolean {
-    const englishWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'how', 'what', 'when', 'where', 'why', 'which', 'that', 'this', 'is', 'are', 'do', 'does', 'can', 'will', 'would', 'should'];
-    const words = text.toLowerCase().split(/\s+/);
-    const englishWordCount = words.filter(word => englishWords.includes(word)).length;
-    
-    // Return true only if we find actual English words, not just latin characters
-    return englishWordCount > 0;
-  }
+  // Removed hardcoded English detection - all text should be translated
 }
