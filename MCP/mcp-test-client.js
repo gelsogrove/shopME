@@ -102,8 +102,11 @@ class MCPTestClient {
     console.log(`${this.colors.cyan}📡 Avviando monitoraggio log del server...${this.colors.reset}`);
     console.log(`${this.colors.cyan}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${this.colors.reset}`);
     
+    // Leggi i log dal file che il server scrive
+    const logFile = '/tmp/shopme-server.log';
+    
     // Avvia il processo per leggere i log del server
-    this.logProcess = spawn('tail', ['-f', '../backend/logs/whatsapp-' + new Date().toISOString().split('T')[0] + '.log'], {
+    this.logProcess = spawn('tail', ['-f', logFile], {
       stdio: 'pipe'
     });
     
@@ -121,6 +124,8 @@ class MCPTestClient {
     this.logProcess.on('error', (error) => {
       console.log(`${this.colors.yellow}⚠️  Log monitoring failed: ${error.message}${this.colors.reset}`);
     });
+    
+    console.log(`${this.colors.green}✅ Log monitoring started - watching ${logFile}${this.colors.reset}`);
   }
 
   // Ferma il monitoraggio dei log
@@ -148,7 +153,7 @@ class MCPTestClient {
     
     return new Promise((resolve, reject) => {
       const seedProcess = spawn('npm', ['run', 'seed'], {
-        cwd: './backend',  // Fixed: corrected path from MCP directory
+        cwd: '../backend',  // Fixed: corrected path from MCP directory
         stdio: 'pipe'
       });
       

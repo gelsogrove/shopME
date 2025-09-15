@@ -1,5 +1,144 @@
 # RULES_PROMPT.md - Architettura e Responsabilità
 
+## 🎯 **PROVEN DUAL-LLM ARCHITECTURE - SEPTEMBER 2025**
+
+### ✅ **STRUTTURA VINCENTE - SEMPRE SEGUIRE QUESTO PATTERN:**
+
+```mermaid
+graph LR
+    A[USER INPUT<br/>IT/EN/ES/PT] --> B[TranslationService<br/>Detect + Translate to EN]
+    B --> C[CF Recognition<br/>isAboutOffers/Products/Category]
+    C --> D[CallingFunctionsService<br/>Execute Specific CF]
+    D --> E[FormatterService LLM<br/>Format in Original Language]
+    E --> F[LOCALIZED OUTPUT<br/>IT/EN/ES/PT]
+    
+    style A fill:#e1f5fe
+    style B fill:#fff3e0
+    style C fill:#f3e5f5
+    style D fill:#e8f5e8
+    style E fill:#fce4ec
+    style F fill:#e1f5fe
+```
+
+### ✅ **SUCCESS CASES IMPLEMENTATI:**
+
+#### **1. GetActiveOffers** ✅
+- **Trigger**: "offerte", "offers", "sconti", "discounts", "show me offers"
+- **Recognition**: `isAboutOffers(translatedQuery)`
+- **CF**: `callingFunctionsService.getActiveOffers()`
+- **Formatter**: Context-aware per offerte (emoji 🎉 💰 📅)
+- **Test**: "che offerte avete?" → Risposta formattata perfetta
+
+#### **2. GetAllProducts** ✅  
+- **Trigger**: "prodotti", "products", "catalog", "che prodotti avete"
+- **Recognition**: `isAboutProducts(translatedQuery)`
+- **CF**: `callingFunctionsService.getAllProducts()`
+- **Formatter**: Context-aware per categorie (emoji 🛍️ 🧀 📦)
+- **Test**: "che prodotti avete?" → Lista categorie con conteggi
+
+#### **3. GetProductsByCategory** ✅
+- **Trigger**: "formaggi", "cheese", "surgelati", "frozen", "salse"
+- **Recognition**: `isAboutCategory(translatedQuery)` + `extractCategoryFromQuery()`
+- **CF**: `callingFunctionsService.getProductsByCategory()`
+- **Formatter**: Context-aware per prodotti (formato completo con codici)
+- **Test**: "che formaggi avete?" → Lista completa 66 prodotti con codici
+
+### ✅ **PATTERN REPLICABILE PER OGNI NUOVA CF:**
+
+```typescript
+// 1. RECOGNITION METHOD
+private isAboutXXX(query: string): boolean {
+  const triggers = ["keyword1", "keyword2", "parola1", "parola2"]
+  return triggers.some(trigger => query.toLowerCase().includes(trigger))
+}
+
+// 2. CF EXECUTION
+if (isAboutXXX) {
+  const result = await this.callingFunctionsService.getXXX({
+    customerId: request.customerid || "",
+    workspaceId: request.workspaceId,
+  })
+  
+  if (result.success) {
+    const formattedMessage = await this.executeFormatter(request, result, "GetXXX")
+    return { success: true, output: formattedMessage, ... }
+  }
+}
+
+// 3. FORMATTER CONTEXT
+const formatRules = functionName === "GetXXX" 
+  ? `FORMATTING RULES FOR XXX: ...`
+  : `DEFAULT RULES: ...`
+```
+
+### ✅ **COMPONENTI E RESPONSABILITÀ CHIARE:**
+
+## 🔧 **CHECKLIST DEBUGGING CLOUD FUNCTIONS**
+
+**QUANDO UNA CF NON FUNZIONA, VERIFICARE IN ORDINE:**
+
+### 1. **TEMPERATURA**
+- ✅ **Database**: `temperature: 0.3` (configurazione corretta)
+- ✅ **DualLLM**: `temperature: 0.1` (deterministico per trigger)
+- ❌ **Se troppo alta**: LLM creativo, trigger non riconosciuti
+- ❌ **Se troppo bassa**: LLM troppo rigido, trigger non flessibili
+
+### 2. **PRIORITÀ**
+- ✅ **CF specifiche** hanno priorità su SearchRag
+- ✅ **Trigger espliciti** nel prompt
+- ❌ **Se SearchRag ha priorità**: CF non vengono mai chiamate
+- ❌ **Se trigger generici**: CF chiamate per tutto
+
+### 3. **PROMPT CONFUSO**
+- ✅ **Trigger chiari**: "che offerte avete" → GetActiveOffers()
+- ✅ **Esempi specifici**: frasi complete per ogni CF
+- ❌ **Se troppo lungo**: LLM si confonde
+- ❌ **Se trigger ambigui**: CF non riconosciute
+
+### 4. **DUAL_LLM CONFUSO**
+- ✅ **Logica chiara**: CF first → SearchRag → Generic
+- ✅ **Switch statement** corretto
+- ❌ **Se logica complessa**: CF bypassate
+- ❌ **Se errori sintassi**: CF non raggiunte
+
+### 5. **FUNZIONE ESISTE**
+- ✅ **File CF**: `/chatbot/calling-functions/GetActiveOffers.ts`
+- ✅ **Import corretto**: `import { GetActiveOffers } from './GetActiveOffers'`
+- ❌ **Se file mancante**: errore runtime
+- ❌ **Se import sbagliato**: errore compilazione
+
+### 6. **FUNZIONE BEN DOCUMENTATA**
+- ✅ **Parametri chiari**: `customerId`, `workspaceId`
+- ✅ **Return type**: `StandardResponse`
+- ✅ **Error handling**: try/catch completo
+- ❌ **Se parametri sbagliati**: CF fallisce
+- ❌ **Se return type sbagliato**: DualLLM non processa
+
+### 7. **FORMATTER FA IL SUO DOVERE**
+- ✅ **Input corretto**: result da CF
+- ✅ **Output corretto**: stringa formattata
+- ✅ **Error handling**: fallback su errori
+- ❌ **Se formatter fallisce**: risposta vuota
+- ❌ **Se formatter lento**: timeout
+
+### 8. **DATABASE E EMBEDDINGS**
+- ✅ **Dati presenti**: offerte nel database
+- ✅ **Embeddings aggiornati**: dopo seed
+- ✅ **Workspace filtering**: dati isolati
+- ❌ **Se dati mancanti**: CF restituisce vuoto
+- ❌ **Se embeddings vecchi**: dati non trovati
+
+**🎯 OBIETTIVO FINALE**: "che offerte avete" → Lista offerte dal DB
+
+### 9. **TESTING E DEBUGGING**
+- ✅ **MCP Test**: `node MCP/mcp-test-client.js "Mario Rossi" "messaggio" log=true`
+- ✅ **Exit First Message**: `exit-first-message=true` per evitare attesa utente
+- ✅ **Log Dettagliati**: `log=true` per vedere function calls
+- ❌ **Se test interattivo**: devi aspettare input utente
+- ❌ **Se log disabilitati**: non vedi debug info
+
+---
+
 ## 🏗️ **ARCHITETTURA DEL SISTEMA**
 
 ### 🚨 **NUOVA ARCHITETTURA SEMPLIFICATA (2025)**
@@ -620,6 +759,84 @@ Utente con carrello pieno + "voglio prosecco"
 - Ogni componente deve loggare cosa fa
 - Tracciabilità completa del flusso
 - Errori specifici e actionable
+
+---
+
+## 🧪 **METODOLOGIA DI SVILUPPO CON SCRIPT DI TEST**
+
+### 🚀 **NUOVA METODOLOGIA: TEST-FIRST DEVELOPMENT**
+
+**PRINCIPIO FONDAMENTALE:**
+Prima di modificare il sistema principale, creare script di test standalone per sperimentare e validare le modifiche.
+
+#### **FLUSSO DI LAVORO STANDARDIZZATO:**
+
+1. **CREAZIONE SCRIPT DI TEST** (`/scripts/test-[feature].js`)
+   - Script standalone con Node.js
+   - Stessa struttura del sistema principale (Translation + Cloud Functions + Formatter)
+   - Stesse temperature e modelli del sistema attuale
+   - Mock data per testing rapido
+   - Debug dettagliato per analisi
+
+2. **SPERIMENTAZIONE E VALIDAZIONE**
+   - Testare modifiche al prompt
+   - Testare nuove calling functions
+   - Testare modifiche al formatter
+   - Confrontare risultati con sistema attuale
+
+3. **INTEGRAZIONE NEL SISTEMA PRINCIPALE**
+   - Solo dopo validazione completa nello script
+   - Portare modifiche testate nel sistema principale
+   - Mantenere coerenza tra script e sistema
+
+#### **VANTAGGI DELLA METODOLOGIA:**
+
+✅ **VELOCITÀ**: Test immediati senza riavvio server
+✅ **SICUREZZA**: Nessun rischio di rompere il sistema principale
+✅ **DEBUGGING**: Log dettagliati e isolati
+✅ **CONFRONTO**: Facile confronto tra vecchio e nuovo sistema
+✅ **ITERAZIONE**: Modifiche rapide e test immediati
+
+#### **ESEMPIO PRATICO - GetActiveOffers:**
+
+```bash
+# 1. Creare script di test
+node scripts/test-openrouter-offers.js
+
+# 2. Testare sistema attuale per confronto
+cd backend && npm run mcp:test "Mario Rossi" "che offerte avete?" log=true
+
+# 3. Confrontare risultati e decidere modifiche
+# 4. Integrare modifiche nel sistema principale
+```
+
+#### **REGOLE PER SCRIPT DI TEST:**
+
+1. **STRUTTURA IDENTICA**: Stessa architettura del sistema principale
+2. **CONFIGURAZIONE IDENTICA**: Stesse temperature, modelli, prompt
+3. **MOCK DATA REALISTICI**: Dati che simulano il database reale
+4. **DEBUG COMPLETO**: Log dettagliati per ogni step
+5. **CONFRONTO FACILE**: Output chiaro per confronto con sistema attuale
+
+#### **TEMPLATE SCRIPT DI TEST:**
+
+```javascript
+// Configurazione - stessa del sistema attuale
+const OPENROUTER_API_KEY = '...';
+const AGENT_PROMPT = `...`; // Dal prompt_agent.md
+
+// Translation Service - stessa del sistema attuale
+async function translateToEnglish(text) { ... }
+
+// Cloud Functions Service - focalizzato su funzione specifica
+async function tryCloudFunctions(translatedQuery, agentPrompt) { ... }
+
+// Formatter Service - stessa del sistema attuale
+async function formatResponse(functionResults, originalQuery, agentPrompt) { ... }
+
+// Test completo con stessa struttura
+async function testCompleteSystem() { ... }
+```
 
 ---
 

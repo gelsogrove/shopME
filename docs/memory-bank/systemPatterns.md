@@ -2,16 +2,63 @@
 
 ## 🚨 CRITICAL ARCHITECTURAL PATTERNS
 
-### **🤖 NEW SIMPLIFIED ARCHITECTURE (2025)**
+### **🎯 PROVEN DUAL-LLM ARCHITECTURE (SEPTEMBER 2025)**
 
-**Pattern Name:** SearchRag + FAQ with `[LINK_WITH_TOKEN]` Architecture
-**Category:** Chatbot Architecture
-**Priority:** CRITICAL - CURRENT IMPLEMENTATION
+**Pattern Name:** Translation → Recognition → CF → Formatter
+**Category:** Chatbot Architecture  
+**Priority:** CRITICAL - PROVEN IMPLEMENTATION
+**Status:** ✅ TESTED & WORKING
 
-#### **🚨 NEW ARCHITECTURE FLOW**
-1. **Specific CF First**: GetAllProducts, GetUserInfo, ContactOperator, etc.
-2. **SearchRag Fallback**: If no specific CF matches, use SearchRag
-3. **Generic Response**: If SearchRag returns empty, use generic response
+#### **🚨 PROVEN ARCHITECTURE FLOW**
+1. **TranslationService**: Detect user language + translate to English
+2. **CF Recognition**: isAboutOffers → isAboutProducts → isAboutCategory
+3. **CallingFunctionsService**: Execute specific CF with workspace isolation
+4. **FormatterService LLM**: Format response in user's original language
+5. **SearchRag Fallback**: If no CF matches, use SearchRag
+6. **Generic Response**: If SearchRag returns empty, use generic response
+
+#### **✅ IMPLEMENTED SUCCESS CASES:**
+- **GetActiveOffers**: "che offerte avete?" → Perfect formatted offers
+- **GetAllProducts**: "che prodotti avete?" → Category list with counts  
+- **GetProductsByCategory**: "che formaggi avete?" → Complete 66 products with codes
+
+#### **📋 REPLICABLE PATTERN FOR NEW CF:**
+
+**Step 1: Recognition Method**
+```typescript
+private isAboutXXX(query: string): boolean {
+  const triggers = ["keyword1", "keyword2", "parola1", "parola2"]
+  return triggers.some(trigger => query.toLowerCase().includes(trigger))
+}
+```
+
+**Step 2: CF Execution Logic**
+```typescript
+if (isAboutXXX) {
+  const result = await this.callingFunctionsService.getXXX({
+    customerId: request.customerid || "",
+    workspaceId: request.workspaceId,
+  })
+  
+  if (result.success) {
+    const formattedMessage = await this.executeFormatter(request, result, "GetXXX")
+    return { success: true, output: formattedMessage, ... }
+  }
+}
+```
+
+**Step 3: Formatter Context**
+```typescript
+const formatRules = functionName === "GetXXX" 
+  ? `FORMATTING RULES FOR XXX: ...`
+  : `DEFAULT RULES: ...`
+```
+
+#### **🌍 MULTILINGUAL SUPPORT:**
+- **Supported Languages**: IT (default), EN, ES, PT
+- **Language Detection**: Automatic via TranslationService
+- **Translation Flow**: User Language → EN (for LLM) → User Language (for output)
+- **Formatter LLM**: Context-aware based on user's original language
 
 #### **🔗 LINK MANAGEMENT VIA FAQ**
 - **All links** managed via FAQ with `[LINK_WITH_TOKEN]` placeholder

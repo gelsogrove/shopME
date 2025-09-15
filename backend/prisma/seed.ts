@@ -2286,7 +2286,7 @@ async function main() {
     {
       question: "How can I place an order?",
       answer:
-        "You can place your order directly through this WhatsApp chat. Just tell me which products you are interested in and I will help you with the entire purchase process. [LINK_CART_WITH_TOKEN]",
+        "You can place your order directly through our ecommerce platform please click here: [LINK_CART_WITH_TOKEN]",
     },
     {
       question: "What payment methods do you accept?",
@@ -2312,11 +2312,6 @@ async function main() {
       question: "Can I return a product if I don't like it?",
       answer:
         "Yes, you have 14 days from receipt of your order to return it. The product must be in perfect condition and in its original packaging.",
-    },
-    {
-      question: "Do you offer discounts for large purchases?",
-      answer:
-        "Yes, we offer special discounts for large orders. Contact us to learn about our special offers for businesses and bulk orders.",
     },
     {
       question: "Do the products have a long expiration date?",
@@ -2376,6 +2371,10 @@ async function main() {
     {
       question: "How can I track my order?",
       answer: "You can track your order and see its current status through this secure link. [LINK_TRACKING_WITH_TOKEN]",
+    },
+    {
+      question: "How can I see the product catalog?",
+      answer: "You can download our complete product catalog here: https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf",
     },
   ]
 

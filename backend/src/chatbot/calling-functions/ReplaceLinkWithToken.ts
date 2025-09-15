@@ -91,38 +91,49 @@ export async function ReplaceLinkWithToken(
         }
         break
         
-      case 'checkout':
-      case 'tracking':
       case 'orders':
+        // 🔧 ORDERS: Generate /orders-public link
+        console.log("🔧 REPLACE_LINK_DEBUG: Generating ORDERS link with:", { customerId, workspaceId })
+        console.log("🚨 FORCE RELOAD - ENTERING ORDERS CASE!")
+        const ordersResult = await generateCartLink({}, customerId, workspaceId)
+        console.log("🔧 REPLACE_LINK_DEBUG: generateCartLink result for orders:", ordersResult)
+        
+        if (ordersResult.success && ordersResult.cartLink) {
+          // Replace /checkout with /orders-public in the generated link
+          generatedLink = ordersResult.cartLink.replace('/checkout?', '/orders-public?')
+          console.log("✅ ORDERS LINK GENERATED:", generatedLink)
+        } else {
+          generatedLink = "https://shopme.com/orders-public?token=ERROR_TOKEN"
+        }
+        break
+
+      case 'tracking':
+        // 🔧 TRACKING: Generate /tracking link 
+        console.log("🔧 REPLACE_LINK_DEBUG: Generating TRACKING link with:", { customerId, workspaceId })
+        const trackingResult = await generateCartLink({}, customerId, workspaceId)
+        
+        if (trackingResult.success && trackingResult.cartLink) {
+          // Replace /checkout with /tracking for tracking links
+          generatedLink = trackingResult.cartLink.replace('/checkout?', '/tracking?')
+          console.log("✅ TRACKING LINK GENERATED:", generatedLink)
+        } else {
+          generatedLink = "https://shopme.com/tracking?token=ERROR_TOKEN"
+        }
+        break
+        
+      case 'checkout':
       case 'cart':
       default:
+        // 🔧 CART/CHECKOUT: Use original /checkout link
         console.log("🔧 REPLACE_LINK_DEBUG: Calling generateCartLink with:", { customerId, workspaceId })
-        
-        // 🔧 DEBUG FILE LOG
-        const fs = require('fs');
-        const debugData = {
-          timestamp: new Date().toISOString(),
-          action: "calling_generateCartLink",
-          customerId,
-          workspaceId
-        };
-        fs.appendFileSync('/tmp/replace-link-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
         
         const cartResult = await generateCartLink({}, customerId, workspaceId)
         console.log("🔧 REPLACE_LINK_DEBUG: generateCartLink result:", cartResult)
         
-        // 🔧 DEBUG FILE LOG - RESULT
-        const debugResult = {
-          timestamp: new Date().toISOString(),
-          action: "generateCartLink_result",
-          result: cartResult
-        };
-        fs.appendFileSync('/tmp/replace-link-debug.log', JSON.stringify(debugResult, null, 2) + '\n---\n');
         if (cartResult.success && cartResult.cartLink) {
           generatedLink = cartResult.cartLink
-          console.log("✅ REPLACE_LINK_DEBUG: Cart link generated successfully:", generatedLink)
+          console.log("✅ CART LINK GENERATED:", generatedLink)
         } else {
-          console.log("❌ REPLACE_LINK_DEBUG: Cart link generation failed:", cartResult.error)
           generatedLink = "https://shopme.com/cart?token=ERROR_TOKEN"
         }
         break
