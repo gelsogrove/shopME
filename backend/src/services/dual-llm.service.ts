@@ -172,9 +172,25 @@ export class DualLLMService {
 
       // Fallback: executeSearchRagFallback
       console.log("❌ No CF called - Trying SearchRag fallback...")
+      
+      // Log to file for MCP
+      const logFallback = `[${new Date().toISOString()}] 🚨🚨🚨 ANDREA: Trying SearchRag fallback for query: "${translatedQuery}"\n`
+      fs.appendFileSync('/tmp/shopme-server.log', logFallback)
+      
       const searchRagResult = await this.executeSearchRagFallback(request, translatedQuery)
       
-      if (searchRagResult.success && searchRagResult.functionCalls && searchRagResult.functionCalls.length > 0) {
+      // Check if SearchRag actually found meaningful results
+      const hasRealResults = searchRagResult.success && 
+                            searchRagResult.functionCalls && 
+                            searchRagResult.functionCalls.length > 0
+      
+      console.log(`🔍 SearchRag check - success: ${searchRagResult.success}, hasFunctionCalls: ${searchRagResult.functionCalls?.length > 0}, hasRealResults: ${hasRealResults}`)
+      
+      // Log to file for MCP
+      const logCheck = `[${new Date().toISOString()}] 🚨🚨🚨 ANDREA: SearchRag check - success: ${searchRagResult.success}, hasFunctionCalls: ${searchRagResult.functionCalls?.length > 0}, hasRealResults: ${hasRealResults}\n`
+      fs.appendFileSync('/tmp/shopme-server.log', logCheck)
+      
+      if (hasRealResults) {
         console.log("✅ SearchRag fallback found results")
         return searchRagResult
       }
@@ -439,13 +455,43 @@ Format this into a natural ${langInfo.lang} response for the user.`
       })
 
       console.log("🔍 SearchRag result:", JSON.stringify(ragResult, null, 2))
+      
+      // Log to file for MCP - ALWAYS log SearchRag result
+      const logSearchRag = `[${new Date().toISOString()}] 🚨🚨🚨 ANDREA: SearchRag raw result: ${JSON.stringify(ragResult, null, 2)}\n`
+      fs.appendFileSync('/tmp/shopme-server.log', logSearchRag)
 
-      if (ragResult.success && ragResult.results && ragResult.results.length > 0) {
+      if (ragResult.success && ragResult.results && ragResult.results.results && ragResult.results.results.total > 0) {
+        // Log to file for MCP
+        const logMessage4 = `[${new Date().toISOString()}] 🚨🚨🚨 ANDREA: SearchRag result: ${JSON.stringify(ragResult, null, 2)}\n`
+        fs.appendFileSync('/tmp/shopme-server.log', logMessage4)
+
+        // Extract the most relevant FAQ content
+        let formattedOutput = "Ho trovato queste informazioni per te."
+        
+        if (ragResult.results.results.faqs && ragResult.results.results.faqs.length > 0) {
+          const topFaq = ragResult.results.results.faqs[0]
+          const content = topFaq.content
+          
+          // Extract the answer part (after "Answer: ")
+          const answerMatch = content.match(/Answer:\s*(.+)$/s)
+          if (answerMatch) {
+            formattedOutput = answerMatch[1].trim()
+          }
+          
+          console.log(`🎯 SearchRag formatted output: "${formattedOutput}"`)
+        }
+
         return {
           success: true,
-          output: ragResult.message || "Ho trovato queste informazioni per te.",
+          output: formattedOutput,
           translatedQuery,
-          functionCalls: [ragResult],
+          functionCalls: [{
+            name: "SearchRag",
+            functionName: "SearchRag",
+            success: ragResult.success,
+            result: ragResult,
+            source: "SearchRag"
+          }],
           debugInfo: {
             stage: "searchRagFallback",
             success: true,
