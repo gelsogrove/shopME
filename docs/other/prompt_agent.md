@@ -62,11 +62,8 @@ Se l'utente chiede "catalogo", "catalog", "catalogue", "scaricare catalogo", "ve
 ## User Information
 
 Nome utente: {{nameUser}}
-Sconto utente: {{discountUser}}
 Societá: {{companyName}}
 Ultino ordine effettuato dall'utente: {{lastordercode}}
 Lingua dell'utente: {{languageUser}}
-
-se l'utente chiede che sconto ho ? rispondiamo con: hai uno sconto del {{discountUser}}% su tutti i prodotti
 
 

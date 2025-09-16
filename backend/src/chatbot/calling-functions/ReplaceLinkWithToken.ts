@@ -36,11 +36,13 @@ export async function ReplaceLinkWithToken(
     const hasOrdersToken = response.includes('[LINK_ORDERS_WITH_TOKEN]')
     const hasTrackingToken = response.includes('[LINK_TRACKING_WITH_TOKEN]')
     const hasCheckoutToken = response.includes('[LINK_CHECKOUT_WITH_TOKEN]')
+    const hasUserDiscountToken = response.includes('[USER_DISCOUNT]')
+    const hasListOffersToken = response.includes('[LIST_OFFERS]')
     
-    if (!hasCartToken && !hasProfileToken && !hasOrdersToken && !hasTrackingToken && !hasCheckoutToken) {
+    if (!hasCartToken && !hasProfileToken && !hasOrdersToken && !hasTrackingToken && !hasCheckoutToken && !hasUserDiscountToken && !hasListOffersToken) {
       return {
         success: false,
-        error: "Response does not contain any LINK_*_WITH_TOKEN"
+        error: "Response does not contain any replaceable tokens"
       }
     }
     
@@ -147,6 +149,92 @@ export async function ReplaceLinkWithToken(
       .replace(/\[LINK_ORDERS_WITH_TOKEN\]/g, generatedLink)
       .replace(/\[LINK_TRACKING_WITH_TOKEN\]/g, generatedLink)
       .replace(/\[LINK_CHECKOUT_WITH_TOKEN\]/g, generatedLink)
+    
+    // Handle discount and offers tokens
+    if (hasUserDiscountToken || hasListOffersToken) {
+      console.log("💰 Processing discount and offers tokens...")
+      
+      // Get customer discount
+      let userDiscount = "0%"
+      if (hasUserDiscountToken) {
+        try {
+          const { PrismaClient } = require('@prisma/client')
+          const prisma = new PrismaClient()
+          
+          console.log(`🔍 DEBUG: Looking for customer with ID: ${customerId}, workspaceId: ${workspaceId}`)
+          
+          const customer = await prisma.customers.findFirst({
+            where: {
+              id: customerId,
+              workspaceId: workspaceId
+            },
+            select: {
+              id: true,
+              name: true,
+              discount: true
+            }
+          })
+          
+          console.log(`🔍 DEBUG: Found customer:`, customer)
+          
+          if (customer && customer.discount > 0) {
+            userDiscount = `${customer.discount}%`
+          } else {
+            userDiscount = "0%"
+          }
+          
+          await prisma.$disconnect()
+        } catch (error) {
+          console.error("❌ Error getting customer discount:", error)
+          userDiscount = "0%"
+        }
+      }
+      
+      // Get active offers
+      let listOffers = "No active offers at the moment"
+      if (hasListOffersToken) {
+        try {
+          const { PrismaClient } = require('@prisma/client')
+          const prisma = new PrismaClient()
+          
+          const activeOffers = await prisma.offers.findMany({
+            where: {
+              workspaceId: workspaceId,
+              isActive: true,
+              startDate: { lte: new Date() },
+              endDate: { gte: new Date() }
+            },
+            select: {
+              name: true,
+              description: true,
+              discountPercent: true
+            },
+            take: 3 // Limit to 3 offers
+          })
+          
+          if (activeOffers.length > 0) {
+            listOffers = activeOffers.map(offer => 
+              `• ${offer.name}: ${offer.discountPercent}% off - ${offer.description}`
+            ).join('\n')
+          } else {
+            listOffers = "No active offers at the moment"
+          }
+          
+          await prisma.$disconnect()
+        } catch (error) {
+          console.error("❌ Error getting active offers:", error)
+          listOffers = "No active offers at the moment"
+        }
+      }
+      
+      // Replace the tokens
+      replacedResponse = replacedResponse
+        .replace(/\[USER_DISCOUNT\]/g, userDiscount)
+        .replace(/\[LIST_OFFERS\]/g, listOffers)
+      
+      console.log(`✅ User discount: ${userDiscount}`)
+      console.log(`✅ Active offers: ${listOffers}`)
+    }
     
     console.log(`✅ ${finalLinkType} link generated:`, generatedLink)
     console.log("✅ [LINK_WITH_TOKEN] replaced successfully")

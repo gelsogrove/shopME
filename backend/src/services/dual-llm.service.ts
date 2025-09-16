@@ -281,14 +281,18 @@ export class DualLLMService {
       
       // Check if it's a bot identity query
       const isBotIdentityQuery = this.isAboutBotIdentity(translatedQuery)
-      let genericOutput = "Ciao! Come posso aiutarti oggi? 😊"
       
+      // Detect user language from original message for generic response
+      const originalMessage = request.chatInput || ""
+      const language = this.detectLanguageFromMessage(originalMessage)
+      
+      let genericOutput
       if (isBotIdentityQuery) {
-        // Detect user language from original message
-        const originalMessage = request.chatInput || ""
-        const language = this.detectLanguageFromMessage(originalMessage)
         genericOutput = this.getBotIdentityResponse(language)
         console.log(`🤖 Bot identity query detected - Language: ${language}`)
+      } else {
+        genericOutput = this.getGenericResponse(language)
+        console.log(`🌐 Generic response - Language: ${language}`)
       }
 
       return {
@@ -451,14 +455,31 @@ export class DualLLMService {
   private detectLanguageFromMessage(message: string): string {
     const lowerMessage = message.toLowerCase()
     
-    if (lowerMessage.includes("chi sei") || lowerMessage.includes("cosa sei") || lowerMessage.includes("dimmi di te")) {
-      return "it"
-    } else if (lowerMessage.includes("quién eres") || lowerMessage.includes("qué eres") || lowerMessage.includes("háblame de ti")) {
-      return "es"  
-    } else if (lowerMessage.includes("quem você é") || lowerMessage.includes("o que você é") || lowerMessage.includes("fale sobre")) {
-      return "pt"
-    } else if (lowerMessage.includes("who are you") || lowerMessage.includes("what are you") || lowerMessage.includes("tell me about")) {
+    // Italian keywords
+    const italianKeywords = ["che", "cosa", "come", "quando", "dove", "perché", "chi", "quale", "quali", "sconto", "offerta", "prodotto", "catalogo", "ordine", "pagamento", "aiuto", "grazie", "ciao", "buongiorno", "buonasera"]
+    
+    // English keywords  
+    const englishKeywords = ["what", "how", "when", "where", "why", "who", "which", "discount", "offer", "product", "catalog", "order", "payment", "help", "thanks", "hello", "good morning", "good evening"]
+    
+    // Spanish keywords
+    const spanishKeywords = ["qué", "cómo", "cuándo", "dónde", "por qué", "quién", "cuál", "descuento", "oferta", "producto", "catálogo", "pedido", "pago", "ayuda", "gracias", "hola", "buenos días", "buenas tardes"]
+    
+    // Portuguese keywords
+    const portugueseKeywords = ["que", "como", "quando", "onde", "por que", "quem", "qual", "desconto", "oferta", "produto", "catálogo", "pedido", "pagamento", "ajuda", "obrigado", "olá", "bom dia", "boa tarde"]
+    
+    // Count matches for each language
+    const italianCount = italianKeywords.filter(keyword => lowerMessage.includes(keyword)).length
+    const englishCount = englishKeywords.filter(keyword => lowerMessage.includes(keyword)).length
+    const spanishCount = spanishKeywords.filter(keyword => lowerMessage.includes(keyword)).length
+    const portugueseCount = portugueseKeywords.filter(keyword => lowerMessage.includes(keyword)).length
+    
+    // Return language with most matches, default to Italian
+    if (englishCount > italianCount && englishCount > spanishCount && englishCount > portugueseCount) {
       return "en"
+    } else if (spanishCount > italianCount && spanishCount > portugueseCount) {
+      return "es"
+    } else if (portugueseCount > italianCount) {
+      return "pt"
     }
     
     return "it" // Default to Italian
@@ -470,6 +491,17 @@ export class DualLLMService {
       en: "Hello! 👋 I'm the virtual assistant for L'Altra Italia, your shop specialized in high-quality Italian products! 🇮🇹\n\nI'm here to help you:\n• 🛍️ Discover our products\n• 🎉 Find the best offers\n• 📦 Manage your orders\n• ❓ Answer your questions\n\nHow can I help you today? 😊",
       es: "¡Hola! 👋 Soy el asistente virtual de L'Altra Italia, tu tienda especializada en productos italianos de alta calidad! 🇮🇹\n\nEstoy aquí para ayudarte a:\n• 🛍️ Descubrir nuestros productos\n• 🎉 Encontrar las mejores ofertas\n• 📦 Gestionar tus pedidos\n• ❓ Responder tus preguntas\n\n¿Cómo puedo ayudarte hoy? 😊",
       pt: "Olá! 👋 Sou o assistente virtual da L'Altra Italia, sua loja especializada em produtos italianos de alta qualidade! 🇮🇹\n\nEstou aqui para ajudá-lo a:\n• 🛍️ Descobrir nossos produtos\n• 🎉 Encontrar as melhores ofertas\n• 📦 Gerenciar seus pedidos\n• ❓ Responder suas perguntas\n\nComo posso ajudá-lo hoje? 😊"
+    }
+    
+    return responses[language] || responses.it
+  }
+
+  private getGenericResponse(language: string): string {
+    const responses = {
+      it: "Ciao! Non ho trovato questa informazione, posso aiutarti con qualcosa d'altro?",
+      en: "Hello! I couldn't find this information, can I help you with something else?",
+      es: "¡Hola! No pude encontrar esta información, ¿puedo ayudarte con algo más?",
+      pt: "Olá! Não consegui encontrar esta informação, posso ajudá-lo com algo mais?"
     }
     
     return responses[language] || responses.it
@@ -623,6 +655,31 @@ Format this into a natural ${langInfo.lang} response for the user.`
           const answerMatch = content.match(/Answer:\s*(.+)$/)
           if (answerMatch) {
             formattedOutput = answerMatch[1].trim()
+          }
+          
+          // Check if the response contains variables that need to be replaced
+          if (formattedOutput.includes('[USER_DISCOUNT]') || formattedOutput.includes('[LIST_OFFERS]')) {
+            console.log("💰 FAQ contains discount/offers variables, processing...")
+            console.log(`🔍 DEBUG: formattedOutput contains variables: "${formattedOutput}"`)
+            console.log(`🔍 DEBUG: customerId: ${request.customerid}, workspaceId: ${request.workspaceId}`)
+            
+            try {
+              const { ReplaceLinkWithToken } = require('../chatbot/calling-functions/ReplaceLinkWithToken')
+              const replaceResult = await ReplaceLinkWithToken(
+                { response: formattedOutput },
+                request.customerid || "",
+                request.workspaceId
+              )
+              
+              if (replaceResult.success && replaceResult.response) {
+                formattedOutput = replaceResult.response
+                console.log(`✅ Variables replaced: "${formattedOutput}"`)
+              } else {
+                console.log(`⚠️ Variable replacement failed: ${replaceResult.error}`)
+              }
+            } catch (error) {
+              console.error("❌ Error replacing variables:", error)
+            }
           }
           
           console.log(`🎯 SearchRag formatted output: "${formattedOutput}"`)
