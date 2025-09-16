@@ -11,7 +11,7 @@ import { detectCartIntent, handleAutomaticCartOperation, shouldTriggerCartOperat
 const router = Router();
 
 /**
- * Internal API routes for N8N calling functions
+ * Internal API routes for AI function calling
  */
 
 /**

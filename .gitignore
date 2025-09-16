@@ -53,10 +53,4 @@ browser-tools-mcp/
 # SpecStory explanation file
 .specstory/.what-is-this.md
 
-# N8N configuration (keep structure, ignore runtime data)
-.n8n/
-
 cookies.txt
-
-.n8n/
-.n8n*.n8n/database.sqlite

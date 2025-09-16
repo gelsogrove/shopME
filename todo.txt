@@ -1,2 +1,3 @@
- che differenza c'e' tra il secondo e il 4 messaggio vedi che  no e' verde ? secodno me non mettiamo nel seed qualche boolean importante..
- 
+- voglio vedere la fattura dell'ultimo ordine
+- che sconto ho ?
+-- voglio vedere l'ordine 020202

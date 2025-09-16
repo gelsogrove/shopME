@@ -15,7 +15,7 @@ import logger from "../../utils/logger"
  *   - workspaceId: string (the workspace context)
  *
  * Usage:
- *   - Used by N8N or the chatbot when a user requests to speak with a human operator.
+ *   - Used by the chatbot when a user requests to speak with a human operator.
  *   - After this call, the chatbot will no longer respond to the user until reactivated manually.
  *   - An email notification is sent to the operator (adminEmail) with AI-generated chat summary.
  */

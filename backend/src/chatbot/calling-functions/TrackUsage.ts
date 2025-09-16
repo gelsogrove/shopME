@@ -14,7 +14,7 @@ import logger from "../../utils/logger"
  *   - responseType?: string (optional: 'llm' or 'operator', defaults to 'llm')
  *
  * Usage:
- *   - Called by N8N workflow after AI responds to user
+ *   - Called by AI system after responding to user
  *   - Tracks cost of €0.005 per response for analytics dashboard
  *   - Only tracks for registered customers (non-registered users are ignored)
  */

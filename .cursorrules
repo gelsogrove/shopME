@@ -127,8 +127,8 @@ The user's input is processed through a two-stage LLM workflow:
 - Get the context from the test unit, integration, integration for having a better understanding
 - **DOPO OGNI MODIFICA API: aggiorna immediatamente swagger.json**
 - **PRIMA DI DIRE "FATTO": verifica che swagger sia aggiornato e funzionante**
-- **TEST DI INTEGRAZIONE: richiedono backend attivo (`npm run dev`) e N8N attivo**
-- **SE TEST FALLISCONO: verificare backend (porta 3001), N8N (porta 5678), database, seed**
+- **TEST DI INTEGRAZIONE: richiedono backend attivo (`npm run dev`)**
+- **SE TEST FALLISCONO: verificare backend (porta 3001), database, seed**
 
 ## 📚 Documentation References
 

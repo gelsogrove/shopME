@@ -20,7 +20,7 @@ ShopMe is a comprehensive e-commerce platform with WhatsApp chatbot integration,
 ### Core Components
 - **Backend**: Node.js + TypeScript + Prisma + PostgreSQL
 - **Frontend**: React + TypeScript + Vite + TailwindCSS
-- **Chatbot**: N8N + OpenRouter + LangChain
+- **Chatbot**: OpenRouter + AI function calling
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: JWT tokens with workspace isolation
 

@@ -281,7 +281,6 @@ model WhatsappSettings {
   updatedAt   DateTime  @updatedAt
   workspaceId String    @unique
   gdpr        String?
-  n8nWebhook  String?   @default("http://localhost:5678/webhook/webhook-start")
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@map("whatsapp_settings")

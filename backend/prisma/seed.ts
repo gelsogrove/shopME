@@ -149,11 +149,7 @@ async function generateEmbeddingsAfterSeed() {
   }
 }
 
-// N8N function removed - Dual LLM system is now used instead
-async function cleanAndImportN8NWorkflow() {
-  console.log("\n🔄 N8N function removed - Dual LLM system is now used instead")
-  return
-}
+// Legacy N8N integration removed - using direct AI function calling
 
 // Function to seed Aviso Legal document - RIMOSSA (documenti non esistono più nel sistema)
 /*
