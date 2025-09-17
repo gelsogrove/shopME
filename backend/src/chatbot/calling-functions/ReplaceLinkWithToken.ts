@@ -170,6 +170,31 @@ export async function ReplaceLinkWithToken(
       }
     }
 
+    // Handle last order invoice token
+    if (hasLastOrderInvoiceToken) {
+      try {
+        const { SecureTokenService } = require('../../application/services/secure-token.service')
+        const secureTokenService = new SecureTokenService()
+        
+        const invoiceToken = await secureTokenService.createToken(
+          'invoice',
+          workspaceId,
+          { customerId, workspaceId },
+          '1h',
+          undefined,
+          undefined,
+          undefined,
+          customerId
+        )
+        
+        const invoiceLink = `http://localhost:3000/invoice-public?token=${invoiceToken}`
+        replacedResponse = replacedResponse.replace(/\[LINK_LAST_ORDER_INVOICE_WITH_TOKEN\]/g, invoiceLink)
+      } catch (error) {
+        console.error("❌ Error generating invoice link:", error)
+        replacedResponse = replacedResponse.replace(/\[LINK_LAST_ORDER_INVOICE_WITH_TOKEN\]/g, "Link della fattura non disponibile")
+      }
+    }
+
     // Handle discount, offers, products, services and categories tokens
     if (hasUserDiscountToken || hasListOffersToken || hasListActiveOffersToken || hasListAllProductsToken || hasListServicesToken || hasListCategoriesToken) {
       let userDiscount = "0%"

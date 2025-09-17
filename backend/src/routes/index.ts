@@ -448,7 +448,7 @@ router.post("/chat", async (req, res) => {
           phone: body.phoneNumber,
           language: variables.languageUser, // Use customer's language
           sessionId: "chat-session",
-          temperature: 0.1,
+          temperature: 0.0, // Zero temperature for deterministic responses
           maxTokens: 3500,
           model: "gpt-4o",
           messages: chatHistory, // 🔧 NOW INCLUDES REAL CHAT HISTORY like webhook

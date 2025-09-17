@@ -58,5 +58,57 @@ export class TranslationService {
     }
   }
 
+  public async translateToLanguage(text: string, targetLanguage: string): Promise<string> {
+    try {
+      console.log(`🌐 Translating text to ${targetLanguage}:`, text);
+      
+      const languageNames = {
+        'it': 'Italian',
+        'en': 'English', 
+        'es': 'Spanish',
+        'pt': 'Portuguese'
+      };
+      
+      const targetLangName = languageNames[targetLanguage] || 'Italian';
+      
+      const response = await axios.post(this.openRouterUrl, {
+        model: 'openai/gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a translator for an Italian e-commerce platform. Translate the following text to ${targetLangName} using e-commerce terminology. CRITICAL RULES: 
+            1. NEVER translate Italian product names, food names, or brand names. Keep them exactly as they are in Italian.
+            2. For ${targetLangName} responses, use appropriate greetings and e-commerce language.
+            3. Maintain the same tone and structure as the original text.
+            4. Return ONLY the translation, no explanations.`
+          },
+          {
+            role: 'user',
+            content: text
+          }
+        ],
+        temperature: 0.0, // Zero temperature for translations - no creative interpretations
+        max_tokens: 200
+      }, {
+        headers: {
+          'Authorization': `Bearer ${this.openRouterApiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'http://localhost:3001',
+          'X-Title': 'ShopMe Translation Service'
+        },
+        timeout: 10000
+      });
+
+      const translation = response.data.choices[0]?.message?.content?.trim() || text;
+      console.log(`✅ Translation to ${targetLanguage} successful:`);
+      console.log('  Original:', text);
+      console.log('  Translated:', translation);
+      return translation;
+    } catch (error) {
+      console.error(`❌ Translation to ${targetLanguage} error:`, error);
+      return text; // Return original text if translation fails
+    }
+  }
+
   // Removed hardcoded English detection - all text should be translated
 }

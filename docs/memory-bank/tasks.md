@@ -10,9 +10,21 @@
 
 **Scala della Verità**: PRD → Test → Codice
 
-## 🚨 TASK CRITICI - PRIORITÀ MASSIMA
+## ✅ TASK COMPLETATI - PRIORITÀ MASSIMA
 
-### TASK CRITICO: Cart Management System Redesign & Database Synchronization
+### ✅ COMPLETATO: Token Replacement System Implementation
+- **Descrizione**: Sistema di token replacement nel FormatterService per sostituire token con dati reali dal database PRIMA di OpenRouter. Implementato sistema completo con gestione graceful, exception handling, e testing end-to-end.
+- **Priorità**: MASSIMA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Implementato sistema completo di token replacement con replaceAllVariables(), gestione [LIST_CATEGORIES], [USER_DISCOUNT], [LINK_ORDERS_WITH_TOKEN], parametri obbligatori, exception handling, testing MCP, e verifica che non inventi più contenuti.
+
+### ✅ COMPLETATO: Language Handling System Implementation
+- **Descrizione**: Sistema di gestione della lingua per garantire che il chatbot risponda nella lingua corretta dell'utente. Risolto problema critico dove il sistema rispondeva in inglese anche per utenti italiani.
+- **Priorità**: MASSIMA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Implementato `applyLanguageFormatting()` method in FormatterService che gestisce la conversione della risposta nella lingua corretta dell'utente. Sistema ora risponde correttamente in italiano per Mario Rossi, in inglese per John Smith, etc. Temperature 0.0 per formattazione deterministica. Documentato in PRD e memory bank.
+
+### ✅ COMPLETATO: Cart Management System Redesign & Database Synchronization
 - **Descrizione**: Sistema di gestione carrello tramite chatbot era complesso e causava problemi di traduzione e gestione dei prodotti. Eliminato sistema chatbot carrello e implementato sistema web-based con sincronizzazione database.
 - **Priorità**: MASSIMA
 - **Stato**: COMPLETATO

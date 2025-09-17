@@ -112,19 +112,39 @@ export class FormatterService {
     if (response.includes('[LIST_OFFERS]') || response.includes('[LIST_ACTIVE_OFFERS]') || 
         response.includes('[LIST_ALL_PRODUCTS]') || response.includes('[LIST_SERVICES]') || 
         response.includes('[LINK_PROFILE_WITH_TOKEN]') || response.includes('[LINK_CART_WITH_TOKEN]') || 
-        response.includes('[LINK_TRACKING_WITH_TOKEN]') || response.includes('[LINK_CHECKOUT_WITH_TOKEN]')) {
+        response.includes('[LINK_TRACKING_WITH_TOKEN]') || response.includes('[LINK_CHECKOUT_WITH_TOKEN]') ||
+        response.includes('[LINK_LAST_ORDER_INVOICE_WITH_TOKEN]')) {
+      
+      console.log('🔧 Formatter: Found tokens that need replacement:', {
+        hasListAllProducts: response.includes('[LIST_ALL_PRODUCTS]'),
+        hasListServices: response.includes('[LIST_SERVICES]'),
+        hasListOffers: response.includes('[LIST_OFFERS]'),
+        customerId: customerId,
+        workspaceId: workspaceId
+      })
       
       try {
         const { ReplaceLinkWithToken } = require('../chatbot/calling-functions/ReplaceLinkWithToken')
         
+        if (!customerId || !workspaceId) {
+          throw new Error("customerId and workspaceId are required for token replacement")
+        }
+        
         const replaceResult = await ReplaceLinkWithToken(
           { response },
-          customerId || 'default-customer-id',
-          workspaceId || 'default-workspace-id'
+          customerId,
+          workspaceId
         )
+        
+        console.log('🔧 Formatter: ReplaceLinkWithToken result:', {
+          success: replaceResult.success,
+          hasResponse: !!replaceResult.response,
+          error: replaceResult.error
+        })
         
         if (replaceResult.success && replaceResult.response) {
           response = replaceResult.response
+          console.log('🔧 Formatter: Response after replacement:', response.substring(0, 200))
         }
       } catch (error) {
         console.error("❌ Formatter: Error replacing other tokens:", error)
@@ -160,7 +180,18 @@ export class FormatterService {
     }
   }
   static async formatResponse(response: string, language: string = 'it', formatRules?: string, customerId?: string, workspaceId?: string, originalQuestion?: string, conversationHistory?: Array<{role: string, content: string}>): Promise<string> {
-    console.log('🔧 Formatter: formatResponse called with:', response.substring(0, 100))
+    console.log('🔧 FORMATTER: ===== START FORMATTING =====')
+    console.log('🔧 FORMATTER: Input response:', response)
+    console.log('🔧 FORMATTER: Language:', language)
+    console.log('🔧 FORMATTER: Format rules:', formatRules)
+    console.log('🔧 FORMATTER: Customer ID:', customerId)
+    console.log('🔧 FORMATTER: Workspace ID:', workspaceId)
+    
+    // Write to file for debugging
+    const fs = require('fs')
+    fs.appendFileSync('/tmp/formatter-debug.log', `\n===== FORMATTER DEBUG =====\n`)
+    fs.appendFileSync('/tmp/formatter-debug.log', `Input: ${response}\n`)
+    fs.appendFileSync('/tmp/formatter-debug.log', `Language: ${language}\n`)
     if (!response || response.trim() === '') {
       return "Nessuna risposta disponibile."
     }
@@ -175,85 +206,156 @@ export class FormatterService {
     - ONLY use the exact data provided in the response
     - If data is missing, say "Information not available" - DO NOT INVENT
     - NO FANTASY, NO CREATIVITY - ONLY REAL DATABASE FACTS
-    - FOR LINKS: Only use links that are explicitly provided in the response
-    - Use line breaks before and after links for better readability
-    - 🚨 TOKEN RULE: NEVER replace tokens like [LIST_SERVICES], [LIST_PRODUCTS], [USER_DISCOUNT], [LIST_ALL_PRODUCTS], [LIST_OFFERS] with invented content
-    - 🚨 TOKEN RULE: If you see a token like [LIST_SERVICES], keep it EXACTLY as is - DO NOT replace it
-    - 🚨 TOKEN RULE: Tokens will be replaced by the system later - your job is ONLY to format and translate
     - 🚨 ABSOLUTE RULE: If you don't have real data, don't make it up - just format what's there
+    - 🚨 LINK RULE: NEVER add any links unless they are explicitly provided in the response
+    - 🚨 NO WEBSITE LINKS: Do not add "Trova i nostri prodotti qui:" or any website links
+    - 🚨 NO EXAMPLE LINKS: Do not use example.com, laltraitalia.com, or any other website links
+    - ✅ TOKEN RULE: Tokens have already been replaced with real data from the database
+    - 🚨 FORBIDDEN: Adding "Trova i nostri prodotti qui:" or any website links
     `
     
     // Combine critical rule with any additional format rules
     const combinedRules = criticalRule + (formatRules ? `\n\nADDITIONAL RULES:\n${formatRules}` : '')
 
-    // Format and translate response with critical rules
+    // Handle ALL VARIABLES first
     let formattedResponse = response
     
+    try {
+      formattedResponse = await this.replaceAllVariables(response, customerId, workspaceId)
+      console.log('✅ FORMATTER: Token replacement completed')
+      console.log('🔧 FORMATTER: After token replacement:', formattedResponse)
+      fs.appendFileSync('/tmp/formatter-debug.log', `After token replacement: ${formattedResponse}\n`)
+    } catch (error) {
+      console.error('❌ FORMATTER: Token replacement error:', error.message)
+      formattedResponse = response
+    }
+
+    // 🔧 FIX: Apply language-specific formatting
+    const languageFormatted = await this.applyLanguageFormatting(formattedResponse, language, formatRules)
+    
+    console.log('🔧 FORMATTER: After language formatting:', languageFormatted.substring(0, 200))
+    fs.appendFileSync('/tmp/formatter-debug.log', `After language formatting: ${languageFormatted}\n`)
+    
+    // Apply WhatsApp formatting
+    const whatsappFormatted = await this.applyWhatsAppFormatting(languageFormatted)
+    
+    console.log('🔧 FORMATTER: After WhatsApp formatting:', whatsappFormatted)
+    console.log('🔧 FORMATTER: ===== END FORMATTING =====')
+    fs.appendFileSync('/tmp/formatter-debug.log', `Final result: ${whatsappFormatted}\n`)
+    fs.appendFileSync('/tmp/formatter-debug.log', `===== END FORMATTER DEBUG =====\n`)
+    
+    return whatsappFormatted
+  }
+
+  private static async applyLanguageFormatting(text: string, language: string, formatRules: string): Promise<string> {
+    if (!text) return text
+
+    console.log('🔧 NEW FORMATTER: applyLanguageFormatting called with:', { text: text.substring(0, 100), language, formatRules: formatRules?.substring(0, 50) })
+
+    // Check if this is a JSON response with action type
+    try {
+      const jsonData = JSON.parse(text)
+      if (jsonData.action && jsonData.linkUrl) {
+        return this.formatActionResponse(jsonData, language)
+      }
+    } catch (e) {
+      // Not JSON, continue with normal formatting
+    }
+
     try {
       const axios = require('axios')
       const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions"
       const openRouterApiKey = process.env.OPENROUTER_API_KEY
 
-      const languageMap = {
-        "it": "Italian",
-        "es": "Spanish", 
-        "pt": "Portuguese",
-        "en": "English"
+      const languageNames = {
+        'it': 'Italian',
+        'en': 'English', 
+        'es': 'Spanish',
+        'pt': 'Portuguese'
       }
       
-      const targetLanguage = languageMap[language] || "Italian"
-      
-      // Handle ALL VARIABLES BEFORE calling OpenRouter
-      response = await this.replaceAllVariables(response, customerId, workspaceId)
-      
-      const formatResponse = await axios.post(openRouterUrl, {
+      const targetLanguage = languageNames[language] || 'Italian'
+
+      const languageResponse = await axios.post(openRouterUrl, {
         model: 'openai/gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
-            content: `You are a helpful assistant for L'Altra Italia, specialized in Italian products.
+            content: `You are a WhatsApp message formatter. Your ONLY job is to format the response in ${targetLanguage} naturally and conversationally.
 
-${combinedRules}
+CRITICAL RULES - FOLLOW EXACTLY:
+1. Respond ONLY in ${targetLanguage}
+2. Use natural, conversational WhatsApp style
+3. NEVER use bullet points, dashes, asterisks, or any structured formatting
+4. NEVER use bold text, italics, or any markdown formatting
+5. Write in flowing, natural sentences
+6. Use simple line breaks only when necessary
+7. Make it sound like a friendly conversation
+8. Do NOT invent any information not present in the original text
 
-🚨 CRITICAL: If the response contains tokens like [LIST_SERVICES], [LIST_PRODUCTS], [USER_DISCOUNT], [LIST_CATEGORIES], [LIST_OFFERS], [LIST_ACTIVE_OFFERS], [LIST_ALL_PRODUCTS], [LINK_ORDERS_WITH_TOKEN], [LINK_PROFILE_WITH_TOKEN], [LINK_CART_WITH_TOKEN], [LINK_TRACKING_WITH_TOKEN], [LINK_CHECKOUT_WITH_TOKEN] - DO NOT REPLACE THEM! Keep them EXACTLY as they are!
+EXAMPLE OF GOOD FORMATTING:
+"Ciao! Offriamo spedizione per 5 EUR con consegna entro 3-5 giorni lavorativi, e confezione regalo per 30 EUR con messaggio personalizzato e materiali premium."
 
-🚨 ABSOLUTE RULE: NEVER replace any token with invented content! Examples of what NOT to do:
-- NEVER replace [LIST_SERVICES] with invented services like "Prenotazione di voli", "Spedizione standard" - these are FAKE!
-- NEVER replace [LIST_ALL_PRODUCTS] with invented products like "Pasta di Gragnano", "Parmigiano Reggiano" - these are FAKE!
-- NEVER replace [USER_DISCOUNT] with invented percentages like "10%" - this is FAKE!
-- NEVER replace [LIST_OFFERS] with invented offers like "Scopri le nostre promozioni" - this is FAKE!
+EXAMPLE OF BAD FORMATTING (NEVER DO THIS):
+"- **Spedizione**: 5 EUR
+- **Confezione regalo**: 30 EUR"
 
-🚨 FINAL WARNING: If you see ANY token in the response, DO NOT replace it with any text! Keep it exactly as it is! The system will replace it later with real data from the database!
-
-Format and translate the following response to ${targetLanguage}. Keep product names, brand names, and technical terms in their original language. Return ONLY the formatted and translated response, no explanations.`
+Return ONLY the formatted response in ${targetLanguage}, no explanations.`
           },
           {
             role: 'user',
-            content: response
+            content: text
           }
         ],
-        temperature: 0.3,
-        max_tokens: 800
+        temperature: 0.0,
+        max_tokens: 300
       }, {
         headers: {
           'Authorization': `Bearer ${openRouterApiKey}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'http://localhost:3001',
+          'X-Title': 'ShopMe Language Formatter'
         },
         timeout: 10000
       })
 
-      if (formatResponse.data?.choices?.[0]?.message?.content) {
-        formattedResponse = formatResponse.data.choices[0].message.content.trim()
-      }
+      const formattedText = languageResponse.data.choices[0]?.message?.content?.trim() || text
+      console.log('🔧 NEW FORMATTER: LLM response:', formattedText)
+      console.log(`✅ Language formatting to ${targetLanguage} completed`)
+      return formattedText
     } catch (error) {
-      console.error("❌ Formatter: Formatting failed, using original:", error)
-      formattedResponse = response
+      console.error('❌ Language formatting error:', error)
+      return text // Return original text if formatting fails
     }
+  }
 
-    // Apply WhatsApp formatting
-    const whatsappFormatted = await this.applyWhatsAppFormatting(formattedResponse)
+  private static formatActionResponse(jsonData: any, language: string): string {
+    const { action, linkUrl, expiresAt } = jsonData
     
-    return whatsappFormatted
+    if (language === 'it') {
+      switch (action) {
+        case 'cart':
+          return `Ecco il tuo carrello: ${linkUrl}\n\nIl link scadrà il ${new Date(expiresAt).toLocaleDateString('it-IT')} alle ${new Date(expiresAt).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}. Buon shopping! 🛒`
+        case 'orders':
+          return `Ecco i tuoi ordini: ${linkUrl}\n\nIl link scadrà il ${new Date(expiresAt).toLocaleDateString('it-IT')} alle ${new Date(expiresAt).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}.`
+        case 'checkout':
+          return `Procedi con il checkout: ${linkUrl}\n\nIl link scadrà il ${new Date(expiresAt).toLocaleDateString('it-IT')} alle ${new Date(expiresAt).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}.`
+        default:
+          return `Ecco il link richiesto: ${linkUrl}\n\nIl link scadrà il ${new Date(expiresAt).toLocaleDateString('it-IT')} alle ${new Date(expiresAt).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}.`
+      }
+    } else {
+      // English
+      switch (action) {
+        case 'cart':
+          return `Here's your cart: ${linkUrl}\n\nThe link will expire on ${new Date(expiresAt).toLocaleDateString('en-US')} at ${new Date(expiresAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}. Happy shopping! 🛒`
+        case 'orders':
+          return `Here are your orders: ${linkUrl}\n\nThe link will expire on ${new Date(expiresAt).toLocaleDateString('en-US')} at ${new Date(expiresAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`
+        case 'checkout':
+          return `Proceed to checkout: ${linkUrl}\n\nThe link will expire on ${new Date(expiresAt).toLocaleDateString('en-US')} at ${new Date(expiresAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`
+        default:
+          return `Here's the requested link: ${linkUrl}\n\nThe link will expire on ${new Date(expiresAt).toLocaleDateString('en-US')} at ${new Date(expiresAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`
+      }
+    }
   }
 
   private static async applyWhatsAppFormatting(text: string): Promise<string> {
@@ -269,27 +371,34 @@ Format and translate the following response to ${targetLanguage}. Keep product n
         messages: [
           {
             role: 'system',
-            content: `You are a WhatsApp message formatter for an Italian e-commerce platform. Format the following text for WhatsApp with:
+            content: `You are a WhatsApp message formatter. Your ONLY job is to make the text natural and conversational for WhatsApp.
 
-1. **Bold text** using *asterisks* for important information
-2. _Italic text_ using _underscores_ for emphasis
-3. ~Strikethrough~ using ~tildes~ for crossed-out prices
-4. \`Monospace\` using backticks for codes/IDs
-5. Add relevant emojis naturally
-6. Use line breaks for readability
-7. Keep it conversational and friendly
-8. Don't over-format - keep it clean and readable
-9. FOR LINKS: Always put links on a new line, never on the same line as text
-10. Use line breaks before and after links for better readability
+🚨 CRITICAL RULES - FOLLOW EXACTLY:
+1. NEVER use any markdown formatting (no **bold**, _italics_, ~strikethrough~, \`code\`)
+2. NEVER use bullet points, dashes, or structured lists
+3. Write in flowing, natural sentences
+4. Use simple line breaks only when necessary
+5. Make it sound like a friendly conversation
+6. Do NOT add any NEW links, websites, or URLs that are not in the original text
+7. DO include any links that are already present in the original text
+8. Do NOT add any additional information not in the original text
+9. Do NOT use any formatting symbols or special characters
 
-Return ONLY the formatted text, no explanations.`
+EXAMPLE OF GOOD FORMATTING:
+"Ciao! Offriamo spedizione per 5 EUR con consegna entro 3-5 giorni lavorativi, e confezione regalo per 30 EUR con messaggio personalizzato e materiali premium."
+
+EXAMPLE OF BAD FORMATTING (NEVER DO THIS):
+"- **Spedizione**: 5 EUR
+- **Confezione regalo**: 30 EUR"
+
+Return ONLY the natural, unformatted text, no explanations.`
           },
           {
             role: 'user',
             content: text
           }
         ],
-        temperature: 0.3,
+        temperature: 0.0, // Zero temperature to prevent inventions
         max_tokens: 800
       }, {
         headers: {

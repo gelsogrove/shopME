@@ -151,7 +151,7 @@ export class DualLLMService {
       const isFormattingExample = this.isFormattingExample(translatedQuery)
 
       if (isFormattingExample) {
-        const language = this.detectLanguageFromMessage(request.chatInput)
+        const language = this.detectLanguageFromMessage(request.chatInput, request.phone)
         const formattingResponse = this.getFormattingExampleResponse(language)
         
         return {
@@ -213,8 +213,12 @@ export class DualLLMService {
         return searchRagResult
       }
 
+      // 🔧 FIX: SearchRag now returns success: false when no results found
+      // This means we can go directly to generic response
+      console.log('🔧 DualLLM: SearchRag found no results, using generic response')
+
       // Final fallback: generic response
-      const language = this.detectLanguageFromMessage(request.chatInput)
+      const language = this.detectLanguageFromMessage(request.chatInput, request.phone)
       const genericOutput = this.getGenericResponse(language)
 
         return {
@@ -247,7 +251,7 @@ export class DualLLMService {
 
   private async executeFormatter(request: LLMRequest, result: any, functionName: string): Promise<string> {
     try {
-      const language = this.detectLanguageFromMessage(request.chatInput)
+      const language = this.detectLanguageFromMessage(request.chatInput, request.phone)
       
       let formatRules = ""
       const langInfo = this.getLanguageInfo(language)
@@ -278,7 +282,11 @@ export class DualLLMService {
       const formattedResponse = await FormatterService.formatResponse(
         result.message || JSON.stringify(result),
         language,
-        formatRules
+        formatRules,
+        request.customerid || "",
+        request.workspaceId,
+        request.chatInput,
+        request.messages || []
       )
 
       return formattedResponse
@@ -305,9 +313,14 @@ export class DualLLMService {
           const topFaq = (ragResult.results as any).results.faqs[0]
           const content = topFaq.content
           
-          const answerMatch = content.match(/Answer:\s*(.+)/)
+          console.log('🔧 DualLLM: FAQ content:', content)
+          
+          const answerMatch = content.match(/Answer:\s*([\s\S]+)/)
           if (answerMatch) {
             rawResponse = answerMatch[1].trim()
+            console.log('🔧 DualLLM: Extracted answer:', rawResponse)
+          } else {
+            console.log('🔧 DualLLM: No answer match found')
           }
         }
         
@@ -315,7 +328,7 @@ export class DualLLMService {
           rawResponse, 
           request.language || "it", 
           undefined, 
-          request.customerid, 
+          request.customerid || "", 
           request.workspaceId, 
           request.chatInput,
           request.messages || []
@@ -510,8 +523,39 @@ export class DualLLMService {
     return ""
   }
 
-  private detectLanguageFromMessage(message: string): string {
+  private detectLanguageFromMessage(message: string, phoneNumber?: string): string {
+    // 🚨 CRITICAL FIX: Simple English detection based on common words
     const lowerMessage = message.toLowerCase()
+    
+    // Check for obvious English patterns first
+    if (lowerMessage.includes('what') || lowerMessage.includes('how') || lowerMessage.includes('where') || 
+        lowerMessage.includes('when') || lowerMessage.includes('why') || lowerMessage.includes('who') ||
+        lowerMessage.includes('do you') || lowerMessage.includes('can you') || lowerMessage.includes('are you') ||
+        lowerMessage.includes('is there') || lowerMessage.includes('does') || lowerMessage.includes('will') ||
+        lowerMessage.includes('would') || lowerMessage.includes('could') || lowerMessage.includes('should')) {
+      console.log(`🔍 Language Detection: English pattern detected, forcing English`)
+      return "en"
+    }
+    
+    // Use phone number as secondary indicator
+    if (phoneNumber) {
+      if (phoneNumber.startsWith('+44')) {
+        console.log(`🔍 Language Detection: UK phone number detected, forcing English`)
+        return "en"
+      }
+      if (phoneNumber.startsWith('+34')) {
+        console.log(`🔍 Language Detection: Spanish phone number detected, forcing Spanish`)
+        return "es"
+      }
+      if (phoneNumber.startsWith('+351')) {
+        console.log(`🔍 Language Detection: Portuguese phone number detected, forcing Portuguese`)
+        return "pt"
+      }
+      if (phoneNumber.startsWith('+39')) {
+        console.log(`🔍 Language Detection: Italian phone number detected, forcing Italian`)
+        return "it"
+      }
+    }
     
     // Enhanced Italian keywords including common question words and verbs
     const italianKeywords = [
@@ -520,7 +564,7 @@ export class DualLLMService {
       "avete", "avete", "offrite", "gestite", "politica", "res", "sconto", "prodotti", "servizi", "categorie",
       "ordine", "ordini", "carrello", "fattura", "catalogo", "mozzarella", "operatore", "parlare"
     ]
-    const englishKeywords = ["hello", "hi", "thanks", "thank you", "please", "good morning", "good evening", "goodbye", "how", "where", "when", "why", "what", "which", "how much", "who", "have", "offer", "manage", "policy", "return", "discount", "products", "services", "categories", "order", "orders", "cart", "invoice", "catalog", "mozzarella", "operator", "speak"]
+    const englishKeywords = ["hello", "hi", "thanks", "thank you", "please", "good morning", "good evening", "goodbye", "how", "where", "when", "why", "what", "which", "how much", "who", "have", "offer", "offers", "manage", "policy", "return", "discount", "products", "services", "categories", "order", "orders", "cart", "invoice", "catalog", "mozzarella", "operator", "speak", "do you", "can you", "show me", "give me", "tell me", "i want", "i need", "help me", "are you", "is there", "does", "will", "would", "could", "should", "may", "might", "must", "shall", "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "having", "do", "does", "did", "doing", "will", "would", "could", "should", "may", "might", "must", "shall"]
     const spanishKeywords = ["hola", "gracias", "por favor", "buenos días", "buenas tardes", "adiós", "cómo", "dónde", "cuándo", "por qué", "qué", "cuál", "cuánto", "quién", "tienen", "ofrecen", "gestionan", "política", "devolución", "descuento", "productos", "servicios", "categorías", "pedido", "pedidos", "carrito", "factura", "catálogo", "mozzarella", "operador", "hablar"]
     const portugueseKeywords = ["olá", "obrigado", "obrigada", "por favor", "bom dia", "boa tarde", "tchau", "como", "onde", "quando", "por que", "o que", "qual", "quanto", "quem", "têm", "oferecem", "gerenciam", "política", "devolução", "desconto", "produtos", "serviços", "categorias", "pedido", "pedidos", "carrinho", "fatura", "catálogo", "mozzarella", "operador", "falar"]
     
@@ -530,15 +574,38 @@ export class DualLLMService {
     const spanishMatches = spanishKeywords.filter(keyword => lowerMessage.includes(keyword)).length
     const portugueseMatches = portugueseKeywords.filter(keyword => lowerMessage.includes(keyword)).length
     
+    // Debug logging
+    console.log(`🔍 Language Detection Debug:`)
+    console.log(`   Message: "${message}"`)
+    console.log(`   Italian matches: ${italianMatches}`)
+    console.log(`   English matches: ${englishMatches}`)
+    console.log(`   Spanish matches: ${spanishMatches}`)
+    console.log(`   Portuguese matches: ${portugueseMatches}`)
+    
     // Return language with most matches, default to Italian if no clear winner
     const maxMatches = Math.max(italianMatches, englishMatches, spanishMatches, portugueseMatches)
     
-    if (maxMatches === 0) return "it" // Default to Italian
+    if (maxMatches === 0) {
+      console.log(`   Result: Default to Italian (no matches)`)
+      return "it" // Default to Italian
+    }
     
-    if (italianMatches === maxMatches) return "it"
-    if (englishMatches === maxMatches) return "en"
-    if (spanishMatches === maxMatches) return "es"
-    if (portugueseMatches === maxMatches) return "pt"
+    if (italianMatches === maxMatches) {
+      console.log(`   Result: Italian`)
+      return "it"
+    }
+    if (englishMatches === maxMatches) {
+      console.log(`   Result: English`)
+      return "en"
+    }
+    if (spanishMatches === maxMatches) {
+      console.log(`   Result: Spanish`)
+      return "es"
+    }
+    if (portugueseMatches === maxMatches) {
+      console.log(`   Result: Portuguese`)
+      return "pt"
+    }
     
     return "it" // Default to Italian
   }
@@ -555,10 +622,10 @@ export class DualLLMService {
 
   private getGenericResponse(language: string): string {
     const responses = {
-      it: "Ciao! Non ho trovato questa informazione, posso aiutarti con qualcosa d'altro?",
-      en: "Hello! I couldn't find this information, can I help you with something else?",
-      es: "¡Hola! No pude encontrar esta información, ¿puedo ayudarte con algo más?",
-      pt: "Olá! Não consegui encontrar esta informação, posso ajudá-lo com algo mais?"
+      it: "Ciao! Non ho trovato informazioni specifiche su questo argomento. Posso aiutarti con:\n\n• 🛒 Prodotti e categorie\n• 📦 Ordini e tracking\n• 💰 Sconti e offerte\n• 📋 FAQ e informazioni\n• 🛍️ Carrello e checkout\n\nCosa ti serve?",
+      en: "Hello! I couldn't find specific information about this topic. I can help you with:\n\n• 🛒 Products and categories\n• 📦 Orders and tracking\n• 💰 Discounts and offers\n• 📋 FAQ and information\n• 🛍️ Cart and checkout\n\nWhat do you need?",
+      es: "¡Hola! No pude encontrar información específica sobre este tema. Puedo ayudarte con:\n\n• 🛒 Productos y categorías\n• 📦 Pedidos y seguimiento\n• 💰 Descuentos y ofertas\n• 📋 FAQ e información\n• 🛍️ Carrito y checkout\n\n¿Qué necesitas?",
+      pt: "Olá! Não consegui encontrar informações específicas sobre este tópico. Posso ajudá-lo com:\n\n• 🛒 Produtos e categorias\n• 📦 Pedidos e rastreamento\n• 💰 Descontos e ofertas\n• 📋 FAQ e informações\n• 🛍️ Carrinho e checkout\n\nO que você precisa?"
     }
     return responses[language] || responses.it
   }

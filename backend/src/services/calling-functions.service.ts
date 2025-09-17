@@ -392,8 +392,15 @@ export class CallingFunctionsService {
         resultsCount: response.data.results ? Object.keys(response.data.results).length : 0
       });
 
+      // 🔧 FIX: Check if we have real results before marking as success
+      const hasRealResults = response.data && 
+                            response.data.results && 
+                            response.data.results.total > 0;
+
+      console.log('🔧 SearchRag: hasRealResults =', hasRealResults, 'total =', response.data?.results?.total);
+
       return {
-        success: true,
+        success: hasRealResults, // ✅ TRUE only if we have actual results
         results: response.data || {},
         query: request.query,
         translatedQuery: translatedQuery,
