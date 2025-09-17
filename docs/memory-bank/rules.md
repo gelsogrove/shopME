@@ -51,7 +51,14 @@
 #### 🚫 **Hardcoding**
 **Rule**: NEVER create hardcoded fallbacks - everything from database  
 **Reason**: Maintain system flexibility and configuration-driven approach  
-**Status**: ✅ **ACTIVE**  
+**Status**: ✅ **ACTIVE**
+
+#### 🔄 **Token Replacement**
+**Rule**: ALL token replacements MUST be done in FormatterService BEFORE calling OpenRouter  
+**Tokens**: [LIST_CATEGORIES], [LIST_SERVICES], [LIST_PRODUCTS], [USER_DISCOUNT], [LIST_OFFERS], [LIST_ACTIVE_OFFERS], [LIST_ALL_PRODUCTS], [LINK_ORDERS_WITH_TOKEN], [LINK_PROFILE_WITH_TOKEN], [LINK_CART_WITH_TOKEN], [LINK_TRACKING_WITH_TOKEN], [LINK_CHECKOUT_WITH_TOKEN]  
+**Location**: `backend/src/services/formatter.service.ts`  
+**Reason**: Prevent OpenRouter from inventing content - replace tokens with real database data first  
+**Status**: ✅ **CRITICAL**  
 
 ### 🏗️ **ARCHITECTURE RULES**
 

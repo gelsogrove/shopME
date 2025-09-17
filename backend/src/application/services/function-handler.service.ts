@@ -1,6 +1,4 @@
 import { PrismaClient } from "@prisma/client"
-import { generateCartLink } from "../../chatbot/calling-functions/generateCartLink"
-import { getAllCategories } from "../../chatbot/calling-functions/getAllCategories"
 import { getAllProducts } from "../../chatbot/calling-functions/getAllProducts"
 import { MessageRepository } from "../../repositories/message.repository"
 import { documentService } from "../../services/documentService"
@@ -158,7 +156,6 @@ export class FunctionHandlerService {
 
         case 'get_all_categories':
           return {
-            data: await this.handleGetAllCategories(phoneNumber, workspaceId, customer?.id, ''),
             functionName
           }
 
@@ -171,22 +168,11 @@ export class FunctionHandlerService {
         // 🚚 ORDER OPERATIONS & 🛒 CART OPERATIONS (REMOVED)
         // case 'confirm_order':
         //   return {
-        //     data: await confirmOrderFromConversation({
         //         ...params
         //       }),
         //       functionName
         //     }
 
-        case 'generateCartLink':
-          return {
-            data: await generateCartLink(
-              params,
-              customer.id,
-              workspaceId,
-              phoneNumber
-            ),
-            functionName
-          }
 
         // 📄 DOCUMENTATION & FAQ
         case 'search_documents':
@@ -308,32 +294,6 @@ export class FunctionHandlerService {
     }
   }
 
-  /**
-   * Ottiene tutte le categorie
-   */
-  async handleGetAllCategories(phoneNumber: string, workspaceId: string, customerId: string, message: string): Promise<any> {
-    try {
-      const result = await getAllCategories({
-        phoneNumber,
-        workspaceId,
-        customerId,
-        message
-      })
-
-      return {
-        success: true,
-        total_categories: result?.totalCategories || 0,
-        categories: result?.categories || [],
-        response_message: result?.response || 'Categorie ottenute con successo'
-      }
-    } catch (error) {
-      logger.error('❌ Errore in handleGetAllCategories:', error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Errore interno'
-      }
-    }
-  }
 
   // =============================================================================
   // 📄 DOCUMENTATION METHODS

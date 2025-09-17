@@ -39,6 +39,11 @@ export interface GetShipmentTrackingLinkRequest {
   customerId: string;
 }
 
+export interface GetCartLinkRequest {
+  customerId: string;
+  workspaceId: string;
+}
+
 export interface GetShipmentTrackingLinkResponse extends StandardResponse {
   linkUrl: string;
 }
@@ -49,7 +54,6 @@ export interface RagSearchRequest {
   customerId: string;
   messages: any[];
   useCartData?: boolean;
-  generateCartLink?: boolean;
 }
 
 export interface RagSearchResponse extends StandardResponse {

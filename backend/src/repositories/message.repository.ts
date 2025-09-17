@@ -1318,49 +1318,6 @@ export class MessageRepository {
           },
         },
         {
-          name: "confirmOrderFromConversation",
-          description:
-            "Conferma ordine dalla conversazione corrente e genera link checkout sicuro. Da chiamare quando il cliente conferma di voler procedere con l'ordine dei prodotti discussi nella chat.",
-          parameters: {
-            type: "object",
-            properties: {
-              conversationContext: {
-                type: "string",
-                description: "Ultimi messaggi della conversazione per contesto",
-              },
-              prodottiSelezionati: {
-                type: "array",
-                description:
-                  "Prodotti identificati nella conversazione che il cliente vuole ordinare",
-                items: {
-                  type: "object",
-                  properties: {
-                    nome: {
-                      type: "string",
-                      description:
-                        "Nome del prodotto come menzionato dal cliente",
-                    },
-                    quantita: {
-                      type: "number",
-                      description: "Quantità richiesta dal cliente",
-                    },
-                    descrizione: {
-                      type: "string",
-                      description: "Descrizione aggiuntiva se fornita",
-                    },
-                    codice: {
-                      type: "string",
-                      description: "Codice prodotto se menzionato",
-                    },
-                  },
-                  required: ["nome", "quantita"],
-                },
-              },
-            },
-            required: ["prodottiSelezionati"],
-          },
-        },
-        {
           name: "get_order_status",
           description: "Retrieves the status of a user's order",
           parameters: {

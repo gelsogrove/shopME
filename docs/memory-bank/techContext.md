@@ -5,9 +5,31 @@
 **Architecture Pattern:** Domain-Driven Design (DDD) with Clean Architecture  
 **Deployment:** Docker containers with docker-compose  
 **Database:** PostgreSQL with Prisma ORM  
-**AI Integration:** OpenRouter API with Two-LLM Architecture  
+**AI Integration:** OpenRouter API with Unified Dual-LLM Architecture  
 **Frontend:** React + TypeScript + TailwindCSS  
 **Backend:** Node.js + Express + TypeScript  
+**Token System:** Unified system with generic + specific tokens  
+
+---
+
+## 🤖 **CHATBOT ARCHITECTURE**
+
+### **Unified Dual-LLM Flow**
+```
+USER INPUT (IT/EN/ES/PT) 
+→ TranslationService (detect language + translate to EN)
+→ DualLLMService (LLM with temperature 0.1 for trigger recognition)
+→ SearchRag (if no CF triggered)
+→ FormatterService (token replacement + formatting with temperature 0.5)
+→ LOCALIZED OUTPUT (IT/EN/ES/PT)
+```
+
+### **Token Replacement System**
+- **Generic Tokens**: `[LINK_WITH_TOKEN]` for FAQ
+- **Specific Tokens**: `[LIST_CATEGORIES]`, `[USER_DISCOUNT]`, `[LINK_ORDERS_WITH_TOKEN]`, etc.
+- **Replace Strategy**: All tokens replaced in FormatterService BEFORE OpenRouter
+- **Empty Data Handling**: Graceful messages when database is empty
+- **Proper Noun Protection**: Database names not translated
 
 ---
 

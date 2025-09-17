@@ -2280,11 +2280,6 @@ async function main() {
         "Our business hours are Monday to Friday from 9:00 AM to 6:00 PM, and Saturdays from 9:00 AM to 2:00 PM. We are closed on Sundays.",
     },
     {
-      question: "How can I place an order?",
-      answer:
-        "You can place your order directly through our ecommerce platform please click here: [LINK_CART_WITH_TOKEN]",
-    },
-    {
       question: "What payment methods do you accept?",
       answer:
         "We accept credit/debit card payments, bank transfers, PayPal, and cash on delivery (depending on availability in your area).",
@@ -2325,11 +2320,6 @@ async function main() {
         "💰 *Shipping costs depend on your location and order size:*\n\n🇪🇸 *Mainland Spain:*\n• Orders over €50: FREE shipping 🎉\n• Orders under €50: €4.95\n\n🏝️ *Islands (Balearic/Canary):*\n• Special rates apply (€8.95-€15.95)\n• Free shipping threshold: €75\n\n📦 *Express delivery:* Available for €9.95 (24h delivery)",
     },
     {
-      question: "Can I track my order during shipping?",
-      answer:
-        "📱 *Absolutely! Full tracking available:*\n\n🔍 *How to track:*\n• You'll receive tracking number via WhatsApp/email\n• Click the link to see real-time updates\n• Get notifications for each delivery step\n\n📍 *What you can see:*\n• Order prepared\n• In transit\n• Out for delivery\n• Delivered ✅\n\n💡 *Having issues with tracking?* Just send me your order number!",
-    },
-    {
       question: "What should I do if my package is damaged during transport?",
       answer:
         "📦 *Don't worry, we'll take care of it immediately!*\n\n🚨 *If you receive damaged products:*\n• Don't accept the delivery if damage is visible\n• Take photos of the damaged package\n• Contact us immediately via WhatsApp\n• We'll arrange replacement or full refund\n\n⚡ *Our response:*\n• Immediate replacement sent within 24h\n• Full refund if you prefer\n• No questions asked - customer satisfaction guaranteed!\n\n📋 *Important:* Report damage within 24h of delivery for fastest resolution.",
@@ -2357,24 +2347,100 @@ async function main() {
       answer: "You can update your email address through this secure link. [LINK_PROFILE_WITH_TOKEN]",
     },
     {
-      question: "How can I confirm my order?",
-      answer: "You can confirm your order and proceed to checkout through this secure link. [LINK_CHECKOUT_WITH_TOKEN]",
-    },
-    {
-      question: "How can I see my orders?",
-      answer: "You can view your order history and track your orders through this secure link. [LINK_ORDERS_WITH_TOKEN]",
-    },
-    {
-      question: "How can I track my order?",
-      answer: "You can track your order and see its current status through this secure link. [LINK_TRACKING_WITH_TOKEN]",
-    },
-    {
       question: "How can I see the product catalog?",
       answer: "You can download our complete product catalog here: https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf",
     },
     {
       question: "What discount do I have on products?",
       answer: "Hello! Your current discount on products is [USER_DISCOUNT], and the following offers are also active: [LIST_OFFERS]",
+    },
+    {
+      question: "Che sconto ho sui prodotti?",
+      answer: "Ciao! Il tuo sconto attuale sui prodotti è del [USER_DISCOUNT], inoltre sono attive le seguenti offerte: [LIST_OFFERS]",
+    },
+    {
+      question: "What services do you offer?",
+      answer: "Hello! We offer the following services: [LIST_SERVICES]",
+    },
+    {
+      question: "What products do you sell?",
+      answer: "Hello! We sell the following products: [LIST_ALL_PRODUCTS]",
+    },
+    {
+      question: "How can I see my orders?",
+      answer: "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
+    },
+    {
+      question: "Show me my orders",
+      answer: "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
+    },
+    {
+      question: "Give me my orders",
+      answer: "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
+    },
+    {
+      question: "Who are you?",
+      answer: "Hello! I am SofIA, the digital assistant of L'Altra Italia. I'm here to help you with information about our Italian products, orders, and services. How can I assist you today?",
+    },
+    {
+      question: "How can I place an order?",
+      answer: "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
+    },
+    {
+      question: "I want to place an order",
+      answer: "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
+    },
+    {
+      question: "Voglio fare un ordine",
+      answer: "Ciao! Per effettuare un nuovo ordine, clicca su questo link: [LINK_CHECKOUT_WITH_TOKEN]",
+    },
+    {
+      question: "Fattura del mio ultimo ordine",
+      answer: "Ciao! Per visualizzare la fattura del tuo ultimo ordine, clicca su questo link: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
+    },
+    {
+      question: "Invoice of my last order",
+      answer: "Hello! To view the invoice of your last order, click on this link: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
+    },
+    {
+      question: "Factura de mi último pedido",
+      answer: "¡Hola! Para ver la factura de tu último pedido, haz clic en este enlace: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
+    },
+    {
+      question: "Fatura do meu último pedido",
+      answer: "Olá! Para visualizar a fatura do seu último pedido, clique neste link: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
+    },
+    {
+      question: "What is your name?",
+      answer: "Hello! I am SofIA, the digital assistant of L'Altra Italia. I'm here to help you with information about our Italian products, orders, and services. How can I assist you today?",
+    },
+    {
+      question: "Che servizi offrite?",
+      answer: "Ciao! Offriamo i seguenti servizi: [LIST_SERVICES]",
+    },
+    {
+      question: "¿Qué servicios ofrecen?",
+      answer: "¡Hola! Ofrecemos los siguientes servicios: [LIST_SERVICES]",
+    },
+    {
+      question: "Que serviços vocês oferecem?",
+      answer: "Olá! Oferecemos os seguintes serviços: [LIST_SERVICES]",
+    },
+    {
+      question: "What categories do you have?",
+      answer: "Hello! We have the following product categories: [LIST_CATEGORIES]",
+    },
+    {
+      question: "Che categorie avete?",
+      answer: "Ciao! Abbiamo le seguenti categorie di prodotti: [LIST_CATEGORIES]",
+    },
+    {
+      question: "¿Qué categorías tienen?",
+      answer: "¡Hola! Tenemos las siguientes categorías de productos: [LIST_CATEGORIES]",
+    },
+    {
+      question: "Que categorias vocês têm?",
+      answer: "Olá! Temos as seguintes categorias de produtos: [LIST_CATEGORIES]",
     },
   ]
 

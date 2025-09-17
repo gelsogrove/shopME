@@ -2,16 +2,15 @@ import axios from 'axios';
 import { SecureTokenService } from '../application/services/secure-token.service';
 import { ReplaceLinkWithToken } from '../chatbot/calling-functions/ReplaceLinkWithToken';
 import {
-  CategoriesResponse,
-  ErrorResponse,
-  OffersResponse,
-  ProductsResponse,
-  RagSearchRequest,
-  RagSearchResponse,
-  ServicesResponse,
-  StandardResponse,
-  SuccessResponse,
-  TokenResponse
+    ErrorResponse,
+    GetCartLinkRequest,
+    ProductsResponse,
+    RagSearchRequest,
+    RagSearchResponse,
+    ServicesResponse,
+    StandardResponse,
+    SuccessResponse,
+    TokenResponse
 } from '../types/whatsapp.types';
 
 export interface GetAllProductsRequest {
@@ -73,86 +72,6 @@ export class CallingFunctionsService {
     };
   }
 
-  public async getAllProducts(request: GetAllProductsRequest): Promise<CategoriesResponse> {
-    try {
-      console.log('🔧 Calling getAllProducts (now returns categories) with:', request);
-      
-      // Direct database query with Prisma for categories list
-      const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
-      
-      // Get all categories with product counts, filtering out categories with 0 products
-      const categories = await prisma.categories.findMany({
-        where: {
-          workspaceId: request.workspaceId,
-          isActive: true,
-          products: {
-            some: {
-              isActive: true
-            }
-          }
-        },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          _count: {
-            select: {
-              products: {
-                where: {
-                  isActive: true
-                }
-              }
-            }
-          }
-        },
-        orderBy: { name: 'asc' }
-      });
-      
-      await prisma.$disconnect();
-      
-      if (!categories || categories.length === 0) {
-        return {
-          success: false,
-          error: 'Nessuna categoria disponibile',
-          message: 'Nessuna categoria disponibile',
-          timestamp: new Date().toISOString()
-        } as CategoriesResponse;
-      }
-      
-      // Mappatura icone per categoria
-      const categoryIcons: { [key: string]: string } = {
-        'Cheeses & Dairy': '🧀',
-        'Cured Meats': '🥓',
-        'Salami & Cold Cuts': '🥩',
-        'Pasta & Rice': '🍝',
-        'Tomato Products': '🍅',
-        'Flour & Baking': '🌾',
-        'Sauces & Preserves': '🍯',
-        'Water & Beverages': '💧',
-        'Frozen Products': '🧊',
-        'Various & Spices': '🌿'
-      };
-
-      return {
-        success: true,
-        data: {
-          categories: categories.map(category => ({
-            id: category.id,
-            name: `${categoryIcons[category.name] || ''} ${category.name}`, // Add icon to name
-            description: category.description,
-            productCount: category._count.products
-          })),
-          totalCategories: categories.length
-        },
-        timestamp: new Date().toISOString()
-      };
-      
-    } catch (error) {
-      console.error('❌ Error in getAllProducts:', error);
-      return this.createErrorResponse(error, 'getAllProducts') as CategoriesResponse;
-    }
-  }
 
   public async getProductsByCategory(request: GetAllProductsRequest & { categoryName: string }): Promise<ProductsResponse> {
     try {
@@ -327,137 +246,7 @@ export class CallingFunctionsService {
   }
 
 
-  public async getAllCategories(request: GetAllProductsRequest): Promise<CategoriesResponse> {
-    try {
-      console.log('🔧 Calling getAllCategories with:', request);
-      
-      // Direct database query with Prisma for all categories
-      const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
-      
-      // Get all categories for the workspace
-      const categories = await prisma.categories.findMany({
-        where: {
-          workspaceId: request.workspaceId,
-          isActive: true
-        },
-        orderBy: { name: 'asc' }
-      });
-      
-      await prisma.$disconnect();
-      
-      if (!categories || categories.length === 0) {
-        return {
-          success: false,
-          error: 'Nessuna categoria disponibile al momento',
-          message: 'Nessuna categoria disponibile al momento',
-          timestamp: new Date().toISOString()
-        } as CategoriesResponse;
-      }
-      
-      console.log('✅ Categories found:', categories.length);
-      
-      // Mappatura icone per categoria
-      const categoryIcons: { [key: string]: string } = {
-        'Cheeses & Dairy': '🧀',
-        'Cured Meats': '🥓',
-        'Salami & Cold Cuts': '🥩', 
-        'Pasta & Rice': '🍝',
-        'Tomato Products': '🍅',
-        'Flour & Baking': '🌾',
-        'Sauces & Preserves': '🍯',
-        'Water & Beverages': '💧',
-        'Frozen Products': '🧊',
-        'Various & Spices': '🌿'
-      };
 
-      return {
-        success: true,
-        data: {
-          categories: categories.map(category => {
-            const icon = categoryIcons[category.name] || '📦';
-            return {
-              id: category.id,
-              name: `${icon} ${category.name}`,
-              description: category.description
-            };
-          }),
-          totalCategories: categories.length
-        },
-        timestamp: new Date().toISOString()
-      };
-      
-    } catch (error) {
-      console.error('❌ Error in getAllCategories:', error);
-      return this.createErrorResponse(error, 'getAllCategories') as CategoriesResponse;
-    }
-  }
-
-  public async getActiveOffers(request: GetAllProductsRequest): Promise<OffersResponse> {
-    try {
-      console.log('🔧 Calling getActiveOffers with:', request);
-      
-      // Direct database query with Prisma for active offers
-      const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
-      
-      // Get all active offers for the workspace
-      const offers = await prisma.offers.findMany({
-        where: {
-          workspaceId: request.workspaceId,
-          isActive: true,
-          startDate: { lte: new Date() }, // Started
-          endDate: { gte: new Date() }    // Not ended
-        },
-        include: {
-          category: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
-        },
-        orderBy: { discountPercent: 'desc' } // Best offers first
-      });
-      
-      await prisma.$disconnect();
-      
-      if (!offers || offers.length === 0) {
-        return {
-          success: false,
-          error: 'Nessuna offerta disponibile al momento',
-          message: 'Nessuna offerta disponibile al momento',
-          timestamp: new Date().toISOString()
-        } as OffersResponse;
-      }
-      
-      console.log('✅ Active offers found:', offers.length);
-      
-      return {
-        success: true,
-        data: {
-          offers: offers.map(offer => ({
-            id: offer.id,
-            name: offer.name,
-            description: offer.description,
-            discountPercent: offer.discountPercent,
-            startDate: offer.startDate,
-            endDate: offer.endDate,
-            category: offer.category ? {
-              id: offer.category.id,
-              name: offer.category.name
-            } : null
-          })),
-          totalOffers: offers.length
-        },
-        timestamp: new Date().toISOString()
-      };
-      
-    } catch (error) {
-      console.error('❌ Error in getActiveOffers:', error);
-      return this.createErrorResponse(error, 'getActiveOffers') as OffersResponse;
-    }
-  }
 
   public async getOrdersListLink(request: GetOrdersListLinkRequest): Promise<TokenResponse> {
     try {
@@ -543,14 +332,13 @@ export class CallingFunctionsService {
     }
   }
 
-
-  public async confirmOrderFromConversation(request: RagSearchRequest): Promise<StandardResponse> {
+  public async getCartLink(request: GetCartLinkRequest): Promise<TokenResponse> {
     try {
-      console.log('🔧 Calling confirmOrderFromConversation with:', request);
+      console.log('🔧 Calling getCartLink with:', request);
       
-      // Generate secure token for checkout/cart access
+      console.log('🔧 About to create token...');
       const token = await this.secureTokenService.createToken(
-        'checkout',
+        'cart',
         request.workspaceId,
         { customerId: request.customerId },
         '1h',
@@ -559,36 +347,24 @@ export class CallingFunctionsService {
         undefined,
         request.customerId
       );
-      
-      if (!token) {
-        console.error('❌ Failed to generate checkout token');
-        return {
-          success: false,
-          error: 'Errore nella generazione del link checkout',
-          message: 'Errore nella generazione del link checkout',
-          timestamp: new Date().toISOString()
-        };
-      }
-      
-      // Generate cart link
-      const checkoutUrl = `http://localhost:3000/checkout?token=${token}`;
-      
-      console.log('✅ Checkout link generated successfully:', checkoutUrl);
-      
+      console.log('🔧 Token created successfully:', token);
+
+      const linkUrl = `http://localhost:3000/cart?token=${token}`;
+
       return {
         success: true,
-        data: {
-          message: 'Ordine confermato! Clicca sul link per completare il checkout.',
-          checkoutUrl: checkoutUrl,
-          orderConfirmed: true
-        },
+        token: token,
+        linkUrl: linkUrl,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        action: 'cart',
         timestamp: new Date().toISOString()
       };
 
     } catch (error) {
-      return this.createErrorResponse(error, 'confirmOrderFromConversation');
+      return this.createErrorResponse(error, 'getCartLink') as TokenResponse;
     }
   }
+
 
   public async SearchRag(request: RagSearchRequest): Promise<RagSearchResponse> {
     try {

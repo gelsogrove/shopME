@@ -225,7 +225,6 @@ router.post('/get-active-offers', async (req: Request, res: Response) => {
       orderBy: { discountPercent: 'desc' }
     });
 
-    logger.info(`✅ GetActiveOffers: ${offers.length} active offers found`);
 
     return res.json({
       success: true,

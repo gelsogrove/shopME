@@ -5,11 +5,11 @@
  * Supports cart, profile, orders, tracking, and checkout links
  */
 
-import { generateCartLink } from './generateCartLink'
 
 interface ReplaceLinkWithTokenParams {
   response: string
   linkType?: 'cart' | 'profile' | 'orders' | 'tracking' | 'checkout' | 'auto'
+  context?: 'offers' | 'services' | 'auto'
 }
 
 interface ReplaceLinkWithTokenResult {
@@ -26,20 +26,22 @@ export async function ReplaceLinkWithToken(
   workspaceId: string
 ): Promise<ReplaceLinkWithTokenResult> {
   try {
-    console.log("🔗 ReplaceLinkWithToken called with params:", params)
+    const { response, linkType = 'auto', context = 'auto' } = params
     
-    const { response, linkType = 'auto' } = params
-    
-    // Controlliamo se contiene uno dei token specifici
     const hasCartToken = response.includes('[LINK_CART_WITH_TOKEN]')
     const hasProfileToken = response.includes('[LINK_PROFILE_WITH_TOKEN]')
     const hasOrdersToken = response.includes('[LINK_ORDERS_WITH_TOKEN]')
     const hasTrackingToken = response.includes('[LINK_TRACKING_WITH_TOKEN]')
     const hasCheckoutToken = response.includes('[LINK_CHECKOUT_WITH_TOKEN]')
+    const hasLastOrderInvoiceToken = response.includes('[LINK_LAST_ORDER_INVOICE_WITH_TOKEN]')
     const hasUserDiscountToken = response.includes('[USER_DISCOUNT]')
     const hasListOffersToken = response.includes('[LIST_OFFERS]')
+    const hasListActiveOffersToken = response.includes('[LIST_ACTIVE_OFFERS]')
+    const hasListAllProductsToken = response.includes('[LIST_ALL_PRODUCTS]')
+    const hasListServicesToken = response.includes('[LIST_SERVICES]')
+    const hasListCategoriesToken = response.includes('[LIST_CATEGORIES]')
     
-    if (!hasCartToken && !hasProfileToken && !hasOrdersToken && !hasTrackingToken && !hasCheckoutToken && !hasUserDiscountToken && !hasListOffersToken) {
+    if (!hasCartToken && !hasProfileToken && !hasOrdersToken && !hasTrackingToken && !hasCheckoutToken && !hasLastOrderInvoiceToken && !hasUserDiscountToken && !hasListOffersToken && !hasListActiveOffersToken && !hasListAllProductsToken && !hasListServicesToken && !hasListCategoriesToken) {
       return {
         success: false,
         error: "Response does not contain any replaceable tokens"
@@ -52,116 +54,129 @@ export async function ReplaceLinkWithToken(
         error: "Missing customerId or workspaceId"
       }
     }
-    
-    // Determine link type if auto or based on token found
-    let finalLinkType = linkType
-    if (linkType === 'auto' || linkType === 'cart' || linkType === 'profile' || linkType === 'orders' || linkType === 'tracking' || linkType === 'checkout') {
-      // Use the linkType passed from DualLLMService (already detected)
-      if (linkType !== 'auto') {
-        finalLinkType = linkType
-      } else {
-        // Fallback auto-detection based on token presence
-        if (hasProfileToken) {
-          finalLinkType = 'profile'
-        } else if (hasOrdersToken) {
-          finalLinkType = 'orders'
-        } else if (hasTrackingToken) {
-          finalLinkType = 'tracking'
-        } else if (hasCheckoutToken) {
-          finalLinkType = 'checkout'
-        } else if (hasCartToken) {
-          finalLinkType = 'cart'
+
+    let replacedResponse = response
+
+    // Handle cart token - Redirect to web
+    if (hasCartToken) {
+      replacedResponse = replacedResponse.replace(/\[LINK_CART_WITH_TOKEN\]/g, "https://laltrait.com/cart")
+    }
+
+    // Handle profile token
+    if (hasProfileToken) {
+      try {
+        const { PrismaClient } = require('@prisma/client')
+        const prisma = new PrismaClient()
+        
+        const customer = await prisma.customers.findFirst({
+          where: {
+            id: customerId,
+            workspaceId: workspaceId
+          },
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        })
+        
+        if (customer) {
+          const profileToken = Buffer.from(`${customerId}:${workspaceId}:${Date.now()}`).toString('base64')
+          const profileLink = `http://localhost:3000/profile-public?token=${profileToken}`
+          replacedResponse = replacedResponse.replace(/\[LINK_PROFILE_WITH_TOKEN\]/g, profileLink)
         } else {
-          finalLinkType = 'cart' // default
+          replacedResponse = replacedResponse.replace(/\[LINK_PROFILE_WITH_TOKEN\]/g, "Link del profilo non disponibile")
         }
+        
+        await prisma.$disconnect()
+      } catch (error) {
+        console.error("❌ Error generating profile link:", error)
+        replacedResponse = replacedResponse.replace(/\[LINK_PROFILE_WITH_TOKEN\]/g, "Link del profilo non disponibile")
       }
     }
-    
-    console.log(`🔗 Generating ${finalLinkType} link...`)
-    
-    let generatedLink = ""
-    
-    // Generate appropriate link based on type
-    switch (finalLinkType) {
-      case 'profile':
-        // const profileResult = await GetCustomerProfileLink({ workspaceId, customerId })
-        const profileResult = null // REMOVED - GetCustomerProfileLink deleted
-        if (profileResult && profileResult.profileUrl) {
-          generatedLink = profileResult.profileUrl
-        } else {
-          generatedLink = "https://shopme.com/profile?token=ERROR_TOKEN"
-        }
-        break
-        
-      case 'orders':
-        // 🔧 ORDERS: Generate /orders-public link
-        console.log("🔧 REPLACE_LINK_DEBUG: Generating ORDERS link with:", { customerId, workspaceId })
-        console.log("🚨 FORCE RELOAD - ENTERING ORDERS CASE!")
-        const ordersResult = await generateCartLink({}, customerId, workspaceId)
-        console.log("🔧 REPLACE_LINK_DEBUG: generateCartLink result for orders:", ordersResult)
-        
-        if (ordersResult.success && ordersResult.cartLink) {
-          // Replace /checkout with /orders-public in the generated link
-          generatedLink = ordersResult.cartLink.replace('/checkout?', '/orders-public?')
-          console.log("✅ ORDERS LINK GENERATED:", generatedLink)
-        } else {
-          generatedLink = "https://shopme.com/orders-public?token=ERROR_TOKEN"
-        }
-        break
 
-      case 'tracking':
-        // 🔧 TRACKING: Generate /tracking link 
-        console.log("🔧 REPLACE_LINK_DEBUG: Generating TRACKING link with:", { customerId, workspaceId })
-        const trackingResult = await generateCartLink({}, customerId, workspaceId)
+    // Handle orders token
+    if (hasOrdersToken) {
+      try {
+        const { SecureTokenService } = require('../../application/services/secure-token.service')
+        const secureTokenService = new SecureTokenService()
         
-        if (trackingResult.success && trackingResult.cartLink) {
-          // Replace /checkout with /tracking for tracking links
-          generatedLink = trackingResult.cartLink.replace('/checkout?', '/tracking?')
-          console.log("✅ TRACKING LINK GENERATED:", generatedLink)
-        } else {
-          generatedLink = "https://shopme.com/tracking?token=ERROR_TOKEN"
-        }
-        break
+        const ordersToken = await secureTokenService.createToken(
+          'orders',
+          workspaceId,
+          { customerId, workspaceId },
+          '1h',
+          undefined,
+          undefined,
+          undefined,
+          customerId
+        )
         
-      case 'checkout':
-      case 'cart':
-      default:
-        // 🔧 CART/CHECKOUT: Use original /checkout link
-        console.log("🔧 REPLACE_LINK_DEBUG: Calling generateCartLink with:", { customerId, workspaceId })
-        
-        const cartResult = await generateCartLink({}, customerId, workspaceId)
-        console.log("🔧 REPLACE_LINK_DEBUG: generateCartLink result:", cartResult)
-        
-        if (cartResult.success && cartResult.cartLink) {
-          generatedLink = cartResult.cartLink
-          console.log("✅ CART LINK GENERATED:", generatedLink)
-        } else {
-          generatedLink = "https://shopme.com/cart?token=ERROR_TOKEN"
-        }
-        break
+        const ordersLink = `http://localhost:3000/orders-public?token=${ordersToken}`
+        replacedResponse = replacedResponse.replace(/\[LINK_ORDERS_WITH_TOKEN\]/g, ordersLink)
+      } catch (error) {
+        console.error("❌ Error generating orders link:", error)
+        replacedResponse = replacedResponse.replace(/\[LINK_ORDERS_WITH_TOKEN\]/g, "Link degli ordini non disponibile")
+      }
     }
-    
-    // Replace [LINK_WITH_TOKEN] with generated link
-    // Replace tutti i possibili token con il link generato
-    let replacedResponse = response
-      .replace(/\[LINK_CART_WITH_TOKEN\]/g, generatedLink)
-      .replace(/\[LINK_PROFILE_WITH_TOKEN\]/g, generatedLink)
-      .replace(/\[LINK_ORDERS_WITH_TOKEN\]/g, generatedLink)
-      .replace(/\[LINK_TRACKING_WITH_TOKEN\]/g, generatedLink)
-      .replace(/\[LINK_CHECKOUT_WITH_TOKEN\]/g, generatedLink)
-    
-    // Handle discount and offers tokens
-    if (hasUserDiscountToken || hasListOffersToken) {
-      console.log("💰 Processing discount and offers tokens...")
-      
-      // Get customer discount
+
+    // Handle tracking token
+    if (hasTrackingToken) {
+      try {
+        const { SecureTokenService } = require('../../application/services/secure-token.service')
+        const secureTokenService = new SecureTokenService()
+        
+        const trackingToken = await secureTokenService.createToken(
+          'orders',
+          workspaceId,
+          { customerId, workspaceId },
+          '1h',
+          undefined,
+          undefined,
+          undefined,
+          customerId
+        )
+        
+        const trackingLink = `http://localhost:3000/tracking-public?token=${trackingToken}`
+        replacedResponse = replacedResponse.replace(/\[LINK_TRACKING_WITH_TOKEN\]/g, trackingLink)
+      } catch (error) {
+        console.error("❌ Error generating tracking link:", error)
+        replacedResponse = replacedResponse.replace(/\[LINK_TRACKING_WITH_TOKEN\]/g, "Link di tracking non disponibile")
+      }
+    }
+
+    // Handle checkout token
+    if (hasCheckoutToken) {
+      try {
+        const { SecureTokenService } = require('../../application/services/secure-token.service')
+        const secureTokenService = new SecureTokenService()
+        
+        const checkoutToken = await secureTokenService.createToken(
+          'checkout',
+          workspaceId,
+          { customerId, workspaceId },
+          '1h',
+          undefined,
+          undefined,
+          undefined,
+          customerId
+        )
+        
+        const checkoutLink = `http://localhost:3000/checkout?token=${checkoutToken}`
+        replacedResponse = replacedResponse.replace(/\[LINK_CHECKOUT_WITH_TOKEN\]/g, checkoutLink)
+      } catch (error) {
+        console.error("❌ Error generating checkout link:", error)
+        replacedResponse = replacedResponse.replace(/\[LINK_CHECKOUT_WITH_TOKEN\]/g, "Link di checkout non disponibile")
+      }
+    }
+
+    // Handle discount, offers, products, services and categories tokens
+    if (hasUserDiscountToken || hasListOffersToken || hasListActiveOffersToken || hasListAllProductsToken || hasListServicesToken || hasListCategoriesToken) {
       let userDiscount = "0%"
       if (hasUserDiscountToken) {
         try {
           const { PrismaClient } = require('@prisma/client')
           const prisma = new PrismaClient()
-          
-          console.log(`🔍 DEBUG: Looking for customer with ID: ${customerId}, workspaceId: ${workspaceId}`)
           
           const customer = await prisma.customers.findFirst({
             where: {
@@ -174,8 +189,6 @@ export async function ReplaceLinkWithToken(
               discount: true
             }
           })
-          
-          console.log(`🔍 DEBUG: Found customer:`, customer)
           
           if (customer && customer.discount > 0) {
             userDiscount = `${customer.discount}%`
@@ -190,13 +203,135 @@ export async function ReplaceLinkWithToken(
         }
       }
       
-      // Get active offers
-      let listOffers = "No active offers at the moment"
-      if (hasListOffersToken) {
+      let listOffers = "Nessuna offerta attiva al momento"
+      let listActiveOffers = "Nessuna offerta attiva al momento"
+      let listAllProducts = "Nessun prodotto disponibile al momento"
+      let listServices = "Nessun servizio disponibile al momento"
+      let listCategories = "Nessuna categoria disponibile al momento"
+      
+      if (hasListCategoriesToken) {
         try {
           const { PrismaClient } = require('@prisma/client')
           const prisma = new PrismaClient()
           
+          const categories = await prisma.categories.findMany({
+            where: {
+              workspaceId: workspaceId
+            },
+            select: {
+              name: true,
+              description: true
+            },
+            take: 10
+          })
+          
+          if (categories.length > 0) {
+            listCategories = categories.map(category => 
+              `• ${category.name}${category.description ? ` - ${category.description}` : ''}`
+            ).join('\n')
+          } else {
+            listCategories = "Nessuna categoria disponibile al momento"
+          }
+          
+          await prisma.$disconnect()
+        } catch (error) {
+          console.error("❌ Error getting categories:", error)
+          listCategories = "Nessuna categoria disponibile al momento"
+        }
+      }
+      
+      if (hasListServicesToken) {
+        try {
+          const { PrismaClient } = require('@prisma/client')
+          const prisma = new PrismaClient()
+          
+          const services = await prisma.services.findMany({
+            where: {
+              workspaceId: workspaceId
+            },
+            select: {
+              name: true,
+              description: true,
+              price: true,
+              currency: true
+            },
+            take: 5
+          })
+          
+          if (services.length > 0) {
+            listServices = services.map(service => 
+              `• ${service.name}: ${service.price} ${service.currency} - ${service.description}`
+            ).join('\n')
+          } else {
+            listServices = "Nessun servizio disponibile al momento"
+          }
+          
+          await prisma.$disconnect()
+        } catch (error) {
+          console.error("❌ Error getting services:", error)
+          listServices = "Nessun servizio disponibile al momento"
+        }
+      }
+      
+      if (hasListAllProductsToken) {
+        try {
+          const { PrismaClient } = require('@prisma/client')
+          const prisma = new PrismaClient()
+          
+          // Get all products grouped by category
+          const products = await prisma.products.findMany({
+            where: {
+              workspaceId: workspaceId,
+              isActive: true
+            },
+            select: {
+              name: true,
+              price: true,
+              currency: true,
+              category: {
+                select: {
+                  name: true
+                }
+              }
+            },
+            take: 20
+          })
+          
+          if (products.length > 0) {
+            // Group products by category
+            const groupedProducts = products.reduce((acc, product) => {
+              const categoryName = product.category?.name || 'Other'
+              if (!acc[categoryName]) {
+                acc[categoryName] = []
+              }
+              acc[categoryName].push(product)
+              return acc
+            }, {} as Record<string, typeof products>)
+            
+            // Format products by category
+            listAllProducts = Object.entries(groupedProducts).map(([category, categoryProducts]) => {
+              const categoryProductsList = (categoryProducts as any[]).map(product => 
+                `  • ${product.name}: ${product.price} ${product.currency}`
+              ).join('\n')
+              return `**${category}:**\n${categoryProductsList}`
+            }).join('\n\n')
+          } else {
+            listAllProducts = "Nessun prodotto disponibile al momento"
+          }
+          
+          await prisma.$disconnect()
+        } catch (error) {
+          console.error("❌ Error getting all products:", error)
+          listAllProducts = "Nessun prodotto disponibile al momento"
+        }
+      }
+      
+      if (hasListActiveOffersToken) {
+        try {
+          const { PrismaClient } = require('@prisma/client')
+          const prisma = new PrismaClient()
+          
+          // Get active offers
           const activeOffers = await prisma.offers.findMany({
             where: {
               workspaceId: workspaceId,
@@ -209,45 +344,77 @@ export async function ReplaceLinkWithToken(
               description: true,
               discountPercent: true
             },
-            take: 3 // Limit to 3 offers
+            take: 5
           })
           
           if (activeOffers.length > 0) {
-            listOffers = activeOffers.map(offer => 
-              `• ${offer.name}: ${offer.discountPercent}% off - ${offer.description}`
+            listActiveOffers = activeOffers.map(offer => 
+              `• ${offer.name}: ${offer.discountPercent}% di sconto - ${offer.description}`
             ).join('\n')
           } else {
-            listOffers = "No active offers at the moment"
+            listActiveOffers = "Nessuna offerta attiva al momento"
           }
           
           await prisma.$disconnect()
         } catch (error) {
           console.error("❌ Error getting active offers:", error)
-          listOffers = "No active offers at the moment"
+          listActiveOffers = "Nessuna offerta attiva al momento"
         }
       }
       
-      // Replace the tokens
+      if (hasListOffersToken) {
+        try {
+          const { PrismaClient } = require('@prisma/client')
+          const prisma = new PrismaClient()
+          
+          // Get offers (default behavior)
+          const activeOffers = await prisma.offers.findMany({
+            where: {
+              workspaceId: workspaceId,
+              isActive: true,
+              startDate: { lte: new Date() },
+              endDate: { gte: new Date() }
+            },
+            select: {
+              name: true,
+              description: true,
+              discountPercent: true
+            },
+            take: 3
+          })
+          
+          if (activeOffers.length > 0) {
+            listOffers = activeOffers.map(offer => 
+              `• ${offer.name}`
+            ).join('\n')
+          } else {
+            listOffers = "Nessuna offerta attiva al momento"
+          }
+          
+          await prisma.$disconnect()
+        } catch (error) {
+          console.error("❌ Error getting data:", error)
+          listOffers = context === 'services' ? "Nessun servizio disponibile al momento" : "Nessuna offerta attiva al momento"
+        }
+      }
+      
       replacedResponse = replacedResponse
         .replace(/\[USER_DISCOUNT\]/g, userDiscount)
         .replace(/\[LIST_OFFERS\]/g, listOffers)
-      
-      console.log(`✅ User discount: ${userDiscount}`)
-      console.log(`✅ Active offers: ${listOffers}`)
+        .replace(/\[LIST_ACTIVE_OFFERS\]/g, listActiveOffers)
+        .replace(/\[LIST_ALL_PRODUCTS\]/g, listAllProducts)
+        .replace(/\[LIST_SERVICES\]/g, listServices)
+        .replace(/\[LIST_CATEGORIES\]/g, listCategories)
     }
-    
-    console.log(`✅ ${finalLinkType} link generated:`, generatedLink)
-    console.log("✅ [LINK_WITH_TOKEN] replaced successfully")
-    
+
     return {
       success: true,
       response: replacedResponse,
-      linkType: finalLinkType,
-      generatedLink
+      linkType: linkType
     }
-    
+
   } catch (error) {
-    console.error("❌ Error in ReplaceLinkWithToken:", error)
+    console.error("❌ ReplaceLinkWithToken error:", error)
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error"

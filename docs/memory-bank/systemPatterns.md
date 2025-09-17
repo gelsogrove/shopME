@@ -2,25 +2,27 @@
 
 ## 🚨 CRITICAL ARCHITECTURAL PATTERNS
 
-### **🎯 PROVEN DUAL-LLM ARCHITECTURE (SEPTEMBER 2025)**
+### **🎯 UNIFIED DUAL-LLM ARCHITECTURE (DECEMBER 2024)**
 
-**Pattern Name:** Translation → Recognition → CF → Formatter
+**Pattern Name:** Translation → DualLLM → SearchRag → Formatter
 **Category:** Chatbot Architecture  
-**Priority:** CRITICAL - PROVEN IMPLEMENTATION
-**Status:** ✅ TESTED & WORKING
+**Priority:** CRITICAL - UNIFIED IMPLEMENTATION
+**Status:** 🔄 IMPLEMENTATION IN PROGRESS
 
-#### **🚨 PROVEN ARCHITECTURE FLOW**
+#### **🚨 UNIFIED ARCHITECTURE FLOW**
 1. **TranslationService**: Detect user language + translate to English
-2. **CF Recognition**: isAboutOffers → isAboutProducts → isAboutCategory
-3. **CallingFunctionsService**: Execute specific CF with workspace isolation
-4. **FormatterService LLM**: Format response in user's original language
-5. **SearchRag Fallback**: If no CF matches, use SearchRag
-6. **Generic Response**: If SearchRag returns empty, use generic response
+2. **DualLLMService**: LLM with temperature 0.1 for trigger recognition
+3. **SearchRag Fallback**: If no CF triggered, use SearchRag for semantic search
+4. **FormatterService**: Token replacement + formatting with temperature 0.5
+5. **Token Replacement**: All tokens replaced BEFORE OpenRouter call
+6. **Output**: Natural, conversational response with proper localization
 
-#### **✅ IMPLEMENTED SUCCESS CASES:**
-- **GetActiveOffers**: "che offerte avete?" → Perfect formatted offers
-- **GetAllProducts**: "che prodotti avete?" → Category list with counts  
-- **GetProductsByCategory**: "che formaggi avete?" → Complete 66 products with codes
+#### **✅ TOKEN REPLACEMENT SYSTEM:**
+- **Generic Tokens**: `[LINK_WITH_TOKEN]` for FAQ
+- **Specific Tokens**: `[LIST_CATEGORIES]`, `[USER_DISCOUNT]`, `[LINK_ORDERS_WITH_TOKEN]`, etc.
+- **Replace Strategy**: All tokens replaced in FormatterService BEFORE OpenRouter
+- **Empty Data Handling**: Graceful messages when database is empty
+- **Proper Noun Protection**: Database names not translated
 
 #### **📋 REPLICABLE PATTERN FOR NEW CF:**
 

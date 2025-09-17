@@ -1,76 +1,79 @@
 # Active Context - ShopMe Project
 
-## 🎯 CURRENT STATUS: SYSTEM FULLY OPERATIONAL
+## 🎯 CURRENT STATUS: SYSTEM ARCHITECTURE UNIFICATION
 
-**Date**: September 15, 2025  
-**Status**: ✅ All systems working correctly  
-**Priority**: Cart management system optimization  
+**Date**: December 2024  
+**Status**: 🔄 Architecture unification in progress  
+**Priority**: Token replacement system implementation  
 
-## 🚨 CRITICAL TASK: Cart Management System Redesign & Database Synchronization
+## 🚨 CRITICAL TASK: Token Replacement System Implementation
 
 ### **Problem Identified**
-1. Il sistema di gestione carrello tramite chatbot era complesso e causava problemi di traduzione e gestione dei prodotti
-2. Il carrello online non era sincronizzato con il database - le modifiche erano solo locali
+1. **Formatter inventa contenuti**: Token `[LIST_CATEGORIES]` non sostituito, OpenRouter inventa categorie
+2. **Architettura non unificata**: Discrepanze tra PRD, RULES_PROMPT e TODO.MD
+3. **Temperature non ottimali**: LLM e Formatter con temperature non corrette
+4. **Token system confuso**: Sistema token non unificato
 
 ### **Solution Implemented**
-- **Eliminato**: Tutte le funzioni chatbot per gestione carrello (add_to_cart, remove_from_cart, etc.)
-- **Implementato**: Sistema web-based per gestione carrello
-- **Aggiunto**: Funzione `generateCartLink()` per generare link sicuri al carrello web
-- **Sincronizzato**: Carrello online ora sincronizzato con database
-- **Pulito**: Tutto il codice obsoleto e hardcode non autorizzati
+- **Architettura unificata**: `TranslationService → DualLLMService → SearchRag → FormatterService`
+- **Temperature corrette**: LLM 0.1 (deterministico), Formatter 0.5 (creativo)
+- **Sistema token unificato**: Token generici + specifici gestiti nel formatter
+- **Replace PRIMA di OpenRouter**: Tutti i token sostituiti prima della chiamata LLM
+- **Parametri obbligatori**: customerId, workspaceId, language, originalQuestion sempre passati
 
-### **Database Synchronization Details**
-- **Frontend**: Modificato `CheckoutPage.tsx` per chiamare API backend
-- **API Calls**: Aggiunta, modifica e rimozione prodotti ora chiamano `/api/cart/{token}/items`
-- **Real-time Sync**: Dopo ogni operazione, il carrello viene ricaricato dal database
-- **Error Handling**: Gestione errori completa per tutte le operazioni
+### **Token System Details**
+- **Token generici**: `[LINK_WITH_TOKEN]` per FAQ
+- **Token specifici**: `[LIST_CATEGORIES]`, `[USER_DISCOUNT]`, `[LINK_ORDERS_WITH_TOKEN]`, etc.
+- **Gestione dati vuoti**: Messaggi di cortesia quando database vuoto
+- **Nomi propri**: Non tradotti (Mozzarella di Bufala rimane Mozzarella di Bufala)
 
 ### **Impact**
-- Sistema più semplice e affidabile
-- Gestione carrello tramite interfaccia web
-- Eliminati problemi di traduzione prodotti
-- **Carrello sempre sincronizzato con database**
-- Codice più pulito e manutenibile
+- **Zero invenzioni**: Solo dati reali dal database
+- **Architettura pulita**: Flusso unificato e chiaro
+- **Performance ottimale**: Temperature corrette per ogni componente
+- **Manutenibilità**: Sistema token centralizzato nel formatter
 
 ## 📋 ACTIVE TASKS
 
 ### PENDING TASKS
-1. **Controllare ordine della chatHistory** - Verificare e correggere l'ordine di visualizzazione dei messaggi nella cronologia chat
-2. **Indirizzo di Spedizione mancante nello step 3 dell'ordine** - Aggiungere il campo indirizzo di spedizione nello step 3 del processo di checkout/ordine
+1. **Implementare token replacement nel formatter** - Sostituire tutti i token con dati reali dal database PRIMA di OpenRouter
+2. **Aggiornare signature FormatterService** - Aggiungere parametri obbligatori: customerId, workspaceId, language, originalQuestion
+3. **Testare sistema unificato** - Verificare che non ci siano più invenzioni di contenuti
+4. **Aggiornare chiamate al formatter** - Passare sempre tutti i parametri obbligatori
 
 ## ✅ RECENTLY COMPLETED
 
 ### TASK COMPLETIONS
-- **Cart Management System Redesign**: Eliminato sistema chatbot carrello, implementato sistema web-based
-- **Database Synchronization**: Carrello online ora sincronizzato con database
-- **Code Cleanup**: Rimosso tutto il codice obsoleto e hardcode non autorizzati
-- **generateCartLink Function**: Implementata funzione per generare link sicuri al carrello web
-- **Prompt Optimization**: Pulito e ottimizzato il prompt del chatbot
-- **PRD Update**: Aggiornato PRD per riflettere il nuovo sistema carrello
-- **Swagger Update**: Aggiornata documentazione API per nuovo sistema
-- **Spam Detection Fix**: Riattivato spam detection con soglia 30 messaggi/minuto
-- **Orders - Riorganizzare campo Notes**: Campo Notes rimosso dalla lista e visibile solo nel form di edit
-- **Lista orders - rimuovere icona dell'occhio**: Icona View Details rimossa dalla tabella ordini
-- **Pagina products - Aggiungere productCode alla lista**: ProductCode ora visibile nella tabella prodotti
-- **Configurazione dinamica LLM**: Temperatura e maxToken ora dinamici dall'agent config
-- **Visualizzazione chat consistente**: Popup e history chat ora usano lo stesso MessageRenderer
+- **Architecture Unification**: Unificata architettura tra PRD, RULES_PROMPT e TODO.MD
+- **Temperature Settings**: Corrette temperature LLM (0.1) e Formatter (0.5)
+- **Token System Unification**: Sistema token unificato con generici + specifici
+- **Documentation Update**: Aggiornati PRD e Memory Bank con architettura corretta
+- **Acceptance Criteria**: Create 10 Acceptance Criteria complete e strutturate
+- **Obsolete Features Removal**: Rimosse funzionalità obsolete (multi-business, priorità dinamica)
+- **Flow Documentation**: Documentato flusso corretto con Mermaid diagram
 
 ## 🏗️ SYSTEM ARCHITECTURE
+
+### Unified Architecture
+- **Flow**: `USER INPUT → TranslationService → DualLLMService → SearchRag → FormatterService`
+- **Temperature**: LLM 0.1 (deterministic), Formatter 0.5 (creative)
+- **Token System**: Unified system with generic + specific tokens
+- **Replace Strategy**: All tokens replaced in FormatterService BEFORE OpenRouter
 
 ### Core Components
 - **Backend**: Node.js + Express + Prisma + PostgreSQL
 - **Frontend**: React + TypeScript + TailwindCSS
-- **LLM**: OpenRouter integration with dual-LLM architecture
+- **LLM**: OpenRouter integration with unified dual-LLM architecture
 - **Workflow**: N8N automation
 - **Database**: PostgreSQL with workspace isolation
 
 ### Key Features
 - **Multilingual Support**: Italian, English, Spanish, Portuguese
-- **WhatsApp Integration**: Complete chatbot functionality
+- **WhatsApp Integration**: Complete chatbot functionality with token replacement
 - **Order Management**: Full CRUD operations
 - **Product Management**: Catalog with embeddings
 - **Customer Management**: Profile and registration system
-- **Analytics**: Usage tracking and reporting
+- **Token Management**: Unified system for FAQ and database data
 
 ## 🔧 DEVELOPMENT ENVIRONMENT
 
@@ -103,11 +106,12 @@
 
 ## 🎯 NEXT PRIORITIES
 
-1. **MEDIUM**: Complete pending tasks in task manager
-2. **LOW**: System maintenance and optimization
-3. **LOW**: Monitor new cart management system performance
+1. **HIGH**: Implement token replacement in FormatterService
+2. **HIGH**: Update FormatterService signature with mandatory parameters
+3. **MEDIUM**: Test unified system with all test cases
+4. **MEDIUM**: Verify no content inventions
 
 ---
 
-**Last Updated**: September 15, 2025  
-**Status**: System operational, cart management system redesigned and optimized
+**Last Updated**: December 2024  
+**Status**: Architecture unified, token replacement system implementation in progress
