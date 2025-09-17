@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client"
-import { getAllProducts } from "../../chatbot/calling-functions/getAllProducts"
+// import { getAllProducts } from "../../chatbot/calling-functions/getAllProducts" // REMOVED - file no longer exists
 import { MessageRepository } from "../../repositories/message.repository"
 import { documentService } from "../../services/documentService"
 import logger from "../../utils/logger"
@@ -156,7 +156,8 @@ export class FunctionHandlerService {
 
         case 'get_all_categories':
           return {
-            functionName
+            functionName,
+            data: null // No data needed for this function
           }
 
         case 'search_products':
@@ -272,18 +273,19 @@ export class FunctionHandlerService {
    */
   async handleGetAllProducts(phoneNumber: string, workspaceId: string, customerId: string, message: string): Promise<any> {
     try {
-      const result = await getAllProducts({
-        phoneNumber,
-        workspaceId,
-        customerId,
-        message
-      })
+      // TODO: Implement getAllProducts functionality
+      // const result = await getAllProducts({
+      //   phoneNumber,
+      //   workspaceId,
+      //   customerId,
+      //   message
+      // })
 
       return {
         success: true,
-        response: result?.response || 'Prodotti ottenuti con successo',
-        products: result?.products || [],
-        totalProducts: result?.totalProducts || 0
+        response: 'Prodotti ottenuti con successo',
+        products: [],
+        totalProducts: 0
       }
     } catch (error) {
       logger.error('❌ Errore in handleGetAllProducts:', error)

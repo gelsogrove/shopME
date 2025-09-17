@@ -7,30 +7,24 @@
  */
 
 export class FormatterService {
-  private static async replaceAllTokens(response: string, customerId?: string, workspaceId?: string): Promise<string> {
-    console.log('🔧 Formatter: replaceAllTokens called with:', response.substring(0, 100))
-    // Handle [LIST_CATEGORIES] token
+  private static async replaceAllVariables(response: string, customerId?: string, workspaceId?: string): Promise<string> {
+    console.log('🔧 Formatter: replaceAllVariables called with:', response.substring(0, 100))
+    
+    // 🚨 EXCEPTION HANDLING: Parameter validation
+    if (!workspaceId) {
+      throw new Error("workspaceId is required for variable replacement")
+    }
+    
+    // Handle [LIST_CATEGORIES] VARIABLE
     if (response.includes('[LIST_CATEGORIES]')) {
-      console.log('🔧 Formatter: Found [LIST_CATEGORIES] token!')
+      console.log('🔧 Formatter: Found [LIST_CATEGORIES] VARIABLE!')
+      
       try {
+        // ✅ USE EXISTING SERVICE: CategoryService
+        const { CategoryService } = require('../application/services/category.service')
+        const categoryService = new CategoryService()
         
-        const { PrismaClient } = require('@prisma/client')
-        const prisma = new PrismaClient()
-        
-        const categories = await prisma.category.findMany({
-          where: {
-            isActive: true,
-            workspaceId: workspaceId || undefined
-          },
-          select: {
-            name: true
-          },
-          orderBy: {
-            name: 'asc'
-          }
-        })
-        
-        await prisma.$disconnect()
+        const categories = await categoryService.getAllForWorkspace(workspaceId)
         
         if (categories && categories.length > 0) {
           const categoriesList = categories.map(category => {
@@ -39,19 +33,86 @@ export class FormatterService {
           }).join('\n')
           
           response = response.replace('[LIST_CATEGORIES]', categoriesList)
+        } else {
+          // 🚨 GRACEFUL HANDLING: Empty database
+          response = response.replace('[LIST_CATEGORIES]', 'Al momento non abbiamo categorie disponibili 🙏')
         }
       } catch (error) {
-        console.error("❌ Formatter: Error fetching categories:", error)
+        // 🚨 EXCEPTION HANDLING: Database query failure
+        throw new Error(`Database query failed for [LIST_CATEGORIES]: ${error.message}`)
+      }
+    }
+
+    // Handle [USER_DISCOUNT] VARIABLE
+    if (response.includes('[USER_DISCOUNT]')) {
+      console.log('🔧 Formatter: Found [USER_DISCOUNT] VARIABLE!')
+      
+      // 🚨 EXCEPTION HANDLING: Parameter validation
+      if (!customerId) {
+        throw new Error("customerId is required for [USER_DISCOUNT] variable replacement")
+      }
+      
+      try {
+        // ✅ USE EXISTING SERVICE: PriceCalculationService
+        const { PriceCalculationService } = require('../application/services/price-calculation.service')
+        const { PrismaClient } = require('@prisma/client')
+        const prisma = new PrismaClient()
+        const priceService = new PriceCalculationService(prisma)
+        
+        const discounts = await priceService.getAvailableDiscounts(workspaceId, customerId)
+        
+        await prisma.$disconnect()
+        
+        if (discounts.customerDiscount > 0) {
+          response = response.replace('[USER_DISCOUNT]', `${discounts.customerDiscount}%`)
+        } else {
+          // 🚨 GRACEFUL HANDLING: No discount
+          response = response.replace('[USER_DISCOUNT]', 'Nessuno sconto attivo al momento 🙏')
+        }
+      } catch (error) {
+        // 🚨 EXCEPTION HANDLING: Database query failure
+        throw new Error(`Database query failed for [USER_DISCOUNT]: ${error.message}`)
+      }
+    }
+
+    // Handle [LINK_ORDERS_WITH_TOKEN] VARIABLE
+    if (response.includes('[LINK_ORDERS_WITH_TOKEN]')) {
+      console.log('🔧 Formatter: Found [LINK_ORDERS_WITH_TOKEN] VARIABLE!')
+      
+      // 🚨 EXCEPTION HANDLING: Parameter validation
+      if (!customerId) {
+        throw new Error("customerId is required for [LINK_ORDERS_WITH_TOKEN] variable replacement")
+      }
+      
+      try {
+        // ✅ USE EXISTING SERVICE: SecureTokenService
+        const { SecureTokenService } = require('../application/services/secure-token.service')
+        const secureTokenService = new SecureTokenService()
+        
+        const ordersToken = await secureTokenService.createToken(
+          'orders',
+          workspaceId,
+          { customerId, workspaceId },
+          '1h',
+          undefined,
+          undefined,
+          undefined,
+          customerId
+        )
+        
+        const ordersLink = `http://localhost:3000/orders-public?token=${ordersToken}`
+        response = response.replace('[LINK_ORDERS_WITH_TOKEN]', ordersLink)
+      } catch (error) {
+        // 🚨 EXCEPTION HANDLING: Token generation failure
+        throw new Error(`Token generation failed for [LINK_ORDERS_WITH_TOKEN]: ${error.message}`)
       }
     }
 
     // Handle other tokens using existing ReplaceLinkWithToken function
-    if (response.includes('[USER_DISCOUNT]') || response.includes('[LIST_OFFERS]') || 
-        response.includes('[LIST_ACTIVE_OFFERS]') || response.includes('[LIST_ALL_PRODUCTS]') || 
-        response.includes('[LIST_SERVICES]') || 
-        response.includes('[LINK_ORDERS_WITH_TOKEN]') || response.includes('[LINK_PROFILE_WITH_TOKEN]') || 
-        response.includes('[LINK_CART_WITH_TOKEN]') || response.includes('[LINK_TRACKING_WITH_TOKEN]') || 
-        response.includes('[LINK_CHECKOUT_WITH_TOKEN]')) {
+    if (response.includes('[LIST_OFFERS]') || response.includes('[LIST_ACTIVE_OFFERS]') || 
+        response.includes('[LIST_ALL_PRODUCTS]') || response.includes('[LIST_SERVICES]') || 
+        response.includes('[LINK_PROFILE_WITH_TOKEN]') || response.includes('[LINK_CART_WITH_TOKEN]') || 
+        response.includes('[LINK_TRACKING_WITH_TOKEN]') || response.includes('[LINK_CHECKOUT_WITH_TOKEN]')) {
       
       try {
         const { ReplaceLinkWithToken } = require('../chatbot/calling-functions/ReplaceLinkWithToken')
@@ -98,7 +159,7 @@ export class FormatterService {
       return '📦' // Default emoji
     }
   }
-  static async formatResponse(response: string, language: string = 'it', formatRules?: string, customerId?: string, workspaceId?: string): Promise<string> {
+  static async formatResponse(response: string, language: string = 'it', formatRules?: string, customerId?: string, workspaceId?: string, originalQuestion?: string, conversationHistory?: Array<{role: string, content: string}>): Promise<string> {
     console.log('🔧 Formatter: formatResponse called with:', response.substring(0, 100))
     if (!response || response.trim() === '') {
       return "Nessuna risposta disponibile."
@@ -142,8 +203,8 @@ export class FormatterService {
       
       const targetLanguage = languageMap[language] || "Italian"
       
-      // Handle ALL tokens BEFORE calling OpenRouter
-      response = await this.replaceAllTokens(response, customerId, workspaceId)
+      // Handle ALL VARIABLES BEFORE calling OpenRouter
+      response = await this.replaceAllVariables(response, customerId, workspaceId)
       
       const formatResponse = await axios.post(openRouterUrl, {
         model: 'openai/gpt-3.5-turbo',

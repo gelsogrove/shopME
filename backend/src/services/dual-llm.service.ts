@@ -311,7 +311,15 @@ export class DualLLMService {
           }
         }
         
-        let formattedOutput = await FormatterService.formatResponse(rawResponse, request.language || "it", undefined, request.customerid, request.workspaceId)
+        let formattedOutput = await FormatterService.formatResponse(
+          rawResponse, 
+          request.language || "it", 
+          undefined, 
+          request.customerid, 
+          request.workspaceId, 
+          request.chatInput,
+          request.messages || []
+        )
         
 
       return {
