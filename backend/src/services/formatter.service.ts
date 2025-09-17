@@ -20,7 +20,7 @@
  */
 
 export class FormatterService {
-  private static async replaceAllVariables(response: string, customerId?: string, workspaceId?: string, language?: string): Promise<string> {
+  private static async replaceAllVariables(response: string, customerId?: string, workspaceId?: string, language?: string, customerDiscount?: number): Promise<string> {
     console.log('🔧 Formatter: replaceAllVariables called with:', response.substring(0, 100))
     
     // 🚨 EXCEPTION HANDLING: Parameter validation
@@ -260,7 +260,7 @@ export class FormatterService {
       return '📦' // Default emoji
     }
   }
-  static async formatResponse(response: string, language: string = 'it', formatRules?: string, customerId?: string, workspaceId?: string, originalQuestion?: string, conversationHistory?: Array<{role: string, content: string}>): Promise<string> {
+  static async formatResponse(response: string, language: string = 'it', formatRules?: string, customerId?: string, workspaceId?: string, originalQuestion?: string, customerDiscount?: number, conversationHistory?: Array<{role: string, content: string}>): Promise<string> {
     console.log('🔧 FORMATTER: ===== START FORMATTING =====')
     console.log('🔧 FORMATTER: Input response:', response)
     console.log('🔧 FORMATTER: Language:', language)
@@ -302,7 +302,7 @@ export class FormatterService {
     let formattedResponse = response
     
     try {
-      formattedResponse = await this.replaceAllVariables(response, customerId, workspaceId, language)
+      formattedResponse = await this.replaceAllVariables(response, customerId, workspaceId, language, customerDiscount)
       console.log('✅ FORMATTER: Token replacement completed')
       console.log('🔧 FORMATTER: After token replacement:', formattedResponse)
       fs.appendFileSync('/tmp/formatter-debug.log', `After token replacement: ${formattedResponse}\n`)

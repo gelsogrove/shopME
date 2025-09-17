@@ -104,7 +104,50 @@ export class DualLLMService {
             message: functionResult.function_call.arguments.message || '',
             language: 'it'
           })
-          } else {
+        } else if (functionResult.function_call.name === 'get_all_products') {
+          const { GetAllProducts } = await import('../chatbot/calling-functions/GetAllProducts')
+          cfExecutionResult = await GetAllProducts({
+            phoneNumber: request.phone,
+            workspaceId: request.workspaceId,
+            customerId: customer?.id || '',
+            message: translatedQuery,
+            language: 'it'
+          })
+        } else if (functionResult.function_call.name === 'get_all_categories') {
+          // Handle get_all_categories directly
+          const { PrismaClient } = require('@prisma/client')
+          const prisma = new PrismaClient()
+          
+          try {
+            const categories = await prisma.categories.findMany({
+              where: {
+                workspaceId: request.workspaceId,
+                isActive: true
+              },
+              select: {
+                id: true,
+                name: true,
+                description: true
+              }
+            })
+            
+            await prisma.$disconnect()
+            
+            const categoryList = categories.map(cat => `- ${cat.name}`).join('\n')
+            cfExecutionResult = {
+              success: true,
+              response: `Ecco le nostre categorie disponibili:\n\n${categoryList}\n\nPosso aiutarti a trovare prodotti specifici in una di queste categorie!`,
+              data: categories
+            }
+          } catch (error) {
+            await prisma.$disconnect()
+            cfExecutionResult = {
+              success: false,
+              response: "Mi dispiace, al momento non riesco a recuperare le categorie. Riprova più tardi.",
+              error: error.message
+            }
+          }
+        } else {
           // For other functions, use FunctionHandlerService
           const { FunctionHandlerService } = await import('../application/services/function-handler.service')
           const functionHandler = new FunctionHandlerService()
@@ -126,11 +169,16 @@ export class DualLLMService {
           cfExecutionResult: cfExecutionResult
         }
       } else {
-        console.log(`🚨 DualLLM: No specific CF selected, using generic response`)
-      return {
-          success: false,
-          response: "No specific function called",
-          functionCalls: []
+        console.log(`🚨 DualLLM: No specific CF selected - REGOLA 2: Salvare risposta LLM`)
+        
+        // REGOLA 2: Salvare risposta LLM quando non chiama funzioni
+        const llmResponse = await this.generateLLMResponse(translatedQuery, request.workspaceId)
+        
+        return {
+          success: false, // No CF called
+          response: llmResponse,
+          functionCalls: [],
+          llmGeneratedResponse: llmResponse
         }
       }
 
@@ -169,15 +217,39 @@ export class DualLLMService {
 
       // If SearchRag has results, return FAQ response
       console.log(`🔍 DualLLM: SearchRag has results, using FAQ response`)
+      
+      let faqAnswer = searchRagResult.data.results.faqs?.[0]?.answer || "Ciao! Come posso aiutarti oggi?"
+      
+      // REGOLA 10: Replace variabili PRIMA di inviare al modello
+      if (faqAnswer.includes('[') && faqAnswer.includes(']')) {
+        console.log(`🔧 DualLLM: REGOLA 10 - Replace variabili in FAQ: ${faqAnswer.substring(0, 100)}...`)
+        
+        try {
+          const { ReplaceLinkWithToken } = await import('../chatbot/calling-functions/ReplaceLinkWithToken')
+          const replaceResult = await ReplaceLinkWithToken(
+            { response: faqAnswer },
+            request.customerid || "",
+            request.workspaceId
+          )
+          
+          if (replaceResult.success && replaceResult.response) {
+            faqAnswer = replaceResult.response
+            console.log(`✅ DualLLM: Variables replaced: ${faqAnswer.substring(0, 100)}...`)
+          }
+        } catch (error) {
+          console.error('❌ Error replacing variables in FAQ:', error)
+        }
+      }
+
       return {
         success: true,
-        response: searchRagResult.data.results.faqs?.[0]?.answer || "Ciao! Come posso aiutarti oggi?",
-        functionCalls: [{
-          name: "SearchRag",
-          functionName: "SearchRag",
+        response: faqAnswer,
+          functionCalls: [{
+            name: "SearchRag",
+            functionName: "SearchRag",
           success: searchRagResult.success,
           result: searchRagResult,
-          source: "SearchRag"
+            source: "SearchRag"
         }]
       }
 
@@ -197,14 +269,37 @@ export class DualLLMService {
       
       const language = this.detectLanguageFromMessage(request.chatInput, request.phone)
       
+      // REGOLA 9: Ottenere sconto cliente per il formatter
+      let customerDiscount = 0
+      if (request.customerid) {
+        try {
+          const messageRepository = new MessageRepository()
+          const customer = await messageRepository.findCustomerByPhone(request.phone, request.workspaceId)
+          customerDiscount = customer?.discount || 0
+          console.log(`💰 DualLLM: Customer discount found: ${customerDiscount}%`)
+        } catch (error) {
+          console.error('❌ Error getting customer discount:', error)
+          customerDiscount = 0
+        }
+      }
+      
       // Formatter receives: language, discount, question, workspaceId, customerId
+      // Fix: Ensure response is a string for formatter
+      let responseForFormatter = result.response
+      if (typeof responseForFormatter !== 'string') {
+        responseForFormatter = typeof responseForFormatter === 'object' 
+          ? JSON.stringify(responseForFormatter) 
+          : String(responseForFormatter || '')
+      }
+      
       const formattedResponse = await FormatterService.formatResponse(
-        result.response || JSON.stringify(result),
+        responseForFormatter,
         language,
         undefined, // formatRules
         request.customerid || "",
         request.workspaceId,
-        request.chatInput // originalQuestion
+        request.chatInput, // originalQuestion
+        customerDiscount // REGOLA 9: Sconto cliente
       )
 
       console.log(`✅ DualLLM: Formatter completed for ${functionName}`)
@@ -221,5 +316,61 @@ export class DualLLMService {
     return "it" // Default fallback
   }
 
-   
+  private async generateLLMResponse(query: string, workspaceId: string): Promise<string> {
+    try {
+      console.log(`🤖 DualLLM: Generating LLM response for: ${query}`)
+      
+      // Get agent prompt from database
+      const { PrismaClient } = require('@prisma/client')
+      const prisma = new PrismaClient()
+      
+      const prompt = await prisma.prompts.findFirst({
+        where: {
+          workspaceId: workspaceId,
+          name: 'SofIA - Gusto Italiano Assistant'
+        },
+        select: {
+          content: true
+        }
+      })
+      
+      await prisma.$disconnect()
+      const agentPrompt = prompt?.content
+      
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'http://localhost:3001',
+          'X-Title': 'ShopMe LLM Response'
+        },
+        body: JSON.stringify({
+          model: 'openai/gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: agentPrompt || 'You are SofIA, an Italian e-commerce assistant. Respond naturally and helpfully in Italian.'
+            },
+            {
+              role: 'user',
+              content: query
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 150
+        })
+      })
+      
+      const data = await response.json()
+      const llmResponse = data.choices?.[0]?.message?.content || 'Ciao! Come posso aiutarti oggi?'
+      
+      console.log(`✅ DualLLM: LLM response generated: ${llmResponse}`)
+      return llmResponse
+      
+    } catch (error) {
+      console.error('❌ Error generating LLM response:', error)
+      return 'Ciao! Come posso aiutarti oggi?'
+    }
+  }
 }

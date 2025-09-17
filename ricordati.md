@@ -13,5 +13,11 @@ ricordati:
 - il searchRAg quando ha la variabile deve fare un replace ovviamente prima di inviarlo al modello
 - ricordati che prima di tutto passa dal layer del transalate pria del searchRAg ma i prodotti italiani non li deve tradurre
 - controlla quello che fai chiediti se stai facendo le cose giuste 
-- attualizza il memory bank
+
 - rispoetta le regole del cursorsrules se hai dubbi chiedi.
+- ricordati che LLM ha lo storico e non il formatter
+- ricordati di non usare nessuna regex e' llm che capisce cosa lanciare e che parametri passare
+- ricordati che deve risponde nella lingua del cliente nel formatter deve esserci
+rispondi in "variabile della lingua" che viene passata
+
+- attualizza il memory bank con qeuste regole.

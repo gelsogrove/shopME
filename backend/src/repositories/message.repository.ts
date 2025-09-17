@@ -1,8 +1,8 @@
 import {
-    MessageDirection,
-    MessageType,
-    OrderStatus,
-    PrismaClient,
+  MessageDirection,
+  MessageType,
+  OrderStatus,
+  PrismaClient,
 } from "@prisma/client"
 import * as dotenv from "dotenv"
 import OpenAI from "openai"
@@ -609,7 +609,9 @@ export class MessageRepository {
 
       // Save bot response (ensure it's not empty)
       let botResponse = null
-      if (botMessage && botMessage.trim()) {
+      // Fix: Ensure botMessage is a string before calling trim()
+      const botMessageStr = typeof botMessage === 'string' ? botMessage : String(botMessage || '')
+      if (botMessageStr && botMessageStr.trim()) {
         // 🚨 ANTI-DUPLICATE CHECK: Verify if similar bot response exists in same hour:minute
         const now = new Date()
         const currentHourMinute = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`
@@ -619,7 +621,7 @@ export class MessageRepository {
         const existingBotMessage = await this.prisma.message.findFirst({
           where: {
             chatSessionId: session.id,
-            content: botMessage,
+            content: botMessageStr,
             direction: MessageDirection.OUTBOUND,
             createdAt: {
               gte: twoMinutesAgo,
@@ -633,7 +635,7 @@ export class MessageRepository {
         if (existingBotMessage) {
           const existingHourMinute = `${existingBotMessage.createdAt.getHours()}:${existingBotMessage.createdAt.getMinutes().toString().padStart(2, "0")}`
           logger.warn(
-            `🚨 DUPLICATE BOT RESPONSE DETECTED: Response "${botMessage.substring(0, 50)}..." already exists from ${existingHourMinute} (${existingBotMessage.createdAt.toISOString()}). Current time: ${currentHourMinute}. Skipping insert.`
+            `🚨 DUPLICATE BOT RESPONSE DETECTED: Response "${botMessageStr.substring(0, 50)}..." already exists from ${existingHourMinute} (${existingBotMessage.createdAt.toISOString()}). Current time: ${currentHourMinute}. Skipping insert.`
           )
           botResponse = existingBotMessage // Return existing response instead of creating new one
         } else {
@@ -685,7 +687,7 @@ export class MessageRepository {
           botResponse = await this.prisma.message.create({
             data: {
               chatSessionId: session.id,
-              content: botMessage,
+              content: botMessageStr,
               direction: MessageDirection.OUTBOUND,
               type: MessageType.TEXT,
               aiGenerated: true,
@@ -699,7 +701,7 @@ export class MessageRepository {
             },
           })
           logger.info(
-            `✅ SAVED BOT RESPONSE: "${botMessage.substring(0, 50)}..." for session ${session.id}`
+            `✅ SAVED BOT RESPONSE: "${botMessageStr.substring(0, 50)}..." for session ${session.id}`
           )
         }
       }
@@ -1246,7 +1248,7 @@ export class MessageRepository {
       // Ottieni il prompt del function router
       const functionRouterPrompt = await this.getFunctionRouterPrompt()
 
-      // Definisci le funzioni disponibili per OpenRouter
+      // Definisci le funzioni disponibili per OpenRouter (ALLINEATE CON IL CODICE)
       const availableFunctions = [
         {
           name: "search_specific_product",
@@ -1263,31 +1265,24 @@ export class MessageRepository {
           },
         },
         {
-          name: "get_event_by_date",
-          description: "Retrieves events scheduled for a specific date",
+          name: "get_all_products",
+          description: "Retrieves all available products with prices and stock information",
           parameters: {
             type: "object",
             properties: {
-              date: {
-                type: "string",
-                description: "The date in format YYYY-MM-DD",
+              limit: {
+                type: "number",
+                description: "Maximum number of products to return (optional)",
               },
             },
-            required: ["date"],
           },
         },
         {
-          name: "get_service_info",
-          description: "Retrieves information about a specific service",
+          name: "get_all_categories",
+          description: "Retrieves all available product categories",
           parameters: {
             type: "object",
-            properties: {
-              service_name: {
-                type: "string",
-                description: "The name of the service to get information about",
-              },
-            },
-            required: ["service_name"],
+            properties: {},
           },
         },
         {

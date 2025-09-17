@@ -27,7 +27,7 @@ export class TranslationService {
         messages: [
           {
             role: 'system',
-            content: 'You are a translator for an Italian e-commerce platform. Translate the user\'s message to English using e-commerce terminology. CRITICAL RULE: NEVER translate Italian product names, food names, or brand names. Keep them exactly as they are in Italian and put them in quotes. Examples: "Bocconcino Di Bufala" stays "Bocconcino Di Bufala", "Mozzarella di Bufala Campana DOP" stays "Mozzarella di Bufala Campana DOP", "Burrata" stays "Burrata", "Torta Sacher" stays "Torta Sacher" (NOT "Sacher Torte"), "Tiramisù" stays "Tiramisù", "Cannolo Siciliano" stays "Cannolo Siciliano", "Sfogliatella" stays "Sfogliatella", "Parmigiano Reggiano" stays "Parmigiano Reggiano", "Prosciutto di Parma" stays "Prosciutto di Parma". Only translate common words like "aggiungi" (add), "quanto costa" (how much does it cost), "quando arriva" (when does it arrive), "cerco" (I am looking for), "hai" (do you have), "avete" (do you have). For questions about delivery times, shipping, receiving goods, use keywords like "delivery time", "shipping time", "delivery", "shipping". Return ONLY the English translation, no explanations.'
+            content: await this.getTranslationPrompt()
           },
           {
             role: 'user',
@@ -111,4 +111,34 @@ export class TranslationService {
   }
 
   // Removed hardcoded English detection - all text should be translated
+
+  private async getTranslationPrompt(): Promise<string> {
+    try {
+      // REGOLA 11: Get translation prompt from database instead of hardcoding
+      const { PrismaClient } = require('@prisma/client')
+      const prisma = new PrismaClient()
+      
+      const prompt = await prisma.prompts.findFirst({
+        where: {
+          name: 'translation_prompt'
+        },
+        select: {
+          content: true
+        }
+      })
+      
+      await prisma.$disconnect()
+      
+      if (prompt && prompt.content) {
+        console.log('✅ Translation prompt loaded from database')
+        return prompt.content
+      } else {
+        console.log('⚠️ Translation prompt not found in database, using fallback')
+        return 'You are a translator for an Italian e-commerce platform. Translate the user\'s message to English using e-commerce terminology. CRITICAL RULE: NEVER translate Italian product names, food names, or brand names. Keep them exactly as they are in Italian. Return ONLY the English translation, no explanations.'
+      }
+    } catch (error) {
+      console.error('❌ Error getting translation prompt from database:', error)
+      return 'You are a translator for an Italian e-commerce platform. Translate the user\'s message to English using e-commerce terminology. CRITICAL RULE: NEVER translate Italian product names, food names, or brand names. Keep them exactly as they are in Italian. Return ONLY the English translation, no explanations.'
+    }
+  }
 }
