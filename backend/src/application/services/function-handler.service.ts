@@ -59,6 +59,7 @@ interface DisambiguationResult {
  */
 export class FunctionHandlerService {
   private prisma: PrismaClient
+  private callingFunctionsService: any
 
   /**
    * 🎯 TASK: Clean up orphaned cart items (items with missing products)
@@ -109,6 +110,7 @@ export class FunctionHandlerService {
     this.messageRepository = new MessageRepository()
     this.tokenService = new TokenService()
     this.priceCalculationService = new PriceCalculationService(this.prisma)
+    this.callingFunctionsService = require('../../services/calling-functions.service').default
     
     // Auto-cleanup sessioni scadute ogni ora
     setInterval(() => this.cleanExpiredSessions(), 60 * 60 * 1000)
@@ -151,6 +153,12 @@ export class FunctionHandlerService {
         case 'get_all_products':
           return {
             data: await this.handleGetAllProducts(phoneNumber, workspaceId, customer?.id, ''),
+            functionName
+          }
+
+        case 'search_specific_product':
+          return {
+            data: await this.handleSearchSpecificProduct(phoneNumber, workspaceId, customer?.id, params.message || '', params),
             functionName
           }
 
@@ -296,6 +304,31 @@ export class FunctionHandlerService {
     }
   }
 
+  /**
+   * Cerca un prodotto specifico
+   */
+  async handleSearchSpecificProduct(phoneNumber: string, workspaceId: string, customerId: string, message: string, functionArgs: any): Promise<any> {
+    try {
+      const productName = functionArgs?.productName || message;
+      
+      const result = await this.callingFunctionsService.searchSpecificProduct({
+        phoneNumber,
+        workspaceId,
+        customerId: customerId || undefined,
+        productName,
+        message,
+        language: 'it'
+      });
+
+      return result;
+    } catch (error) {
+      logger.error('❌ Errore in handleSearchSpecificProduct:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Errore interno'
+      }
+    }
+  }
 
   // =============================================================================
   // 📄 DOCUMENTATION METHODS

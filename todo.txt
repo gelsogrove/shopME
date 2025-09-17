@@ -1,3 +1,0 @@
-- voglio vedere la fattura dell'ultimo ordine
-- che sconto ho ?
--- voglio vedere l'ordine 020202

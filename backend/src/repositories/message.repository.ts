@@ -1193,40 +1193,23 @@ export class MessageRepository {
    */
   async getFunctionRouterPrompt(): Promise<string> {
     try {
-      // Ottieni il prompt per il function router
-      const functionRouterPrompt = await this.prisma.prompts.findFirst({
+      // Usa il prompt principale dell'agente per il function router
+      const agentPrompt = await this.prisma.prompts.findFirst({
         where: {
           name: {
-            contains: "function-router",
+            contains: "SofIA",
             mode: "insensitive",
           },
+          isActive: true,
         },
       })
 
-      if (!functionRouterPrompt) {
-        logger.warn("Function router prompt not found, using default")
-
-        // Fallback: leggi il file direttamente
-        try {
-          const fs = require("fs")
-          const path = require("path")
-          const promptPath = path.join(
-            __dirname,
-            "../../../prisma/prompts/function-router.md"
-          )
-
-          if (fs.existsSync(promptPath)) {
-            return fs.readFileSync(promptPath, "utf8")
-          }
-        } catch (fsError) {
-          logger.error("Error reading function router prompt file:", fsError)
-        }
-
-        // Se tutto fallisce, usa un prompt di default
+      if (!agentPrompt) {
+        logger.warn("Agent prompt not found, using default")
         return "You are a function router for a WhatsApp chatbot. Your task is to analyze the user's message and determine which function to call."
       }
 
-      return functionRouterPrompt.content
+      return agentPrompt.content
     } catch (error) {
       logger.error("Error getting function router prompt:", error)
       return "You are a function router for a WhatsApp chatbot. Your task is to analyze the user's message and determine which function to call."
@@ -1239,11 +1222,18 @@ export class MessageRepository {
    * @returns Risultato della chiamata al function router
    */
   async callFunctionRouter(message: string): Promise<any> {
+    console.log("🚨 DEBUG - callFunctionRouter CALLED with message:", message)
     try {
-      // Check if OpenAI is properly configured
-      if (!isOpenAIConfigured()) {
+      // Check if OpenRouter is properly configured
+      console.log("🔍 DEBUG - OPENROUTER_API_KEY check:", {
+        present: !!process.env.OPENROUTER_API_KEY,
+        length: process.env.OPENROUTER_API_KEY?.length || 0,
+        prefix: process.env.OPENROUTER_API_KEY?.substring(0, 15) || "MISSING"
+      })
+      
+      if (!process.env.OPENROUTER_API_KEY) {
         logger.warn(
-          "OpenAI API key not configured properly for function router"
+          "OpenRouter API key not configured properly for function router"
         )
         return {
           function_call: {
@@ -1256,20 +1246,20 @@ export class MessageRepository {
       // Ottieni il prompt del function router
       const functionRouterPrompt = await this.getFunctionRouterPrompt()
 
-      // Definisci le funzioni disponibili per OpenAI
+      // Definisci le funzioni disponibili per OpenRouter
       const availableFunctions = [
         {
-          name: "get_product_info",
+          name: "search_specific_product",
           description: "Retrieves information about a specific product",
           parameters: {
             type: "object",
             properties: {
-              product_name: {
+              message: {
                 type: "string",
-                description: "The name of the product to get information about",
+                description: "The user message containing the product name",
               },
             },
-            required: ["product_name"],
+            required: ["message"],
           },
         },
         {
@@ -1434,22 +1424,60 @@ export class MessageRepository {
         }"`
       )
 
-      // Chiamata all'API OpenAI con le funzioni definite
-      const response = await openai.chat.completions.create({
+      // Chiamata all'API OpenRouter con le funzioni definite
+      const axios = require('axios')
+      const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions"
+      const openRouterApiKey = process.env.OPENROUTER_API_KEY
+
+      // DEBUG: Log prompt e funzioni
+      console.log("🔍 DEBUG - Function Router Prompt:", functionRouterPrompt.substring(0, 200) + "...")
+      console.log("🔍 DEBUG - Available Functions:", availableFunctions.map(f => f.name))
+      console.log("🔍 DEBUG - User Message:", message)
+      console.log("🔍 DEBUG - OpenRouter API Key present:", !!openRouterApiKey)
+
+      const requestPayload = {
         model: "openai/gpt-4o-mini",
         messages: [
           { role: "system", content: functionRouterPrompt },
           { role: "user", content: message },
         ],
-        functions: availableFunctions,
-        function_call: "auto",
-      })
+        tools: availableFunctions.map(func => ({
+          type: "function",
+          function: func
+        })),
+        tool_choice: "auto",
+      }
 
-      // Estrai la chiamata di funzione dal risultato
-      const functionCall = response.choices[0]?.message?.function_call
+      console.log("🔍 DEBUG - Request payload:", JSON.stringify(requestPayload, null, 2))
 
-      if (!functionCall) {
-        logger.warn("No function call returned by OpenAI")
+      let response
+      try {
+        response = await axios.post(openRouterUrl, requestPayload, {
+          headers: {
+            "Authorization": `Bearer ${openRouterApiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": process.env.FRONTEND_URL || "http://localhost:5173",
+            "X-Title": "ShopME Function Router"
+          }
+        })
+        console.log("🔍 DEBUG - Axios call successful")
+      } catch (axiosError) {
+        console.error("🔍 DEBUG - Axios error:", axiosError.message)
+        if (axiosError.response) {
+          console.error("🔍 DEBUG - Axios response error:", axiosError.response.data)
+        }
+        throw axiosError
+      }
+
+      // DEBUG: Log risposta OpenRouter
+      console.log("🔍 DEBUG - OpenRouter Response:", JSON.stringify(response.data.choices[0]?.message, null, 2))
+
+      // Estrai la chiamata di tool dal risultato
+      const toolCalls = response.data.choices[0]?.message?.tool_calls
+      const toolCall = toolCalls?.[0]
+
+      if (!toolCall || !toolCall.function) {
+        logger.warn("No tool call returned by OpenRouter")
         return {
           function_call: {
             name: "get_generic_response",
@@ -1461,18 +1489,18 @@ export class MessageRepository {
       // Parsing degli argomenti della funzione
       let functionArgs = {}
       try {
-        if (functionCall.arguments) {
-          functionArgs = JSON.parse(functionCall.arguments)
+        if (toolCall.function.arguments) {
+          functionArgs = JSON.parse(toolCall.function.arguments)
         }
       } catch (error) {
         logger.error("Error parsing function arguments:", error)
       }
 
-      logger.info(`Function router selected: ${functionCall.name}`)
+      logger.info(`Function router selected: ${toolCall.function.name}`)
 
       return {
         function_call: {
-          name: functionCall.name,
+          name: toolCall.function.name,
           arguments: functionArgs,
         },
       }

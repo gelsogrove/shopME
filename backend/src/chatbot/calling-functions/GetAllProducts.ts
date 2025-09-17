@@ -104,17 +104,7 @@ Please check back later or contact our staff for more information.`;
     const priceService = new PriceCalculationService(prisma);
     const productIds = products.map((p) => p.id);
     const customerDiscount = customerId ? (await prisma.customers.findUnique({ where: { id: customerId }, select: { discount: true } }))?.discount || 0 : 0;
-    console.log(`🔧 GET_ALL_PRODUCTS: Customer discount: ${customerDiscount}% for customerId: ${customerId}`);
     const priceResult = await priceService.calculatePricesWithDiscounts(workspaceId, productIds, customerDiscount);
-    console.log(`🔧 GET_ALL_PRODUCTS: Price calculation result:`, { 
-      totalProducts: priceResult.products.length,
-      firstProduct: priceResult.products[0] ? {
-        id: priceResult.products[0].id,
-        originalPrice: priceResult.products[0].originalPrice,
-        finalPrice: priceResult.products[0].finalPrice,
-        appliedDiscount: priceResult.products[0].appliedDiscount
-      } : null
-    });
     const priceMap = new Map(priceResult.products.map(p => [p.id, p]));
 
     // Combina prodotti con prezzi calcolati
@@ -164,12 +154,9 @@ Please check back later or contact our staff for more information.`;
       response += `\n`;
     });
     
-    console.log(`🔧 GET_ALL_PRODUCTS: Formatted ${totalFormattedProducts} products out of ${productsWithPrices.length}`);
-
     response += `\n📦 ${isItalian ? 'Totale prodotti' : 'Total products'}: ${productsWithPrices.length}`;
 
     logger.info(`[GET_ALL_PRODUCTS] Successfully retrieved ${productsWithPrices.length} products`);
-    console.log(`🔧 GET_ALL_PRODUCTS: Retrieved ${productsWithPrices.length} products, response length: ${response.length}`);
 
     return {
       response,

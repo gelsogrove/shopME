@@ -458,7 +458,7 @@ router.post("/chat", async (req, res) => {
         console.log(`🔧 /api/chat: LLM Request customerid: "${customer?.id || ""}" for customer: ${customer?.name || "Unknown"}`)
         console.log(`🔧 /api/chat: LLM Request workspaceId: "${body.workspaceId}"`)
 
-        const response = await dualLLMService.processMessage(llmRequest)
+        const response = await dualLLMService.handleMessage(llmRequest)
         
         // 🔧 CRITICAL FIX: Save message to database like webhook does
         try {
@@ -984,7 +984,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
       
       // Process with dual LLM service
       console.log('🚀 WEBHOOK: About to call dual LLM service with input:', messageContent);
-      result = await dualLLMService.processMessage(llmRequest);
+      result = await dualLLMService.handleMessage(llmRequest);
       console.log('🚀 WEBHOOK: Dual LLM result received:', {
         success: result.success,
         hasOutput: !!result.output,

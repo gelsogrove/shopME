@@ -7,7 +7,7 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "scripts": {
-    "dev": "dotenv -c .env.development -- tsnd --respawn src/index.ts",
+    "dev": "npx kill-port 3001 & dotenv -c .env.development -- tsnd --respawn src/index.ts",
     "build": "prisma generate && tsc",
     "start": "node dist/src/index.js",
     "seed": "ts-node prisma/seed.ts",
