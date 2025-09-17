@@ -12,11 +12,13 @@ e devi riempire risposta: error e funcion
 - qual'e' la vostra politica di reso ?
 - come viene gestita la catena del freddo ?
 - mostra carrello
-- che categorie avete?
+- che categorie avete? (formato piu bello)
+- che prodotti avete ? 
 - posso parlare con un operatore?
 
+
 NON VA
-- che prodotti avete ? 
+
 - dove e' il mio ordine?
 - voglio vedere la fattura dell'ultimo ordine
 - Tomato Products

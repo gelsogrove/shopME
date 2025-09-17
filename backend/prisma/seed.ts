@@ -2367,6 +2367,18 @@ async function main() {
       answer: "Hello! We sell the following products: [LIST_ALL_PRODUCTS]",
     },
     {
+      question: "che prodotti avete?",
+      answer: "Ciao! Vendiamo i seguenti prodotti: [LIST_ALL_PRODUCTS]",
+    },
+    {
+      question: "che prodotti vendete?",
+      answer: "Ciao! Vendiamo i seguenti prodotti: [LIST_ALL_PRODUCTS]",
+    },
+    {
+      question: "prodotti",
+      answer: "Ciao! Ecco i nostri prodotti: [LIST_ALL_PRODUCTS]",
+    },
+    {
       question: "How can I see my orders?",
       answer: "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
     },

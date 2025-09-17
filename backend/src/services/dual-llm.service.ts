@@ -309,6 +309,12 @@ export class DualLLMService {
       if (ragResult.success && ragResult.results && (ragResult.results as any).results && (ragResult.results as any).results.total > 0) {
         let rawResponse = "Ho trovato queste informazioni per te."
         
+        console.log('🔧 DUALLLM: ===== ANALYZING RAG RESULTS =====')
+        console.log('🔧 DUALLLM: Total results:', (ragResult.results as any).results.total)
+        console.log('🔧 DUALLLM: FAQs found:', (ragResult.results as any).results.faqs?.length || 0)
+        console.log('🔧 DUALLLM: Products found:', (ragResult.results as any).results.products?.length || 0)
+        console.log('🔧 DUALLLM: Services found:', (ragResult.results as any).results.services?.length || 0)
+        
         if ((ragResult.results as any).results.faqs && (ragResult.results as any).results.faqs.length > 0) {
           const topFaq = (ragResult.results as any).results.faqs[0]
           const content = topFaq.content
@@ -319,10 +325,25 @@ export class DualLLMService {
           if (answerMatch) {
             rawResponse = answerMatch[1].trim()
             console.log('🔧 DualLLM: Extracted answer:', rawResponse)
+            
+            // 🔧 FIX: If FAQ contains [LIST_ALL_PRODUCTS] and we have products, use the FAQ with products
+            if (rawResponse.includes('[LIST_ALL_PRODUCTS]') && (ragResult.results as any).results.products && (ragResult.results as any).results.products.length > 0) {
+              console.log('🔧 DualLLM: FAQ contains [LIST_ALL_PRODUCTS] and we have products - using FAQ with products')
+              // Keep the FAQ response with [LIST_ALL_PRODUCTS] token - it will be replaced by FormatterService
+            }
           } else {
             console.log('🔧 DualLLM: No answer match found')
           }
+        } else {
+          console.log('🔧 DUALLLM: No FAQs found, checking products...')
+          if ((ragResult.results as any).results.products && (ragResult.results as any).results.products.length > 0) {
+            console.log('🔧 DUALLLM: Products available, but using generic response')
+            console.log('🔧 DUALLLM: First product:', JSON.stringify((ragResult.results as any).results.products[0], null, 2))
+          }
         }
+        
+        console.log('🔧 DUALLLM: Final rawResponse to formatter:', rawResponse)
+        console.log('🔧 DUALLLM: ===== END RAG ANALYSIS =====')
         
         let formattedOutput = await FormatterService.formatResponse(
           rawResponse, 

@@ -26,6 +26,7 @@ export async function ReplaceLinkWithToken(
   workspaceId: string
 ): Promise<ReplaceLinkWithTokenResult> {
   try {
+    console.log('🔧 ReplaceLinkWithToken: Called with params:', { response: params.response.substring(0, 100), customerId, workspaceId })
     const { response, linkType = 'auto', context = 'auto' } = params
     
     const hasCartToken = response.includes('[LINK_CART_WITH_TOKEN]')
@@ -300,6 +301,7 @@ export async function ReplaceLinkWithToken(
       
       if (hasListAllProductsToken) {
         try {
+          console.log('🔧 ReplaceLinkWithToken: Starting to get products for workspace:', workspaceId)
           const { PrismaClient } = require('@prisma/client')
           const prisma = new PrismaClient()
           
@@ -321,6 +323,8 @@ export async function ReplaceLinkWithToken(
             },
             take: 20
           })
+          
+          console.log('🔧 ReplaceLinkWithToken: Found products:', products.length)
           
           if (products.length > 0) {
             // Group products by category

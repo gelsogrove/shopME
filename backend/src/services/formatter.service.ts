@@ -7,7 +7,7 @@
  */
 
 export class FormatterService {
-  private static async replaceAllVariables(response: string, customerId?: string, workspaceId?: string): Promise<string> {
+  private static async replaceAllVariables(response: string, customerId?: string, workspaceId?: string, language?: string): Promise<string> {
     console.log('🔧 Formatter: replaceAllVariables called with:', response.substring(0, 100))
     
     // 🚨 EXCEPTION HANDLING: Parameter validation
@@ -109,11 +109,68 @@ export class FormatterService {
     }
 
     // Handle other tokens using existing ReplaceLinkWithToken function
-    if (response.includes('[LIST_OFFERS]') || response.includes('[LIST_ACTIVE_OFFERS]') || 
-        response.includes('[LIST_ALL_PRODUCTS]') || response.includes('[LIST_SERVICES]') || 
-        response.includes('[LINK_PROFILE_WITH_TOKEN]') || response.includes('[LINK_CART_WITH_TOKEN]') || 
-        response.includes('[LINK_TRACKING_WITH_TOKEN]') || response.includes('[LINK_CHECKOUT_WITH_TOKEN]') ||
-        response.includes('[LINK_LAST_ORDER_INVOICE_WITH_TOKEN]')) {
+    const hasListAllProducts = response.includes('[LIST_ALL_PRODUCTS]')
+    const hasListServices = response.includes('[LIST_SERVICES]')
+    const hasListOffers = response.includes('[LIST_OFFERS]')
+    const hasListActiveOffers = response.includes('[LIST_ACTIVE_OFFERS]')
+    const hasLinkProfile = response.includes('[LINK_PROFILE_WITH_TOKEN]')
+    const hasLinkCart = response.includes('[LINK_CART_WITH_TOKEN]')
+    const hasLinkTracking = response.includes('[LINK_TRACKING_WITH_TOKEN]')
+    const hasLinkCheckout = response.includes('[LINK_CHECKOUT_WITH_TOKEN]')
+    const hasLinkLastOrderInvoice = response.includes('[LINK_LAST_ORDER_INVOICE_WITH_TOKEN]')
+    
+    console.log('🔧 Formatter: Token detection:', {
+      hasListAllProducts,
+      hasListServices,
+      hasListOffers,
+      hasListActiveOffers,
+      hasLinkProfile,
+      hasLinkCart,
+      hasLinkTracking,
+      hasLinkCheckout,
+      hasLinkLastOrderInvoice,
+      response: response.substring(0, 100)
+    })
+    
+    // Handle [LIST_ALL_PRODUCTS] token with GetAllProducts function
+    if (hasListAllProducts) {
+      console.log('🔧 Formatter: Found [LIST_ALL_PRODUCTS] token, calling GetAllProducts')
+      
+      try {
+        const { GetAllProducts } = require('../chatbot/calling-functions/GetAllProducts')
+        
+        if (!customerId || !workspaceId) {
+          throw new Error("customerId and workspaceId are required for GetAllProducts")
+        }
+        
+              const productsResult = await GetAllProducts({
+                phoneNumber: "unknown", // We don't have phone number in formatter context
+                workspaceId: workspaceId,
+                customerId: customerId,
+                message: "Get all products",
+                language: language || 'it'
+              })
+        
+        console.log('🔧 Formatter: GetAllProducts returned:', { 
+          success: !!productsResult.response, 
+          totalProducts: productsResult.totalProducts 
+        })
+        
+        if (productsResult.response) {
+          // Replace [LIST_ALL_PRODUCTS] with the actual products list
+          response = response.replace(/\[LIST_ALL_PRODUCTS\]/g, productsResult.response)
+          console.log('🔧 Formatter: Replaced [LIST_ALL_PRODUCTS] with products list')
+        }
+      } catch (error) {
+        console.error('❌ Formatter: GetAllProducts error:', error)
+        // Replace with fallback message
+        response = response.replace(/\[LIST_ALL_PRODUCTS\]/g, language === 'it' ? "Nessun prodotto disponibile al momento" : "No products available at the moment")
+      }
+    }
+    
+    // Handle other tokens using existing ReplaceLinkWithToken function
+    if (hasListOffers || hasListActiveOffers || hasListServices || 
+        hasLinkProfile || hasLinkCart || hasLinkTracking || hasLinkCheckout || hasLinkLastOrderInvoice) {
       
       console.log('🔧 Formatter: Found tokens that need replacement:', {
         hasListAllProducts: response.includes('[LIST_ALL_PRODUCTS]'),
@@ -126,15 +183,26 @@ export class FormatterService {
       try {
         const { ReplaceLinkWithToken } = require('../chatbot/calling-functions/ReplaceLinkWithToken')
         
+        console.log('🔧 Formatter: Token replacement params:', {
+          customerId: customerId,
+          workspaceId: workspaceId,
+          hasCustomerId: !!customerId,
+          hasWorkspaceId: !!workspaceId
+        })
+        
         if (!customerId || !workspaceId) {
           throw new Error("customerId and workspaceId are required for token replacement")
         }
+        
+        console.log('🔧 Formatter: About to call ReplaceLinkWithToken with:', { response: response.substring(0, 100), customerId, workspaceId })
         
         const replaceResult = await ReplaceLinkWithToken(
           { response },
           customerId,
           workspaceId
         )
+        
+        console.log('🔧 Formatter: ReplaceLinkWithToken returned:', { success: replaceResult.success, hasResponse: !!replaceResult.response, error: replaceResult.error })
         
         console.log('🔧 Formatter: ReplaceLinkWithToken result:', {
           success: replaceResult.success,
@@ -221,7 +289,7 @@ export class FormatterService {
     let formattedResponse = response
     
     try {
-      formattedResponse = await this.replaceAllVariables(response, customerId, workspaceId)
+      formattedResponse = await this.replaceAllVariables(response, customerId, workspaceId, language)
       console.log('✅ FORMATTER: Token replacement completed')
       console.log('🔧 FORMATTER: After token replacement:', formattedResponse)
       fs.appendFileSync('/tmp/formatter-debug.log', `After token replacement: ${formattedResponse}\n`)
@@ -230,8 +298,14 @@ export class FormatterService {
       formattedResponse = response
     }
 
-    // 🔧 FIX: Apply language-specific formatting
-    const languageFormatted = await this.applyLanguageFormatting(formattedResponse, language, formatRules)
+    // 🔧 FIX: Apply language-specific formatting (skip if we have a complete products list)
+    let languageFormatted = formattedResponse
+    if (!formattedResponse.includes('**') || !formattedResponse.includes('•')) {
+      // Only apply language formatting if it's not already a formatted products list
+      languageFormatted = await this.applyLanguageFormatting(formattedResponse, language, formatRules)
+    } else {
+      console.log('🔧 FORMATTER: Skipping language formatting for products list')
+    }
     
     console.log('🔧 FORMATTER: After language formatting:', languageFormatted.substring(0, 200))
     fs.appendFileSync('/tmp/formatter-debug.log', `After language formatting: ${languageFormatted}\n`)
@@ -399,7 +473,7 @@ Return ONLY the natural, unformatted text, no explanations.`
           }
         ],
         temperature: 0.0, // Zero temperature to prevent inventions
-        max_tokens: 800
+        max_tokens: 4000
       }, {
         headers: {
           'Authorization': `Bearer ${openRouterApiKey}`,
