@@ -146,7 +146,43 @@ Traduzione: "We have *Mozzarella di Bufala* and *Prosecco DOCG*"
 ```
 
 ### **🚨 GESTIONE DATI VUOTI - IMPORTANTE:**
-Se il database non restituisce risultati per un token, il formatter deve sostituire con un messaggio di cortesia invece di lasciare vuoto.
+Se il database non restituisce risultati per un **VARIABLE**, il formatter deve sostituire con un messaggio di cortesia invece di lasciare vuoto.
+
+### **🚨 EXCEPTION HANDLING - CRITICO:**
+**ANDREA HA CHIARITO**: Lanciare **ECCEZIONI ESPLICITE** così il programmatore capisce cosa fare!
+
+#### **Regole per Exception Handling:**
+1. **Parametri Mancanti**: Se `customerId` o `workspaceId` mancano → **EXCEPTION**
+2. **Database Query Fallisce**: Se query database fallisce → **EXCEPTION** con dettagli
+3. **Validazione Fallisce**: Se validazione parametri fallisce → **EXCEPTION** esplicita
+4. **NON Silent Failure**: Mai fallire silenziosamente, sempre **EXCEPTION** esplicita
+
+#### **Esempi di Exception Handling:**
+```typescript
+// Esempio 1: Parametro mancante
+if (!customerId) {
+  throw new Error("customerId is required for [USER_DISCOUNT] variable replacement")
+}
+
+// Esempio 2: WorkspaceId mancante
+if (!workspaceId) {
+  throw new Error("workspaceId is required for [LIST_CATEGORIES] variable replacement")
+}
+
+// Esempio 3: Database query fallisce
+try {
+  const categories = await prisma.category.findMany({
+    where: { isActive: true, workspaceId }
+  })
+} catch (error) {
+  throw new Error(`Database query failed for [LIST_CATEGORIES]: ${error.message}`)
+}
+
+// Esempio 4: Validazione parametri
+if (!language || !originalQuestion) {
+  throw new Error("language and originalQuestion are required for FormatterService.formatResponse")
+}
+```
 
 **Esempi di Gestione Dati Vuoti:**
 
@@ -335,21 +371,24 @@ async processMessage(request: LLMRequest): Promise<LLMResponse> {
 
 **📋 RIFERIMENTO**: Per User Stories complete con Acceptance Criteria e Test Cases, vedere `docs/memory-bank/userStories.md`
 
-### **FASE 1: US1 - Token Replacement System Implementation**
-- [ ] **1.1** Implementare `replaceAllTokens()` nel formatter
-- [ ] **1.2** Implementare replace `[LIST_CATEGORIES]` con query database
-- [ ] **1.3** Implementare replace `[USER_DISCOUNT]` con customer query
-- [ ] **1.4** Implementare replace `[LINK_ORDERS_WITH_TOKEN]` con SecureTokenService
+### **FASE 1: US1 - Variable Replacement System Implementation**
+- [ ] **1.1** Implementare `replaceAllVariables()` nel formatter
+- [ ] **1.2** Implementare replace `[LIST_CATEGORIES]` **VARIABLE** con query database
+- [ ] **1.3** Implementare replace `[USER_DISCOUNT]` **VARIABLE** con customer query
+- [ ] **1.4** Implementare replace `[LINK_ORDERS_WITH_TOKEN]` **VARIABLE** con SecureTokenService
 - [ ] **1.5** Aggiungere gestione graceful per database vuoto
-- [ ] **1.6** Verificare replace PRIMA di OpenRouter
-- [ ] **1.7** Testare con Acceptance Criteria US1
+- [ ] **1.6** Verificare replace **VARIABLES** PRIMA di OpenRouter
+- [ ] **1.7** **EXCEPTION HANDLING**: Aggiungere validazione parametri con errori espliciti
+- [ ] **1.8** **EXCEPTION HANDLING**: Aggiungere gestione errori database con dettagli
+- [ ] **1.9** Testare con Acceptance Criteria US1
 
 ### **FASE 2: US2 - FormatterService Signature Update**
 - [ ] **2.1** Aggiornare signature con parametri obbligatori
 - [ ] **2.2** Aggiungere validazione parametri mandatory
-- [ ] **2.3** Aggiungere error handling per parametri mancanti
+- [ ] **2.3** **EXCEPTION HANDLING**: Aggiungere error throwing esplicito per parametri mancanti
 - [ ] **2.4** Aggiornare TypeScript types
-- [ ] **2.5** Testare con Acceptance Criteria US2
+- [ ] **2.5** **EXCEPTION HANDLING**: Aggiungere messaggi di errore dettagliati per validazione
+- [ ] **2.6** Testare con Acceptance Criteria US2
 
 ### **FASE 3: US3 - Parameter Passing Implementation**
 - [ ] **3.1** Aggiornare chiamate DualLLMService al formatter
@@ -860,5 +899,7 @@ Il task è considerato **COMPLETATO** quando:
 ---
 
 **📝 Note:** Questo documento serve come guida completa per implementare correttamente il sistema di token replacement nel formatter, seguendo le regole stabilite da Andrea.
+
+**📋 RIFERIMENTO**: Per User Stories complete con Acceptance Criteria e Test Cases dettagliati, vedere `docs/memory-bank/userStories.md`
 
   

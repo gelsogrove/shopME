@@ -1,18 +1,18 @@
-# User Stories - ShopMe Token Replacement System
+# User Stories - ShopMe Variable Replacement System
 
 ## 🎯 **PROJECT OVERVIEW**
 
-**Objective**: Implement unified token replacement system to eliminate content inventions and ensure all responses use real database data.
+**Objective**: Implement unified **VARIABLE** replacement system to eliminate content inventions and ensure all responses use real database data.
 
-**Architecture**: `USER INPUT → TranslationService → DualLLMService → SearchRag → FormatterService (token replacement + formatting)`
+**Architecture**: `USER INPUT → TranslationService → DualLLMService → SearchRag → FormatterService (**VARIABLE** replacement + formatting)`
 
-**Critical Rule**: ALL token replacements MUST be done in FormatterService BEFORE calling OpenRouter
+**Critical Rule**: ALL **VARIABLE** replacements MUST be done in FormatterService BEFORE calling OpenRouter
 
 ---
 
 ## 📋 **USER STORIES**
 
-### **US1: Token Replacement System Implementation**
+### **US1: Variable Replacement System Implementation**
 
 #### **📝 User Story**
 **As a** ShopMe chatbot user  
@@ -20,11 +20,13 @@
 **So that** I never get invented categories, products, or services
 
 #### **🎯 Acceptance Criteria**
-1. **AC1.1**: FormatterService replaces `[LIST_CATEGORIES]` with real categories from database
-2. **AC1.2**: FormatterService replaces `[USER_DISCOUNT]` with actual user discount from database
-3. **AC1.3**: FormatterService replaces `[LINK_ORDERS_WITH_TOKEN]` with generated secure link
+1. **AC1.1**: FormatterService replaces `[LIST_CATEGORIES]` **VARIABLE** with real categories from database
+2. **AC1.2**: FormatterService replaces `[USER_DISCOUNT]` **VARIABLE** with actual user discount from database
+3. **AC1.3**: FormatterService replaces `[LINK_ORDERS_WITH_TOKEN]` **VARIABLE** with generated secure link
 4. **AC1.4**: If database is empty, show graceful message instead of empty response
-5. **AC1.5**: All token replacements happen BEFORE OpenRouter call
+5. **AC1.5**: All **VARIABLE** replacements happen BEFORE OpenRouter call
+6. **AC1.6**: **EXCEPTION HANDLING**: If `customerId` or `workspaceId` missing, throw explicit error
+7. **AC1.7**: **EXCEPTION HANDLING**: If database query fails, throw explicit error with details
 
 #### **🧪 Test Cases**
 ```bash
@@ -47,22 +49,41 @@ NOT Expected: Invented discount or generic message
 User: "mostra i miei ordini"
 Expected: Secure link with token (e.g., "http://localhost:3000/orders?token=abc123")
 NOT Expected: Generic link or error
+
+# Test Case 1.5: Missing customerId - EXCEPTION
+User: "che sconto ho?" (with customerId=null)
+Expected: EXCEPTION thrown: "customerId is required for [USER_DISCOUNT] variable replacement"
+NOT Expected: Silent failure or generic response
+
+# Test Case 1.6: Missing workspaceId - EXCEPTION
+User: "che categorie avete?" (with workspaceId=null)
+Expected: EXCEPTION thrown: "workspaceId is required for [LIST_CATEGORIES] variable replacement"
+NOT Expected: Silent failure or generic response
+
+# Test Case 1.7: Database query failure - EXCEPTION
+User: "che categorie avete?" (with database connection error)
+Expected: EXCEPTION thrown: "Database query failed for [LIST_CATEGORIES]: Connection timeout"
+NOT Expected: Silent failure or generic response
 ```
 
 #### **🔧 Implementation Tasks**
-1. **T1.1**: Create `replaceAllTokens()` method in FormatterService
-2. **T1.2**: Implement `[LIST_CATEGORIES]` replacement with database query
-3. **T1.3**: Implement `[USER_DISCOUNT]` replacement with customer query
-4. **T1.4**: Implement `[LINK_ORDERS_WITH_TOKEN]` replacement with SecureTokenService
+1. **T1.1**: Create `replaceAllVariables()` method in FormatterService
+2. **T1.2**: Implement `[LIST_CATEGORIES]` **VARIABLE** replacement with database query
+3. **T1.3**: Implement `[USER_DISCOUNT]` **VARIABLE** replacement with customer query
+4. **T1.4**: Implement `[LINK_ORDERS_WITH_TOKEN]` **VARIABLE** replacement with SecureTokenService
 5. **T1.5**: Add graceful handling for empty database results
-6. **T1.6**: Ensure all replacements happen BEFORE OpenRouter call
+6. **T1.6**: Ensure all **VARIABLE** replacements happen BEFORE OpenRouter call
+7. **T1.7**: **EXCEPTION HANDLING**: Add parameter validation with explicit error messages
+8. **T1.8**: **EXCEPTION HANDLING**: Add database query error handling with detailed error messages
 
 #### **✅ Definition of Done**
-- [ ] All 5 acceptance criteria pass
-- [ ] All 4 test cases pass
+- [ ] All 7 acceptance criteria pass
+- [ ] All 7 test cases pass
 - [ ] No content inventions in responses
 - [ ] Graceful handling of empty database
-- [ ] Token replacement happens before OpenRouter
+- [ ] **VARIABLE** replacement happens before OpenRouter
+- [ ] **EXCEPTION HANDLING**: Explicit errors for missing parameters
+- [ ] **EXCEPTION HANDLING**: Explicit errors for database failures
 
 ---
 
@@ -79,6 +100,8 @@ NOT Expected: Generic link or error
 3. **AC2.3**: FormatterService accepts `language` parameter (mandatory)
 4. **AC2.4**: FormatterService accepts `originalQuestion` parameter (mandatory)
 5. **AC2.5**: FormatterService accepts `conversationHistory` parameter (optional)
+6. **AC2.6**: **EXCEPTION HANDLING**: If mandatory parameters missing, throw explicit error
+7. **AC2.7**: **EXCEPTION HANDLING**: If parameter validation fails, throw detailed error message
 
 #### **🧪 Test Cases**
 ```typescript
@@ -94,19 +117,33 @@ await FormatterService.formatResponse(
 )
 Expected: Success, no errors
 
-// Test Case 2.2: Missing mandatory parameters
+// Test Case 2.2: Missing mandatory parameters - EXCEPTION
 await FormatterService.formatResponse(
   "Test response",
   "it",
   undefined,
-  undefined,  // customerId missing - ERROR!
+  undefined,  // customerId missing - EXCEPTION!
   "workspace456",
   "che categorie avete?",
   conversationHistory
 )
-Expected: Error thrown, explicit error message
+Expected: EXCEPTION thrown: "customerId is required for FormatterService.formatResponse"
+NOT Expected: Silent failure or generic error
 
-// Test Case 2.3: All parameters provided
+// Test Case 2.3: Missing workspaceId - EXCEPTION
+await FormatterService.formatResponse(
+  "Test response",
+  "it",
+  undefined,
+  "customer123",
+  undefined,  // workspaceId missing - EXCEPTION!
+  "che categorie avete?",
+  conversationHistory
+)
+Expected: EXCEPTION thrown: "workspaceId is required for FormatterService.formatResponse"
+NOT Expected: Silent failure or generic error
+
+// Test Case 2.4: All parameters provided
 await FormatterService.formatResponse(
   "Test response with [LIST_CATEGORIES]",
   "it",
@@ -116,22 +153,25 @@ await FormatterService.formatResponse(
   "che categorie avete?",
   conversationHistory
 )
-Expected: Success, token replaced with real data
+Expected: Success, **VARIABLE** replaced with real data
 ```
 
 #### **🔧 Implementation Tasks**
 1. **T2.1**: Update FormatterService.formatResponse signature
 2. **T2.2**: Add parameter validation for mandatory fields
-3. **T2.3**: Add error handling for missing parameters
+3. **T2.3**: **EXCEPTION HANDLING**: Add explicit error throwing for missing parameters
 4. **T2.4**: Update all calls to FormatterService in codebase
 5. **T2.5**: Add TypeScript types for new parameters
+6. **T2.6**: **EXCEPTION HANDLING**: Add detailed error messages for parameter validation
 
 #### **✅ Definition of Done**
-- [ ] All 5 acceptance criteria pass
-- [ ] All 3 test cases pass
+- [ ] All 7 acceptance criteria pass
+- [ ] All 4 test cases pass
 - [ ] TypeScript compilation successful
 - [ ] All existing calls updated
 - [ ] Parameter validation working
+- [ ] **EXCEPTION HANDLING**: Explicit errors for missing parameters
+- [ ] **EXCEPTION HANDLING**: Detailed error messages for validation failures
 
 ---
 
@@ -262,7 +302,7 @@ NOT Expected: Response in Italian or invented categories
 ## 🚀 **IMPLEMENTATION ORDER**
 
 ### **Phase 1: Foundation (US1)**
-1. Implement token replacement system
+1. Implement **VARIABLE** replacement system
 2. Test with basic scenarios
 3. Verify no content inventions
 
@@ -292,7 +332,7 @@ NOT Expected: Response in Italian or invented categories
 - **US4**: ⏳ PENDING
 
 ### **Next Action**
-Start with **US1: Token Replacement System Implementation**
+Start with **US1: Variable Replacement System Implementation**
 
 ---
 

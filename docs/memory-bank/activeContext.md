@@ -35,11 +35,17 @@
 
 ## 📋 ACTIVE TASKS
 
-### PENDING TASKS
-1. **Implementare token replacement nel formatter** - Sostituire tutti i token con dati reali dal database PRIMA di OpenRouter
-2. **Aggiornare signature FormatterService** - Aggiungere parametri obbligatori: customerId, workspaceId, language, originalQuestion
-3. **Testare sistema unificato** - Verificare che non ci siano più invenzioni di contenuti
-4. **Aggiornare chiamate al formatter** - Passare sempre tutti i parametri obbligatori
+**📋 RIFERIMENTO**: Per User Stories complete con Acceptance Criteria e Test Cases, vedere `userStories.md`
+
+### CURRENT USER STORY: US1 - Variable Replacement System Implementation
+1. **Implementare `replaceAllVariables()` nel formatter** - Sostituire tutte le **VARIABLES** con dati reali dal database PRIMA di OpenRouter
+2. **Implementare replace `[LIST_CATEGORIES]` VARIABLE** - Query database per categorie reali
+3. **Implementare replace `[USER_DISCOUNT]` VARIABLE** - Query customer per sconto reale
+4. **Implementare replace `[LINK_ORDERS_WITH_TOKEN]` VARIABLE** - Generare link sicuri
+5. **Aggiungere gestione graceful** - Messaggi di cortesia per database vuoto
+6. **EXCEPTION HANDLING**: Validazione parametri con errori espliciti
+7. **EXCEPTION HANDLING**: Gestione errori database con dettagli
+8. **Testare con Acceptance Criteria US1** - Verificare tutti i test cases
 
 ## ✅ RECENTLY COMPLETED
 
