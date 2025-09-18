@@ -44,7 +44,7 @@ export interface GetOrdersListLinkRequest {
 export interface GetShipmentTrackingLinkRequest {
   customerId: string;
   workspaceId: string;
-  orderCode: string;
+  orderCode?: string;
 }
 
 export class CallingFunctionsService {
@@ -466,11 +466,14 @@ export class CallingFunctionsService {
         const prisma = new PrismaClient();
         
         // Query the database for the order with trackingNumber
+        // If no orderCode provided, get the last order for the customer
+        const whereClause = request.orderCode 
+          ? { orderCode: request.orderCode, workspaceId: request.workspaceId }
+          : { workspaceId: request.workspaceId };
+          
         order = await prisma.orders.findFirst({
-          where: {
-            orderCode: request.orderCode,
-            workspaceId: request.workspaceId
-          },
+          where: whereClause,
+          orderBy: { createdAt: 'desc' }, // Get the most recent order if no specific orderCode
           select: {
             orderCode: true,
             trackingNumber: true

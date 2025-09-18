@@ -227,6 +227,20 @@ export class FunctionHandlerService {
             functionName
           }
 
+        // 🚚 SHIPMENT TRACKING
+        case 'getShipmentTrackingLink':
+          return {
+            data: await this.handleGetShipmentTrackingLink(params, customer, workspaceId),
+            functionName
+          }
+
+        // 🛒 CART LINK
+        case 'GetCartLink':
+          return {
+            data: await this.handleGetCartLink(customer, workspaceId),
+            functionName
+          }
+
         case 'search_specific_product':
           return {
             data: await this.handleSearchSpecificProduct(phoneNumber, workspaceId, customer?.id, params.message || '', params),
@@ -302,6 +316,75 @@ export class FunctionHandlerService {
           errorType: 'internal_error'
         },
         functionName
+      }
+    }
+  }
+
+  // =============================================================================
+  // 🛒 CART LINK METHODS
+  // =============================================================================
+
+  /**
+   * Gestisce la richiesta di link al carrello
+   */
+  async handleGetCartLink(customer: any, workspaceId: string): Promise<any> {
+    try {
+      console.log('🔧 FunctionHandlerService: handleGetCartLink called')
+      
+      // Import the CallingFunctionsService
+      const { CallingFunctionsService } = require('../../services/calling-functions.service')
+      const callingFunctionsService = new CallingFunctionsService()
+      
+      // Call the getCartLink function
+      const result = await callingFunctionsService.getCartLink({
+        customerId: customer?.id || '',
+        workspaceId: workspaceId
+      })
+      
+      console.log('🔧 FunctionHandlerService: getCartLink result:', result)
+      
+      return result
+    } catch (error) {
+      console.error('❌ FunctionHandlerService: Error in handleGetCartLink:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Errore interno del server',
+        errorType: 'internal_error'
+      }
+    }
+  }
+
+  // =============================================================================
+  // 🚚 SHIPMENT TRACKING METHODS
+  // =============================================================================
+
+  /**
+   * Gestisce la richiesta di tracking della spedizione
+   */
+  async handleGetShipmentTrackingLink(params: any, customer: any, workspaceId: string): Promise<any> {
+    try {
+      console.log('🔧 FunctionHandlerService: handleGetShipmentTrackingLink called with:', params)
+      
+      // Import the CallingFunctionsService
+      const { CallingFunctionsService } = require('../../services/calling-functions.service')
+      const callingFunctionsService = new CallingFunctionsService()
+      
+      // Call the getShipmentTrackingLink function
+      const result = await callingFunctionsService.getShipmentTrackingLink({
+        customerId: customer?.id || '',
+        workspaceId: workspaceId,
+        orderCode: params.order_code || undefined
+      })
+      
+      console.log('🔧 FunctionHandlerService: getShipmentTrackingLink result:', result)
+      
+      return result
+    } catch (error) {
+      console.error('❌ FunctionHandlerService: Error in handleGetShipmentTrackingLink:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Errore interno del server',
+        errorType: 'internal_error'
       }
     }
   }

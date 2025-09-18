@@ -125,7 +125,21 @@ se searchRag non restituisce null array vuoto:
   "exitFirstMessage": true
 }
 
-- per aggionrare gli embedding devi solo fare npm urn seed
+- per aggiornare gli embedding devi solo fare npm run seed
 
+## 🚨 LEZIONI APPRESE - DEBUGGING OPZIONE A
+
+- **RISPETTARE LA TABELLA TOKEN**: Ogni token ([LIST_ALL_PRODUCTS], [CART_LINK], etc.) ha UNA SOLA funzione responsabile. Non creare doppie gestioni.
+
+- **TIPIZZAZIONE SEARCHRAG**: RagSearchResponse.results deve essere un oggetto {products, faqs, services, total}, non un array.
+
+- **SEARCHRAG PRIMA ORIGINALE**: Il flusso OPZIONE A cerca prima in lingua originale (italiano), poi in traduzione se non trova nulla.
+
+- **DEBUGGING SISTEMATICO**: Controllare sempre ricordati.md PRIMA di implementare. È la fonte di verità.
+
+- **CONFLITTI DOPPIA GESTIONE**: Se un token è gestito in due posti diversi, rimuovere dalla posizione sbagliata secondo la tabella.
 
 - availableFunctions deve essere aggiornata con le reali CF 
+
+
+COME DOVREBBE FUNZIONARE

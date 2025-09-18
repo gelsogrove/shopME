@@ -2454,6 +2454,30 @@ async function main() {
       question: "Que categorias vocês têm?",
       answer: "Olá! Temos as seguintes categorias de produtos: [LIST_CATEGORIES]",
     },
+    {
+      question: "voglio modificare la mia mail",
+      answer: "Ciao! Puoi modificare la tua email attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
+    },
+    {
+      question: "voglio modificare il mio indirizzo di spedizione",
+      answer: "Ciao! Puoi modificare il tuo indirizzo di spedizione attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
+    },
+    {
+      question: "voglio modificare il mio profilo",
+      answer: "Ciao! Puoi modificare il tuo profilo attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
+    },
+    {
+      question: "dove è il mio ultimo ordine?",
+      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+    },
+    {
+      question: "mostra i miei ordini",
+      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+    },
+    {
+      question: "voglio vedere i miei ordini",
+      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+    },
   ]
 
   // Create new FAQs

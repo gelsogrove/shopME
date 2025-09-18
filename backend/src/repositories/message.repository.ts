@@ -1282,17 +1282,24 @@ export class MessageRepository {
           },
         },
         {
-          name: "get_order_status",
-          description: "Retrieves the status of a user's order",
+          name: "getShipmentTrackingLink",
+          description: "Gets tracking information for a specific order",
           parameters: {
             type: "object",
             properties: {
-              order_id: {
+              order_code: {
                 type: "string",
-                description:
-                  "The ID of the order to check status for (optional)",
+                description: "The order code to track (e.g., ORD-001-2024, 01010101). If not provided, will get the last order.",
               },
             },
+          },
+        },
+        {
+          name: "GetCartLink",
+          description: "Gets a secure link to view the user's cart",
+          parameters: {
+            type: "object",
+            properties: {},
           },
         },
         {
@@ -1326,20 +1333,6 @@ export class MessageRepository {
               },
             },
             required: ["category_name"],
-          },
-        },
-        {
-          name: "get_faq_info",
-          description: "Retrieves information from the FAQ database",
-          parameters: {
-            type: "object",
-            properties: {
-              question: {
-                type: "string",
-                description: "The question to search for in the FAQ database",
-              },
-            },
-            required: ["question"],
           },
         },
 
