@@ -151,3 +151,44 @@ se searchRag non restituisce null array vuoto:
 
 - **REGOLA**: Mai permettere che l'LLM inventi dati quando esistono token e funzioni per recuperarli dal database. Ogni domanda comune DEVE avere una FAQ dedicata.
 
+## 🚨 LEZIONE CRITICA - LISTE PRODOTTI CONFUSE
+
+- **PROBLEMA**: [LIST_ALL_PRODUCTS] mostrava tutti gli 82 prodotti in dettaglio, creando risposte lunghissime e confuse.
+
+- **SINTOMO**: L'utente chiede "che prodotti avete?" e riceve una lista interminabile di prodotti difficile da leggere.
+
+- **SOLUZIONE OPZIONE B**: Modificato GetAllProducts.ts per mostrare solo categorie con conteggio:
+  - 🧀 Formaggi e Latticini (25 prodotti)
+  - 🥩 Salumi e Affettati (18 prodotti)
+  - etc.
+
+- **IMPLEMENTAZIONE**: Emoji dinamici basati sui nomi delle categorie dal database (non hardcoded). Invito utente a chiedere categoria specifica.
+
+- **REGOLA**: Liste lunghe confondono l'utente. Preferire riassunti con possibilità di drill-down per dettagli.
+
+## 🚨 REGOLA CRITICA - NON TOCCARE GetAllProducts.ts
+
+- **⚠️ PROTEZIONE SOLUZIONE FUNZIONANTE**: Il file GetAllProducts.ts è stato modificato per implementare l'Opzione B (categorie con conteggio) e **FUNZIONA PERFETTAMENTE**.
+
+- **❌ VIETATO MODIFICARE**: 
+  - NON cambiare la logica di formattazione delle categorie (righe 133-155)
+  - NON rimuovere la funzione getCategoryEmoji() 
+  - NON tornare alla lista dettagliata di tutti i prodotti
+  - NON aggiungere hardcode o logiche complesse
+
+- **✅ COSA PRESERVARE**:
+  - Formattazione: "🧀 Categoria (X prodotti)"
+  - Emoji dinamici basati sui nomi delle categorie
+  - Invito finale: "Dimmi quale categoria ti interessa..."
+  - Supporto multilingue (it/en)
+
+- **🎯 RISULTATO DA MANTENERE**: 
+  ```
+  🧂 Varie & Spezie (6 prodotti)
+  🧀 Formaggi & Latticini (66 prodotti)
+  📦 Totale: 82 prodotti disponibili
+  Dimmi quale categoria ti interessa...
+  ```
+
+- **REGOLA**: Se GetAllProducts.ts funziona, NON toccarlo! È una soluzione testata e approvata da Andrea.
+

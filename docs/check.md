@@ -12,13 +12,19 @@
 - mi puoi dare una ricetta itailana?
 - mostrami carrello
 - Che offerte avete?
+- Quanto ci mette ad arrivare un ordine?
+- voglio modificare la mia mail
+
+
 
 
 - NON VA!!!
+ - PROBLEMA LINK
+ - piU FACCINE
  - posso parlare con un operatore?
+ - dammi ordine ORD-006-2024
  - voglio vedere la fattura dell'ultimo ordine
-
 Tomato Products
-che prodotti avete ? 
-dammi ordine ORD-006-2024
+
+
 

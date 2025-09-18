@@ -10,6 +10,20 @@
 import { prisma } from "../../lib/prisma";
 import logger from "../../utils/logger";
 
+// Funzione per ottenere emoji categoria (dinamica dal nome, non hardcoded)
+function getCategoryEmoji(categoryName: string): string {
+  const name = categoryName.toLowerCase();
+  if (name.includes('cheese') || name.includes('dairy') || name.includes('formagg')) return '🧀';
+  if (name.includes('meat') || name.includes('salumi') || name.includes('cured')) return '🥩';
+  if (name.includes('pasta') || name.includes('rice') || name.includes('riso')) return '🍝';
+  if (name.includes('tomato') || name.includes('sauce') || name.includes('conserve')) return '🍅';
+  if (name.includes('spice') || name.includes('various') || name.includes('spezie')) return '🧂';
+  if (name.includes('frozen') || name.includes('surgel')) return '❄️';
+  if (name.includes('beverage') || name.includes('water') || name.includes('bevande')) return '🥛';
+  if (name.includes('flour') || name.includes('baking') || name.includes('farine')) return '🍞';
+  return '📦'; // Default emoji
+}
+
 export interface GetAllProductsParams {
   phoneNumber: string;
   workspaceId: string;
@@ -130,31 +144,26 @@ Please check back later or contact our staff for more information.`;
       return acc;
     }, {} as Record<string, ProductWithPrice[]>);
 
-    // Formatta la risposta per categoria
+    // Formatta la risposta per categoria (OPZIONE B: Solo conteggio categorie)
     const isItalian = language === 'it';
     let response = isItalian ? 
-      `Ecco tutti i nostri prodotti disponibili:\n\n` : 
-      `Here are all our available products:\n\n`;
-    let totalFormattedProducts = 0;
+      `Ciao! Ecco le nostre categorie di prodotti:\n\n` : 
+      `Hello! Here are our product categories:\n\n`;
     
+    // Mostra solo categorie con conteggio prodotti
     Object.entries(groupedProducts).forEach(([categoryName, categoryProducts]) => {
-      response += `**${categoryName}:**\n`;
-      
-      categoryProducts.forEach(product => {
-        const code = product.ProductCode ? `[${product.ProductCode}]` : '';
-        const format = product.formato ? ` (${product.formato})` : '';
-        const price = product.hasDiscount ? 
-          `€${product.finalPrice} ~~€${product.originalPrice}~~` : 
-          `€${product.finalPrice}`;
-        
-        response += `• ${code} ${product.name}${format} - ${price}\n`;
-        totalFormattedProducts++;
-      });
-      
-      response += `\n`;
+      const categoryEmoji = getCategoryEmoji(categoryName);
+      const countText = isItalian ? 'prodotti' : 'products';
+      response += `${categoryEmoji} ${categoryName} (${categoryProducts.length} ${countText})\n`;
     });
     
-    response += `\n📦 ${isItalian ? 'Totale prodotti' : 'Total products'}: ${productsWithPrices.length}`;
+    const totalText = isItalian ? 'Totale' : 'Total';
+    const availableText = isItalian ? 'prodotti disponibili' : 'products available';
+    const askText = isItalian ? 
+      '\nDimmi quale categoria ti interessa e ti mostrerò i prodotti specifici!' :
+      '\nTell me which category you\'re interested in and I\'ll show you the specific products!';
+    
+    response += `\n📦 ${totalText}: ${productsWithPrices.length} ${availableText}${askText}`;
 
     logger.info(`[GET_ALL_PRODUCTS] Successfully retrieved ${productsWithPrices.length} products`);
 
