@@ -2,6 +2,10 @@ ciao usa questi tet da fare con mcp usando log=true per vedere come si comporta 
 e devi riempire risposta: error e funcion
 
 
+
+
+
+  
  
 - chi sei?
 - dammi gli ordini che ho effettauto 
@@ -20,7 +24,3 @@ e devi riempire risposta: error e funcion
 
 
 - Tomato Products
-
-
-
-  

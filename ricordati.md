@@ -24,7 +24,7 @@ se searchRag non restituisce null array vuoto:
 - il formatter riceve la lingua sconto, workspaceId, customerId, domanda, e risposta del searchRag
 - il formatter quando ha la variabile deve fare un replace ovviamente prima di inviarlo al modello
 
-- 🚨 OPZIONE A: SearchRag PRIMA in lingua originale, POI in traduzione se non trova nulla. NON tradurre prima di cercare!
+- 🚨 FLUSSO CORRETTO: Se NON è stata chiamata nessuna CF → traduci la domanda in inglese e invia SOLO la traduzione a SearchRag. NON cercare prima in lingua originale.
 
 - controlla quello che fai chiediti se stai facendo le cose giuste se fa la build se stai allineando controlla quello che hai fatto con test
 
@@ -49,11 +49,11 @@ se searchRag non restituisce null array vuoto:
 
 ## 🚨 REGOLA CRITICA FAQ MULTILINGUE
 
-- **PROBLEMA LAYER TRANSLATE + FAQ**: Il layer translate traduce la domanda in inglese, ma se non esiste la FAQ corrispondente in italiano, il sistema trova FAQ in altre lingue (spagnolo, portoghese) che hanno similarity score più alta
-- **ESEMPIO**: "in quanto tempo arriva la merce?" → tradotto → trova FAQ spagnola "Factura de mi último pedido" invece di FAQ italiana sui tempi
-- **SOLUZIONE**: Per ogni FAQ importante in inglese, DEVE esistere la versione italiana corrispondente nel seed.ts
-- **VERIFICA**: Controllare sempre che esistano FAQ in italiano per argomenti comuni: tempi spedizione, resi, pagamenti, etc.
-- **DEBUG**: Se il sistema risponde in lingua sbagliata, controllare se esiste la FAQ nella lingua del cliente
+- **FLUSSO CORRETTO**: Se NON è stata chiamata nessuna CF → traduci la domanda in inglese e invia SOLO la traduzione a SearchRag
+- **NON CERCARE IN LINGUA ORIGINALE**: SearchRag deve ricevere SOLO la traduzione inglese, non la domanda originale
+- **FAQ IN INGLESE**: Tutte le FAQ importanti devono esistere in inglese nel seed.ts
+- **ESEMPIO**: "chi sei?" → tradotto in "Who are you?" → SearchRag cerca FAQ inglese "Who are you?"
+- **DEBUG**: Se il sistema non trova la FAQ corretta, verificare che esista in inglese nel database
 
 ## 🚨 REGOLE CRITICHE FORMATTER - LEZIONI APPRESE
 
@@ -141,7 +141,7 @@ se searchRag non restituisce null array vuoto:
 
 - **TIPIZZAZIONE SEARCHRAG**: RagSearchResponse.results deve essere un oggetto {products, faqs, services, total}, non un array.
 
-- **SEARCHRAG PRIMA ORIGINALE**: Il flusso OPZIONE A cerca prima in lingua originale (italiano), poi in traduzione se non trova nulla.
+- **SEARCHRAG SOLO TRADUZIONE**: Il flusso corretto cerca SOLO in traduzione inglese, non in lingua originale.
 
 - **DEBUGGING SISTEMATICO**: Controllare sempre ricordati.md PRIMA di implementare. È la fonte di verità.
 

@@ -33,16 +33,10 @@ export class DualLLMService {
         finalResult = cfResult
         functionCalls = cfResult.functionCalls
       } else {
-        console.log(`🔍 DualLLM: No CF called - OPZIONE A: SearchRag PRIMA in lingua originale`)
+        console.log(`🔍 DualLLM: No CF called - FLUSSO CORRETTO: SearchRag SOLO con traduzione inglese`)
         
-        // OPZIONE A: SearchRag PRIMA in lingua originale
-        let searchRagResult = await this.executeSearchRagFallback(request, request.chatInput, { response: "" })
-        
-        // Se non trova in originale, cerca in traduzione
-        if (!searchRagResult.success || !searchRagResult.response || searchRagResult.response.trim() === "") {
-          console.log(`🔍 DualLLM: SearchRag originale vuoto, provo in traduzione`)
-          searchRagResult = await this.executeSearchRagFallback(request, translatedQuery, { response: "" })
-        }
+        // FLUSSO CORRETTO: SearchRag SOLO con traduzione inglese
+        let searchRagResult = await this.executeSearchRagFallback(request, translatedQuery, { response: "" })
         
         // Se SearchRag non trova nulla nemmeno in traduzione, genera LLM response
         if (!searchRagResult.success || !searchRagResult.response || searchRagResult.response.trim() === "") {
