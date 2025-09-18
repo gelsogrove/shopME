@@ -311,31 +311,21 @@ export class FormatterService {
       formattedResponse = response
     }
 
-    // 🔧 FIX: Apply language-specific formatting (skip for category/product lists)
+    // Check if response contains lists - if so, skip formatting to preserve data
+    const hasLists = formattedResponse.includes('•') || formattedResponse.includes('-') || formattedResponse.includes('**')
+    
     let languageFormatted = formattedResponse
-    const hasCategories = formattedResponse.includes('Cheeses & Dairy') || formattedResponse.includes('categorie disponibili')
-    const hasProductsList = formattedResponse.includes('**') || formattedResponse.includes('•')
+    let whatsappFormatted = formattedResponse
     
-    if (hasCategories) {
-      console.log('🔧 FORMATTER: SKIPPING language formatting - contains category list')
-      languageFormatted = formattedResponse // Keep original response with categories
-    } else if (!hasProductsList) {
-      // Only apply language formatting if it's not already a formatted products list
+    if (!hasLists) {
+      // Only apply formatting if no lists are present
       languageFormatted = await this.applyLanguageFormatting(formattedResponse, language, formatRules)
-    } else {
-      console.log('🔧 FORMATTER: Skipping language formatting for products list')
-    }
-    
-    console.log('🔧 FORMATTER: After language formatting:', languageFormatted.substring(0, 200))
-    fs.appendFileSync('/tmp/formatter-debug.log', `After language formatting: ${languageFormatted}\n`)
-    
-    // Apply WhatsApp formatting (skip for category lists)
-    let whatsappFormatted = languageFormatted
-    if (hasCategories) {
-      console.log('🔧 FORMATTER: SKIPPING WhatsApp formatting - preserving category list')
-      whatsappFormatted = languageFormatted // Keep the category list intact
-    } else {
+      console.log('🔧 FORMATTER: After language formatting:', languageFormatted.substring(0, 200))
+      fs.appendFileSync('/tmp/formatter-debug.log', `After language formatting: ${languageFormatted}\n`)
+      
       whatsappFormatted = await this.applyWhatsAppFormatting(languageFormatted)
+    } else {
+      console.log('🔧 FORMATTER: SKIPPING formatting - contains lists, preserving data')
     }
     
     console.log('🔧 FORMATTER: After WhatsApp formatting:', whatsappFormatted)
@@ -380,48 +370,21 @@ export class FormatterService {
         messages: [
           {
             role: 'system',
-            content: `You are a WhatsApp message formatter for ShopME, an Italian food e-commerce. Your ONLY job is to format the response in ${targetLanguage} naturally and conversationally.
+            content: `You are a WhatsApp message formatter. Your ONLY job is to translate the response to ${targetLanguage} while PRESERVING ALL LISTS AND SPECIFIC INFORMATION.
 
-🎭 PERSONALITÀ E STILE:
-- Tono: Professionale ma caldo e accogliente, tipicamente italiano
-- Multilingua: Adatta automaticamente la lingua all'utente
-- Proattivo: Suggerisce prodotti correlati e ricette abbinate
-- Esperto: Condivide conoscenze sui prodotti italiani e la loro origine
-
-📋 BEST PRACTICES:
-1. Sempre contestualizza le risposte con le informazioni dell'utente
-2. Suggerisce abbinamenti quando possibile (ricette + prodotti)
-3. È specifico sui dettagli dei prodotti (origine, caratteristiche)
-4. Offre alternative se un prodotto non è disponibile
-5. Facilita il contatto con l'operatore quando necessario
-
-🚨 CRITICAL RULES - FOLLOW EXACTLY:
+🚨 CRITICAL RULES:
 1. Respond ONLY in ${targetLanguage}
-2. Use natural, conversational WhatsApp style
-3. PRESERVE ALL CONTENT from the original text - NEVER remove lists, categories, products, or any information
-4. If the original text contains a list (like categories or products), KEEP THE LIST INTACT
-5. NEVER invent new content not present in the original text
-6. NEVER replace specific information with generic responses
-7. Make it sound friendly but PRESERVE the original information structure
-8. If there's a product list, category list, or specific data, MAINTAIN IT EXACTLY
-9. Only add conversational elements AROUND the existing content, not instead of it
-10. NEVER use bold text, italics, or markdown formatting
-11. Use simple line breaks to separate content clearly
-12. Focus on making the existing content sound natural in ${targetLanguage}
+2. PRESERVE ALL LISTS - never remove or replace them
+3. PRESERVE ALL SPECIFIC INFORMATION - never replace with generic text
+4. Only translate the language, don't change the content structure
+5. If there are categories or products listed, KEEP THEM EXACTLY
 
-EXAMPLE OF PRESERVING CATEGORIES LIST:
-Original: "Ecco le categorie: - Cheeses & Dairy - Pasta & Rice - Sauces"
-Good: "Ecco le nostre categorie disponibili: Cheeses & Dairy, Pasta & Rice, Sauces. Posso aiutarti a trovare prodotti in una di queste categorie!"
-Bad: "Ciao! Abbiamo tanti prodotti disponibili. Chiedi pure!" (NEVER replace specific info with generic text)
+EXAMPLE:
+Original: "Ecco le categorie: • Cheeses & Dairy • Pasta & Rice • Sauces"
+Good: "Ecco le nostre categorie: • Formaggi e Latticini • Pasta e Riso • Salse"
+Bad: "Ciao! Abbiamo tanti prodotti disponibili!" (NEVER replace lists with generic text)
 
-EXAMPLE OF PRESERVING PRODUCT LIST:
-Original: "Prodotti: Parmigiano Reggiano €25, Mozzarella €8"
-Good: "I nostri prodotti: Parmigiano Reggiano €25, Mozzarella €8. Ti interessano questi formaggi italiani?"
-Bad: "Abbiamo formaggi disponibili!" (NEVER remove specific product details)
-
-🚨 MOST IMPORTANT: If you see a list of categories or products, PRESERVE IT EXACTLY. NEVER replace lists with generic responses.
-
-Return ONLY the formatted response in ${targetLanguage}, no explanations.`
+Return ONLY the translated response, no explanations.`
           },
           {
             role: 'user',

@@ -114,42 +114,15 @@ export class DualLLMService {
         console.log(`🔧 DEBUG: Checking if "${functionName}" === "get_categories": ${functionName === 'get_categories'}`)
         console.error(`🚨🚨🚨 BEFORE IF CONDITION - SHOULD ALWAYS BE VISIBLE`)
         if (functionName === 'get_all_categories' || functionName === 'get_categories' || functionName === 'getallcategories') {
-          console.log(`🚨🚨🚨 DualLLM: PRIORITY - EXECUTING get_all_categories directly`)
-          console.log(`🚨🚨🚨 DualLLM: THIS MESSAGE SHOULD APPEAR IN LOGS IF CODE IS EXECUTED`)
-          console.error(`🚨🚨🚨 ERROR LOG: EXECUTING get_all_categories - SHOULD BE VISIBLE`)
-          // Handle get_all_categories directly
-          const { PrismaClient } = require('@prisma/client')
-          const prisma = new PrismaClient()
-          
-          try {
-            const categories = await prisma.categories.findMany({
-              where: {
-                workspaceId: request.workspaceId,
-                isActive: true
-              },
-              select: {
-                id: true,
-                name: true,
-                description: true
-              }
-            })
-            
-            await prisma.$disconnect()
-            
-            const categoryList = categories.map(cat => `- ${cat.name}`).join('\n')
-            cfExecutionResult = {
-              success: true,
-              response: `Ecco le nostre categorie disponibili:\n\n${categoryList}\n\nPosso aiutarti a trovare prodotti specifici in una di queste categorie!`,
-              data: categories
-            }
-          } catch (error) {
-            await prisma.$disconnect()
-            cfExecutionResult = {
-              success: false,
-              response: "Mi dispiace, al momento non riesco a recuperare le categorie. Riprova più tardi.",
-              error: error.message
-            }
-          }
+          console.log(`🚨🚨🚨 DualLLM: PRIORITY - EXECUTING GetAllCategories function`)
+          const { GetAllCategories } = await import('../chatbot/calling-functions/GetAllCategories')
+          cfExecutionResult = await GetAllCategories({
+            phoneNumber: request.phone,
+            workspaceId: request.workspaceId,
+            customerId: customer?.id || '',
+            message: translatedQuery,
+            language: 'it'
+          })
         } else if (functionResult.function_call.name === 'search_specific_product') {
           const { SearchSpecificProduct } = await import('../chatbot/calling-functions/SearchSpecificProduct')
           cfExecutionResult = await SearchSpecificProduct({

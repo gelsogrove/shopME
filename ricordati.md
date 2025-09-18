@@ -62,3 +62,60 @@ se searchRag non restituisce null arra vuoto:
 - **TEMPERATURA 0.0 PER FORMATTER**: Il formatter deve essere deterministico, non creativo. Deve preservare, non inventare.
 
 - **CONFRONTO STRINGHE ROBUSTO**: Usare `.trim().toLowerCase()` per confrontare nomi di funzioni, mai confronti diretti che possono fallire per spazi/maiuscole.
+
+
+-  assicurati che  get_all_categories e get_all_categories non esistono bisogna pulire il codice passando entrambi dal searchRag 
+
+-  assicurati che le variabili vengano sostituite dalla giusta funzione
+[LIST_ALL_PRODUCTS]	GetAllProducts()	FAQ con "che prodotti avete?"	✅ CORRETTO
+[LIST_CATEGORIES]	GetAllCategories()	FAQ con "che categorie avete?"	✅ CORRETTO
+[LIST_SERVICES]	GetAllServices()	FAQ con "che servizi avete?"	✅ CORRETTO
+[USER_DISCOUNT]	GetCustomerDiscount()	Sempre quando presente	✅ CORRETTO
+[CART_LINK]	ReplaceLinkWithToken()	FAQ con link carrello	✅ CORRETTO
+[PROFILE_LINK]	ReplaceLinkWithToken()	FAQ con link profilo	✅ CORRETTO
+[ORDERS_LINK]	ReplaceLinkWithToken()	FAQ con link ordini	✅ CORRETTO
+[CHECKOUT_LINK]	ReplaceLinkWithToken()	FAQ con link checkout	✅ CORRETTO
+
+## 🚨 REGOLE CRITICHE TRADUZIONE - LEZIONI APPRESE
+
+- **NO HARDCODED TRADUZIONI**: Mai hardcodare traduzioni nel codice. L'LLM e il Formatter sono già capaci di tradurre dinamicamente.
+
+- **TRADUZIONE AUTOMATICA**: Lasciare che l'LLM nel Formatter gestisca le traduzioni automaticamente. Non creare dizionari hardcoded.
+
+- **LINGUA DINAMICA**: Le funzioni CF devono accettare parametro `language` ma lasciare la traduzione al Formatter.
+
+- **FORMATTER TRADUCE**: Il `FormatterService.applyLanguageFormatting` è già configurato per tradurre automaticamente in base alla lingua dell'utente.
+
+- **APPROCCIO PULITO**: Le CF restituiscono dati in inglese, il Formatter li traduce dinamicamente. Più flessibile e manutenibile.
+
+## 🚨 REGOLE CRITICHE PROMPT - LEZIONI APPRESE
+
+- **PROMPT DEVE ESSERE PRECISO**: "che prodotti avete?" deve chiamare `GetAllProducts`, "che categorie avete?" deve chiamare `GetAllCategories`. Mai confondere i trigger.
+
+- **LOGICA DECISIONE CORRETTA**: Nel prompt_agent.md la logica deve essere:
+  1. Operatore → ContactOperator
+  2. Tracking → GetShipmentTrackingLink  
+  3. "che categorie" → GetAllCategories
+  4. "che prodotti" → GetAllProducts
+  5. Nome specifico → SearchSpecificProduct
+  6. Categoria generica → GetProductsByCategory
+
+- **AGGIORNAMENTO PROMPT OBBLIGATORIO**: Dopo ogni modifica al prompt_agent.md, SEMPRE eseguire `npm run update:prompt` per sincronizzare il database.
+
+## 🚨 REGOLE CRITICHE LISTE - LEZIONI APPRESE
+
+- **FORMATTER NON DEVE TRADURRE LISTE**: Quando il Formatter rileva liste (•, -, **), deve SALTARE la formattazione per preservare i dati.
+
+- **RILEVAMENTO AUTOMATICO LISTE**: Il Formatter deve controllare `includes('•') || includes('-') || includes('**')` per rilevare liste.
+
+- **SKIP FORMATTING PER PRESERVARE**: Se ci sono liste, saltare `applyLanguageFormatting` e `applyWhatsAppFormatting` per evitare che l'LLM sostituisca le liste con risposte generiche.
+
+- **CF GESTISCONO TRADUZIONI**: Le Calling Functions possono gestire traduzioni interne se necessario, il Formatter non deve interferire con le liste.
+
+- **PRESERVARE SEMPRE I DATI**: Mai sostituire liste specifiche (categorie, prodotti) con risposte generiche come "Abbiamo tanti prodotti disponibili".
+
+
+
+
+
+

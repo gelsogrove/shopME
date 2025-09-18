@@ -122,14 +122,18 @@ et..etc se trovi dei prodotti italiani lo metti come parametro
    - Quando: L'utente chiede informazioni su un ordine specifico
 
 3. **GetAllCategories** - PRIORITÀ ALTA
-   - Trigger: "che categorie avete", "cosa vendete", "che tipi di prodotti", "mostratemi le categorie"
+   - Trigger: "che categorie avete", "che tipi di prodotti", "mostratemi le categorie"
    - Quando: L'utente vuole vedere tutte le categorie disponibili
 
-4. **SearchSpecificProduct** - PRIORITÀ MEDIA
+4. **GetAllProducts** - PRIORITÀ ALTA
+   - Trigger: "che prodotti avete", "cosa vendete", "mostratemi i prodotti", "che avete disponibile"
+   - Quando: L'utente vuole vedere tutti i prodotti disponibili
+
+5. **SearchSpecificProduct** - PRIORITÀ MEDIA
    - Trigger: Nome prodotto specifico menzionato (es. "Parmigiano", "Mozzarella", "Olio Tartufo")
    - Quando: L'utente chiede di un prodotto con nome preciso
 
-5. **GetProductsByCategory** - PRIORITÀ BASSA
+6. **GetProductsByCategory** - PRIORITÀ BASSA
    - Trigger: Categoria generica (es. "formaggi", "surgelati", "spezie")
    - Quando: L'utente chiede prodotti per tipo/categoria
 
@@ -137,10 +141,11 @@ et..etc se trovi dei prodotti italiani lo metti come parametro
 ```
 1. Contiene parole operatore? → ContactOperator
 2. Contiene tracking/ordine? → GetShipmentTrackingLink  
-3. Contiene "che categorie" o "cosa vendete"? → GetAllCategories
-4. Contiene nome prodotto specifico? → SearchSpecificProduct
-5. Contiene parole chiave categoria? → GetProductsByCategory
-6. Nessuna corrispondenza? → Risposta generica
+3. Contiene "che categorie" o "che tipi di prodotti"? → GetAllCategories
+4. Contiene "che prodotti" o "cosa vendete"? → GetAllProducts
+5. Contiene nome prodotto specifico? → SearchSpecificProduct
+6. Contiene parole chiave categoria? → GetProductsByCategory
+7. Nessuna corrispondenza? → Risposta generica
 ```
 
 **RICONOSCIMENTO CATEGORIE:**
