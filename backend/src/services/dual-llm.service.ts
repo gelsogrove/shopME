@@ -110,7 +110,10 @@ export class DualLLMService {
         // PRIORITY CHECK: get_all_categories FIRST - FIX CONFRONTO
         const functionName = String(functionResult.function_call.name).trim().toLowerCase()
         console.log(`🔧 DEBUG: Cleaned function name: "${functionName}"`)
-        if (functionName === 'get_all_categories') {
+        console.log(`🔧 DEBUG: Checking if "${functionName}" === "get_all_categories": ${functionName === 'get_all_categories'}`)
+        console.log(`🔧 DEBUG: Checking if "${functionName}" === "get_categories": ${functionName === 'get_categories'}`)
+        console.error(`🚨🚨🚨 BEFORE IF CONDITION - SHOULD ALWAYS BE VISIBLE`)
+        if (functionName === 'get_all_categories' || functionName === 'get_categories' || functionName === 'getallcategories') {
           console.log(`🚨🚨🚨 DualLLM: PRIORITY - EXECUTING get_all_categories directly`)
           console.log(`🚨🚨🚨 DualLLM: THIS MESSAGE SHOULD APPEAR IN LOGS IF CODE IS EXECUTED`)
           console.error(`🚨🚨🚨 ERROR LOG: EXECUTING get_all_categories - SHOULD BE VISIBLE`)

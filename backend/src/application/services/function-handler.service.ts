@@ -62,6 +62,77 @@ export class FunctionHandlerService {
   private callingFunctionsService: any
 
   /**
+   * Handle get order status request
+   */
+  private async handleGetOrderStatus(phoneNumber: string, workspaceId: string, customerId: string, orderId?: string): Promise<any> {
+    try {
+      console.log(`🔍 FunctionHandler: Getting order status for customer ${customerId}, orderId: ${orderId}`)
+      
+      // Find customer
+      const customer = await this.prisma.customers.findFirst({
+        where: {
+          phone: phoneNumber,
+          workspaceId: workspaceId
+        }
+      })
+      
+      if (!customer) {
+        return {
+          success: false,
+          response: "Mi dispiace, non riesco a trovare il tuo account. Contatta il nostro supporto per assistenza.",
+          error: "Customer not found"
+        }
+      }
+      
+      // Get orders for this customer
+      const orders = await this.prisma.orders.findMany({
+        where: {
+          customerId: customer.id,
+          workspaceId: workspaceId
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        take: 5, // Last 5 orders
+        select: {
+          id: true,
+          orderCode: true,
+          status: true,
+          totalAmount: true,
+          createdAt: true
+        }
+      })
+      
+      if (orders.length === 0) {
+        return {
+          success: true,
+          response: "Non hai ancora effettuato ordini. Quando farai il tuo primo ordine, potrai controllarne lo stato qui!",
+          orders: []
+        }
+      }
+      
+      // Format orders for display
+      const ordersList = orders.map(order => 
+        `📦 Ordine ${order.orderCode} - ${order.status} - €${order.totalAmount} (${order.createdAt.toLocaleDateString('it-IT')})`
+      ).join('\n')
+      
+      return {
+        success: true,
+        response: `Ecco i tuoi ordini recenti:\n\n${ordersList}\n\nPer maggiori dettagli su un ordine specifico, fammi sapere il codice ordine!`,
+        orders: orders
+      }
+      
+    } catch (error) {
+      console.error('❌ Error getting order status:', error)
+      return {
+        success: false,
+        response: "Mi dispiace, si è verificato un errore nel recuperare i tuoi ordini. Riprova più tardi o contatta il supporto.",
+        error: error.message
+      }
+    }
+  }
+
+  /**
    * 🎯 TASK: Clean up orphaned cart items (items with missing products)
    */
   private async cleanupOrphanedCartItems(workspaceId: string): Promise<void> {
@@ -166,6 +237,12 @@ export class FunctionHandlerService {
           return {
             functionName,
             data: null // No data needed for this function
+          }
+
+        case 'get_order_status':
+          return {
+            data: await this.handleGetOrderStatus(phoneNumber, workspaceId, customer?.id, params.order_id),
+            functionName
           }
 
         case 'search_products':

@@ -46,3 +46,19 @@ se searchRag non restituisce null arra vuoto:
 - non devi mai riavviare i servizi questo e' compito del nodemon installato ogni volta che salva il server si riavvia 
 
 - attualizza il memory bank con qeuste regole.
+
+## 🚨 REGOLE CRITICHE FORMATTER - LEZIONI APPRESE
+
+- **FORMATTER NON DEVE SOVRASCRIVERE**: Il formatter deve PRESERVARE liste, categorie, prodotti specifici. MAI sostituire con risposte generiche.
+
+- **SKIP FORMATTING PER LISTE**: Se la risposta contiene liste di categorie/prodotti (es. "Cheeses & Dairy", "categorie disponibili"), SALTARE language formatting e WhatsApp formatting per preservare i dati.
+
+- **PROMPT DEVE ESSERE COMPLETO**: Ogni funzione che l'utente può richiedere DEVE essere nel prompt_agent.md con trigger chiari. Se manca una funzione, il sistema va in SearchRag generico.
+
+- **CF vs SEARCHRAG**: Se CF viene chiamata con successo, NON chiamare SearchRag. Il flow è: LLM decide → CF esegue → Formatter preserva.
+
+- **DEBUG CON FILE LOG**: Usare `/tmp/formatter-debug.log` per tracciare cosa succede nel formatter. È essenziale per capire dove si perdono i dati.
+
+- **TEMPERATURA 0.0 PER FORMATTER**: Il formatter deve essere deterministico, non creativo. Deve preservare, non inventare.
+
+- **CONFRONTO STRINGHE ROBUSTO**: Usare `.trim().toLowerCase()` per confrontare nomi di funzioni, mai confronti diretti che possono fallire per spazi/maiuscole.

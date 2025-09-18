@@ -311,9 +311,15 @@ export class FormatterService {
       formattedResponse = response
     }
 
-    // 🔧 FIX: Apply language-specific formatting (skip if we have a complete products list)
+    // 🔧 FIX: Apply language-specific formatting (skip for category/product lists)
     let languageFormatted = formattedResponse
-    if (!formattedResponse.includes('**') || !formattedResponse.includes('•')) {
+    const hasCategories = formattedResponse.includes('Cheeses & Dairy') || formattedResponse.includes('categorie disponibili')
+    const hasProductsList = formattedResponse.includes('**') || formattedResponse.includes('•')
+    
+    if (hasCategories) {
+      console.log('🔧 FORMATTER: SKIPPING language formatting - contains category list')
+      languageFormatted = formattedResponse // Keep original response with categories
+    } else if (!hasProductsList) {
       // Only apply language formatting if it's not already a formatted products list
       languageFormatted = await this.applyLanguageFormatting(formattedResponse, language, formatRules)
     } else {
@@ -323,8 +329,14 @@ export class FormatterService {
     console.log('🔧 FORMATTER: After language formatting:', languageFormatted.substring(0, 200))
     fs.appendFileSync('/tmp/formatter-debug.log', `After language formatting: ${languageFormatted}\n`)
     
-    // Apply WhatsApp formatting
-    const whatsappFormatted = await this.applyWhatsAppFormatting(languageFormatted)
+    // Apply WhatsApp formatting (skip for category lists)
+    let whatsappFormatted = languageFormatted
+    if (hasCategories) {
+      console.log('🔧 FORMATTER: SKIPPING WhatsApp formatting - preserving category list')
+      whatsappFormatted = languageFormatted // Keep the category list intact
+    } else {
+      whatsappFormatted = await this.applyWhatsAppFormatting(languageFormatted)
+    }
     
     console.log('🔧 FORMATTER: After WhatsApp formatting:', whatsappFormatted)
     console.log('🔧 FORMATTER: ===== END FORMATTING =====')
@@ -383,26 +395,31 @@ export class FormatterService {
 4. Offre alternative se un prodotto non è disponibile
 5. Facilita il contatto con l'operatore quando necessario
 
-CRITICAL RULES - FOLLOW EXACTLY:
+🚨 CRITICAL RULES - FOLLOW EXACTLY:
 1. Respond ONLY in ${targetLanguage}
 2. Use natural, conversational WhatsApp style
-3. NEVER use bullet points, dashes, asterisks, or any structured formatting
-4. NEVER use bold text, italics, or any markdown formatting
-5. Write in flowing, natural sentences
-6. Use simple line breaks only when necessary
-7. Make it sound like a friendly conversation
-8. Do NOT invent any information not present in the original text
-9. Be proactive and suggest related products or recipes
-10. Share knowledge about Italian products and their origins
-11. Always contextualize responses with user information
-12. Offer alternatives when products are not available
+3. PRESERVE ALL CONTENT from the original text - NEVER remove lists, categories, products, or any information
+4. If the original text contains a list (like categories or products), KEEP THE LIST INTACT
+5. NEVER invent new content not present in the original text
+6. NEVER replace specific information with generic responses
+7. Make it sound friendly but PRESERVE the original information structure
+8. If there's a product list, category list, or specific data, MAINTAIN IT EXACTLY
+9. Only add conversational elements AROUND the existing content, not instead of it
+10. NEVER use bold text, italics, or markdown formatting
+11. Use simple line breaks to separate content clearly
+12. Focus on making the existing content sound natural in ${targetLanguage}
 
-EXAMPLE OF GOOD FORMATTING:
-"Ciao! Offriamo spedizione per 5 EUR con consegna entro 3-5 giorni lavorativi, e confezione regalo per 30 EUR con messaggio personalizzato e materiali premium. Ti consiglio anche di abbinare il nostro Parmigiano Reggiano DOP con il nostro Aceto Balsamico di Modena IGP per un sapore autentico italiano!"
+EXAMPLE OF PRESERVING CATEGORIES LIST:
+Original: "Ecco le categorie: - Cheeses & Dairy - Pasta & Rice - Sauces"
+Good: "Ecco le nostre categorie disponibili: Cheeses & Dairy, Pasta & Rice, Sauces. Posso aiutarti a trovare prodotti in una di queste categorie!"
+Bad: "Ciao! Abbiamo tanti prodotti disponibili. Chiedi pure!" (NEVER replace specific info with generic text)
 
-EXAMPLE OF BAD FORMATTING (NEVER DO THIS):
-"- **Spedizione**: 5 EUR
-- **Confezione regalo**: 30 EUR"
+EXAMPLE OF PRESERVING PRODUCT LIST:
+Original: "Prodotti: Parmigiano Reggiano €25, Mozzarella €8"
+Good: "I nostri prodotti: Parmigiano Reggiano €25, Mozzarella €8. Ti interessano questi formaggi italiani?"
+Bad: "Abbiamo formaggi disponibili!" (NEVER remove specific product details)
+
+🚨 MOST IMPORTANT: If you see a list of categories or products, PRESERVE IT EXACTLY. NEVER replace lists with generic responses.
 
 Return ONLY the formatted response in ${targetLanguage}, no explanations.`
           },
