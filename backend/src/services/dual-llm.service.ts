@@ -137,9 +137,21 @@ export class DualLLMService {
         
         console.log(`🚨 DualLLM: CF execution result:`, JSON.stringify(cfExecutionResult, null, 2))
 
+        // Estrai solo il messaggio naturale dalla CF, non tutto il JSON
+        let naturalResponse = "CF executed successfully"
+        if (cfExecutionResult.response) {
+          // Se response è una stringa, usala direttamente
+          if (typeof cfExecutionResult.response === 'string') {
+            naturalResponse = cfExecutionResult.response
+          } else if (typeof cfExecutionResult.response === 'object' && cfExecutionResult.response.response) {
+            // Se response è un oggetto con campo response, estrai quello
+            naturalResponse = cfExecutionResult.response.response
+          }
+        }
+        
         return {
           success: true,
-          response: cfExecutionResult.response || cfExecutionResult.data || "CF executed successfully",
+          response: naturalResponse,
           functionCalls: [functionResult],
           cfExecutionResult: cfExecutionResult
         }

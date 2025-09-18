@@ -114,15 +114,12 @@ se searchRag non restituisce null array vuoto:
 
 - **FORMATTER NON DEVE TRADURRE LISTE**: Quando il Formatter rileva liste (•, -, **), deve SALTARE la formattazione per preservare i dati.
 
-- **RILEVAMENTO AUTOMATICO LISTE**: Il Formatter deve controllare `includes('•') || includes('-') || includes('**')` per rilevare liste.
+
 
 - **SKIP FORMATTING PER PRESERVARE**: Se ci sono liste, saltare `applyLanguageFormatting` e `applyWhatsAppFormatting` per evitare che l'LLM sostituisca le liste con risposte generiche.
 
-- **CF GESTISCONO TRADUZIONI**: Le Calling Functions possono gestire traduzioni interne se necessario, il Formatter non deve interferire con le liste.
 
 - **PRESERVARE SEMPRE I DATI**: Mai sostituire liste specifiche (categorie, prodotti) con risposte generiche come "Abbiamo tanti prodotti disponibili".
-
-
 
 
 - esempi di come chiamare LLM
@@ -139,14 +136,7 @@ se searchRag non restituisce null array vuoto:
 
 - **RISPETTARE LA TABELLA TOKEN**: Ogni token ([LIST_ALL_PRODUCTS], [CART_LINK], etc.) ha UNA SOLA funzione responsabile. Non creare doppie gestioni.
 
-- **TIPIZZAZIONE SEARCHRAG**: RagSearchResponse.results deve essere un oggetto {products, faqs, services, total}, non un array.
 
 - **SEARCHRAG SOLO TRADUZIONE**: Il flusso corretto cerca SOLO in traduzione inglese, non in lingua originale.
 
-- **DEBUGGING SISTEMATICO**: Controllare sempre ricordati.md PRIMA di implementare. È la fonte di verità.
 
-- **CONFLITTI DOPPIA GESTIONE**: Se un token è gestito in due posti diversi, rimuovere dalla posizione sbagliata secondo la tabella.
-
-- availableFunctions deve essere aggiornata con le reali CF 
-
-RISPONDE NON DEVONO ESERRE IN JSON MA BEN FORMATTARE DAL FORMATTER

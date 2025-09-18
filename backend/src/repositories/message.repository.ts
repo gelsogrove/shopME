@@ -1248,8 +1248,8 @@ export class MessageRepository {
       // Ottieni il prompt del function router
       const functionRouterPrompt = await this.getFunctionRouterPrompt()
 
-      // SEGUENDO RICORDATI.MD: NESSUNA FUNZIONE DISPONIBILE - TUTTO VA IN SearchRag
-      const availableFunctions = []
+// SEGUENDO RICORDATI.MD: NESSUNA FUNZIONE DISPONIBILE - TUTTO VA IN SearchRag
+const availableFunctions = []
 
       logger.info(
         `Calling function router for message: "${message.substring(0, 30)}${

@@ -265,6 +265,13 @@ export class FunctionHandlerService {
             functionName
           }
 
+        // 🔗 ORDER LINK
+        case 'GetOrderLink':
+          return {
+            data: await this.handleGetOrderLink(params, customer, workspaceId),
+            functionName
+          }
+
         // 🚚 ORDER OPERATIONS & 🛒 CART OPERATIONS (REMOVED)
         // case 'confirm_order':
         //   return {
@@ -346,6 +353,42 @@ export class FunctionHandlerService {
       return result
     } catch (error) {
       console.error('❌ FunctionHandlerService: Error in handleGetCartLink:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Errore interno del server',
+        errorType: 'internal_error'
+      }
+    }
+  }
+
+  // =============================================================================
+  // 🔗 ORDER LINK METHODS
+  // =============================================================================
+
+  /**
+   * Gestisce la richiesta di link ordine intelligente
+   */
+  async handleGetOrderLink(params: any, customer: any, workspaceId: string): Promise<any> {
+    try {
+      console.log('🔧 FunctionHandlerService: handleGetOrderLink called with:', params)
+      
+      // Import the GetOrderLink function
+      const { GetOrderLink } = require('../../chatbot/calling-functions/GetOrderLink')
+      
+      // Call the GetOrderLink function
+      const result = await GetOrderLink({
+        customerId: customer?.id || '',
+        workspaceId: workspaceId,
+        orderCode: params.orderCode || undefined,
+        documentType: params.documentType || 'order',
+        language: params.language || 'it'
+      })
+      
+      console.log('🔧 FunctionHandlerService: GetOrderLink result:', result)
+      
+      return result
+    } catch (error) {
+      console.error('❌ FunctionHandlerService: Error in handleGetOrderLink:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Errore interno del server',

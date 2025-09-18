@@ -2411,10 +2411,6 @@ async function main() {
       answer: "Ciao! Per visualizzare la fattura del tuo ultimo ordine, clicca su questo link: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
     },
     {
-      question: "Invoice of my last order",
-      answer: "Hello! To view the invoice of your last order, click on this link: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
-    },
-    {
       question: "Factura de mi último pedido",
       answer: "¡Hola! Para ver la factura de tu último pedido, haz clic en este enlace: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
     },
@@ -2461,6 +2457,26 @@ async function main() {
     {
       question: "voglio modificare il mio indirizzo di spedizione",
       answer: "Ciao! Puoi modificare il tuo indirizzo di spedizione attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
+    },
+    {
+      question: "dove è il mio ultimo ordine?",
+      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+    },
+    {
+      question: "dammi fattura ultimo ordine",
+      answer: "Ciao! Per visualizzare la fattura del tuo ultimo ordine, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+    },
+    {
+      question: "dammi DDT ultimo ordine",
+      answer: "Ciao! Per visualizzare il DDT del tuo ultimo ordine, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+    },
+    {
+      question: "dammi lista ordini",
+      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+    },
+    {
+      question: "Give me the list of orders",
+      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "voglio modificare il mio profilo",

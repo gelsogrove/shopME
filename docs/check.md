@@ -1,14 +1,7 @@
-ciao usa questi tet da fare con mcp usando log=true per vedere come si comporta e usa utente italiano Mario Rossi e exit-first-message=true
-e devi riempire risposta: error e funcion
-
-
-
-
-
-  
- 
 - chi sei?
-- dammi gli ordini che ho effettauto 
+- dammi la lista degli ordini
+- posso vedere il catalogo ?
+
 - Voglio fare un ordine
 - posso vedere il catalogo ?
 - che servizi offrite ?

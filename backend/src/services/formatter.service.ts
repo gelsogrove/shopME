@@ -311,21 +311,22 @@ export class FormatterService {
       formattedResponse = response
     }
 
-    // Check if response contains lists - if so, skip formatting to preserve data
-    const hasLists = formattedResponse.includes('•') || formattedResponse.includes('-') || formattedResponse.includes('**')
+    // SEMPRE applicare la traduzione nella lingua dell'utente
+    console.log('🔧 FORMATTER: Applying language formatting...')
+    let languageFormatted = await this.applyLanguageFormatting(formattedResponse, language, formatRules)
+    console.log('🔧 FORMATTER: After language formatting:', languageFormatted.substring(0, 200))
+    fs.appendFileSync('/tmp/formatter-debug.log', `After language formatting: ${languageFormatted}\n`)
     
-    let languageFormatted = formattedResponse
-    let whatsappFormatted = formattedResponse
+    // Check if response contains lists - if so, skip WhatsApp formatting to preserve data
+    const hasLists = languageFormatted.includes('•') || languageFormatted.includes('-') || languageFormatted.includes('**')
+    
+    let whatsappFormatted = languageFormatted
     
     if (!hasLists) {
-      // Only apply formatting if no lists are present
-      languageFormatted = await this.applyLanguageFormatting(formattedResponse, language, formatRules)
-      console.log('🔧 FORMATTER: After language formatting:', languageFormatted.substring(0, 200))
-      fs.appendFileSync('/tmp/formatter-debug.log', `After language formatting: ${languageFormatted}\n`)
-      
+      // Only apply WhatsApp formatting if no lists are present
       whatsappFormatted = await this.applyWhatsAppFormatting(languageFormatted)
     } else {
-      console.log('🔧 FORMATTER: SKIPPING formatting - contains lists, preserving data')
+      console.log('🔧 FORMATTER: SKIPPING WhatsApp formatting - contains lists, preserving data')
     }
     
     console.log('🔧 FORMATTER: After WhatsApp formatting:', whatsappFormatted)
