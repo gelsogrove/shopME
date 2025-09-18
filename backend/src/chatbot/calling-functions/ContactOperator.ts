@@ -235,3 +235,20 @@ Il cliente ha richiesto assistenza operatore.`
     return fallbackSummary
   }
 }
+
+// Export per LangChain function calling
+export const contactOperatorFunction = {
+  name: 'ContactOperator',
+  description: 'Contatta un operatore per assistenza diretta quando il cliente lo richiede esplicitamente',
+  parameters: {
+    type: 'object',
+    properties: {
+      phoneNumber: { type: 'string', description: 'Numero telefono utente' },
+      workspaceId: { type: 'string', description: 'ID workspace' },
+      customerId: { type: 'string', description: 'ID cliente (opzionale)' },
+      message: { type: 'string', description: 'Messaggio utente che richiede operatore' }
+    },
+    required: ['phoneNumber', 'workspaceId', 'message']
+  },
+  handler: ContactOperator
+};

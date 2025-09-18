@@ -192,3 +192,18 @@ se searchRag non restituisce null array vuoto:
 
 - **REGOLA**: Se GetAllProducts.ts funziona, NON toccarlo! È una soluzione testata e approvata da Andrea.
 
+## 🚨 PROBLEMA CRITICO - ContactOperator NON FUNZIONA
+
+- **PROBLEMA**: "posso parlare con un operatore?" va sempre in SearchRag invece di chiamare ContactOperator CF.
+
+- **CAUSA**: Il sistema LLM principale non ha accesso alle funzioni LangChain disponibili. Anche se ContactOperator esiste e ha l'export corretto, il LLM non la vede.
+
+- **TENTATIVO FALLITO**: 
+  1. ✅ Modificato prompt_agent.md per permettere ContactOperator
+  2. ✅ Aggiunto export LangChain a ContactOperator.ts  
+  3. ❌ LLM continua ad andare in SearchRag
+
+- **NEXT STEP**: Investigare come il dual-llm.service.ts passa le funzioni disponibili al LLM principale. Il problema è nell'architettura di function calling.
+
+- RICORDATI CHE NON DEVI CANCELLARE LE COSE 
+DA PROMPT_AGENT LO FACCIO IO NON TE!

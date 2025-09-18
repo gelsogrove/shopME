@@ -14,17 +14,16 @@
 - Che offerte avete?
 - Quanto ci mette ad arrivare un ordine?
 - voglio modificare la mia mail
-
+- Che prodotti vendete?
 
 
 
 - NON VA!!!
  - PROBLEMA LINK
  - piU FACCINE
- - posso parlare con un operatore?
  - dammi ordine ORD-006-2024
  - voglio vedere la fattura dell'ultimo ordine
-Tomato Products
+ - inglese ?
 
 
 
