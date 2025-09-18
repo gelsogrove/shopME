@@ -47,6 +47,14 @@ se searchRag non restituisce null array vuoto:
 
 - attualizza il memory bank con queste regole.
 
+## 🚨 REGOLA CRITICA FAQ MULTILINGUE
+
+- **PROBLEMA LAYER TRANSLATE + FAQ**: Il layer translate traduce la domanda in inglese, ma se non esiste la FAQ corrispondente in italiano, il sistema trova FAQ in altre lingue (spagnolo, portoghese) che hanno similarity score più alta
+- **ESEMPIO**: "in quanto tempo arriva la merce?" → tradotto → trova FAQ spagnola "Factura de mi último pedido" invece di FAQ italiana sui tempi
+- **SOLUZIONE**: Per ogni FAQ importante in inglese, DEVE esistere la versione italiana corrispondente nel seed.ts
+- **VERIFICA**: Controllare sempre che esistano FAQ in italiano per argomenti comuni: tempi spedizione, resi, pagamenti, etc.
+- **DEBUG**: Se il sistema risponde in lingua sbagliata, controllare se esiste la FAQ nella lingua del cliente
+
 ## 🚨 REGOLE CRITICHE FORMATTER - LEZIONI APPRESE
 
 - **FORMATTER NON DEVE SOVRASCRIVERE**: Il formatter deve PRESERVARE liste, categorie, prodotti specifici. MAI sostituire con risposte generiche.
@@ -141,5 +149,4 @@ se searchRag non restituisce null array vuoto:
 
 - availableFunctions deve essere aggiornata con le reali CF 
 
-
-COME DOVREBBE FUNZIONARE
+RISPONDE NON DEVONO ESERRE IN JSON MA BEN FORMATTARE DAL FORMATTER

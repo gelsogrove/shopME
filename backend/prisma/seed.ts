@@ -2478,6 +2478,14 @@ async function main() {
       question: "voglio vedere i miei ordini",
       answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
+    {
+      question: "posso parlare con un operatore?",
+      answer: "Ciao! Per parlare con un operatore umano, contatta il nostro servizio clienti: info@laltrait.com o chiama (+34) 93 15 91 221. Siamo disponibili dal lunedì al venerdì dalle 9:00 alle 18:00.",
+    },
+    {
+      question: "mostra carrello",
+      answer: "Ecco il tuo carrello! 🛒 [CART_LINK]",
+    },
   ]
 
   // Create new FAQs

@@ -186,14 +186,19 @@ export class DualLLMService {
 
       console.log(`🔍 DualLLM: SearchRag result:`, searchRagResult)
 
-      // Check if SearchRag has FAQs
+      // Check what SearchRag found
       const hasFAQs = searchRagResult.success && 
                      searchRagResult.results && 
                      searchRagResult.results.faqs && 
                      searchRagResult.results.faqs.length > 0
       
-      if (!hasFAQs) {
-        console.log(`🔍 DualLLM: SearchRag empty or no FAQs, using saved response from CF`)
+      const hasProducts = searchRagResult.success && 
+                         searchRagResult.results && 
+                         searchRagResult.results.products && 
+                         searchRagResult.results.products.length > 0
+      
+      if (!hasFAQs && !hasProducts) {
+        console.log(`🔍 DualLLM: SearchRag empty, using saved response from CF`)
         return {
           success: true,
           response: cfResult?.response || "Ciao! Come posso aiutarti oggi?",
@@ -201,8 +206,51 @@ export class DualLLMService {
         }
       }
 
-      // If SearchRag has FAQs, return FAQ response
-      console.log(`🔍 DualLLM: SearchRag has FAQs, using FAQ response`)
+      // Compare similarity scores to decide between FAQ vs Products
+      const topFAQScore = hasFAQs ? searchRagResult.results.faqs[0]?.similarity || 0 : 0
+      const topProductScore = hasProducts ? searchRagResult.results.products[0]?.similarity || 0 : 0
+      
+      console.log(`🔍 DualLLM: Scores - FAQ: ${topFAQScore}, Products: ${topProductScore}`)
+      
+      // If products have higher similarity score, format products like a list
+      if (hasProducts && topProductScore > topFAQScore) {
+        console.log(`🔍 DualLLM: Products have higher score, formatting product list`)
+        
+        const products = searchRagResult.results.products.slice(0, 10) // Max 10 products
+        let productList = "Ecco le mozzarelle disponibili:\n\n"
+        
+        products.forEach(product => {
+          const code = product.content.match(/ProductCode: ([^\n]+)/)?.[1] || 'N/A'
+          const name = product.content.match(/Product: ([^\n]+)/)?.[1] || product.sourceName
+          const format = product.content.match(/Format: ([^\n]+)/)?.[1] || ''
+          const price = product.price || 'N/A'
+          const originalPrice = product.originalPrice || price
+          const hasDiscount = product.hasDiscount
+          
+          const formatText = format ? ` (${format})` : ''
+          const priceText = hasDiscount ? `€${originalPrice} ~~€${price}~~` : `€${price}`
+          
+          productList += `• [${code}] **${name}**${formatText} - ${priceText}\n`
+          
+          // Add description if available
+          const description = product.content.match(/Description: ([^\n]+)/)?.[1]
+          if (description) {
+            productList += `  _${description}_\n`
+          }
+          productList += '\n'
+        })
+        
+        productList += `📦 Totale trovati: ${products.length}`
+        
+        return {
+          success: true,
+          response: productList,
+          functionCalls: [{ name: "SearchRag", functionName: "SearchRag" }]
+        }
+      }
+
+      // Otherwise use FAQ response
+      console.log(`🔍 DualLLM: Using FAQ response (score: ${topFAQScore})`)
       
       let faqAnswer = searchRagResult.results.faqs[0]?.content || "Ciao! Come posso aiutarti oggi?"
       

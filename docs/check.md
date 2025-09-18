@@ -15,12 +15,10 @@ e devi riempire risposta: error e funcion
 - che categorie avete? (formato piu bello)
 - che prodotti avete ? 
 - posso parlare con un operatore?
-
-
-NON VA
-
 - dove e' il mio ordine?
 - voglio vedere la fattura dell'ultimo ordine
+
+
 - Tomato Products
 
 
