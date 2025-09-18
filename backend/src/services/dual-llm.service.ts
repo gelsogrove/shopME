@@ -28,14 +28,21 @@ export class DualLLMService {
       let finalResult
       let functionCalls = []
 
-      // Step 3: If CF was called, use CF result. Otherwise use SearchRag
-      if (cfResult?.functionCalls && cfResult.functionCalls.length > 0) {
-        console.log(`🎯 DualLLM: CF was called, using CF result`)
+      // Step 3: If CF was called, use CF result. Otherwise REGOLA 2: salva LLM e chiama SearchRag
+      if (cfResult?.success === true) {
+        console.log(`🎯 DualLLM: CF was called (success=true), using CF result`)
+        console.log(`🎯 DualLLM: CF functionCalls:`, JSON.stringify(cfResult.functionCalls, null, 2))
         finalResult = cfResult
         functionCalls = cfResult.functionCalls
       } else {
-        console.log(`🔍 DualLLM: No CF called, using SearchRag`)
-        const searchRagResult = await this.executeSearchRagFallback(request, translatedQuery, cfResult)
+        console.log(`🔍 DualLLM: No CF called (success=false) - REGOLA 2: Salva LLM response e chiama SearchRag`)
+        
+        // REGOLA 2: Prima genera e salva la risposta dell'LLM (con storico)
+        const llmResponse = await this.generateLLMResponse(translatedQuery, request.workspaceId, request.phone)
+        console.log(`🤖 DualLLM: LLM response saved: ${llmResponse.substring(0, 100)}...`)
+        
+        // Poi chiama SearchRag con la risposta LLM salvata
+        const searchRagResult = await this.executeSearchRagFallback(request, translatedQuery, { response: llmResponse })
         finalResult = searchRagResult
         functionCalls = searchRagResult.functionCalls || []
       }
@@ -43,9 +50,9 @@ export class DualLLMService {
       // Step 4: Formatter receives: language, discount, question, workspaceId, customerId
       const language = this.detectLanguageFromMessage(request.chatInput, request.phone)
       const formattedResponse = await this.executeFormatter(request, finalResult, finalResult === cfResult ? "CF" : "SearchRag")
-      
-      return {
-        success: true,
+
+              return {
+                success: true,
         output: formattedResponse,
         translatedQuery,
         functionCalls: functionCalls,
@@ -76,13 +83,15 @@ export class DualLLMService {
 
   private async executeCallingFunctions(request: LLMRequest, translatedQuery: string): Promise<any> {
     try {
-      console.log(`🚨 DualLLM: executeCallingFunctions STARTED for: ${translatedQuery}`)
+      console.log(`🚨🚨🚨 DualLLM: executeCallingFunctions STARTED for: ${translatedQuery}`)
+      console.error(`🚨🚨🚨 ERROR LOG: executeCallingFunctions STARTED - SHOULD BE VISIBLE`)
       
       // Step 1: Use function router to decide which CF to call
       const messageRepository = new MessageRepository()
       const functionResult = await messageRepository.callFunctionRouter(translatedQuery)
       
       console.log(`🚨 DualLLM: Function router result:`, JSON.stringify(functionResult, null, 2))
+      console.log(`🚨 DualLLM: Function name detected: "${functionResult?.function_call?.name}"`)
       
       // Step 2: If a function was selected, execute it
       if (functionResult?.function_call?.name && functionResult.function_call.name !== 'get_generic_response') {
@@ -94,26 +103,17 @@ export class DualLLMService {
         let cfExecutionResult
         
         // Execute the specific CF based on function name
-        if (functionResult.function_call.name === 'search_specific_product') {
-          const { SearchSpecificProduct } = await import('../chatbot/calling-functions/SearchSpecificProduct')
-          cfExecutionResult = await SearchSpecificProduct({
-            phoneNumber: request.phone,
-            workspaceId: request.workspaceId,
-            customerId: customer?.id || '',
-            productName: functionResult.function_call.arguments.message || '',
-            message: functionResult.function_call.arguments.message || '',
-            language: 'it'
-          })
-        } else if (functionResult.function_call.name === 'get_all_products') {
-          const { GetAllProducts } = await import('../chatbot/calling-functions/GetAllProducts')
-          cfExecutionResult = await GetAllProducts({
-            phoneNumber: request.phone,
-            workspaceId: request.workspaceId,
-            customerId: customer?.id || '',
-            message: translatedQuery,
-            language: 'it'
-          })
-        } else if (functionResult.function_call.name === 'get_all_categories') {
+        console.log(`🔍 DEBUG: Function name received: "${functionResult.function_call.name}"`)
+        console.log(`🔍 DEBUG: Function name length: ${functionResult.function_call.name.length}`)
+        console.log(`🔍 DEBUG: Function name charCodes: ${Array.from(String(functionResult.function_call.name)).map(c => c.charCodeAt(0))}`)
+        
+        // PRIORITY CHECK: get_all_categories FIRST - FIX CONFRONTO
+        const functionName = String(functionResult.function_call.name).trim().toLowerCase()
+        console.log(`🔧 DEBUG: Cleaned function name: "${functionName}"`)
+        if (functionName === 'get_all_categories') {
+          console.log(`🚨🚨🚨 DualLLM: PRIORITY - EXECUTING get_all_categories directly`)
+          console.log(`🚨🚨🚨 DualLLM: THIS MESSAGE SHOULD APPEAR IN LOGS IF CODE IS EXECUTED`)
+          console.error(`🚨🚨🚨 ERROR LOG: EXECUTING get_all_categories - SHOULD BE VISIBLE`)
           // Handle get_all_categories directly
           const { PrismaClient } = require('@prisma/client')
           const prisma = new PrismaClient()
@@ -147,7 +147,27 @@ export class DualLLMService {
               error: error.message
             }
           }
+        } else if (functionResult.function_call.name === 'search_specific_product') {
+          const { SearchSpecificProduct } = await import('../chatbot/calling-functions/SearchSpecificProduct')
+          cfExecutionResult = await SearchSpecificProduct({
+            phoneNumber: request.phone,
+            workspaceId: request.workspaceId,
+            customerId: customer?.id || '',
+            productName: functionResult.function_call.arguments.message || '',
+            message: functionResult.function_call.arguments.message || '',
+            language: 'it'
+          })
+        } else if (functionResult.function_call.name === 'get_all_products') {
+          const { GetAllProducts } = await import('../chatbot/calling-functions/GetAllProducts')
+          cfExecutionResult = await GetAllProducts({
+            phoneNumber: request.phone,
+            workspaceId: request.workspaceId,
+            customerId: customer?.id || '',
+            message: translatedQuery,
+            language: 'it'
+          })
         } else {
+          console.log(`🔧 DualLLM: Using FunctionHandlerService for function: ${functionResult.function_call.name}`)
           // For other functions, use FunctionHandlerService
           const { FunctionHandlerService } = await import('../application/services/function-handler.service')
           const functionHandler = new FunctionHandlerService()
@@ -316,7 +336,7 @@ export class DualLLMService {
     return "it" // Default fallback
   }
 
-  private async generateLLMResponse(query: string, workspaceId: string): Promise<string> {
+  private async generateLLMResponse(query: string, workspaceId: string, phoneNumber?: string): Promise<string> {
     try {
       console.log(`🤖 DualLLM: Generating LLM response for: ${query}`)
       
@@ -334,8 +354,53 @@ export class DualLLMService {
         }
       })
       
+      // REGOLA 19: LLM ha lo storico - get conversation history
+      let conversationHistory = []
+      if (phoneNumber) {
+        const customer = await prisma.customers.findFirst({
+          where: { phone: phoneNumber, workspaceId: workspaceId }
+        })
+        
+        if (customer) {
+          const recentMessages = await prisma.message.findMany({
+            where: {
+              chatSession: {
+                customerId: customer.id,
+                workspaceId: workspaceId
+              }
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 10, // Last 10 messages as per memory
+            include: {
+              chatSession: true
+            }
+          })
+          
+          // Convert to conversation format (reverse to chronological order)
+          conversationHistory = recentMessages.reverse().map(msg => ({
+            role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
+            content: msg.content
+          }))
+        }
+      }
+      
       await prisma.$disconnect()
       const agentPrompt = prompt?.content
+      
+      // Build messages with history
+      const messages = [
+        {
+          role: 'system',
+          content: agentPrompt || 'You are SofIA, an Italian e-commerce assistant. Respond naturally and helpfully in Italian.'
+        },
+        ...conversationHistory,
+        {
+          role: 'user',
+          content: query
+        }
+      ]
+      
+      console.log(`🧠 DualLLM: Using ${conversationHistory.length} messages from conversation history`)
       
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -347,16 +412,7 @@ export class DualLLMService {
         },
         body: JSON.stringify({
           model: 'openai/gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'system',
-              content: agentPrompt || 'You are SofIA, an Italian e-commerce assistant. Respond naturally and helpfully in Italian.'
-            },
-            {
-              role: 'user',
-              content: query
-            }
-          ],
+          messages: messages,
           temperature: 0.3,
           max_tokens: 150
         })

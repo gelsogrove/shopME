@@ -35,7 +35,19 @@ Cervelló (Barcelona)
 ```
 
 
-### 2. GetProductsByCategory(categoria)
+### 2. GetAllCategories()
+**Quando utilizzare:**
+- L'utente chiede quali categorie sono disponibili
+- Richieste generiche su "che categorie avete"
+- Vuole vedere tutte le tipologie di prodotti
+
+**Trigger comuni:**
+- "che categorie avete?" / "what categories do you have?"
+- "che tipi di prodotti vendete?" / "what types of products do you sell?"
+- "cosa vendete?" / "what do you sell?"
+- "mostratemi le categorie" / "show me the categories"
+
+### 3. GetProductsByCategory(categoria)
 **Quando utilizzare:**
 - Ricerche per categoria di prodotti
 - Richieste generiche su tipologie di prodotto

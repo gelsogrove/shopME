@@ -1373,21 +1373,6 @@ export class MessageRepository {
         },
 
         {
-          name: "get_all_categories",
-          description:
-            "Gets a list of all available product categories with product counts",
-          parameters: {
-            type: "object",
-            properties: {
-              message: {
-                type: "string",
-                description: "User's message requesting categories",
-              },
-            },
-            required: ["message"],
-          },
-        },
-        {
           name: "get_all_products",
           description:
             "Gets a complete list of all available products with prices, stock and category information",
