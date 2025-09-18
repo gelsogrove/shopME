@@ -469,7 +469,7 @@ export class CallingFunctionsService {
         // If no orderCode provided, get the last order for the customer
         const whereClause = request.orderCode 
           ? { orderCode: request.orderCode, workspaceId: request.workspaceId }
-          : { workspaceId: request.workspaceId };
+          : { customerId: request.customerId, workspaceId: request.workspaceId };
           
         order = await prisma.orders.findFirst({
           where: whereClause,
@@ -521,6 +521,7 @@ export class CallingFunctionsService {
         success: true,
         linkUrl: dhlTrackingUrl,
         trackingNumber: order.trackingNumber,
+        orderCode: order.orderCode,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
         action: 'tracking',
         timestamp: new Date().toISOString()

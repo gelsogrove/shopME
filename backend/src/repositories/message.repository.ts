@@ -1248,8 +1248,44 @@ export class MessageRepository {
       // Ottieni il prompt del function router
       const functionRouterPrompt = await this.getFunctionRouterPrompt()
 
-// SEGUENDO RICORDATI.MD: NESSUNA FUNZIONE DISPONIBILE - TUTTO VA IN SearchRag
-const availableFunctions = []
+// ANDREA DECISION: CF ATTIVE CON NOMI CORRETTI
+const availableFunctions = [
+  {
+    name: "ContactOperator",
+    description: "Contact a human operator when the user explicitly requests to speak with a human representative, operator, or customer service agent",
+    parameters: {
+      type: "object",
+      properties: {
+        message: { type: "string", description: "The user's original message requesting operator contact" }
+      },
+      required: ["message"]
+    }
+  },
+  {
+    name: "getShipmentTrackingLink",
+    description: "Get shipment tracking link when user asks about order status, delivery, where is my order, when will it arrive, tracking information, last order",
+    parameters: {
+      type: "object",
+      properties: {
+        orderCode: { type: "string", description: "Order number or code to track" },
+        message: { type: "string", description: "User's original tracking request" }
+      },
+      required: ["message"]
+    }
+  },
+  {
+    name: "search_specific_product",
+    description: "Search for specific products when user mentions a specific product name like mozzarella, parmigiano, prosciutto, wine, pasta, etc.",
+    parameters: {
+      type: "object",
+      properties: {
+        productName: { type: "string", description: "Name of the specific product to search" },
+        message: { type: "string", description: "User's original product search request" }
+      },
+      required: ["productName", "message"]
+    }
+  }
+]
 
       logger.info(
         `Calling function router for message: "${message.substring(0, 30)}${

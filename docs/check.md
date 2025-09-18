@@ -11,19 +11,22 @@
 - dove e' il mio ordine?
 - mi puoi dare una ricetta itailana?
 - mostrami carrello
-- Che offerte avete?
 - Quanto ci mette ad arrivare un ordine?
 - voglio modificare la mia mail
 - Che prodotti vendete?
 
 
+CF
+- Che offerte avete?
+- dove e' il mio ultimo ordine?
+- dammi ordine ORD-006-2024
+- voglio vedere la fattura dell'ultimo ordine
+
 
 - NON VA!!!
- - PROBLEMA LINK
- - piU FACCINE
- - dammi ordine ORD-006-2024
- - voglio vedere la fattura dell'ultimo ordine
- - inglese ?
-
+- PROBLEMA LINK
+- piU FACCINE
+- inglese ?non va
+- DHL
 
 

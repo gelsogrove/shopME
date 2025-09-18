@@ -277,3 +277,8 @@ frontend/
 - questo e' il file della task list /docs/other/task-list.md
 - gli scripts vanno nellac artella di scripts
 - quando fai uno script per aggiornare temporaneo poi va cencellato
+
+## 🚨 FILE PROTETTI - NON TOCCARE MAI
+- **ricordati.md** - Solo Andrea può modificarlo
+- **docs/other/prompt_agent.md** - Solo Andrea può modificarlo  
+- **backend/src/repositories/message.repository.ts** - Solo Andrea può modificarlo

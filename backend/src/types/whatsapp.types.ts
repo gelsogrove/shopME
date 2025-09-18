@@ -73,6 +73,7 @@ export interface TokenResponse extends StandardResponse {
   linkUrl: string;
   action: string;
   trackingNumber?: string;
+  orderCode?: string;
 }
 
 export interface WhatsAppRequest {

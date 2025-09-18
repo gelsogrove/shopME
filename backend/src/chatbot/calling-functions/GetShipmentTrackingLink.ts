@@ -1,5 +1,4 @@
 import { OrderStatus, PrismaClient } from '@prisma/client'
-import { OrderService } from '../../application/services/order.service'
 import { SecureTokenService } from '../../application/services/secure-token.service'
 import logger from '../../utils/logger'
 
@@ -19,19 +18,41 @@ export interface GetShipmentTrackingLinkResult {
 export async function GetShipmentTrackingLink(params: GetShipmentTrackingLinkParams): Promise<GetShipmentTrackingLinkResult | null> {
   logger.info(`[TRACKING-LINK] Starting GetShipmentTrackingLink for customer ${params.customerId} in workspace ${params.workspaceId}`)
   
-  const service = new OrderService()
-  const result = await service.getLatestProcessingTracking(params.workspaceId, params.customerId)
+  // Find latest order regardless of status
+  const prisma = new PrismaClient()
+  const latestOrder = await prisma.orders.findFirst({
+    where: {
+      customerId: params.customerId,
+      workspaceId: params.workspaceId
+    },
+    orderBy: {
+      createdAt: 'desc'
+    },
+    select: {
+      id: true,
+      orderCode: true,
+      status: true,
+      trackingNumber: true
+    }
+  })
   
-  if (!result) {
-    logger.warn(`[TRACKING-LINK] No processing order found for customer ${params.customerId}`)
+  if (!latestOrder) {
+    logger.warn(`[TRACKING-LINK] No orders found for customer ${params.customerId}`)
     return null
+  }
+  
+  const result = {
+    orderId: latestOrder.id,
+    orderCode: latestOrder.orderCode,
+    status: latestOrder.status,
+    trackingNumber: latestOrder.trackingNumber,
+    trackingUrl: null
   }
 
   logger.info(`[TRACKING-LINK] Found order ${result.orderCode} with status ${result.status}`)
 
   try {
-    // Get customer phone number for URL construction
-    const prisma = new PrismaClient()
+    // Get customer phone number for URL construction (reuse existing prisma instance)
     const customer = await prisma.customers.findFirst({
       where: { 
         id: params.customerId,
@@ -85,6 +106,8 @@ export async function GetShipmentTrackingLink(params: GetShipmentTrackingLinkPar
 
     logger.info(`[TRACKING-LINK] Generated ShopMe URL: ${shopMeUrl}`)
 
+    await prisma.$disconnect()
+    
     // Return result with ShopMe URL instead of DHL URL
     return {
       ...result,
@@ -93,6 +116,7 @@ export async function GetShipmentTrackingLink(params: GetShipmentTrackingLinkPar
 
   } catch (error) {
     logger.error('[TRACKING-LINK] Error generating ShopMe tracking URL:', error)
+    await prisma.$disconnect()
     // Fallback to original DHL URL if token generation fails
     return result
   }

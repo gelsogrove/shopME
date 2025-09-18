@@ -137,8 +137,9 @@ export class DualLLMService {
         
         console.log(`🚨 DualLLM: CF execution result:`, JSON.stringify(cfExecutionResult, null, 2))
 
-        // Estrai solo il messaggio naturale dalla CF, non tutto il JSON
+        // Estrai il messaggio naturale dalla CF
         let naturalResponse = "CF executed successfully"
+        
         if (cfExecutionResult.response) {
           // Se response è una stringa, usala direttamente
           if (typeof cfExecutionResult.response === 'string') {
@@ -147,6 +148,13 @@ export class DualLLMService {
             // Se response è un oggetto con campo response, estrai quello
             naturalResponse = cfExecutionResult.response.response
           }
+        }
+        
+        // Gestione specifica per getShipmentTrackingLink che restituisce linkUrl
+        const data = cfExecutionResult.data || cfExecutionResult
+        if (data.linkUrl && data.trackingNumber) {
+          const orderCode = data.orderCode || "il tuo ordine"
+          naturalResponse = `Ecco ${orderCode} (tracking: ${data.trackingNumber}). Puoi seguire la spedizione qui: ${data.linkUrl}`
         }
         
         return {
