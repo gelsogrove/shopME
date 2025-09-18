@@ -57,19 +57,18 @@ se searchRag non restituisce null array vuoto:
 
 ## 🚨 REGOLE CRITICHE FORMATTER - LEZIONI APPRESE
 
-- **FORMATTER NON DEVE SOVRASCRIVERE**: Il formatter deve PRESERVARE liste, categorie, prodotti specifici. MAI sostituire con risposte generiche.
+- **FORMATTER DEVE ESSERE SEMPLICE**: Il formatter riceve domanda, risposta, lingua. Passa tutto al prompt LLM: "Rispondi in modo naturale all'utente in [lingua]". Ritorna quello che dice l'LLM.
 
-- **SKIP FORMATTING PER LISTE**: Se la risposta contiene liste di categorie/prodotti (es. "Cheeses & Dairy", "categorie disponibili"), SALTARE language formatting e WhatsApp formatting per preservare i dati.
+- **NESSUN IF, NESSUNA CONDIZIONE**: Il formatter NON deve avere logica complessa. Nessun controllo su liste, link, o altro. Solo traduzione naturale.
 
-- **PROMPT DEVE ESSERE COMPLETO**: Ogni funzione che l'utente può richiedere DEVE essere nel prompt_agent.md con trigger chiari. Se manca una funzione, il sistema va in SearchRag generico.
-
-- **CF vs SEARCHRAG**: Se CF viene chiamata con successo, NON chiamare SearchRag. Il flow è: LLM decide → CF esegue → Formatter preserva.
-
-- **DEBUG CON FILE LOG**: Usare `/tmp/formatter-debug.log` per tracciare cosa succede nel formatter. È essenziale per capire dove si perdono i dati.
+- **FLUSSO PULITO**: 
+  1. Riceve: domanda, risposta (con token già sostituiti), lingua
+  2. Prompt LLM: "Rispondi naturalmente in [lingua]"  
+  3. Ritorna risposta LLM
 
 - **TEMPERATURA 0.0 PER FORMATTER**: Il formatter deve essere deterministico, non creativo. Deve preservare, non inventare.
 
-- **CONFRONTO STRINGHE ROBUSTO**: Usare `.trim().toLowerCase()` per confrontare nomi di funzioni, mai confronti diretti che possono fallire per spazi/maiuscole.
+- **DEBUG CON FILE LOG**: Usare `/tmp/formatter-debug.log` per tracciare cosa succede nel formatter. È essenziale per capire dove si perdono i dati.
 
 
 -  ✅ AGGIORNATO: "che prodotti avete?" e "che categorie avete?" ora passano per SearchRag + Token Replacement (OPZIONE A) 

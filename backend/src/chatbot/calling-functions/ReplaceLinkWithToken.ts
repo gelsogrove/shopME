@@ -58,9 +58,29 @@ export async function ReplaceLinkWithToken(
 
     let replacedResponse = response
 
-    // Handle cart token - Redirect to web
+    // Handle cart token
     if (hasCartToken) {
-      replacedResponse = replacedResponse.replace(/\[LINK_CART_WITH_TOKEN\]/g, "https://laltrait.com/cart")
+      try {
+        const { SecureTokenService } = require('../../application/services/secure-token.service')
+        const secureTokenService = new SecureTokenService()
+        
+        const cartToken = await secureTokenService.createToken(
+          'cart',
+          workspaceId,
+          { customerId, workspaceId },
+          '1h',
+          undefined,
+          undefined,
+          undefined,
+          customerId
+        )
+        
+        const cartLink = `http://localhost:3000/checkout?token=${cartToken}`
+        replacedResponse = replacedResponse.replace(/\[LINK_CART_WITH_TOKEN\]/g, cartLink)
+      } catch (error) {
+        console.error("❌ Error generating cart link:", error)
+        replacedResponse = replacedResponse.replace(/\[LINK_CART_WITH_TOKEN\]/g, "Link del carrello non disponibile")
+      }
     }
 
     // Handle profile token

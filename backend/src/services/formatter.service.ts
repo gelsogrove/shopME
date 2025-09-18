@@ -298,9 +298,10 @@ export class FormatterService {
     // Combine critical rule with any additional format rules
     const combinedRules = criticalRule + (formatRules ? `\n\nADDITIONAL RULES:\n${formatRules}` : '')
 
-    // Handle ALL VARIABLES first
+    // FLUSSO PULITO FORMATTER - SOLO TRADUZIONE NATURALE
     let formattedResponse = response
     
+    // 1. Sostituisci i token prima
     try {
       formattedResponse = await this.replaceAllVariables(response, customerId, workspaceId, language, customerDiscount)
       console.log('✅ FORMATTER: Token replacement completed')
@@ -311,30 +312,69 @@ export class FormatterService {
       formattedResponse = response
     }
 
-    // SEMPRE applicare la traduzione nella lingua dell'utente
-    console.log('🔧 FORMATTER: Applying language formatting...')
-    let languageFormatted = await this.applyLanguageFormatting(formattedResponse, language, formatRules)
-    console.log('🔧 FORMATTER: After language formatting:', languageFormatted.substring(0, 200))
-    fs.appendFileSync('/tmp/formatter-debug.log', `After language formatting: ${languageFormatted}\n`)
-    
-    // Check if response contains lists - if so, skip WhatsApp formatting to preserve data
-    const hasLists = languageFormatted.includes('•') || languageFormatted.includes('-') || languageFormatted.includes('**')
-    
-    let whatsappFormatted = languageFormatted
-    
-    if (!hasLists) {
-      // Only apply WhatsApp formatting if no lists are present
-      whatsappFormatted = await this.applyWhatsAppFormatting(languageFormatted)
-    } else {
-      console.log('🔧 FORMATTER: SKIPPING WhatsApp formatting - contains lists, preserving data')
-    }
-    
-    console.log('🔧 FORMATTER: After WhatsApp formatting:', whatsappFormatted)
-    console.log('🔧 FORMATTER: ===== END FORMATTING =====')
-    fs.appendFileSync('/tmp/formatter-debug.log', `Final result: ${whatsappFormatted}\n`)
+    // 2. SOLO traduzione naturale - NESSUNA CONDIZIONE
+    console.log('🔧 FORMATTER: Applying simple natural language formatting...')
+    let finalResponse = await this.applySimpleLanguageFormatting(formattedResponse, language, originalQuestion)
+    console.log('🔧 FORMATTER: Final response:', finalResponse.substring(0, 200))
+    fs.appendFileSync('/tmp/formatter-debug.log', `Final result: ${finalResponse}\n`)
     fs.appendFileSync('/tmp/formatter-debug.log', `===== END FORMATTER DEBUG =====\n`)
     
-    return whatsappFormatted
+    return finalResponse
+  }
+
+  private static async applySimpleLanguageFormatting(text: string, language: string, originalQuestion: string): Promise<string> {
+    if (!text) return text
+
+    console.log('🔧 SIMPLE FORMATTER: Input:', { text: text.substring(0, 100), language, originalQuestion })
+
+    const prompt = `Tu sei un assistente per un negozio di prodotti italiani.
+
+DOMANDA UTENTE: ${originalQuestion}
+RISPOSTA DA FORMATTARE: ${text}
+LINGUA UTENTE: ${language}
+
+ISTRUZIONI:
+- Rispondi in modo naturale nella lingua dell'utente (${language})
+- Mantieni TUTTI i link, prodotti, prezzi, informazioni esatte come sono
+- NON aggiungere informazioni che non sono nella risposta originale
+- NON rimuovere link o informazioni importanti
+- Scrivi in modo conversazionale e amichevole
+- Se ci sono link HTTP, mantienili esattamente come sono
+
+Rispondi solo con il testo formattato, niente altro.`
+
+    try {
+      const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions"
+      const response = await fetch(openRouterUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'http://localhost:3001',
+          'X-Title': 'ShopME Formatter'
+        },
+        body: JSON.stringify({
+          model: "anthropic/claude-3.5-sonnet",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.0
+        })
+      })
+
+      if (!response.ok) {
+        console.error('❌ SIMPLE FORMATTER: OpenRouter error:', response.status, response.statusText)
+        return text
+      }
+
+      const data = await response.json()
+      const formattedText = data.choices?.[0]?.message?.content || text
+      
+      console.log('✅ SIMPLE FORMATTER: Success')
+      return formattedText.trim()
+
+    } catch (error) {
+      console.error('❌ SIMPLE FORMATTER: Error:', error)
+      return text
+    }
   }
 
   private static async applyLanguageFormatting(text: string, language: string, formatRules: string): Promise<string> {

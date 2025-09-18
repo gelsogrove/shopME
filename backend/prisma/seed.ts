@@ -2500,7 +2500,27 @@ async function main() {
     },
     {
       question: "mostra carrello",
-      answer: "Ecco il tuo carrello! 🛒 [CART_LINK]",
+      answer: "Ecco il tuo carrello! 🛒 [LINK_CART_WITH_TOKEN]",
+    },
+    {
+      question: "mosrami cararello",
+      answer: "Ecco il tuo carrello! 🛒 [LINK_CART_WITH_TOKEN]",
+    },
+    {
+      question: "mostra carello",
+      answer: "Ecco il tuo carrello! 🛒 [LINK_CART_WITH_TOKEN]",
+    },
+    {
+      question: "mostrai carrello",
+      answer: "Ecco il tuo carrello! 🛒 [LINK_CART_WITH_TOKEN]",
+    },
+    {
+      question: "show cart",
+      answer: "Here is your cart! 🛒 [LINK_CART_WITH_TOKEN]",
+    },
+    {
+      question: "show my cart",
+      answer: "Here is your cart! 🛒 [LINK_CART_WITH_TOKEN]",
     },
   ]
 
