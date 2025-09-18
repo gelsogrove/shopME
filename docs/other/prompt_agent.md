@@ -35,19 +35,7 @@ Cervelló (Barcelona)
 ```
 
 
-### 2. GetAllCategories()
-**Quando utilizzare:**
-- L'utente chiede quali categorie sono disponibili
-- Richieste generiche su "che categorie avete"
-- Vuole vedere tutte le tipologie di prodotti
-
-**Trigger comuni:**
-- "che categorie avete?" / "what categories do you have?"
-- "che tipi di prodotti vendete?" / "what types of products do you sell?"
-- "cosa vendete?" / "what do you sell?"
-- "mostratemi le categorie" / "show me the categories"
-
-### 3. GetProductsByCategory(categoria)
+### 2. GetProductsByCategory(categoria)
 **Quando utilizzare:**
 - Ricerche per categoria di prodotti
 - Richieste generiche su tipologie di prodotto
@@ -68,7 +56,7 @@ Cervelló (Barcelona)
 
 et..etc se trovi dei prodotti italiani lo metti come parametro
 
-### 4. ContactOperator()
+### 3. ContactOperator()
 **🚨 PRIORITÀ ALTA** - Quando l'utente richiede assistenza umana
 
 **Trigger multilingua:**
@@ -79,7 +67,7 @@ et..etc se trovi dei prodotti italiani lo metti come parametro
 
 
 
-### 5. GetShipmentTrackingLink()
+### 4. GetShipmentTrackingLink()
 **Per il tracking degli ordini:**
 
 **Trigger comuni:**
@@ -121,19 +109,11 @@ et..etc se trovi dei prodotti italiani lo metti come parametro
    - Trigger: "dove è il mio ordine", "stato ordine", "tracking", "ORD-", numeri ordine
    - Quando: L'utente chiede informazioni su un ordine specifico
 
-3. **GetAllCategories** - PRIORITÀ ALTA
-   - Trigger: "che categorie avete", "che tipi di prodotti", "mostratemi le categorie"
-   - Quando: L'utente vuole vedere tutte le categorie disponibili
-
-4. **GetAllProducts** - PRIORITÀ ALTA
-   - Trigger: "che prodotti avete", "cosa vendete", "mostratemi i prodotti", "che avete disponibile"
-   - Quando: L'utente vuole vedere tutti i prodotti disponibili
-
-5. **SearchSpecificProduct** - PRIORITÀ MEDIA
+3. **SearchSpecificProduct** - PRIORITÀ MEDIA
    - Trigger: Nome prodotto specifico menzionato (es. "Parmigiano", "Mozzarella", "Olio Tartufo")
    - Quando: L'utente chiede di un prodotto con nome preciso
 
-6. **GetProductsByCategory** - PRIORITÀ BASSA
+4. **GetProductsByCategory** - PRIORITÀ BASSA
    - Trigger: Categoria generica (es. "formaggi", "surgelati", "spezie")
    - Quando: L'utente chiede prodotti per tipo/categoria
 
@@ -141,12 +121,13 @@ et..etc se trovi dei prodotti italiani lo metti come parametro
 ```
 1. Contiene parole operatore? → ContactOperator
 2. Contiene tracking/ordine? → GetShipmentTrackingLink  
-3. Contiene "che categorie" o "che tipi di prodotti"? → GetAllCategories
-4. Contiene "che prodotti" o "cosa vendete"? → GetAllProducts
-5. Contiene nome prodotto specifico? → SearchSpecificProduct
-6. Contiene parole chiave categoria? → GetProductsByCategory
-7. Nessuna corrispondenza? → Risposta generica
+3. Contiene nome prodotto specifico? → SearchSpecificProduct
+4. Contiene parole chiave categoria? → GetProductsByCategory
+5. "che prodotti avete?" o "che categorie avete?" → NON chiamare funzioni (SearchRag)
+6. Nessuna corrispondenza? → Risposta generica (SearchRag)
 ```
+
+🚨 IMPORTANTE: Per "che prodotti avete?" e "che categorie avete?" NON chiamare NESSUNA funzione. Lascia che il sistema vada in SearchRag per trovare le FAQ con i token.
 
 **RICONOSCIMENTO CATEGORIE:**
 - **Cheeses & Dairy:** Qualsiasi menzione di formaggi, latticini, mozzarella, burrata, ricotta, parmigiano, etc.

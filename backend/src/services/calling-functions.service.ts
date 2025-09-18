@@ -385,11 +385,11 @@ export class CallingFunctionsService {
       console.log('🌐 Using original query (no translation):', translatedQuery);
       
       const response = await axios.post(`${this.baseUrl}/rag-search`, {
-        query: translatedQuery, // Use translated query
+        query: translatedQuery, // Use query as-is (could be Italian or English)
         workspaceId: request.workspaceId,
         customerId: request.customerId,
         businessType: "ECOMMERCE", // Default business type
-        customerLanguage: "en" // Use English for search
+        customerLanguage: "auto" // Let the system detect language automatically
       }, {
         timeout: 15000
       });
@@ -410,7 +410,7 @@ export class CallingFunctionsService {
 
       return {
         success: hasRealResults, // ✅ TRUE only if we have actual results
-        results: response.data || {},
+        results: response.data?.results || {},
         query: request.query,
         translatedQuery: translatedQuery,
         timestamp: new Date().toISOString()

@@ -1265,27 +1265,6 @@ export class MessageRepository {
           },
         },
         {
-          name: "get_all_products",
-          description: "Retrieves all available products with prices and stock information",
-          parameters: {
-            type: "object",
-            properties: {
-              limit: {
-                type: "number",
-                description: "Maximum number of products to return (optional)",
-              },
-            },
-          },
-        },
-        {
-          name: "get_all_categories",
-          description: "Retrieves all available product categories",
-          parameters: {
-            type: "object",
-            properties: {},
-          },
-        },
-        {
           name: "welcome_user",
           description: "Handles user greetings and generates welcome messages",
           parameters: {
@@ -1347,14 +1326,6 @@ export class MessageRepository {
               },
             },
             required: ["category_name"],
-          },
-        },
-        {
-          name: "get_categories",
-          description: "Gets a list of all available product categories",
-          parameters: {
-            type: "object",
-            properties: {},
           },
         },
         {

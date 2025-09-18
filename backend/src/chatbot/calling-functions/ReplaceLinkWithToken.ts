@@ -38,11 +38,11 @@ export async function ReplaceLinkWithToken(
     const hasUserDiscountToken = response.includes('[USER_DISCOUNT]')
     const hasListOffersToken = response.includes('[LIST_OFFERS]')
     const hasListActiveOffersToken = response.includes('[LIST_ACTIVE_OFFERS]')
-    const hasListAllProductsToken = response.includes('[LIST_ALL_PRODUCTS]')
+    // [LIST_ALL_PRODUCTS] is handled by GetAllProducts() in FormatterService, not here
     const hasListServicesToken = response.includes('[LIST_SERVICES]')
     const hasListCategoriesToken = response.includes('[LIST_CATEGORIES]')
     
-    if (!hasCartToken && !hasProfileToken && !hasOrdersToken && !hasTrackingToken && !hasCheckoutToken && !hasLastOrderInvoiceToken && !hasUserDiscountToken && !hasListOffersToken && !hasListActiveOffersToken && !hasListAllProductsToken && !hasListServicesToken && !hasListCategoriesToken) {
+    if (!hasCartToken && !hasProfileToken && !hasOrdersToken && !hasTrackingToken && !hasCheckoutToken && !hasLastOrderInvoiceToken && !hasUserDiscountToken && !hasListOffersToken && !hasListActiveOffersToken && !hasListServicesToken && !hasListCategoriesToken) {
       return {
         success: false,
         error: "Response does not contain any replaceable tokens"
@@ -196,8 +196,8 @@ export async function ReplaceLinkWithToken(
       }
     }
 
-    // Handle discount, offers, products, services and categories tokens
-    if (hasUserDiscountToken || hasListOffersToken || hasListActiveOffersToken || hasListAllProductsToken || hasListServicesToken || hasListCategoriesToken) {
+    // Handle discount, offers, services and categories tokens (LIST_ALL_PRODUCTS handled by GetAllProducts in FormatterService)
+    if (hasUserDiscountToken || hasListOffersToken || hasListActiveOffersToken || hasListServicesToken || hasListCategoriesToken) {
       let userDiscount = "0%"
       if (hasUserDiscountToken) {
         try {
@@ -231,7 +231,7 @@ export async function ReplaceLinkWithToken(
       
       let listOffers = "Nessuna offerta attiva al momento"
       let listActiveOffers = "Nessuna offerta attiva al momento"
-      let listAllProducts = "Nessun prodotto disponibile al momento"
+      // listAllProducts removed - handled by GetAllProducts in FormatterService
       let listServices = "Nessun servizio disponibile al momento"
       let listCategories = "Nessuna categoria disponibile al momento"
       
@@ -299,61 +299,7 @@ export async function ReplaceLinkWithToken(
         }
       }
       
-      if (hasListAllProductsToken) {
-        try {
-          console.log('🔧 ReplaceLinkWithToken: Starting to get products for workspace:', workspaceId)
-          const { PrismaClient } = require('@prisma/client')
-          const prisma = new PrismaClient()
-          
-          // Get all products grouped by category
-          const products = await prisma.products.findMany({
-            where: {
-              workspaceId: workspaceId,
-              isActive: true
-            },
-            select: {
-              name: true,
-              price: true,
-              currency: true,
-              category: {
-                select: {
-                  name: true
-                }
-              }
-            },
-            take: 20
-          })
-          
-          console.log('🔧 ReplaceLinkWithToken: Found products:', products.length)
-          
-          if (products.length > 0) {
-            // Group products by category
-            const groupedProducts = products.reduce((acc, product) => {
-              const categoryName = product.category?.name || 'Other'
-              if (!acc[categoryName]) {
-                acc[categoryName] = []
-              }
-              acc[categoryName].push(product)
-              return acc
-            }, {} as Record<string, typeof products>)
-            
-            // Format products by category
-            listAllProducts = Object.entries(groupedProducts).map(([category, categoryProducts]) => {
-              const categoryProductsList = (categoryProducts as any[]).map(product => 
-                `  • ${product.name}: ${product.price} ${product.currency}`
-              ).join('\n')
-              return `**${category}:**\n${categoryProductsList}`
-            }).join('\n\n')
-          } else {
-            listAllProducts = "Nessun prodotto disponibile al momento"
-          }
-          
-          await prisma.$disconnect()
-        } catch (error) {
-          console.error("❌ Error getting all products:", error)
-          listAllProducts = "Nessun prodotto disponibile al momento"
-        }
-      }
+      // [LIST_ALL_PRODUCTS] token removed - handled by GetAllProducts in FormatterService
       
       if (hasListActiveOffersToken) {
         try {
@@ -431,7 +377,7 @@ export async function ReplaceLinkWithToken(
         .replace(/\[USER_DISCOUNT\]/g, userDiscount)
         .replace(/\[LIST_OFFERS\]/g, listOffers)
         .replace(/\[LIST_ACTIVE_OFFERS\]/g, listActiveOffers)
-        .replace(/\[LIST_ALL_PRODUCTS\]/g, listAllProducts)
+        // [LIST_ALL_PRODUCTS] handled by GetAllProducts in FormatterService
         .replace(/\[LIST_SERVICES\]/g, listServices)
         .replace(/\[LIST_CATEGORIES\]/g, listCategories)
     }

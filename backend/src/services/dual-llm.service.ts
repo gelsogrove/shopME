@@ -19,32 +19,41 @@ export class DualLLMService {
     try {
       console.log(`🔄 DualLLM: Processing message: ${request.chatInput}`)
 
-      // Step 1: Translate to English for processing
+      // Step 1: LLM decides what to do - calls CF if needed (use translated query for CF detection)
       const translatedQuery = await this.translationService.translateToEnglish(request.chatInput)
-
-      // Step 2: LLM decides what to do - calls CF if needed
       const cfResult = await this.executeCallingFunctions(request, translatedQuery)
 
       let finalResult
       let functionCalls = []
 
-      // Step 3: If CF was called, use CF result. Otherwise REGOLA 2: salva LLM e chiama SearchRag
+      // Step 2: If CF was called, use CF result
       if (cfResult?.success === true) {
         console.log(`🎯 DualLLM: CF was called (success=true), using CF result`)
         console.log(`🎯 DualLLM: CF functionCalls:`, JSON.stringify(cfResult.functionCalls, null, 2))
         finalResult = cfResult
         functionCalls = cfResult.functionCalls
       } else {
-        console.log(`🔍 DualLLM: No CF called (success=false) - REGOLA 2: Salva LLM response e chiama SearchRag`)
+        console.log(`🔍 DualLLM: No CF called - OPZIONE A: SearchRag PRIMA in lingua originale`)
         
-        // REGOLA 2: Prima genera e salva la risposta dell'LLM (con storico)
-        const llmResponse = await this.generateLLMResponse(translatedQuery, request.workspaceId, request.phone)
-        console.log(`🤖 DualLLM: LLM response saved: ${llmResponse.substring(0, 100)}...`)
+        // OPZIONE A: SearchRag PRIMA in lingua originale
+        let searchRagResult = await this.executeSearchRagFallback(request, request.chatInput, { response: "" })
         
-        // Poi chiama SearchRag con la risposta LLM salvata
-        const searchRagResult = await this.executeSearchRagFallback(request, translatedQuery, { response: llmResponse })
-        finalResult = searchRagResult
-        functionCalls = searchRagResult.functionCalls || []
+        // Se non trova in originale, cerca in traduzione
+        if (!searchRagResult.success || !searchRagResult.response || searchRagResult.response.trim() === "") {
+          console.log(`🔍 DualLLM: SearchRag originale vuoto, provo in traduzione`)
+          searchRagResult = await this.executeSearchRagFallback(request, translatedQuery, { response: "" })
+        }
+        
+        // Se SearchRag non trova nulla nemmeno in traduzione, genera LLM response
+        if (!searchRagResult.success || !searchRagResult.response || searchRagResult.response.trim() === "") {
+          console.log(`🤖 DualLLM: SearchRag vuoto anche in traduzione, generating LLM fallback`)
+          const llmResponse = await this.generateLLMResponse(translatedQuery, request.workspaceId, request.phone)
+          finalResult = { success: true, response: llmResponse, functionCalls: [] }
+        } else {
+          finalResult = searchRagResult
+        }
+        
+        functionCalls = finalResult.functionCalls || []
       }
 
       // Step 4: Formatter receives: language, discount, question, workspaceId, customerId
@@ -107,23 +116,8 @@ export class DualLLMService {
         console.log(`🔍 DEBUG: Function name length: ${functionResult.function_call.name.length}`)
         console.log(`🔍 DEBUG: Function name charCodes: ${Array.from(String(functionResult.function_call.name)).map(c => c.charCodeAt(0))}`)
         
-        // PRIORITY CHECK: get_all_categories FIRST - FIX CONFRONTO
-        const functionName = String(functionResult.function_call.name).trim().toLowerCase()
-        console.log(`🔧 DEBUG: Cleaned function name: "${functionName}"`)
-        console.log(`🔧 DEBUG: Checking if "${functionName}" === "get_all_categories": ${functionName === 'get_all_categories'}`)
-        console.log(`🔧 DEBUG: Checking if "${functionName}" === "get_categories": ${functionName === 'get_categories'}`)
-        console.error(`🚨🚨🚨 BEFORE IF CONDITION - SHOULD ALWAYS BE VISIBLE`)
-        if (functionName === 'get_all_categories' || functionName === 'get_categories' || functionName === 'getallcategories') {
-          console.log(`🚨🚨🚨 DualLLM: PRIORITY - EXECUTING GetAllCategories function`)
-          const { GetAllCategories } = await import('../chatbot/calling-functions/GetAllCategories')
-          cfExecutionResult = await GetAllCategories({
-            phoneNumber: request.phone,
-            workspaceId: request.workspaceId,
-            customerId: customer?.id || '',
-            message: translatedQuery,
-            language: 'it'
-          })
-        } else if (functionResult.function_call.name === 'search_specific_product') {
+        // Execute the specific CF based on function name
+        if (functionResult.function_call.name === 'search_specific_product') {
           const { SearchSpecificProduct } = await import('../chatbot/calling-functions/SearchSpecificProduct')
           cfExecutionResult = await SearchSpecificProduct({
             phoneNumber: request.phone,
@@ -131,15 +125,6 @@ export class DualLLMService {
             customerId: customer?.id || '',
             productName: functionResult.function_call.arguments.message || '',
             message: functionResult.function_call.arguments.message || '',
-            language: 'it'
-          })
-        } else if (functionResult.function_call.name === 'get_all_products') {
-          const { GetAllProducts } = await import('../chatbot/calling-functions/GetAllProducts')
-          cfExecutionResult = await GetAllProducts({
-            phoneNumber: request.phone,
-            workspaceId: request.workspaceId,
-            customerId: customer?.id || '',
-            message: translatedQuery,
             language: 'it'
           })
         } else {
@@ -201,9 +186,14 @@ export class DualLLMService {
 
       console.log(`🔍 DualLLM: SearchRag result:`, searchRagResult)
 
-      // If SearchRag is empty, use saved response from CF
-      if (!searchRagResult.success || !searchRagResult.data || searchRagResult.data.results.total === 0) {
-        console.log(`🔍 DualLLM: SearchRag empty, using saved response from CF`)
+      // Check if SearchRag has FAQs
+      const hasFAQs = searchRagResult.success && 
+                     searchRagResult.results && 
+                     searchRagResult.results.faqs && 
+                     searchRagResult.results.faqs.length > 0
+      
+      if (!hasFAQs) {
+        console.log(`🔍 DualLLM: SearchRag empty or no FAQs, using saved response from CF`)
         return {
           success: true,
           response: cfResult?.response || "Ciao! Come posso aiutarti oggi?",
@@ -211,10 +201,15 @@ export class DualLLMService {
         }
       }
 
-      // If SearchRag has results, return FAQ response
-      console.log(`🔍 DualLLM: SearchRag has results, using FAQ response`)
+      // If SearchRag has FAQs, return FAQ response
+      console.log(`🔍 DualLLM: SearchRag has FAQs, using FAQ response`)
       
-      let faqAnswer = searchRagResult.data.results.faqs?.[0]?.answer || "Ciao! Come posso aiutarti oggi?"
+      let faqAnswer = searchRagResult.results.faqs[0]?.content || "Ciao! Come posso aiutarti oggi?"
+      
+      // Extract answer from FAQ content (format: "Question: ...\nAnswer: ...")
+      if (faqAnswer.includes('Answer: ')) {
+        faqAnswer = faqAnswer.split('Answer: ')[1] || faqAnswer
+      }
       
       // REGOLA 10: Replace variabili PRIMA di inviare al modello
       if (faqAnswer.includes('[') && faqAnswer.includes(']')) {

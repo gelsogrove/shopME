@@ -57,7 +57,12 @@ export interface RagSearchRequest {
 }
 
 export interface RagSearchResponse extends StandardResponse {
-  results: any[];
+  results: {
+    products?: any[];
+    faqs?: any[];
+    services?: any[];
+    total?: number;
+  };
   query?: string;
   translatedQuery?: string;
 }
