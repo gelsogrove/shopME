@@ -11,6 +11,7 @@
 - dove e' il mio ordine?
 - mi puoi dare una ricetta itailana?
 - mostrami carrello
+- Che offerte avete?
 
 
 - NON VA!!!
@@ -18,7 +19,6 @@
  - voglio vedere la fattura dell'ultimo ordine
 
 Tomato Products
-
 che prodotti avete ? 
 dammi ordine ORD-006-2024
 

@@ -133,9 +133,21 @@ se searchRag non restituisce null array vuoto:
 
 ## 🚨 LEZIONI APPRESE - DEBUGGING OPZIONE A
 
-- **RISPETTARE LA TABELLA TOKEN**: Ogni token ([LIST_ALL_PRODUCTS], [CART_LINK], etc.) ha UNA SOLA funzione responsabile. Non creare doppie gestioni.
-
+- **RISPETTARE LA TABELLA TOKEN**: Ogni token ([LIST_ALL_PRODUCTS], [LINK_CART_WITH_TOKEN], etc.) ha UNA SOLA funzione responsabile. Non creare doppie gestioni.
 
 - **SEARCHRAG SOLO TRADUZIONE**: Il flusso corretto cerca SOLO in traduzione inglese, non in lingua originale.
 
+## 🚨 LEZIONE CRITICA - FAQ MANCANTI = LLM INVENTA
+
+- **PROBLEMA**: Se manca una FAQ per una domanda comune (es. "che offerte avete?"), il sistema va in LLM fallback che **INVENTA** risposte invece di usare dati reali dal database.
+
+- **SINTOMO**: L'utente chiede "che offerte avete?" e il sistema risponde con informazioni inventate invece di usare i token corretti ([LIST_OFFERS]).
+
+- **SOLUZIONE**: 
+  1. Identificare domande comuni mancanti
+  2. Aggiungere FAQ con token appropriati nel seed.ts
+  3. Verificare che esistano le funzioni per gestire i token
+  4. Rigenerare embeddings con npm run seed
+
+- **REGOLA**: Mai permettere che l'LLM inventi dati quando esistono token e funzioni per recuperarli dal database. Ogni domanda comune DEVE avere una FAQ dedicata.
 

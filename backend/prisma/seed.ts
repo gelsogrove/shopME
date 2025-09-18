@@ -2522,6 +2522,22 @@ async function main() {
       question: "show my cart",
       answer: "Here is your cart! 🛒 [LINK_CART_WITH_TOKEN]",
     },
+    {
+      question: "che offerte avete?",
+      answer: "Ciao! Ecco le nostre offerte attive: [LIST_OFFERS]",
+    },
+    {
+      question: "what offers do you have?",
+      answer: "Hello! Here are our active offers: [LIST_OFFERS]",
+    },
+    {
+      question: "offerte",
+      answer: "Ecco le nostre offerte attive: [LIST_OFFERS]",
+    },
+    {
+      question: "sconti",
+      answer: "Ecco le nostre offerte e sconti attivi: [LIST_OFFERS]",
+    },
   ]
 
   // Create new FAQs
