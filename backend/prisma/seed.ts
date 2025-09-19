@@ -136,7 +136,9 @@ async function generateEmbeddingsAfterSeed() {
     // } catch (error) {
     //   console.log("❌ Document embeddings failed:", error.message)
     // }
-    console.log("🔄 4. Document embeddings: SKIPPED (documents no longer exist in system)")
+    console.log(
+      "🔄 4. Document embeddings: SKIPPED (documents no longer exist in system)"
+    )
 
     console.log("🎉 EMBEDDING GENERATION COMPLETED!")
     console.log("=================================")
@@ -354,7 +356,10 @@ async function main() {
       })
       console.log("Eliminati document chunks")
     } catch (error) {
-      console.log("Errore eliminazione document chunks:", (error as any).message)
+      console.log(
+        "Errore eliminazione document chunks:",
+        (error as any).message
+      )
     }
 
     try {
@@ -894,52 +899,62 @@ async function main() {
     {
       name: "Cheeses & Dairy",
       slug: "cheeses-dairy",
-      description: "Formaggi e latticini italiani premium, mozzarella, burrata e prodotti caseari di alta qualità.",
+      description:
+        "Formaggi e latticini italiani premium, mozzarella, burrata e prodotti caseari di alta qualità.",
     },
     {
       name: "Cured Meats",
-      slug: "cured-meats", 
-      description: "Salumi tradizionali italiani e insaccati artigianali di alta qualità.",
+      slug: "cured-meats",
+      description:
+        "Salumi tradizionali italiani e insaccati artigianali di alta qualità.",
     },
     {
       name: "Salami & Cold Cuts",
       slug: "salami-cold-cuts",
-      description: "Salami artigianali, prosciutto e affettati italiani della migliore tradizione.",
+      description:
+        "Salami artigianali, prosciutto e affettati italiani della migliore tradizione.",
     },
     {
       name: "Pasta & Rice",
       slug: "pasta-rice",
-      description: "Pasta e riso italiani premium, varietà tradizionali e artigianali di alta qualità.",
+      description:
+        "Pasta e riso italiani premium, varietà tradizionali e artigianali di alta qualità.",
     },
     {
       name: "Tomato Products",
       slug: "tomato-products",
-      description: "Salse di pomodoro italiane, passata e prodotti a base di pomodoro di qualità superiore.",
+      description:
+        "Salse di pomodoro italiane, passata e prodotti a base di pomodoro di qualità superiore.",
     },
     {
       name: "Flour & Baking",
       slug: "flour-baking",
-      description: "Farine italiane e ingredienti per panificazione e pasticceria artigianale.",
+      description:
+        "Farine italiane e ingredienti per panificazione e pasticceria artigianale.",
     },
     {
       name: "Sauces & Preserves",
       slug: "sauces-preserves",
-      description: "Salse gourmet, conserve e condimenti italiani di alta qualità per arricchire ogni piatto.",
+      description:
+        "Salse gourmet, conserve e condimenti italiani di alta qualità per arricchire ogni piatto.",
     },
     {
       name: "Water & Beverages",
       slug: "water-beverages",
-      description: "Acque minerali italiane premium e bevande tradizionali di alta qualità.",
+      description:
+        "Acque minerali italiane premium e bevande tradizionali di alta qualità.",
     },
     {
       name: "Frozen Products",
       slug: "frozen-products",
-      description: "Dolci surgelati italiani, pasticceria e specialità congelate di alta qualità.",
+      description:
+        "Dolci surgelati italiani, pasticceria e specialità congelate di alta qualità.",
     },
     {
       name: "Various & Spices",
       slug: "various-spices",
-      description: "Spezie italiane, condimenti e vari prodotti gourmet per la cucina tradizionale.",
+      description:
+        "Spezie italiane, condimenti e vari prodotti gourmet per la cucina tradizionale.",
     },
   ]
 
@@ -1146,9 +1161,10 @@ async function main() {
     {
       name: "Burrata di Vacca Senza Testa",
       ProductCode: "0212000022",
-      description: "Burrata artigianale pugliese di latte vaccino senza testa, dal cuore cremoso e sapore delicato. Prodotta secondo tradizione in Puglia. Regione: Puglia - Culla della burrata, dove nasce questo capolavoro caseario nel cuore del Salento.",
+      description:
+        "Burrata artigianale pugliese di latte vaccino senza testa, dal cuore cremoso e sapore delicato. Prodotta secondo tradizione in Puglia. Regione: Puglia - Culla della burrata, dove nasce questo capolavoro caseario nel cuore del Salento.",
       formato: "100gr x12",
-      price: 5.50,
+      price: 5.5,
       stock: 48,
       status: "ACTIVE",
       slug: "burrata-de-vaca-s-cabeza",
@@ -1157,9 +1173,10 @@ async function main() {
     {
       name: "Burrata di Vacca Con Testa",
       ProductCode: "0212000017",
-      description: "Burrata tradizionale pugliese di latte vaccino con testa, dalla consistenza cremosa e gusto autentico della tradizione casearia del Sud Italia.",
+      description:
+        "Burrata tradizionale pugliese di latte vaccino con testa, dalla consistenza cremosa e gusto autentico della tradizione casearia del Sud Italia.",
       formato: "125gr x12",
-      price: 6.20,
+      price: 6.2,
       stock: 36,
       status: "ACTIVE",
       slug: "burrata-de-vaca-c-cabeza",
@@ -1168,9 +1185,10 @@ async function main() {
     {
       name: "Burrata in Vaso",
       ProductCode: "0212000020",
-      description: "Burrata artigianale conservata in vaso, perfetta per mantenere la freschezza e la cremosità. Specialità pugliese di alta qualità.",
+      description:
+        "Burrata artigianale conservata in vaso, perfetta per mantenere la freschezza e la cremosità. Specialità pugliese di alta qualità.",
       formato: "125gr x12",
-      price: 6.80,
+      price: 6.8,
       stock: 24,
       status: "ACTIVE",
       slug: "burrata-en-vaso",
@@ -1179,9 +1197,10 @@ async function main() {
     {
       name: "Burrata Artigianale Senza Testa",
       ProductCode: "0212000043",
-      description: "Burrata artigianale di produzione limitata, senza testa, dal sapore intenso e cremosità eccezionale. Prodotta da maestri casari pugliesi.",
+      description:
+        "Burrata artigianale di produzione limitata, senza testa, dal sapore intenso e cremosità eccezionale. Prodotta da maestri casari pugliesi.",
       formato: "150gr x2",
-      price: 8.90,
+      price: 8.9,
       stock: 18,
       status: "ACTIVE",
       slug: "burrata-artigianale-s-cabeza",
@@ -1190,9 +1209,10 @@ async function main() {
     {
       name: "Burrata",
       ProductCode: "0212000029",
-      description: "Burrata classica pugliese di grande formato, perfetta per condivisione. Cuore cremoso di stracciatella e panna, pasta filata esterna.",
+      description:
+        "Burrata classica pugliese di grande formato, perfetta per condivisione. Cuore cremoso di stracciatella e panna, pasta filata esterna.",
       formato: "250gr x10",
-      price: 9.50,
+      price: 9.5,
       stock: 30,
       status: "ACTIVE",
       slug: "burrata-classica-250gr",
@@ -1201,9 +1221,10 @@ async function main() {
     {
       name: "Burrata 200gr",
       ProductCode: "0212000018",
-      description: "Burrata di formato medio, ideale per 2-3 persone. Prodotta in Puglia con latte fresco locale e tecniche tradizionali.",
+      description:
+        "Burrata di formato medio, ideale per 2-3 persone. Prodotta in Puglia con latte fresco locale e tecniche tradizionali.",
       formato: "200gr",
-      price: 7.80,
+      price: 7.8,
       stock: 42,
       status: "ACTIVE",
       slug: "burrata-200gr",
@@ -1212,9 +1233,10 @@ async function main() {
     {
       name: "Nodo in vaschetta",
       ProductCode: "0212000064",
-      description: "Piccoli nodi di burrata in vaschetta, perfetti come antipasto o aperitivo. Formato mini per degustazioni raffinate.",
+      description:
+        "Piccoli nodi di burrata in vaschetta, perfetti come antipasto o aperitivo. Formato mini per degustazioni raffinate.",
       formato: "50gr (5ud)",
-      price: 4.20,
+      price: 4.2,
       stock: 60,
       status: "ACTIVE",
       slug: "nodo-in-vaschetta",
@@ -1223,9 +1245,10 @@ async function main() {
     {
       name: "Burrata Affumicata",
       ProductCode: "0212000023",
-      description: "Burrata affumicata con legni aromatici, dal sapore unico e avvolgente. Specialità gourmet della tradizione pugliese moderna.",
+      description:
+        "Burrata affumicata con legni aromatici, dal sapore unico e avvolgente. Specialità gourmet della tradizione pugliese moderna.",
       formato: "125gr x2",
-      price: 8.50,
+      price: 8.5,
       stock: 20,
       status: "ACTIVE",
       slug: "burrata-ahumada",
@@ -1234,9 +1257,10 @@ async function main() {
     {
       name: "Burrata 30 Gr",
       ProductCode: "0212000030",
-      description: "Mini burrate monoporzione, perfette per aperitivi e degustazioni. Formato piccolo ma dal grande sapore pugliese.",
+      description:
+        "Mini burrate monoporzione, perfette per aperitivi e degustazioni. Formato piccolo ma dal grande sapore pugliese.",
       formato: "6 ud",
-      price: 6.90,
+      price: 6.9,
       stock: 45,
       status: "ACTIVE",
       slug: "burrata-30gr-6ud",
@@ -1245,9 +1269,10 @@ async function main() {
     {
       name: "Burrata al Gorgonzola DOP",
       ProductCode: "0212000039",
-      description: "Burrata gourmet con cuore di gorgonzola DOP lombardo. Incontro perfetto tra cremosità pugliese e sapidità lombarda.",
+      description:
+        "Burrata gourmet con cuore di gorgonzola DOP lombardo. Incontro perfetto tra cremosità pugliese e sapidità lombarda.",
       formato: "100Gr x12",
-      price: 9.80,
+      price: 9.8,
       stock: 15,
       status: "ACTIVE",
       slug: "burrata-al-gorgonzola-dop",
@@ -1256,9 +1281,10 @@ async function main() {
     {
       name: "Burrata alla Nduja",
       ProductCode: "0212000040",
-      description: "Burrata piccante con 'nduja calabrese, fusione di sapori del Sud Italia. Cremosità pugliese incontra il piccante calabrese.",
+      description:
+        "Burrata piccante con 'nduja calabrese, fusione di sapori del Sud Italia. Cremosità pugliese incontra il piccante calabrese.",
       formato: "200 Grx8",
-      price: 11.20,
+      price: 11.2,
       stock: 12,
       status: "ACTIVE",
       slug: "burrata-alla-nduja",
@@ -1267,9 +1293,10 @@ async function main() {
     {
       name: "Burrata Caprese",
       ProductCode: "0212000046",
-      description: "Burrata con pomodorini e basilico, ispirata alla tradizione caprese. Freschezza campana in versione pugliese.",
+      description:
+        "Burrata con pomodorini e basilico, ispirata alla tradizione caprese. Freschezza campana in versione pugliese.",
       formato: "100Gr x12",
-      price: 7.90,
+      price: 7.9,
       stock: 28,
       status: "ACTIVE",
       slug: "burrata-caprese",
@@ -1278,9 +1305,10 @@ async function main() {
     {
       name: "Burrata ai Ricci di Mare",
       ProductCode: "0212000044",
-      description: "Burrata gourmet con ricci di mare, specialità di lusso che unisce la cremosità della burrata al sapore del mare pugliese.",
+      description:
+        "Burrata gourmet con ricci di mare, specialità di lusso che unisce la cremosità della burrata al sapore del mare pugliese.",
       formato: "100Gr x12",
-      price: 15.50,
+      price: 15.5,
       stock: 8,
       status: "ACTIVE",
       slug: "burrata-ai-ricci-di-mare",
@@ -1289,9 +1317,10 @@ async function main() {
     {
       name: "Burrata Affumicata con Cuore di Ricotta",
       ProductCode: "0212000041",
-      description: "Burrata affumicata con cuore di ricotta fresca, doppia cremosità e sapore affumicato delicato. Innovazione della tradizione.",
+      description:
+        "Burrata affumicata con cuore di ricotta fresca, doppia cremosità e sapore affumicato delicato. Innovazione della tradizione.",
       formato: "100gr x16",
-      price: 8.90,
+      price: 8.9,
       stock: 22,
       status: "ACTIVE",
       slug: "burrata-ahumada-con-cuore-ricotta",
@@ -1300,9 +1329,10 @@ async function main() {
     {
       name: "Burrata con Tartufo",
       ProductCode: "0212000019",
-      description: "Burrata gourmet con tartufo, eccellenza pugliese arricchita dal pregiato tartufo italiano. Lusso e tradizione in un solo prodotto. Regione: Puglia - Dalle murge pugliesi, dove la burrata incontra il tartufo umbro in un matrimonio di sapori unico.",
+      description:
+        "Burrata gourmet con tartufo, eccellenza pugliese arricchita dal pregiato tartufo italiano. Lusso e tradizione in un solo prodotto. Regione: Puglia - Dalle murge pugliesi, dove la burrata incontra il tartufo umbro in un matrimonio di sapori unico.",
       formato: "100g x12",
-      price: 12.80,
+      price: 12.8,
       stock: 10,
       status: "ACTIVE",
       slug: "burrata-c-trufa",
@@ -1311,9 +1341,10 @@ async function main() {
     {
       name: "Burrata Anchoas del Cantábrico y pimiento",
       ProductCode: "G-ANCH-PROV",
-      description: "Burrata gourmet con acciughe del Cantabrico e peperoni, fusione italo-spagnola di sapori marini e terrestri.",
+      description:
+        "Burrata gourmet con acciughe del Cantabrico e peperoni, fusione italo-spagnola di sapori marini e terrestri.",
       formato: "100gr x16",
-      price: 13.50,
+      price: 13.5,
       stock: 6,
       status: "ACTIVE",
       slug: "burrata-anchoas-cantabrico-pimiento",
@@ -1322,9 +1353,10 @@ async function main() {
     {
       name: "Burrata Olive e Maggiorana",
       ProductCode: "G-OLIV-PROV",
-      description: "Burrata aromatizzata con olive pugliesi e maggiorana fresca, sapori mediterranei in perfetta armonia con la cremosità tradizionale.",
+      description:
+        "Burrata aromatizzata con olive pugliesi e maggiorana fresca, sapori mediterranei in perfetta armonia con la cremosità tradizionale.",
       formato: "100gr x16",
-      price: 9.20,
+      price: 9.2,
       stock: 14,
       status: "ACTIVE",
       slug: "burrata-olive-maggiorana",
@@ -1333,9 +1365,10 @@ async function main() {
     {
       name: "Burrata di Bufala",
       ProductCode: "0212000047",
-      description: "Burrata di latte di bufala campana, cremosità superiore e sapore più intenso. Eccellenza casearia del Sud Italia.",
+      description:
+        "Burrata di latte di bufala campana, cremosità superiore e sapore più intenso. Eccellenza casearia del Sud Italia.",
       formato: "125Gr x12",
-      price: 11.80,
+      price: 11.8,
       stock: 16,
       status: "ACTIVE",
       slug: "burrata-di-bufala",
@@ -1346,9 +1379,10 @@ async function main() {
     {
       name: "Mozzarela Di Bufala",
       ProductCode: "0212000035",
-      description: "Mozzarella di bufala campana DOP, dal sapore intenso e consistenza elastica. Prodotta con latte di bufala 100% campano.",
+      description:
+        "Mozzarella di bufala campana DOP, dal sapore intenso e consistenza elastica. Prodotta con latte di bufala 100% campano.",
       formato: "5x100 Gr",
-      price: 12.50,
+      price: 12.5,
       stock: 25,
       status: "ACTIVE",
       slug: "mozzarela-di-bufala-5x100",
@@ -1357,9 +1391,10 @@ async function main() {
     {
       name: "Bocconcino Di Bufala",
       ProductCode: "0212000033",
-      description: "Bocconcini di mozzarella di bufala campana DOP, formato pratico per insalate e antipasti. Freschezza e qualità garantite.",
+      description:
+        "Bocconcini di mozzarella di bufala campana DOP, formato pratico per insalate e antipasti. Freschezza e qualità garantite.",
       formato: "2x125 Gr",
-      price: 8.90,
+      price: 8.9,
       stock: 32,
       status: "ACTIVE",
       slug: "bocconcino-di-bufala",
@@ -1368,9 +1403,10 @@ async function main() {
     {
       name: "Ciliegina",
       ProductCode: "0212000048",
-      description: "Ciliegine di mozzarella di bufala DOP, formato mini perfetto per aperitivi e insalate caprese. Dolcezza e freschezza campana.",
+      description:
+        "Ciliegine di mozzarella di bufala DOP, formato mini perfetto per aperitivi e insalate caprese. Dolcezza e freschezza campana.",
       formato: "15Gr (250Grx10)",
-      price: 6.80,
+      price: 6.8,
       stock: 40,
       status: "ACTIVE",
       slug: "ciliegina-bufala",
@@ -1379,9 +1415,10 @@ async function main() {
     {
       name: "Mozzarella Di Bufala Campana D.O.P.",
       ProductCode: "0212000034",
-      description: "Mozzarella di bufala campana DOP certificata, ciliegine in busta. Tradizione casearia campana dal 1800, sapore autentico.",
+      description:
+        "Mozzarella di bufala campana DOP certificata, ciliegine in busta. Tradizione casearia campana dal 1800, sapore autentico.",
       formato: "15Gr xbolsa 250Gr",
-      price: 7.20,
+      price: 7.2,
       stock: 35,
       status: "ACTIVE",
       slug: "mozzarella-bufala-campana-dop-ciliegine",
@@ -1390,9 +1427,10 @@ async function main() {
     {
       name: "Mozzarella di Bufala Campana D.O.P. 125gr",
       ProductCode: "0212000024",
-      description: "Mozzarella di bufala campana DOP formato classico, prodotta nelle province di Caserta e Salerno secondo disciplinare tradizionale. Regione: Campania - Terra dei bufali, dove la tradizione DOP protegge l'eccellenza casearia da generazioni.",
+      description:
+        "Mozzarella di bufala campana DOP formato classico, prodotta nelle province di Caserta e Salerno secondo disciplinare tradizionale. Regione: Campania - Terra dei bufali, dove la tradizione DOP protegge l'eccellenza casearia da generazioni.",
       formato: "125gr x 12",
-      price: 9.50,
+      price: 9.5,
       stock: 28,
       status: "ACTIVE",
       slug: "mozzarella-bufala-campana-dop-125gr",
@@ -1401,9 +1439,10 @@ async function main() {
     {
       name: "Mozzarella di Bufala Campana D.O.P. 250gr",
       ProductCode: "0212000031",
-      description: "Mozzarella di bufala campana DOP grande formato, ideale per famiglie. Cremosità e sapore intenso della tradizione campana.",
+      description:
+        "Mozzarella di bufala campana DOP grande formato, ideale per famiglie. Cremosità e sapore intenso della tradizione campana.",
       formato: "250gr x12",
-      price: 14.80,
+      price: 14.8,
       stock: 20,
       status: "ACTIVE",
       slug: "mozzarella-bufala-campana-dop-250gr",
@@ -1412,9 +1451,10 @@ async function main() {
     {
       name: "Mozzarella di Bufala D.O.P. Treccia 1kg",
       ProductCode: "0212000053",
-      description: "Treccia di mozzarella di bufala DOP da 1kg, formato professionale per ristoranti. Lavorazione artigianale a mano.",
+      description:
+        "Treccia di mozzarella di bufala DOP da 1kg, formato professionale per ristoranti. Lavorazione artigianale a mano.",
       formato: "1 Kg",
-      price: 18.90,
+      price: 18.9,
       stock: 15,
       status: "ACTIVE",
       slug: "mozzarella-bufala-dop-treccia-1kg",
@@ -1423,9 +1463,10 @@ async function main() {
     {
       name: "Mozzarella di Bufala D.O.P. Affumicata",
       ProductCode: "0212000028",
-      description: "Mozzarella di bufala DOP affumicata con legni naturali, sapore unico che unisce tradizione campana e tecnica affumicatura.",
+      description:
+        "Mozzarella di bufala DOP affumicata con legni naturali, sapore unico che unisce tradizione campana e tecnica affumicatura.",
       formato: "250gr x12",
-      price: 16.20,
+      price: 16.2,
       stock: 12,
       status: "ACTIVE",
       slug: "mozzarella-bufala-dop-ahumada",
@@ -1434,9 +1475,10 @@ async function main() {
     {
       name: "Mozzarella di Bufala D.O.P. Treccia 2kg",
       ProductCode: "0212000049",
-      description: "Treccia di mozzarella di bufala DOP da 2kg, formato per grandi eventi e ristorazione. Lavorazione completamente manuale.",
+      description:
+        "Treccia di mozzarella di bufala DOP da 2kg, formato per grandi eventi e ristorazione. Lavorazione completamente manuale.",
       formato: "2 Kg",
-      price: 35.50,
+      price: 35.5,
       stock: 8,
       status: "ACTIVE",
       slug: "mozzarella-bufala-dop-treccia-2kg",
@@ -1445,9 +1487,10 @@ async function main() {
     {
       name: "Mozzarella di Bufala Senza Lattosio",
       ProductCode: "0212000036",
-      description: "Mozzarella di bufala senza lattosio, per intolleranti che non vogliono rinunciare al sapore autentico della bufala campana.",
+      description:
+        "Mozzarella di bufala senza lattosio, per intolleranti che non vogliono rinunciare al sapore autentico della bufala campana.",
       formato: "2x125 Gr",
-      price: 10.80,
+      price: 10.8,
       stock: 18,
       status: "ACTIVE",
       slug: "mozzarella-bufala-s-lactose",
@@ -1456,9 +1499,10 @@ async function main() {
     {
       name: "Mozzarella di Bufala Senza Lattosio 500gr",
       ProductCode: "P-MBSL-PROV",
-      description: "Mozzarella di bufala senza lattosio formato grande, innovazione per intolleranti. Mantiene tutto il sapore della tradizione campana.",
+      description:
+        "Mozzarella di bufala senza lattosio formato grande, innovazione per intolleranti. Mantiene tutto il sapore della tradizione campana.",
       formato: "500 Gr",
-      price: 16.50,
+      price: 16.5,
       stock: 10,
       status: "ACTIVE",
       slug: "mozzarella-bufala-s-lactose-500gr",
@@ -1467,9 +1511,10 @@ async function main() {
     {
       name: "Bocconcini di Bufala Senza Lattosio",
       ProductCode: "0212000037",
-      description: "Bocconcini di mozzarella di bufala senza lattosio, formato pratico per chi ha intolleranze ma ama i sapori autentici.",
+      description:
+        "Bocconcini di mozzarella di bufala senza lattosio, formato pratico per chi ha intolleranze ma ama i sapori autentici.",
       formato: "5x50 Gr",
-      price: 9.20,
+      price: 9.2,
       stock: 22,
       status: "ACTIVE",
       slug: "bocconcino-bufala-s-lactose",
@@ -1480,9 +1525,10 @@ async function main() {
     {
       name: "Fiordilatte Taglio Napoli",
       ProductCode: "0212000025",
-      description: "Fior di latte taglio Napoli, mozzarella di latte vaccino della tradizione napoletana. Perfetta per pizza e piatti tipici campani.",
+      description:
+        "Fior di latte taglio Napoli, mozzarella di latte vaccino della tradizione napoletana. Perfetta per pizza e piatti tipici campani.",
       formato: "6x500Gr",
-      price: 8.50,
+      price: 8.5,
       stock: 30,
       status: "ACTIVE",
       slug: "fiordilatte-taglio-napoli",
@@ -1491,9 +1537,10 @@ async function main() {
     {
       name: "Fiordilatte Julienne Taglio Fiammifero",
       ProductCode: "0212000026",
-      description: "Fior di latte taglio julienne a fiammifero, formato professionale per pizzerie e ristoranti. Fusione perfetta e veloce.",
+      description:
+        "Fior di latte taglio julienne a fiammifero, formato professionale per pizzerie e ristoranti. Fusione perfetta e veloce.",
       formato: "3 Kg",
-      price: 12.80,
+      price: 12.8,
       stock: 20,
       status: "ACTIVE",
       slug: "fiordilatte-julienne-taglio-fiammifero",
@@ -1502,9 +1549,10 @@ async function main() {
     {
       name: "Fior di Latte Boccone",
       ProductCode: "0212000045",
-      description: "Fior di latte a bocconi, formato professionale per ristorazione. Mozzarella di latte vaccino dalla consistenza perfetta.",
+      description:
+        "Fior di latte a bocconi, formato professionale per ristorazione. Mozzarella di latte vaccino dalla consistenza perfetta.",
       formato: "3 Kg",
-      price: 11.90,
+      price: 11.9,
       stock: 25,
       status: "ACTIVE",
       slug: "fior-di-latte-boccone",
@@ -1513,9 +1561,10 @@ async function main() {
     {
       name: "Fior di Latte Cubettata",
       ProductCode: "0212000051",
-      description: "Fior di latte cubettata, taglio uniforme per preparazioni professionali. Ideale per insalate e piatti freddi.",
+      description:
+        "Fior di latte cubettata, taglio uniforme per preparazioni professionali. Ideale per insalate e piatti freddi.",
       formato: "3 Kg",
-      price: 12.20,
+      price: 12.2,
       stock: 18,
       status: "ACTIVE",
       slug: "fior-di-latte-cubettata",
@@ -1524,9 +1573,10 @@ async function main() {
     {
       name: "Mozzarella Fior di Latte",
       ProductCode: "0212000032",
-      description: "Mozzarella fior di latte formato famiglia, dalla tradizione casearia campana. Sapore delicato e consistenza elastica.",
+      description:
+        "Mozzarella fior di latte formato famiglia, dalla tradizione casearia campana. Sapore delicato e consistenza elastica.",
       formato: "15x200 Gr",
-      price: 6.80,
+      price: 6.8,
       stock: 35,
       status: "ACTIVE",
       slug: "mozzarella-fior-di-latte",
@@ -1535,9 +1585,10 @@ async function main() {
     {
       name: "Mozzarella Fiordilatte 500gr",
       ProductCode: "0212000027",
-      description: "Mozzarella fiordilatte formato medio, perfetta per uso domestico. Prodotta con latte fresco italiano di alta qualità.",
+      description:
+        "Mozzarella fiordilatte formato medio, perfetta per uso domestico. Prodotta con latte fresco italiano di alta qualità.",
       formato: "500 Gr x6",
-      price: 5.90,
+      price: 5.9,
       stock: 42,
       status: "ACTIVE",
       slug: "mozzarella-fiordilatte-500gr",
@@ -1546,9 +1597,10 @@ async function main() {
     {
       name: "Fior di Latte 125gr",
       ProductCode: "0212000042",
-      description: "Fior di latte formato piccolo, ideale per porzioni individuali. Freschezza e qualità della tradizione casearia italiana.",
+      description:
+        "Fior di latte formato piccolo, ideale per porzioni individuali. Freschezza e qualità della tradizione casearia italiana.",
       formato: "125Gr x20",
-      price: 4.50,
+      price: 4.5,
       stock: 50,
       status: "ACTIVE",
       slug: "fior-di-latte-125gr",
@@ -1557,9 +1609,10 @@ async function main() {
     {
       name: "Mozzarella Julienne",
       ProductCode: "0219000003",
-      description: "Mozzarella julienne professionale, taglio sottile per fusione rapida. Formato ristorante per preparazioni veloci.",
+      description:
+        "Mozzarella julienne professionale, taglio sottile per fusione rapida. Formato ristorante per preparazioni veloci.",
       formato: "2 Kg",
-      price: 9.80,
+      price: 9.8,
       stock: 28,
       status: "ACTIVE",
       slug: "mozzarella-julienne",
@@ -1568,9 +1621,10 @@ async function main() {
     {
       name: "Mozzarella FDL Barra",
       ProductCode: "0212000050",
-      description: "Mozzarella fior di latte a barra, formato pratico per taglio personalizzato. Ideale per pizzerie e ristoranti.",
+      description:
+        "Mozzarella fior di latte a barra, formato pratico per taglio personalizzato. Ideale per pizzerie e ristoranti.",
       formato: "1 Kg",
-      price: 7.20,
+      price: 7.2,
       stock: 32,
       status: "ACTIVE",
       slug: "mozzarella-fdl-barra",
@@ -1581,9 +1635,10 @@ async function main() {
     {
       name: "Stracciatella Artigianale",
       ProductCode: "0212000021",
-      description: "Stracciatella artigianale pugliese, il cuore cremoso della burrata. Prodotta a mano secondo tradizione con panna fresca.",
+      description:
+        "Stracciatella artigianale pugliese, il cuore cremoso della burrata. Prodotta a mano secondo tradizione con panna fresca.",
       formato: "250gr x10",
-      price: 8.90,
+      price: 8.9,
       stock: 25,
       status: "ACTIVE",
       slug: "stracciatella-artigianale",
@@ -1592,9 +1647,10 @@ async function main() {
     {
       name: "Stracciatella Artigianale 1kg",
       ProductCode: "0217000024",
-      description: "Stracciatella artigianale formato professionale, per ristoranti e pizzerie. Cremosità e sapore della tradizione pugliese.",
+      description:
+        "Stracciatella artigianale formato professionale, per ristoranti e pizzerie. Cremosità e sapore della tradizione pugliese.",
       formato: "1 Kg x2",
-      price: 15.80,
+      price: 15.8,
       stock: 15,
       status: "ACTIVE",
       slug: "stracciatella-artigianale-1kg",
@@ -1603,9 +1659,10 @@ async function main() {
     {
       name: "Stracciatella Affumicata in Vaso",
       ProductCode: "0217000030",
-      description: "Stracciatella affumicata in vaso, innovazione della tradizione pugliese. Sapore affumicato delicato e cremosità intatta.",
+      description:
+        "Stracciatella affumicata in vaso, innovazione della tradizione pugliese. Sapore affumicato delicato e cremosità intatta.",
       formato: "250Gr x10",
-      price: 10.50,
+      price: 10.5,
       stock: 18,
       status: "ACTIVE",
       slug: "stracciatella-ahumada-en-vaso",
@@ -1614,9 +1671,10 @@ async function main() {
     {
       name: "Ricotta",
       ProductCode: "1002037075",
-      description: "Ricotta fresca italiana, prodotta con siero di latte di alta qualità. Sapore dolce e consistenza cremosa, tradizione casearia.",
+      description:
+        "Ricotta fresca italiana, prodotta con siero di latte di alta qualità. Sapore dolce e consistenza cremosa, tradizione casearia.",
       formato: "1,5 Kg x2",
-      price: 6.50,
+      price: 6.5,
       stock: 30,
       status: "ACTIVE",
       slug: "ricotta-1-5kg",
@@ -1625,9 +1683,10 @@ async function main() {
     {
       name: "Ricotta 250gr",
       ProductCode: "1002020376",
-      description: "Ricotta fresca formato famiglia, perfetta per dolci e preparazioni salate. Prodotta giornalmente con latte italiano.",
+      description:
+        "Ricotta fresca formato famiglia, perfetta per dolci e preparazioni salate. Prodotta giornalmente con latte italiano.",
       formato: "250gr x8",
-      price: 3.80,
+      price: 3.8,
       stock: 45,
       status: "ACTIVE",
       slug: "ricotta-250gr",
@@ -1636,9 +1695,10 @@ async function main() {
     {
       name: "Ricotta de Bufala",
       ProductCode: "0217000037",
-      description: "Ricotta di bufala campana, sapore più intenso e cremosità superiore. Prodotta con siero di latte di bufala DOP.",
+      description:
+        "Ricotta di bufala campana, sapore più intenso e cremosità superiore. Prodotta con siero di latte di bufala DOP.",
       formato: "200 Gr x12",
-      price: 8.90,
+      price: 8.9,
       stock: 20,
       status: "ACTIVE",
       slug: "ricotta-de-bufala-200gr",
@@ -1647,9 +1707,10 @@ async function main() {
     {
       name: "Ricotta de Bufala 400gr",
       ProductCode: "0217000038",
-      description: "Ricotta di bufala formato grande, eccellenza casearia campana. Ideale per preparazioni dolci e salate di alta qualità.",
+      description:
+        "Ricotta di bufala formato grande, eccellenza casearia campana. Ideale per preparazioni dolci e salate di alta qualità.",
       formato: "400 Gr x6",
-      price: 12.50,
+      price: 12.5,
       stock: 15,
       status: "ACTIVE",
       slug: "ricotta-de-bufala-400gr",
@@ -1658,9 +1719,10 @@ async function main() {
     {
       name: "Mascarpone",
       ProductCode: "1002037074",
-      description: "Mascarpone lombardo tradizionale, cremoso e delicato. Perfetto per tiramisù e preparazioni dolci della tradizione italiana.",
+      description:
+        "Mascarpone lombardo tradizionale, cremoso e delicato. Perfetto per tiramisù e preparazioni dolci della tradizione italiana.",
       formato: "500 gr x6",
-      price: 7.80,
+      price: 7.8,
       stock: 25,
       status: "ACTIVE",
       slug: "mascarpone-500gr",
@@ -1669,9 +1731,10 @@ async function main() {
     {
       name: "Mascarpone 2kg",
       ProductCode: "0217000026",
-      description: "Mascarpone formato professionale per pasticcerie e ristoranti. Cremosità e qualità lombarda per preparazioni di alto livello.",
+      description:
+        "Mascarpone formato professionale per pasticcerie e ristoranti. Cremosità e qualità lombarda per preparazioni di alto livello.",
       formato: "2 Kg x6",
-      price: 22.50,
+      price: 22.5,
       stock: 12,
       status: "ACTIVE",
       slug: "mascarpone-2kg",
@@ -1680,9 +1743,10 @@ async function main() {
     {
       name: "Scamorza Affumicata a Spicchi",
       ProductCode: "0217000043",
-      description: "Scamorza affumicata a spicchi, formato aperitivo. Sapore affumicato delicato della tradizione casearia del Sud Italia. Regione: Molise - Dalle montagne del Matese, dove l'antica arte dell'affumicatura dona sapori unici ai formaggi a pasta filata.",
+      description:
+        "Scamorza affumicata a spicchi, formato aperitivo. Sapore affumicato delicato della tradizione casearia del Sud Italia. Regione: Molise - Dalle montagne del Matese, dove l'antica arte dell'affumicatura dona sapori unici ai formaggi a pasta filata.",
       formato: "30 Gr (250Gr x10)",
-      price: 6.20,
+      price: 6.2,
       stock: 35,
       status: "ACTIVE",
       slug: "scamorza-ahumada-spizzico",
@@ -1691,9 +1755,10 @@ async function main() {
     {
       name: "Taleggio DOP",
       ProductCode: "1002037073",
-      description: "Taleggio DOP lombardo, formaggio a pasta molle dalla crosta lavata. Sapore intenso e cremosità tipica delle valli bergamasche.",
+      description:
+        "Taleggio DOP lombardo, formaggio a pasta molle dalla crosta lavata. Sapore intenso e cremosità tipica delle valli bergamasche.",
       formato: "+/-2Kg",
-      price: 24.80,
+      price: 24.8,
       stock: 8,
       status: "ACTIVE",
       slug: "taleggio-dop",
@@ -1702,9 +1767,10 @@ async function main() {
     {
       name: "Gorgonzola Dolce",
       ProductCode: "0217000031",
-      description: "Gorgonzola dolce lombardo, erborinato cremoso dal sapore delicato. Tradizione casearia della pianura padana dal 1800. Regione: Lombardia - Nelle valli bergamasche nasce questo gioiello erborinato, simbolo dell'eccellenza casearia lombarda.",
+      description:
+        "Gorgonzola dolce lombardo, erborinato cremoso dal sapore delicato. Tradizione casearia della pianura padana dal 1800. Regione: Lombardia - Nelle valli bergamasche nasce questo gioiello erborinato, simbolo dell'eccellenza casearia lombarda.",
       formato: "1,5 Kg +/-",
-      price: 18.90,
+      price: 18.9,
       stock: 12,
       status: "ACTIVE",
       slug: "gorgonzola-dolce",
@@ -1713,9 +1779,10 @@ async function main() {
     {
       name: "Yogurt di Bufala",
       ProductCode: "0320000001",
-      description: "Yogurt di bufala campana, cremoso e ricco di proteine. Prodotto con latte di bufala fresco delle migliori aziende campane.",
+      description:
+        "Yogurt di bufala campana, cremoso e ricco di proteine. Prodotto con latte di bufala fresco delle migliori aziende campane.",
       formato: "150 Gr x6",
-      price: 5.80,
+      price: 5.8,
       stock: 30,
       status: "ACTIVE",
       slug: "iogurt-de-bufala",
@@ -1724,9 +1791,10 @@ async function main() {
     {
       name: "Burro di Bufala",
       ProductCode: "0227000021",
-      description: "Burro di bufala campana, sapore intenso e cremosità superiore. Prodotto con panna di bufala, eccellenza casearia italiana.",
+      description:
+        "Burro di bufala campana, sapore intenso e cremosità superiore. Prodotto con panna di bufala, eccellenza casearia italiana.",
       formato: "125 Gr x40",
-      price: 4.50,
+      price: 4.5,
       stock: 40,
       status: "ACTIVE",
       slug: "mantequilla-bufala",
@@ -1735,9 +1803,10 @@ async function main() {
     {
       name: "Panna Cotta de Bufala",
       ProductCode: "0221000003",
-      description: "Panna cotta di bufala, dolce tradizionale piemontese con latte di bufala campana. Cremosità e sapore unici.",
+      description:
+        "Panna cotta di bufala, dolce tradizionale piemontese con latte di bufala campana. Cremosità e sapore unici.",
       formato: "100 Gr",
-      price: 3.80,
+      price: 3.8,
       stock: 25,
       status: "ACTIVE",
       slug: "panna-cotta-de-bufala",
@@ -1746,9 +1815,10 @@ async function main() {
     {
       name: "Kefir di Bufala",
       ProductCode: "P-KEFB-PROV",
-      description: "Kefir di bufala, bevanda fermentata probiotica. Innovazione salutistica con latte di bufala campana, ricco di fermenti vivi.",
+      description:
+        "Kefir di bufala, bevanda fermentata probiotica. Innovazione salutistica con latte di bufala campana, ricco di fermenti vivi.",
       formato: "200 Gr x6",
-      price: 6.80,
+      price: 6.8,
       stock: 18,
       status: "ACTIVE",
       slug: "kefir-de-bufala",
@@ -1757,9 +1827,10 @@ async function main() {
     {
       name: "Formaggio Fresco di Bufala Spalmabile",
       ProductCode: "P-QFRE-PROV",
-      description: "Formaggio fresco di bufala spalmabile, cremoso e delicato. Perfetto per aperitivi e colazioni, innovazione della tradizione campana.",
+      description:
+        "Formaggio fresco di bufala spalmabile, cremoso e delicato. Perfetto per aperitivi e colazioni, innovazione della tradizione campana.",
       formato: "150 Gr x6",
-      price: 7.20,
+      price: 7.2,
       stock: 22,
       status: "ACTIVE",
       slug: "queso-fresco-bufala-untar",
@@ -1768,9 +1839,10 @@ async function main() {
     {
       name: "Perle di Bufala in Crema Fresca",
       ProductCode: "P-PBCF-PROV",
-      description: "Perle di bufala avvolte in crema fresca, specialità gourmet. Piccole sfere di mozzarella di bufala in crema, esperienza unica.",
+      description:
+        "Perle di bufala avvolte in crema fresca, specialità gourmet. Piccole sfere di mozzarella di bufala in crema, esperienza unica.",
       formato: "500 Gr",
-      price: 14.50,
+      price: 14.5,
       stock: 10,
       status: "ACTIVE",
       slug: "perlas-bufala-crema-fresca",
@@ -1781,9 +1853,10 @@ async function main() {
     {
       name: "Gran Moravia",
       ProductCode: "0217000005",
-      description: "Gran Moravia, formaggio stagionato ceco di alta qualità. Sapore intenso e consistenza compatta, perfetto per grattugie e degustazioni.",
+      description:
+        "Gran Moravia, formaggio stagionato ceco di alta qualità. Sapore intenso e consistenza compatta, perfetto per grattugie e degustazioni.",
       formato: "500 Gr x10",
-      price: 12.80,
+      price: 12.8,
       stock: 20,
       status: "ACTIVE",
       slug: "gran-moravia-500gr",
@@ -1792,9 +1865,10 @@ async function main() {
     {
       name: "Gran Moravia Rallado",
       ProductCode: "1002037090",
-      description: "Gran Moravia grattugiato, pronto all'uso per pasta e risotti. Stagionatura prolungata per sapore intenso e aroma persistente.",
+      description:
+        "Gran Moravia grattugiato, pronto all'uso per pasta e risotti. Stagionatura prolungata per sapore intenso e aroma persistente.",
       formato: "1 Kg",
-      price: 15.50,
+      price: 15.5,
       stock: 25,
       status: "ACTIVE",
       slug: "gran-moravia-rallado",
@@ -1803,9 +1877,10 @@ async function main() {
     {
       name: "Gran Moravia En Laminas",
       ProductCode: "0201020522",
-      description: "Gran Moravia a lamelle, taglio professionale per antipasti e piatti gourmet. Presentazione elegante e sapore intenso.",
+      description:
+        "Gran Moravia a lamelle, taglio professionale per antipasti e piatti gourmet. Presentazione elegante e sapore intenso.",
       formato: "1 Kg",
-      price: 16.80,
+      price: 16.8,
       stock: 15,
       status: "ACTIVE",
       slug: "gran-moravia-laminas",
@@ -1814,9 +1889,10 @@ async function main() {
     {
       name: "Gran Moravia 1/8",
       ProductCode: "0217000003",
-      description: "Gran Moravia in ottavo di forma, formato tradizionale per taglio personalizzato. Stagionatura minima 12 mesi.",
+      description:
+        "Gran Moravia in ottavo di forma, formato tradizionale per taglio personalizzato. Stagionatura minima 12 mesi.",
       formato: "4 Kg +/-",
-      price: 38.50,
+      price: 38.5,
       stock: 8,
       status: "ACTIVE",
       slug: "gran-moravia-1-8",
@@ -1825,9 +1901,10 @@ async function main() {
     {
       name: "Parmigiano Reggiano D.O.P. Gran Fiore",
       ProductCode: "0202020436",
-      description: "Parmigiano Reggiano DOP Gran Fiore, stagionato 24 mesi. Re dei formaggi italiani dalle province di Parma, Reggio Emilia e Modena. Regione: Emilia-Romagna - Patria del Parmigiano, dove la pianura padana dona il latte più pregiato d'Italia.",
+      description:
+        "Parmigiano Reggiano DOP Gran Fiore, stagionato 24 mesi. Re dei formaggi italiani dalle province di Parma, Reggio Emilia e Modena. Regione: Emilia-Romagna - Patria del Parmigiano, dove la pianura padana dona il latte più pregiato d'Italia.",
       formato: "1 Kg +/-",
-      price: 28.50,
+      price: 28.5,
       stock: 15,
       status: "ACTIVE",
       slug: "parmigiano-reggiano-dop-gran-fiore",
@@ -1836,9 +1913,10 @@ async function main() {
     {
       name: "Parmigiano Reggiano Rueda Entera",
       ProductCode: "0202020582",
-      description: "Parmigiano Reggiano DOP ruota intera, stagionato 24+ mesi. Eccellenza assoluta della tradizione casearia emiliana, formato professionale.",
+      description:
+        "Parmigiano Reggiano DOP ruota intera, stagionato 24+ mesi. Eccellenza assoluta della tradizione casearia emiliana, formato professionale.",
       formato: "34 Kg +/-",
-      price: 39.90,
+      price: 39.9,
       stock: 2,
       status: "ACTIVE",
       slug: "parmigiano-reggiano-rueda-entera",
@@ -1847,9 +1925,10 @@ async function main() {
     {
       name: "Formaggio Fontal",
       ProductCode: "1002037066",
-      description: "Formaggio Fontal, pasta semi-dura dal sapore dolce e delicato. Tradizione casearia alpina, perfetto per fondute e piatti gratinati.",
+      description:
+        "Formaggio Fontal, pasta semi-dura dal sapore dolce e delicato. Tradizione casearia alpina, perfetto per fondute e piatti gratinati.",
       formato: "2 Kg +/-",
-      price: 16.80,
+      price: 16.8,
       stock: 12,
       status: "ACTIVE",
       slug: "queso-fontal",
@@ -1858,9 +1937,10 @@ async function main() {
     {
       name: "Scamorza Affumicata",
       ProductCode: "1002037060",
-      description: "Scamorza affumicata stagionata, dalla caratteristica forma a pera. Affumicatura naturale con legni aromatici del Sud Italia.",
+      description:
+        "Scamorza affumicata stagionata, dalla caratteristica forma a pera. Affumicatura naturale con legni aromatici del Sud Italia.",
       formato: "2,5 Kg +/-",
-      price: 22.50,
+      price: 22.5,
       stock: 10,
       status: "ACTIVE",
       slug: "scamorza-ahumada-stagionata",
@@ -1869,9 +1949,10 @@ async function main() {
     {
       name: "Provolone Dolce",
       ProductCode: "0217000002",
-      description: "Provolone dolce stagionato, formaggio a pasta filata della tradizione del Sud Italia. Sapore delicato e consistenza compatta.",
+      description:
+        "Provolone dolce stagionato, formaggio a pasta filata della tradizione del Sud Italia. Sapore delicato e consistenza compatta.",
       formato: "5,6 Kg +/-",
-      price: 38.90,
+      price: 38.9,
       stock: 6,
       status: "ACTIVE",
       slug: "provolone-dolce",
@@ -1882,9 +1963,10 @@ async function main() {
     {
       name: "Tiramisù Monoporzione",
       ProductCode: "0420000074",
-      description: "Tiramisù monoporzione artigianale, dolce tradizionale italiano con mascarpone, caffè e cacao. Formato individuale per ristorazione.",
+      description:
+        "Tiramisù monoporzione artigianale, dolce tradizionale italiano con mascarpone, caffè e cacao. Formato individuale per ristorazione.",
       formato: "110gr x10",
-      price: 4.50,
+      price: 4.5,
       stock: 30,
       status: "ACTIVE",
       slug: "tiramisu-monoporzione",
@@ -1893,9 +1975,10 @@ async function main() {
     {
       name: "Torta Sacher",
       ProductCode: "0420000107",
-      description: "Torta Sacher austriaca con cioccolato e marmellata di albicocche. Ricetta tradizionale viennese, formato surgelato.",
+      description:
+        "Torta Sacher austriaca con cioccolato e marmellata di albicocche. Ricetta tradizionale viennese, formato surgelato.",
       formato: "800gr",
-      price: 18.90,
+      price: 18.9,
       stock: 12,
       status: "ACTIVE",
       slug: "torta-sacher",
@@ -1904,9 +1987,10 @@ async function main() {
     {
       name: "Cannolo Siciliano",
       ProductCode: "0503000110",
-      description: "Cannoli siciliani tradizionali con ricotta fresca e gocce di cioccolato. Specialità dolciaria siciliana autentica. Regione: Sicilia - Dall'isola del sole, dove la tradizione pasticcera araba si fonde con la ricotta delle madonie.",
+      description:
+        "Cannoli siciliani tradizionali con ricotta fresca e gocce di cioccolato. Specialità dolciaria siciliana autentica. Regione: Sicilia - Dall'isola del sole, dove la tradizione pasticcera araba si fonde con la ricotta delle madonie.",
       formato: "10 pezzi",
-      price: 12.80,
+      price: 12.8,
       stock: 20,
       status: "ACTIVE",
       slug: "cannolo-siciliano",
@@ -1915,9 +1999,10 @@ async function main() {
     {
       name: "Sfogliatella Grande",
       ProductCode: "0420000073",
-      description: "Sfogliatella napoletana ripiena di ricotta e canditi. Pasta sfoglia croccante, dolce tradizionale campano. Regione: Campania - Dal cuore di Napoli, dove i maestri pasticceri creano questa meraviglia sfogliata da secoli.",
+      description:
+        "Sfogliatella napoletana ripiena di ricotta e canditi. Pasta sfoglia croccante, dolce tradizionale campano. Regione: Campania - Dal cuore di Napoli, dove i maestri pasticceri creano questa meraviglia sfogliata da secoli.",
       formato: "100gr x60",
-      price: 2.80,
+      price: 2.8,
       stock: 50,
       status: "ACTIVE",
       slug: "sfogliatella-grande",
@@ -1926,9 +2011,10 @@ async function main() {
     {
       name: "Croissant alla Crema",
       ProductCode: "0420000075",
-      description: "Croissant francesi ripieni di crema pasticcera. Pasta sfoglia burrosa e crema delicata, formato surgelato.",
+      description:
+        "Croissant francesi ripieni di crema pasticcera. Pasta sfoglia burrosa e crema delicata, formato surgelato.",
       formato: "95gr x50",
-      price: 1.80,
+      price: 1.8,
       stock: 80,
       status: "ACTIVE",
       slug: "croissant-crema",
@@ -1939,9 +2025,10 @@ async function main() {
     {
       name: "Sugo al Pomodoro e Basilico",
       ProductCode: "0607000013",
-      description: "Sugo di pomodoro italiano con basilico fresco. Ricetta tradizionale della nonna, ideale per pasta e pizza.",
+      description:
+        "Sugo di pomodoro italiano con basilico fresco. Ricetta tradizionale della nonna, ideale per pasta e pizza.",
       formato: "370ml x12",
-      price: 3.20,
+      price: 3.2,
       stock: 60,
       status: "ACTIVE",
       slug: "sugo-pomodoro-basilico",
@@ -1950,9 +2037,10 @@ async function main() {
     {
       name: "Sugo alla Bolognese",
       ProductCode: "0607000014",
-      description: "Ragù alla bolognese tradizionale con carne di manzo e maiale. Ricetta emiliana autentica, cottura lenta.",
+      description:
+        "Ragù alla bolognese tradizionale con carne di manzo e maiale. Ricetta emiliana autentica, cottura lenta.",
       formato: "370ml x4",
-      price: 5.80,
+      price: 5.8,
       stock: 40,
       status: "ACTIVE",
       slug: "sugo-bolognese",
@@ -1961,9 +2049,10 @@ async function main() {
     {
       name: "Sugo all'Arrabbiata",
       ProductCode: "0607000015",
-      description: "Sugo piccante all'arrabbiata con pomodoro, aglio e peperoncino. Specialità romana dal sapore deciso.",
+      description:
+        "Sugo piccante all'arrabbiata con pomodoro, aglio e peperoncino. Specialità romana dal sapore deciso.",
       formato: "370ml x12",
-      price: 3.50,
+      price: 3.5,
       stock: 45,
       status: "ACTIVE",
       slug: "sugo-arrabbiata",
@@ -1972,9 +2061,10 @@ async function main() {
     {
       name: "Salsa di Tartufo",
       ProductCode: "0607000005",
-      description: "Salsa gourmet al tartufo nero 5%, perfetta per pasta e risotti. Sapore intenso e aroma inconfondibile.",
+      description:
+        "Salsa gourmet al tartufo nero 5%, perfetta per pasta e risotti. Sapore intenso e aroma inconfondibile.",
       formato: "500gr x6",
-      price: 15.90,
+      price: 15.9,
       stock: 25,
       status: "ACTIVE",
       slug: "salsa-tartufo",
@@ -1983,9 +2073,10 @@ async function main() {
     {
       name: "Olio di Oliva con Tartufo Bianco",
       ProductCode: "0602050490",
-      description: "Olio extravergine di oliva aromatizzato con tartufo bianco pregiato. Condimento gourmet per piatti raffinati.",
+      description:
+        "Olio extravergine di oliva aromatizzato con tartufo bianco pregiato. Condimento gourmet per piatti raffinati.",
       formato: "250ml x12",
-      price: 22.50,
+      price: 22.5,
       stock: 18,
       status: "ACTIVE",
       slug: "olio-tartufo-bianco",
@@ -1996,9 +2087,10 @@ async function main() {
     {
       name: "Aglio Granulato",
       ProductCode: "0608000043",
-      description: "Aglio granulato essiccato, pratico e sempre pronto. Aroma intenso per condimenti e preparazioni culinarie.",
+      description:
+        "Aglio granulato essiccato, pratico e sempre pronto. Aroma intenso per condimenti e preparazioni culinarie.",
       formato: "850gr",
-      price: 8.90,
+      price: 8.9,
       stock: 35,
       status: "ACTIVE",
       slug: "aglio-granulato",
@@ -2007,9 +2099,10 @@ async function main() {
     {
       name: "Cannella in Polvere",
       ProductCode: "0608000036",
-      description: "Cannella in polvere di Ceylon, spezia dolce e aromatica. Perfetta per dolci, bevande calde e preparazioni orientali.",
+      description:
+        "Cannella in polvere di Ceylon, spezia dolce e aromatica. Perfetta per dolci, bevande calde e preparazioni orientali.",
       formato: "550gr",
-      price: 12.80,
+      price: 12.8,
       stock: 28,
       status: "ACTIVE",
       slug: "cannella-polvere",
@@ -2018,9 +2111,10 @@ async function main() {
     {
       name: "Curry in Polvere",
       ProductCode: "0608000021",
-      description: "Miscela di spezie curry tradizionale indiana. Blend aromatico per piatti etnici e fusion cuisine.",
+      description:
+        "Miscela di spezie curry tradizionale indiana. Blend aromatico per piatti etnici e fusion cuisine.",
       formato: "810gr",
-      price: 15.50,
+      price: 15.5,
       stock: 22,
       status: "ACTIVE",
       slug: "curry-polvere",
@@ -2029,9 +2123,10 @@ async function main() {
     {
       name: "Oregano Siciliano",
       ProductCode: "0608000037",
-      description: "Oregano siciliano essiccato, aroma intenso e persistente. Spezia essenziale per pizza, pasta e piatti mediterranei. Regione: Sicilia - Dalle colline dell'Etna, dove il sole mediterraneo concentra gli aromi nelle foglie di oregano selvatico.",
+      description:
+        "Oregano siciliano essiccato, aroma intenso e persistente. Spezia essenziale per pizza, pasta e piatti mediterranei. Regione: Sicilia - Dalle colline dell'Etna, dove il sole mediterraneo concentra gli aromi nelle foglie di oregano selvatico.",
       formato: "1kg",
-      price: 18.90,
+      price: 18.9,
       stock: 20,
       status: "ACTIVE",
       slug: "oregano-siciliano",
@@ -2040,9 +2135,10 @@ async function main() {
     {
       name: "Pepe Nero in Grani",
       ProductCode: "0608000045",
-      description: "Pepe nero in grani di alta qualità, piccante e aromatico. Spezia fondamentale per ogni cucina professionale.",
+      description:
+        "Pepe nero in grani di alta qualità, piccante e aromatico. Spezia fondamentale per ogni cucina professionale.",
       formato: "710gr",
-      price: 16.80,
+      price: 16.8,
       stock: 30,
       status: "ACTIVE",
       slug: "pepe-nero-grani",
@@ -2051,9 +2147,10 @@ async function main() {
     {
       name: "Basilico Essiccato",
       ProductCode: "0606000099",
-      description: "Basilico essiccato italiano, aroma mediterraneo autentico. Perfetto per sughi, pizza e piatti della tradizione. Regione: Liguria - Dalla riviera ligure, patria del basilico genovese DOP, dove cresce il basilico più profumato d'Italia.",
+      description:
+        "Basilico essiccato italiano, aroma mediterraneo autentico. Perfetto per sughi, pizza e piatti della tradizione. Regione: Liguria - Dalla riviera ligure, patria del basilico genovese DOP, dove cresce il basilico più profumato d'Italia.",
       formato: "250gr",
-      price: 9.80,
+      price: 9.8,
       stock: 40,
       status: "ACTIVE",
       slug: "basilico-essiccato",
@@ -2242,9 +2339,9 @@ async function main() {
     const existingService = await prisma.services.findFirst({
       where: {
         code: service.code,
-            workspaceId: mainWorkspaceId,
-          },
-        })
+        workspaceId: mainWorkspaceId,
+      },
+    })
 
     if (!existingService) {
       await prisma.services.create({
@@ -2315,7 +2412,8 @@ async function main() {
         "Each product includes storage instructions. Generally, dry products in a cool, dry place, refrigerated products in the fridge, and frozen products in the freezer.",
     },
     {
-      question: "What are the shipping costs and are there free shipping options?",
+      question:
+        "What are the shipping costs and are there free shipping options?",
       answer:
         "💰 *Shipping costs depend on your location and order size:*\n\n🇪🇸 *Mainland Spain:*\n• Orders over €50: FREE shipping 🎉\n• Orders under €50: €4.95\n\n🏝️ *Islands (Balearic/Canary):*\n• Special rates apply (€8.95-€15.95)\n• Free shipping threshold: €75\n\n📦 *Express delivery:* Available for €9.95 (24h delivery)",
     },
@@ -2336,27 +2434,33 @@ async function main() {
     },
     {
       question: "How can I modify my profile?",
-      answer: "You can modify your profile information directly through this secure link. [LINK_PROFILE_WITH_TOKEN]",
+      answer:
+        "You can modify your profile information directly through this secure link. [LINK_PROFILE_WITH_TOKEN]",
     },
     {
       question: "How can I change my shipping address?",
-      answer: "You can update your shipping address through this secure link. [LINK_PROFILE_WITH_TOKEN]",
+      answer:
+        "You can update your shipping address through this secure link. [LINK_PROFILE_WITH_TOKEN]",
     },
     {
       question: "How can I change my email?",
-      answer: "You can update your email address through this secure link. [LINK_PROFILE_WITH_TOKEN]",
+      answer:
+        "You can update your email address through this secure link. [LINK_PROFILE_WITH_TOKEN]",
     },
     {
       question: "How can I see the product catalog?",
-      answer: "You can download our complete product catalog here: https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf",
+      answer:
+        "You can download our complete product catalog here: https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf",
     },
     {
       question: "What discount do I have on products?",
-      answer: "Hello! Your current discount on products is [USER_DISCOUNT], and the following offers are also active: [LIST_OFFERS]",
+      answer:
+        "Hello! Your current discount on products is [USER_DISCOUNT], and the following offers are also active: [LIST_OFFERS]",
     },
     {
       question: "Che sconto ho sui prodotti?",
-      answer: "Ciao! Il tuo sconto attuale sui prodotti è del [USER_DISCOUNT], inoltre sono attive le seguenti offerte: [LIST_OFFERS]",
+      answer:
+        "Ciao! Il tuo sconto attuale sui prodotti è del [USER_DISCOUNT], inoltre sono attive le seguenti offerte: [LIST_OFFERS]",
     },
     {
       question: "What services do you offer?",
@@ -2380,47 +2484,58 @@ async function main() {
     },
     {
       question: "How can I see my orders?",
-      answer: "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
+      answer:
+        "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "Show me my orders",
-      answer: "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
+      answer:
+        "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "Give me my orders",
-      answer: "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
+      answer:
+        "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "Who are you?",
-      answer: "Hello! I am SofIA, the digital assistant of L'Altra Italia. I'm here to help you with information about our Italian products, orders, and services. How can I assist you today?",
+      answer:
+        "Hello! I am SofIA, the digital assistant of L'Altra Italia. I'm here to help you with information about our Italian products, orders, and services. How can I assist you today?",
     },
     {
       question: "How can I place an order?",
-      answer: "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
+      answer:
+        "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
       question: "I want to place an order",
-      answer: "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
+      answer:
+        "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
       question: "Voglio fare un ordine",
-      answer: "Ciao! Per effettuare un nuovo ordine, clicca su questo link: [LINK_CHECKOUT_WITH_TOKEN]",
+      answer:
+        "Ciao! Per effettuare un nuovo ordine, clicca su questo link: [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
       question: "Fattura del mio ultimo ordine",
-      answer: "Ciao! Per visualizzare la fattura del tuo ultimo ordine, clicca su questo link: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
+      answer:
+        "Ciao! Per visualizzare la fattura del tuo ultimo ordine, clicca su questo link: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
     },
     {
       question: "Factura de mi último pedido",
-      answer: "¡Hola! Para ver la factura de tu último pedido, haz clic en este enlace: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
+      answer:
+        "¡Hola! Para ver la factura de tu último pedido, haz clic en este enlace: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
     },
     {
       question: "Fatura do meu último pedido",
-      answer: "Olá! Para visualizar a fatura do seu último pedido, clique neste link: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
+      answer:
+        "Olá! Para visualizar a fatura do seu último pedido, clique neste link: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
     },
     {
       question: "What is your name?",
-      answer: "Hello! I am SofIA, the digital assistant of L'Altra Italia. I'm here to help you with information about our Italian products, orders, and services. How can I assist you today?",
+      answer:
+        "Hello! I am SofIA, the digital assistant of L'Altra Italia. I'm here to help you with information about our Italian products, orders, and services. How can I assist you today?",
     },
     {
       question: "Che servizi offrite?",
@@ -2436,67 +2551,83 @@ async function main() {
     },
     {
       question: "What categories do you have?",
-      answer: "Hello! We have the following product categories: [LIST_CATEGORIES]",
+      answer:
+        "Hello! We have the following product categories: [LIST_CATEGORIES]",
     },
     {
       question: "Che categorie avete?",
-      answer: "Ciao! Abbiamo le seguenti categorie di prodotti: [LIST_CATEGORIES]",
+      answer:
+        "Ciao! Abbiamo le seguenti categorie di prodotti: [LIST_CATEGORIES]",
     },
     {
       question: "¿Qué categorías tienen?",
-      answer: "¡Hola! Tenemos las siguientes categorías de productos: [LIST_CATEGORIES]",
+      answer:
+        "¡Hola! Tenemos las siguientes categorías de productos: [LIST_CATEGORIES]",
     },
     {
       question: "Que categorias vocês têm?",
-      answer: "Olá! Temos as seguintes categorias de produtos: [LIST_CATEGORIES]",
+      answer:
+        "Olá! Temos as seguintes categorias de produtos: [LIST_CATEGORIES]",
     },
     {
       question: "voglio modificare la mia mail",
-      answer: "Ciao! Puoi modificare la tua email attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
+      answer:
+        "Ciao! Puoi modificare la tua email attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
     },
     {
       question: "voglio modificare il mio indirizzo di spedizione",
-      answer: "Ciao! Puoi modificare il tuo indirizzo di spedizione attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
+      answer:
+        "Ciao! Puoi modificare il tuo indirizzo di spedizione attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
     },
     {
       question: "dove è il mio ultimo ordine?",
-      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+      answer:
+        "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "dammi fattura ultimo ordine",
-      answer: "Ciao! Per visualizzare la fattura del tuo ultimo ordine, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+      answer:
+        "Ciao! Per visualizzare la fattura del tuo ultimo ordine, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "dammi DDT ultimo ordine",
-      answer: "Ciao! Per visualizzare il DDT del tuo ultimo ordine, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+      answer:
+        "Ciao! Per visualizzare il DDT del tuo ultimo ordine, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "dammi lista ordini",
-      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+      answer:
+        "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "Give me the list of orders",
-      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+      answer:
+        "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "voglio modificare il mio profilo",
-      answer: "Ciao! Puoi modificare il tuo profilo attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
+      answer:
+        "Ciao! Puoi modificare il tuo profilo attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
     },
     {
       question: "dove è il mio ultimo ordine?",
-      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+      answer:
+        "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "mostra i miei ordini",
-      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+      answer:
+        "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "voglio vedere i miei ordini",
-      answer: "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+      answer:
+        "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "posso parlare con un operatore?",
-      answer: "Ciao! Per parlare con un operatore umano, contatta il nostro servizio clienti: info@laltrait.com o chiama (+34) 93 15 91 221. Siamo disponibili dal lunedì al venerdì dalle 9:00 alle 18:00.",
+      answer:
+        "Ciao! Per parlare con un operatore umano, contatta il nostro servizio clienti: info@laltrait.com o chiama (+34) 93 15 91 221. Siamo disponibili dal lunedì al venerdì dalle 9:00 alle 18:00.",
     },
     {
       question: "mostra carrello",
@@ -2603,11 +2734,11 @@ async function main() {
       email: {
         in: [
           "mario.rossi@rossilimited.it",
-          "john.smith@shopme.com", 
+          "john.smith@shopme.com",
           "maria.garcia@shopme.com",
-          "joao.silva@shopme.com"
-        ]
-      }
+          "joao.silva@shopme.com",
+        ],
+      },
     },
   })
   console.log("Deleted existing test customers")
@@ -2624,7 +2755,7 @@ async function main() {
         street: "Via Garibaldi 45",
         city: "Milano",
         postalCode: "20121",
-        country: "Italia"
+        country: "Italia",
       }),
       company: "Rossi Limited S.r.l.",
       discount: 0,
@@ -2641,8 +2772,8 @@ async function main() {
         postalCode: "20100",
         country: "Italia",
         vatNumber: "IT12345678901",
-        phone: "+390212345678"
-      }
+        phone: "+390212345678",
+      },
     },
   })
 
@@ -2661,7 +2792,7 @@ async function main() {
         street: "456 Regent Street",
         city: "London",
         postalCode: "W1B 5AH",
-        country: "United Kingdom"
+        country: "United Kingdom",
       }),
       company: "Smith & Co Ltd",
       discount: 10, // 10% discount
@@ -2678,8 +2809,8 @@ async function main() {
         postalCode: "W1D 2HG",
         country: "United Kingdom",
         vatNumber: "GB123456789",
-        phone: "+44123456789"
-      }
+        phone: "+44123456789",
+      },
     },
   })
 
@@ -2699,7 +2830,7 @@ async function main() {
         street: "Calle Gran Vía 78",
         city: "Madrid",
         postalCode: "28013",
-        country: "España"
+        country: "España",
       }),
       company: "Garcia Imports S.L.",
       discount: 5, // 5% discount
@@ -2716,8 +2847,8 @@ async function main() {
         postalCode: "28013",
         country: "España",
         vatNumber: "ES12345678Z",
-        phone: "+34666777888"
-      }
+        phone: "+34666777888",
+      },
     },
   })
 
@@ -2736,7 +2867,7 @@ async function main() {
         street: "Rua da Liberdade 200",
         city: "Lisboa",
         postalCode: "1250-096",
-        country: "Portugal"
+        country: "Portugal",
       }),
       company: "Silva & Filhos Lda",
       discount: 0,
@@ -2753,8 +2884,8 @@ async function main() {
         postalCode: "1100-053",
         country: "Portugal",
         vatNumber: "PT123456789",
-        phone: "+351123456789"
-      }
+        phone: "+351123456789",
+      },
     },
   })
 
@@ -2773,9 +2904,9 @@ async function main() {
       status: "active",
       context: {
         language: "it",
-        customerName: "Mario Rossi"
-      }
-    }
+        customerName: "Mario Rossi",
+      },
+    },
   })
 
   await prisma.message.create({
@@ -2784,23 +2915,24 @@ async function main() {
       direction: "INBOUND",
       content: "Ciao!",
       type: "TEXT",
-      createdAt: new Date(Date.now() - 1000 * 60 * 5) // 5 minutes ago
-    }
+      createdAt: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+    },
   })
 
   await prisma.message.create({
     data: {
       chatSessionId: chatSession1.id,
       direction: "OUTBOUND",
-      content: "Ciao Mario! Benvenuto da L'Altra Italia! 🇮🇹 Sono qui per aiutarti a scoprire i nostri prodotti italiani di qualità. Come posso esserti utile oggi?",
+      content:
+        "Ciao Mario! Benvenuto da L'Altra Italia! 🇮🇹 Sono qui per aiutarti a scoprire i nostri prodotti italiani di qualità. Come posso esserti utile oggi?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
         agentSelected: "CHATBOT_DUAL_LLM",
-        sentBy: "AI"
+        sentBy: "AI",
       },
-      createdAt: new Date(Date.now() - 1000 * 60 * 4) // 4 minutes ago
-    }
+      createdAt: new Date(Date.now() - 1000 * 60 * 4), // 4 minutes ago
+    },
   })
 
   // English customer - John Smith
@@ -2811,34 +2943,35 @@ async function main() {
       status: "active",
       context: {
         language: "en",
-        customerName: "John Smith"
-      }
-    }
+        customerName: "John Smith",
+      },
+    },
   })
 
-    await prisma.message.create({
-      data: {
+  await prisma.message.create({
+    data: {
       chatSessionId: chatSession2.id,
       direction: "INBOUND",
       content: "Hello!",
       type: "TEXT",
-      createdAt: new Date(Date.now() - 1000 * 60 * 3) // 3 minutes ago
-    }
+      createdAt: new Date(Date.now() - 1000 * 60 * 3), // 3 minutes ago
+    },
   })
 
-    await prisma.message.create({
-      data: {
-        chatSessionId: chatSession2.id,
+  await prisma.message.create({
+    data: {
+      chatSessionId: chatSession2.id,
       direction: "OUTBOUND",
-      content: "Hello John! Welcome to L'Altra Italia! 🇮🇹 I'm here to help you discover our quality Italian products. How can I assist you today?",
+      content:
+        "Hello John! Welcome to L'Altra Italia! 🇮🇹 I'm here to help you discover our quality Italian products. How can I assist you today?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
         agentSelected: "CHATBOT_DUAL_LLM",
-        sentBy: "AI"
+        sentBy: "AI",
       },
-      createdAt: new Date(Date.now() - 1000 * 60 * 2) // 2 minutes ago
-    }
+      createdAt: new Date(Date.now() - 1000 * 60 * 2), // 2 minutes ago
+    },
   })
 
   // Spanish customer - Maria Garcia
@@ -2849,72 +2982,74 @@ async function main() {
       status: "active",
       context: {
         language: "es",
-        customerName: "Maria Garcia"
-      }
-    }
+        customerName: "Maria Garcia",
+      },
+    },
   })
 
-    await prisma.message.create({
-      data: {
-        chatSessionId: chatSession3.id,
+  await prisma.message.create({
+    data: {
+      chatSessionId: chatSession3.id,
       direction: "INBOUND",
       content: "¡Hola!",
       type: "TEXT",
-      createdAt: new Date(Date.now() - 1000 * 60 * 1) // 1 minute ago
-    }
+      createdAt: new Date(Date.now() - 1000 * 60 * 1), // 1 minute ago
+    },
   })
 
-    await prisma.message.create({
-      data: {
+  await prisma.message.create({
+    data: {
       chatSessionId: chatSession3.id,
       direction: "OUTBOUND",
-      content: "¡Hola Maria! ¡Bienvenida a L'Altra Italia! 🇮🇹 Estoy aquí para ayudarte a descubrir nuestros productos italianos de calidad. ¿Cómo puedo ayudarte hoy?",
+      content:
+        "¡Hola Maria! ¡Bienvenida a L'Altra Italia! 🇮🇹 Estoy aquí para ayudarte a descubrir nuestros productos italianos de calidad. ¿Cómo puedo ayudarte hoy?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
         agentSelected: "CHATBOT_DUAL_LLM",
-        sentBy: "AI"
+        sentBy: "AI",
       },
-      createdAt: new Date() // Now
-    }
+      createdAt: new Date(), // Now
+    },
   })
 
   // Portuguese customer - João Silva
   const chatSession4 = await prisma.chatSession.create({
-          data: {
+    data: {
       customerId: testCustomer4.id,
-            workspaceId: mainWorkspaceId,
+      workspaceId: mainWorkspaceId,
       status: "active",
       context: {
         language: "pt",
-        customerName: "João Silva"
-      }
-    }
+        customerName: "João Silva",
+      },
+    },
   })
 
   await prisma.message.create({
-          data: {
+    data: {
       chatSessionId: chatSession4.id,
       direction: "INBOUND",
       content: "Olá!",
       type: "TEXT",
-      createdAt: new Date(Date.now() - 1000 * 30) // 30 seconds ago
-    }
+      createdAt: new Date(Date.now() - 1000 * 30), // 30 seconds ago
+    },
   })
 
   await prisma.message.create({
-      data: {
+    data: {
       chatSessionId: chatSession4.id,
       direction: "OUTBOUND",
-      content: "Olá João! Bem-vindo à L'Altra Italia! 🇮🇹 Estou aqui para ajudá-lo a descobrir nossos produtos italianos de qualidade. Como posso ajudá-lo hoje?",
+      content:
+        "Olá João! Bem-vindo à L'Altra Italia! 🇮🇹 Estou aqui para ajudá-lo a descobrir nossos produtos italianos de qualidade. Como posso ajudá-lo hoje?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
         agentSelected: "CHATBOT_DUAL_LLM",
-        sentBy: "AI"
+        sentBy: "AI",
       },
-      createdAt: new Date(Date.now() - 1000 * 15) // 15 seconds ago
-    }
+      createdAt: new Date(Date.now() - 1000 * 15), // 15 seconds ago
+    },
   })
 
   console.log("✅ Chat sessions and welcome messages created successfully!")
@@ -2923,7 +3058,9 @@ async function main() {
   console.log(`   🇪🇸 Maria Garcia (Spanish) - Chat ID: ${chatSession3.id}`)
   console.log(`   🇵🇹 João Silva (Portuguese) - Chat ID: ${chatSession4.id}`)
 
-  console.log("✅ Test customers with active chats and welcome messages created successfully!")
+  console.log(
+    "✅ Test customers with active chats and welcome messages created successfully!"
+  )
 
   // Create sample orders for test customers
   console.log("🔄 Creating sample orders for test customers...")
@@ -2931,7 +3068,7 @@ async function main() {
   // Get some products for orders
   const sampleProducts = await prisma.products.findMany({
     where: { workspaceId: mainWorkspaceId },
-    take: 5
+    take: 5,
   })
 
   if (sampleProducts.length > 0) {
@@ -2942,11 +3079,11 @@ async function main() {
         customerId: testCustomer.id,
         workspaceId: mainWorkspaceId,
         status: "CONFIRMED",
-        totalAmount: 25.50,
+        totalAmount: 25.5,
         notes: "Ordine di test per Mario Rossi - Prodotti italiani premium",
         trackingNumber: "DHL1234456",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2) // 2 hours ago
-      }
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+      },
     })
 
     // Add items to Mario's order
@@ -2956,8 +3093,8 @@ async function main() {
         productId: sampleProducts[0].id,
         quantity: 2,
         unitPrice: sampleProducts[0].price,
-        totalPrice: sampleProducts[0].price * 2
-      }
+        totalPrice: sampleProducts[0].price * 2,
+      },
     })
 
     await prisma.orderItems.create({
@@ -2966,8 +3103,8 @@ async function main() {
         productId: sampleProducts[1].id,
         quantity: 1,
         unitPrice: sampleProducts[1].price,
-        totalPrice: sampleProducts[1].price
-      }
+        totalPrice: sampleProducts[1].price,
+      },
     })
 
     // Create order for John Smith (English customer with discount)
@@ -2977,11 +3114,11 @@ async function main() {
         customerId: testCustomer2.id,
         workspaceId: mainWorkspaceId,
         status: "PENDING",
-        totalAmount: 18.90,
+        totalAmount: 18.9,
         notes: "Test order for John Smith - VIP customer with 10% discount",
         trackingNumber: "DHL1234456",
-        createdAt: new Date(Date.now() - 1000 * 60 * 30) // 30 minutes ago
-      }
+        createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+      },
     })
 
     // Add items to John's order
@@ -2991,8 +3128,8 @@ async function main() {
         productId: sampleProducts[2].id,
         quantity: 1,
         unitPrice: sampleProducts[2].price,
-        totalPrice: sampleProducts[2].price
-      }
+        totalPrice: sampleProducts[2].price,
+      },
     })
 
     // Create order for Maria Garcia (Spanish customer)
@@ -3002,11 +3139,11 @@ async function main() {
         customerId: testCustomerMCP.id,
         workspaceId: mainWorkspaceId,
         status: "DELIVERED",
-        totalAmount: 32.80,
+        totalAmount: 32.8,
         notes: "Pedido de prueba para Maria Garcia - Cliente frecuente",
         trackingNumber: "DHL1234456",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24) // 1 day ago
-      }
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+      },
     })
 
     // Add items to Maria's order
@@ -3016,8 +3153,8 @@ async function main() {
         productId: sampleProducts[3].id,
         quantity: 3,
         unitPrice: sampleProducts[3].price,
-        totalPrice: sampleProducts[3].price * 3
-      }
+        totalPrice: sampleProducts[3].price * 3,
+      },
     })
 
     await prisma.orderItems.create({
@@ -3026,8 +3163,8 @@ async function main() {
         productId: sampleProducts[4].id,
         quantity: 1,
         unitPrice: sampleProducts[4].price,
-        totalPrice: sampleProducts[4].price
-      }
+        totalPrice: sampleProducts[4].price,
+      },
     })
 
     // Create additional orders for Mario Rossi
@@ -3037,11 +3174,11 @@ async function main() {
         customerId: testCustomer.id,
         workspaceId: mainWorkspaceId,
         status: "DELIVERED",
-        totalAmount: 45.20,
+        totalAmount: 45.2,
         notes: "Ordine premium per Mario Rossi - Prodotti DOP",
         trackingNumber: "DHL1234456",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2) // 2 days ago
-      }
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
+      },
     })
 
     await prisma.orderItems.create({
@@ -3050,8 +3187,8 @@ async function main() {
         productId: sampleProducts[0].id,
         quantity: 3,
         unitPrice: sampleProducts[0].price,
-        totalPrice: sampleProducts[0].price * 3
-      }
+        totalPrice: sampleProducts[0].price * 3,
+      },
     })
 
     const order5 = await prisma.orders.create({
@@ -3060,11 +3197,11 @@ async function main() {
         customerId: testCustomer.id,
         workspaceId: mainWorkspaceId,
         status: "CONFIRMED",
-        totalAmount: 67.80,
+        totalAmount: 67.8,
         notes: "Ordine grande per Mario Rossi - Prodotti artigianali",
         trackingNumber: "DHL1234456",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12) // 12 hours ago
-      }
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
+      },
     })
 
     await prisma.orderItems.create({
@@ -3073,8 +3210,8 @@ async function main() {
         productId: sampleProducts[1].id,
         quantity: 2,
         unitPrice: sampleProducts[1].price,
-        totalPrice: sampleProducts[1].price * 2
-      }
+        totalPrice: sampleProducts[1].price * 2,
+      },
     })
 
     await prisma.orderItems.create({
@@ -3083,8 +3220,8 @@ async function main() {
         productId: sampleProducts[2].id,
         quantity: 1,
         unitPrice: sampleProducts[2].price,
-        totalPrice: sampleProducts[2].price
-      }
+        totalPrice: sampleProducts[2].price,
+      },
     })
 
     const order6 = await prisma.orders.create({
@@ -3093,11 +3230,11 @@ async function main() {
         customerId: testCustomer.id,
         workspaceId: mainWorkspaceId,
         status: "PENDING",
-        totalAmount: 28.90,
+        totalAmount: 28.9,
         notes: "Ordine recente per Mario Rossi - Prodotti freschi",
         trackingNumber: "DHL1234456",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6) // 6 hours ago
-      }
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
+      },
     })
 
     await prisma.orderItems.create({
@@ -3106,8 +3243,8 @@ async function main() {
         productId: sampleProducts[3].id,
         quantity: 1,
         unitPrice: sampleProducts[3].price,
-        totalPrice: sampleProducts[3].price
-      }
+        totalPrice: sampleProducts[3].price,
+      },
     })
 
     const order7 = await prisma.orders.create({
@@ -3116,11 +3253,11 @@ async function main() {
         customerId: testCustomer.id,
         workspaceId: mainWorkspaceId,
         status: "DELIVERED",
-        totalAmount: 89.50,
+        totalAmount: 89.5,
         notes: "Ordine VIP per Mario Rossi - Selezione premium",
         trackingNumber: "DHL1234456",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7) // 1 week ago
-      }
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 1 week ago
+      },
     })
 
     await prisma.orderItems.create({
@@ -3129,8 +3266,8 @@ async function main() {
         productId: sampleProducts[4].id,
         quantity: 4,
         unitPrice: sampleProducts[4].price,
-        totalPrice: sampleProducts[4].price * 4
-      }
+        totalPrice: sampleProducts[4].price * 4,
+      },
     })
 
     await prisma.orderItems.create({
@@ -3139,14 +3276,16 @@ async function main() {
         productId: sampleProducts[0].id,
         quantity: 2,
         unitPrice: sampleProducts[0].price,
-        totalPrice: sampleProducts[0].price * 2
-      }
+        totalPrice: sampleProducts[0].price * 2,
+      },
     })
 
     console.log("✅ Sample orders created successfully!")
     console.log(`   📦 Order ORD-001-2024 for Mario Rossi (CONFIRMED) - €25.50`)
     console.log(`   📦 Order ORD-002-2024 for John Smith (PENDING) - €18.90`)
-    console.log(`   📦 Order ORD-003-2024 for Maria Garcia (DELIVERED) - €32.80`)
+    console.log(
+      `   📦 Order ORD-003-2024 for Maria Garcia (DELIVERED) - €32.80`
+    )
     console.log(`   📦 Order ORD-004-2024 for Mario Rossi (DELIVERED) - €45.20`)
     console.log(`   📦 Order ORD-005-2024 for Mario Rossi (CONFIRMED) - €67.80`)
     console.log(`   📦 Order ORD-006-2024 for Mario Rossi (PENDING) - €28.90`)
@@ -3180,16 +3319,22 @@ async function main() {
   console.log(
     `- 4 test customers with active chats and conversation history created: Mario Rossi (🇮🇹), John Smith (🇬🇧), Maria Garcia (🇪🇸), João Silva (🇵🇹)`
   )
-  console.log(`- 7 sample orders created with different statuses (5 for Mario Rossi, 1 for John Smith, 1 for Maria Garcia)`)
+  console.log(
+    `- 7 sample orders created with different statuses (5 for Mario Rossi, 1 for John Smith, 1 for Maria Garcia)`
+  )
   console.log(`- Embeddings ready for manual generation via API`)
 
   // 🚨 REGOLA ASSOLUTA: Generazione automatica embedding dopo seed
   console.log("\n🚨 REGOLA CRITICA: GENERAZIONE AUTOMATICA EMBEDDINGS")
   console.log("================================================")
   console.log("⚠️  QUESTA È UNA REGOLA ASSOLUTA CHE NON DEVE ESSERE BYPASSATA")
-  console.log("⚠️  Gli embeddings DEVONO essere generati automaticamente dopo ogni seed")
-  console.log("⚠️  Senza embeddings, SearchRag non funziona e il chatbot fallisce")
-  
+  console.log(
+    "⚠️  Gli embeddings DEVONO essere generati automaticamente dopo ogni seed"
+  )
+  console.log(
+    "⚠️  Senza embeddings, SearchRag non funziona e il chatbot fallisce"
+  )
+
   await generateEmbeddingsAfterSeed()
 }
 

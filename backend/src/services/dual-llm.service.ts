@@ -341,11 +341,11 @@ export class DualLLMService {
         return wordCount <= 2 || str.trim().length <= 20
       }
 
-  // Increase default top_k to allow more results to flow through (no hard 10 limit)
-  const defaultTopK = 100
+      // Increase default top_k to allow more results to flow through (no hard 10 limit)
+      const defaultTopK = 100
       const defaultThreshold = 0.35
 
-  const shortQueryTopK = 200
+      const shortQueryTopK = 200
       const shortQueryThreshold = 0.25
 
       const top_k = isShortQuery(translatedQuery) ? shortQueryTopK : defaultTopK

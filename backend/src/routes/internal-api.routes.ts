@@ -41,8 +41,8 @@ router.post("/rag-search", async (req: Request, res: Response) => {
     logger.info(`🛒 Cart Intent Detection: ${JSON.stringify(cartIntentResult)}`)
 
     // Determine optional tuning params from request body
-  // Increase default top_k to return more results when callers don't specify
-  const top_k = typeof req.body.top_k === "number" ? req.body.top_k : 100
+    // Increase default top_k to return more results when callers don't specify
+    const top_k = typeof req.body.top_k === "number" ? req.body.top_k : 100
     const similarityThreshold =
       typeof req.body.similarityThreshold === "number"
         ? req.body.similarityThreshold
