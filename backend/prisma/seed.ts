@@ -2458,9 +2458,9 @@ async function main() {
         "Hello! Your current discount on products is [USER_DISCOUNT], and the following offers are also active: [LIST_OFFERS]",
     },
     {
-      question: "Che sconto ho sui prodotti?",
+      question: "What discount do I have on products?",
       answer:
-        "Ciao! Il tuo sconto attuale sui prodotti è del [USER_DISCOUNT], inoltre sono attive le seguenti offerte: [LIST_OFFERS]",
+        "Hello! Your current discount on products is [USER_DISCOUNT], and the following offers are also active: [LIST_OFFERS]",
     },
     {
       question: "What services do you offer?",
@@ -2471,16 +2471,16 @@ async function main() {
       answer: "Hello! We sell the following products: [LIST_ALL_PRODUCTS]",
     },
     {
-      question: "che prodotti avete?",
-      answer: "Ciao! Vendiamo i seguenti prodotti: [LIST_ALL_PRODUCTS]",
+      question: "What products do you have?",
+      answer: "Hello! We sell the following products: [LIST_ALL_PRODUCTS]",
     },
     {
-      question: "che prodotti vendete?",
-      answer: "Ciao! Vendiamo i seguenti prodotti: [LIST_ALL_PRODUCTS]",
+      question: "What products do you sell?",
+      answer: "Hello! We sell the following products: [LIST_ALL_PRODUCTS]",
     },
     {
-      question: "prodotti",
-      answer: "Ciao! Ecco i nostri prodotti: [LIST_ALL_PRODUCTS]",
+      question: "products",
+      answer: "Hello! Here are our products: [LIST_ALL_PRODUCTS]",
     },
     {
       question: "How can I see my orders?",
@@ -2538,8 +2538,8 @@ async function main() {
         "Hello! I am SofIA, the digital assistant of L'Altra Italia. I'm here to help you with information about our Italian products, orders, and services. How can I assist you today?",
     },
     {
-      question: "Che servizi offrite?",
-      answer: "Ciao! Offriamo i seguenti servizi: [LIST_SERVICES]",
+      question: "What services do you offer?",
+      answer: "Hello! We offer the following services: [LIST_SERVICES]",
     },
     {
       question: "¿Qué servicios ofrecen?",
@@ -2555,9 +2555,9 @@ async function main() {
         "Hello! We have the following product categories: [LIST_CATEGORIES]",
     },
     {
-      question: "Che categorie avete?",
+      question: "What categories do you have?",
       answer:
-        "Ciao! Abbiamo le seguenti categorie di prodotti: [LIST_CATEGORIES]",
+        "Hello! We have the following product categories: [LIST_CATEGORIES]",
     },
     {
       question: "¿Qué categorías tienen?",
@@ -2570,19 +2570,19 @@ async function main() {
         "Olá! Temos as seguintes categorias de produtos: [LIST_CATEGORIES]",
     },
     {
-      question: "voglio modificare la mia mail",
+      question: "I want to change my email",
       answer:
-        "Ciao! Puoi modificare la tua email attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
+        "Hello! You can change your email through this secure link: [LINK_PROFILE_WITH_TOKEN]",
     },
     {
-      question: "voglio modificare il mio indirizzo di spedizione",
+      question: "I want to change my shipping address",
       answer:
-        "Ciao! Puoi modificare il tuo indirizzo di spedizione attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
+        "Hello! You can change your shipping address through this secure link: [LINK_PROFILE_WITH_TOKEN]",
     },
     {
-      question: "dove è il mio ultimo ordine?",
+      question: "Where is my last order?",
       answer:
-        "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+        "Hello! To view your orders, click this link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "dammi fattura ultimo ordine",
