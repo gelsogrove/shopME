@@ -6,14 +6,14 @@ ricordati:
 
 - inoltre se il main prompt non chiama NULLA dobbiamo eseguire searchrag
 
-- se searchRag restituisce qualcosa
-    > passa il risultato al formatter
-    > il formatter fa un replace del prompt
-    > ritorna il risultato del formatter
+- se searchRag restituisce qualcosa passa il risultato al formatter
+    > il formatter fa un replace delle variabili prima di darlo a OPENROUTER
+  > il formatter riceve la lingua sconto, workspaceId, customerId, domanda, e risposta del searchRag
+    > struttura del formatter molto semplice traduce la lingua, e poco piu' nessun if nessuna cosa strada ...sara llm che decidera' come stamprae i dati che gli arrivano ..noi dobbiamom mettere lungua conto e fargli capire che deve fare lda riposta...
+
 
 se searchRag non restituisce null array vuoto:
     > ritorniamo all'utente la risposta generica salvata precedentemente
-
 
 
 - ricordati che non devi hardcodare nulla nel codice e' LLM che decide chi chiamare e con quali parametri
@@ -21,7 +21,7 @@ se searchRag non restituisce null array vuoto:
 - togli codice sporco, duplicato voglio la soluzione pulita e che rispetta le regole
 
 - il formatter ricordiamoci che ha il compito di fare il replace e mandare solo la risposta in modo naturale
-- il formatter riceve la lingua sconto, workspaceId, customerId, domanda, e risposta del searchRag
+
 - il formatter quando ha la variabile deve fare un replace ovviamente prima di inviarlo al modello
 
 - controlla quello che fai chiediti se stai facendo le cose giuste se fa la build se stai allineando controlla quello che hai fatto con test
@@ -47,3 +47,22 @@ se searchRag non restituisce null array vuoto:
 
 
 - il FORMATTER riceve domanda dati, lingua, cusomerID etc..ec..e non deve far altro che rispondere in lngua...in maniera naturale
+
+
+- se la CF funziona, NON DEVE passare per traduzione e SearchRag! 
+
+- traduzione layer deve tradurre bene dammi e dove e' perche' altrimenti e' confuso deve aver un prompt specifico che dice di usare give me or show me or where is nei momenti giusti 
+
+🚨 **LEZIONI CRITICHE DEBUG CF:**
+
+- **REGOLA DEBUG MCP**: Il MCP client con log=true può mostrare log VECCHI dal file /tmp/shopme-server.log invece dei log attuali. Per debug accurato usa SEMPRE curl diretto al webhook per vedere la risposta reale.
+
+- **REGOLA NOMI CF**: I nomi delle CF nell'array availableFunctions devono corrispondere ESATTAMENTE a quelli nel prompt_agent.md. Usa PascalCase (es: "SearchSpecificProduct" NON "search_specific_product").
+
+- **REGOLA PROMPT SYNC**: Dopo modifiche al prompt_agent.md, SEMPRE verificare che npm run update:prompt abbia sincronizzato correttamente il database controllando la lunghezza del prompt nel DB vs file.
+
+- **REGOLA TEST DIRETTO**: Per verificare che una CF funzioni, usa curl diretto al webhook invece del MCP client. La risposta JSON mostra esattamente quale CF viene chiamata nel campo "functionCalls".
+
+- **REGOLA LOG INGANNEVOLI**: Se vedi log che sembrano vecchi (con timestamp passati) durante il debug, NON fidarti. Il sistema potrebbe funzionare correttamente ma mostrare cache di log precedenti.
+
+- **REGOLA INVESTIGAZIONE**: Prima di modificare codice, SEMPRE verificare che il problema sia reale testando con curl diretto. Non basarti solo sui log del MCP client che possono essere fuorvianti. 

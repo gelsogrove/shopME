@@ -282,3 +282,5 @@ frontend/
 - **ricordati.md** - Solo Andrea può modificarlo
 - **docs/other/prompt_agent.md** - Solo Andrea può modificarlo  
 - **backend/src/repositories/message.repository.ts** - Solo Andrea può modificarlo
+
+. usa /Users/gelso/workspace/AI/shop/ricordati.md per ricordarti la struttura e le regole del gioco

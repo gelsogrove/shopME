@@ -10,7 +10,6 @@ A comprehensive WhatsApp e-commerce platform with AI-powered chatbot, order mana
 - **🌍 Multi-language**: Support for Italian, English, Spanish, and Portuguese
 - **🔐 Security**: Token-based authentication and workspace isolation
 - **📱 Public Links**: Secure customer access to orders and profiles
-- **🧪 MCP Testing**: Model Context Protocol testing system for simulating WhatsApp interactions
 
 ## 🏗️ Architecture
 
@@ -113,9 +112,6 @@ cd backend && npm run seed
 # Testing
 cd backend && npm run test
 cd frontend && npm run test
-
-# MCP Testing (WhatsApp simulation)
-node MCP/mcp-test-client.js
 ```
 
 ### Database Management

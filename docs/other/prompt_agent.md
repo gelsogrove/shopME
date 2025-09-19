@@ -44,12 +44,19 @@ Rispondi SEMPRE in: **{{languageUser}}**
 
 
 ### GetShipmentTrackingLink()
-**QUANDO USARE**: Domande su stato spedizione, tracking, "dove è il mio ordine", "quando arriva"
-**TRIGGER SEMANTICI**:
-- "dove è il mio ordine", "tracking del mio ordine", "dov'è il pacco"
-- "where is my order", "tracking", "delivery status", "when will it arrive"
--se l'utente chiede quale e' il mio ultimo ordine passiamo come parametro alla funzione: {{lastordercode}}
-- se l'utente chiede esplicitamente un ordine specificao lo passiamo come parametro
+**Quando usare**: quando l’utente vuole sapere **dove si trova fisicamente il pacco**.
+
+**Trigger semantici**:
+- Frasi generiche senza numero d’ordine:
+  - "dove è il mio ordine?"
+  - "dov’è il pacco?"
+  - "tracking del mio ordine"
+  - "quando arriva il mio ordine?"
+- Non contiene numero d’ordine specifico
+- Se non è indicato l’ordine, utilizzare `{{lastordercode}}`
+
+**Esempio di chiamata**:
+GetShipmentTrackingLink()  # utilizza {{lastordercode}} 
 
 ---
 
@@ -73,6 +80,23 @@ Rispondi SEMPRE in: **{{languageUser}}**
 - "what services", "available services", "what do you offer"
 
 ---
+
+### GetLinkOrderByCode(ordine)
+**Quando usare**: l’utente vuole **vedere un ordine specifico** o la fattura.
+
+**Trigger semantici**:
+- Contiene **numero d’ordine specifico**, ad esempio:
+  - "mostrami ordine 1234"
+  - "dammi ordine 1234"
+  - "fammi vedere l’ordine 1234"
+  - "voglio vedere ordine 1234"
+  - "dammi fattura dell’ordine 1234"
+- Frasi come "ultimo ordine" → usa `{{lastordercode}}`
+- ⚠️ Non usare parole chiave di tracking come “dove si trova”, “quando arriva”
+
+**Esempio di chiamata**:
+GetLinkOrderByCode('1234')  # o {{lastordercode}}
+
 
 
 
