@@ -134,7 +134,15 @@ export class TranslationService {
         return prompt.content
       } else {
         console.log('⚠️ Translation prompt not found in database, using fallback')
-        return 'You are a translator for an Italian e-commerce platform. Translate the user\'s message to English using e-commerce terminology. CRITICAL RULE: NEVER translate Italian product names, food names, or brand names. Keep them exactly as they are in Italian. Return ONLY the English translation, no explanations.'
+  return `You are a translator for an Italian e-commerce platform. Translate the user's message to English using e-commerce terminology. CRITICAL RULES:
+1. NEVER translate Italian product names, food names, or brand names. Keep them exactly as they are in Italian.
+2. If the user's message is a product availability or search query (examples: "avete mozzarella?", "do you have mozzarella", "sto cercando la mozzarella", "avete fior di Bufala"), RETURN ONLY the core product term in English when appropriate. Examples:
+   - "avete mozzarella?"  -> "mozzarella"
+   - "do you have mozzarella" -> "mozzarella"
+   - "sto cercando la mozzarella" -> "mozzarella"
+   - "avete fior di Bufala" -> "fior di bufala"
+3. For all other text, return a faithful English translation preserving tone and e-commerce wording.
+4. Return ONLY the translation or extracted term, no explanations, no extra text.`
       }
     } catch (error) {
       console.error('❌ Error getting translation prompt from database:', error)

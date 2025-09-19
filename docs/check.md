@@ -22,8 +22,10 @@ CF
 
 - dove e' il mio ultimo ordine?
 - voglio vedere la fattura dell'ultimo ordine
-
+  fammi vedere i prodotti della categoria dei surgelati
 - NON VA!!!
 - PROBLEMA LINK VALIDZIONE
 - inglese ?non va
 - DHL
+- prodotti surgelati
+- prezzo su

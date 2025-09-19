@@ -1,121 +1,126 @@
-import axios from 'axios';
-import { SecureTokenService } from '../application/services/secure-token.service';
-import { ReplaceLinkWithToken } from '../chatbot/calling-functions/ReplaceLinkWithToken';
+import axios from "axios"
+import { SecureTokenService } from "../application/services/secure-token.service"
+import { ReplaceLinkWithToken } from "../chatbot/calling-functions/ReplaceLinkWithToken"
 import {
-    ErrorResponse,
-    GetCartLinkRequest,
-    ProductsResponse,
-    RagSearchRequest,
-    RagSearchResponse,
-    ServicesResponse,
-    StandardResponse,
-    SuccessResponse,
-    TokenResponse
-} from '../types/whatsapp.types';
+  ErrorResponse,
+  GetCartLinkRequest,
+  ProductsResponse,
+  RagSearchRequest,
+  RagSearchResponse,
+  ServicesResponse,
+  StandardResponse,
+  SuccessResponse,
+  TokenResponse,
+} from "../types/whatsapp.types"
 
 export interface GetAllProductsRequest {
-  workspaceId: string;
-  customerId: string;
+  workspaceId: string
+  customerId: string
 }
 
 export interface GetProductsByCategoryRequest {
-  workspaceId: string;
-  customerId?: string;
-  categoryName: string;
-  phoneNumber?: string;
-  message?: string;
+  workspaceId: string
+  customerId?: string
+  categoryName: string
+  phoneNumber?: string
+  message?: string
 }
 
 export interface SearchSpecificProductRequest {
-  workspaceId: string;
-  customerId?: string;
-  productName: string;
-  phoneNumber?: string;
-  message?: string;
-  language?: string;
+  workspaceId: string
+  customerId?: string
+  productName: string
+  phoneNumber?: string
+  message?: string
+  language?: string
 }
 
 export interface GetOrdersListLinkRequest {
-  customerId: string;
-  workspaceId: string;
-  orderCode?: string;
+  customerId: string
+  workspaceId: string
+  orderCode?: string
 }
 
 export interface GetShipmentTrackingLinkRequest {
-  customerId: string;
-  workspaceId: string;
-  orderCode?: string;
+  customerId: string
+  workspaceId: string
+  orderCode?: string
 }
 
 export class CallingFunctionsService {
-  private secureTokenService: SecureTokenService;
-  private baseUrl: string;
+  private secureTokenService: SecureTokenService
+  private baseUrl: string
 
   constructor() {
-    this.secureTokenService = new SecureTokenService();
-    this.baseUrl = 'http://localhost:3001/api/internal';
+    this.secureTokenService = new SecureTokenService()
+    this.baseUrl = "http://localhost:3001/api/internal"
   }
 
   private createErrorResponse(error: any, context: string): ErrorResponse {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    const details = error.response?.data?.message || errorMessage;
-    
-    console.error(`❌ ${context} error:`, error);
-    
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred"
+    const details = error.response?.data?.message || errorMessage
+
+    console.error(`❌ ${context} error:`, error)
+
     return {
       success: false,
       error: errorMessage,
       message: `Unable to ${context.toLowerCase()}. Please try again later.`,
       details: details,
-      timestamp: new Date().toISOString()
-    };
+      timestamp: new Date().toISOString(),
+    }
   }
 
-  private createSuccessResponse<T>(data: T, context: string): SuccessResponse<T> {
-    console.log(`✅ ${context} response:`, data);
-    
+  private createSuccessResponse<T>(
+    data: T,
+    context: string
+  ): SuccessResponse<T> {
+    console.log(`✅ ${context} response:`, data)
+
     return {
       success: true,
       data: data,
-      timestamp: new Date().toISOString()
-    };
+      timestamp: new Date().toISOString(),
+    }
   }
 
-
-  public async getProductsByCategory(request: GetAllProductsRequest & { categoryName: string }): Promise<ProductsResponse> {
+  public async getProductsByCategory(
+    request: GetAllProductsRequest & { categoryName: string }
+  ): Promise<ProductsResponse> {
     try {
-      console.log('🔧 Calling getProductsByCategory with:', request);
-      
+      console.log("🔧 Calling getProductsByCategory with:", request)
+
       // Direct database query with Prisma for products in specific category
-      const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
-      
+      const { PrismaClient } = require("@prisma/client")
+      const prisma = new PrismaClient()
+
       // Get all active offers first to apply discounts
       const activeOffers = await prisma.offers.findMany({
         where: {
           workspaceId: request.workspaceId,
           isActive: true,
           startDate: { lte: new Date() },
-          endDate: { gte: new Date() }
+          endDate: { gte: new Date() },
         },
         include: {
           category: {
             select: {
               id: true,
-              name: true
-            }
-          }
-        }
-      });
-      
+              name: true,
+            },
+          },
+        },
+      })
+
       // Get products in the specific category
       const products = await prisma.products.findMany({
         where: {
           workspaceId: request.workspaceId,
           isActive: true,
           category: {
-            name: request.categoryName
-          }
+            name: request.categoryName,
+          },
         },
         select: {
           id: true,
@@ -129,45 +134,47 @@ export class CallingFunctionsService {
           category: {
             select: {
               id: true,
-              name: true
-            }
-          }
+              name: true,
+            },
+          },
         },
-        orderBy: { name: 'asc' }
-      });
-      
-      await prisma.$disconnect();
-      
+        orderBy: { name: "asc" },
+      })
+
+      await prisma.$disconnect()
+
       if (!products || products.length === 0) {
         return {
           success: false,
           error: `Nessun prodotto disponibile nella categoria "${request.categoryName}"`,
           message: `Nessun prodotto disponibile nella categoria "${request.categoryName}"`,
-          timestamp: new Date().toISOString()
-        } as ProductsResponse;
+          timestamp: new Date().toISOString(),
+        } as ProductsResponse
       }
-      
+
       // Apply discounts to products
-      const productsWithDiscounts = products.map(product => {
-        const categoryId = product.category?.id;
-        
+      const productsWithDiscounts = products.map((product) => {
+        const categoryId = product.category?.id
+
         // Check if there's an active offer for this category
-        const categoryOffer = activeOffers.find(offer => 
-          offer.category && offer.category.id === categoryId
-        );
-        
-        let finalPrice = product.price;
-        let hasDiscount = false;
-        let discountPercent = 0;
-        let originalPrice = product.price;
-        
+        const categoryOffer = activeOffers.find(
+          (offer) => offer.category && offer.category.id === categoryId
+        )
+
+        let finalPrice = product.price
+        let hasDiscount = false
+        let discountPercent = 0
+        let originalPrice = product.price
+
         if (categoryOffer) {
-          hasDiscount = true;
-          discountPercent = categoryOffer.discountPercent;
-          finalPrice = product.price * (1 - discountPercent / 100);
-          console.log(`💰 Applied ${discountPercent}% discount to ${product.name}: €${originalPrice} → €${finalPrice.toFixed(2)}`);
+          hasDiscount = true
+          discountPercent = categoryOffer.discountPercent
+          finalPrice = product.price * (1 - discountPercent / 100)
+          console.log(
+            `💰 Applied ${discountPercent}% discount to ${product.name}: €${originalPrice} → €${finalPrice.toFixed(2)}`
+          )
         }
-        
+
         return {
           code: product.ProductCode || product.sku || product.id,
           ProductCode: product.ProductCode,
@@ -178,153 +185,159 @@ export class CallingFunctionsService {
           originalPrice: hasDiscount ? originalPrice : undefined, // Show original only if discounted
           discountPercent: hasDiscount ? discountPercent : undefined,
           hasDiscount: hasDiscount,
-          stock: product.stock
-        };
-      });
-      
-      console.log(`✅ Found ${products.length} products in category "${request.categoryName}"`);
-      
+          stock: product.stock,
+        }
+      })
+
+      console.log(
+        `✅ Found ${products.length} products in category "${request.categoryName}"`
+      )
+
       return {
         success: true,
         data: {
-          categories: [{
-            categoryName: request.categoryName,
-            products: productsWithDiscounts
-          }],
+          categories: [
+            {
+              categoryName: request.categoryName,
+              products: productsWithDiscounts,
+            },
+          ],
           totalProducts: products.length,
-          totalCategories: 1
+          totalCategories: 1,
         },
-        timestamp: new Date().toISOString()
-      };
-      
+        timestamp: new Date().toISOString(),
+      }
     } catch (error) {
-      console.error('❌ Error in getProductsByCategory:', error);
-      return this.createErrorResponse(error, 'getProductsByCategory') as ProductsResponse;
+      console.error("❌ Error in getProductsByCategory:", error)
+      return this.createErrorResponse(
+        error,
+        "getProductsByCategory"
+      ) as ProductsResponse
     }
   }
 
-  public async getServices(request: GetAllProductsRequest): Promise<ServicesResponse> {
+  public async getServices(
+    request: GetAllProductsRequest
+  ): Promise<ServicesResponse> {
     try {
-      console.log('🔧 Calling getServices with:', request);
-      
+      console.log("🔧 Calling getServices with:", request)
+
       // Direct database query with Prisma for complete services list
-      const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
-      
+      const { PrismaClient } = require("@prisma/client")
+      const prisma = new PrismaClient()
+
       // Get all services, ordered by name alphabetically
       const services = await prisma.services.findMany({
         where: {
           workspaceId: request.workspaceId,
-          isActive: true
+          isActive: true,
         },
-        orderBy: { name: 'asc' }
-      });
-      
-      await prisma.$disconnect();
-      
+        orderBy: { name: "asc" },
+      })
+
+      await prisma.$disconnect()
+
       if (!services || services.length === 0) {
         return {
           success: false,
-          error: 'Nessun servizio disponibile',
-          message: 'Nessun servizio disponibile',
-          timestamp: new Date().toISOString()
-        } as ServicesResponse;
+          error: "Nessun servizio disponibile",
+          message: "Nessun servizio disponibile",
+          timestamp: new Date().toISOString(),
+        } as ServicesResponse
       }
-      
-      console.log('✅ Services found:', services.length);
-      
+
+      console.log("✅ Services found:", services.length)
+
       return {
         success: true,
         data: {
-          services: services.map(service => ({
+          services: services.map((service) => ({
             code: service.code,
             name: service.name,
             description: service.description,
             price: service.price,
-            unit: service.unit
+            unit: service.unit,
           })),
-          totalServices: services.length
+          totalServices: services.length,
         },
-        timestamp: new Date().toISOString()
-      };
-      
+        timestamp: new Date().toISOString(),
+      }
     } catch (error) {
-      console.error('❌ Error in getServices:', error);
-      return this.createErrorResponse(error, 'getServices') as ServicesResponse;
+      console.error("❌ Error in getServices:", error)
+      return this.createErrorResponse(error, "getServices") as ServicesResponse
     }
   }
 
-
-
-
-  public async getOrdersListLink(request: GetOrdersListLinkRequest): Promise<TokenResponse> {
+  public async getOrdersListLink(
+    request: GetOrdersListLinkRequest
+  ): Promise<TokenResponse> {
     try {
-      console.log('🔧 Calling getOrdersListLink with:', request);
-      
+      console.log("🔧 Calling getOrdersListLink with:", request)
 
-      
-      console.log('🔧 SecureTokenService instance:', !!this.secureTokenService);
-      
+      console.log("🔧 SecureTokenService instance:", !!this.secureTokenService)
+
       // If orderCode is specified, validate it exists in database
       if (request.orderCode) {
         try {
-          console.log('🔍 Checking if order exists in database:', request.orderCode);
-          
+          console.log(
+            "🔍 Checking if order exists in database:",
+            request.orderCode
+          )
+
           // Import Prisma client
-          const { PrismaClient } = require('@prisma/client');
-          const prisma = new PrismaClient();
-          
+          const { PrismaClient } = require("@prisma/client")
+          const prisma = new PrismaClient()
+
           // Query the database for the order
           const order = await prisma.orders.findFirst({
             where: {
               orderCode: request.orderCode,
-              workspaceId: request.workspaceId
-            }
-          });
-          
-          await prisma.$disconnect();
-          
+              workspaceId: request.workspaceId,
+            },
+          })
+
+          await prisma.$disconnect()
+
           if (!order) {
-            console.log('❌ Order not found in database:', request.orderCode);
+            console.log("❌ Order not found in database:", request.orderCode)
             return {
               success: false,
               error: `Ordine non trovato`,
               message: `Ordine non trovato`,
-              timestamp: new Date().toISOString()
-            } as TokenResponse;
+              timestamp: new Date().toISOString(),
+            } as TokenResponse
           }
-          
-          console.log('✅ Order found in database:', request.orderCode);
-          
+
+          console.log("✅ Order found in database:", request.orderCode)
         } catch (dbError) {
-          console.log('❌ Database error while checking order:', dbError);
+          console.log("❌ Database error while checking order:", dbError)
           return {
             success: false,
             error: `Ordine non trovato`,
             message: `Ordine non trovato`,
-            timestamp: new Date().toISOString()
-          } as TokenResponse;
+            timestamp: new Date().toISOString(),
+          } as TokenResponse
         }
       }
 
-      console.log('🔧 About to create token...');
+      console.log("🔧 About to create token...")
       const token = await this.secureTokenService.createToken(
-        'orders',
+        "orders",
         request.workspaceId,
         { customerId: request.customerId },
-        '1h',
+        "1h",
         undefined,
         undefined,
         undefined,
         request.customerId
-      );
-      console.log('🔧 Token created successfully:', token);
+      )
+      console.log("🔧 Token created successfully:", token)
 
-      let linkUrl: string;
+      let linkUrl: string
       if (request.orderCode) {
-        linkUrl = `http://localhost:3000/orders-public/${request.orderCode}?token=${token}`;
+        linkUrl = `http://localhost:3000/orders-public/${request.orderCode}?token=${token}`
       } else {
-        linkUrl = `http://localhost:3000/orders-public?token=${token}`;
+        linkUrl = `http://localhost:3000/orders-public?token=${token}`
       }
 
       return {
@@ -332,58 +345,62 @@ export class CallingFunctionsService {
         token: token,
         linkUrl: linkUrl,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        action: 'orders',
-        timestamp: new Date().toISOString()
-      };
-
+        action: "orders",
+        timestamp: new Date().toISOString(),
+      }
     } catch (error) {
-      return this.createErrorResponse(error, 'getOrdersListLink') as TokenResponse;
+      return this.createErrorResponse(
+        error,
+        "getOrdersListLink"
+      ) as TokenResponse
     }
   }
 
-  public async getCartLink(request: GetCartLinkRequest): Promise<TokenResponse> {
+  public async getCartLink(
+    request: GetCartLinkRequest
+  ): Promise<TokenResponse> {
     try {
-      console.log('🔧 Calling getCartLink with:', request);
-      
-      console.log('🔧 About to create token...');
+      console.log("🔧 Calling getCartLink with:", request)
+
+      console.log("🔧 About to create token...")
       const token = await this.secureTokenService.createToken(
-        'cart',
+        "cart",
         request.workspaceId,
         { customerId: request.customerId },
-        '1h',
+        "1h",
         undefined,
         undefined,
         undefined,
         request.customerId
-      );
-      console.log('🔧 Token created successfully:', token);
+      )
+      console.log("🔧 Token created successfully:", token)
 
-      const linkUrl = `http://localhost:3000/cart?token=${token}`;
+      const linkUrl = `http://localhost:3000/cart?token=${token}`
 
       return {
         success: true,
         token: token,
         linkUrl: linkUrl,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        action: 'cart',
-        timestamp: new Date().toISOString()
-      };
-
+        action: "cart",
+        timestamp: new Date().toISOString(),
+      }
     } catch (error) {
-      return this.createErrorResponse(error, 'getCartLink') as TokenResponse;
+      return this.createErrorResponse(error, "getCartLink") as TokenResponse
     }
   }
 
-
-  public async SearchRag(request: RagSearchRequest): Promise<RagSearchResponse> {
+  public async SearchRag(
+    request: RagSearchRequest
+  ): Promise<RagSearchResponse> {
     try {
-      console.log('🔧 Calling SearchRag with:', request);
-      
+      console.log("🔧 Calling SearchRag with:", request)
+
       // Use the query directly without translation to preserve Italian product names
       // The TranslationService in DualLLMService already handles translation correctly
-      const translatedQuery = request.query;
-      console.log('🌐 Using original query (no translation):', translatedQuery);
-      
+      const translatedQuery = request.query
+      console.log("🌐 Using original query (no translation):", translatedQuery)
+
       // Prepare payload with optional tuning params
       const payload: any = {
         query: translatedQuery, // Use query as-is (could be Italian or English)
@@ -395,136 +412,167 @@ export class CallingFunctionsService {
 
       // Pass tuning params if provided (top_k, similarityThreshold)
       const reqAny: any = request as any
-      if (typeof reqAny.top_k === 'number') payload.top_k = reqAny.top_k
-      if (typeof reqAny.similarityThreshold === 'number')
+      if (typeof reqAny.top_k === "number") payload.top_k = reqAny.top_k
+      if (typeof reqAny.similarityThreshold === "number")
         payload.similarityThreshold = reqAny.similarityThreshold
 
       const response = await axios.post(`${this.baseUrl}/rag-search`, payload, {
         timeout: 15000,
       })
 
-      console.log('✅ SearchRag response received:', {
+      console.log("✅ SearchRag response received:", {
         hasResults: !!response.data.results,
         originalQuery: request.query,
         translatedQuery: translatedQuery,
-        resultsCount: response.data.results ? Object.keys(response.data.results).length : 0
-      });
+        resultsCount: response.data.results
+          ? Object.keys(response.data.results).length
+          : 0,
+      })
 
       // 🔧 FIX: Check if we have real results before marking as success
-      const hasRealResults = response.data && 
-                            response.data.results && 
-                            response.data.results.total > 0;
+      const hasRealResults =
+        response.data &&
+        response.data.results &&
+        response.data.results.total > 0
 
-      console.log('🔧 SearchRag: hasRealResults =', hasRealResults, 'total =', response.data?.results?.total);
+      console.log(
+        "🔧 SearchRag: hasRealResults =",
+        hasRealResults,
+        "total =",
+        response.data?.results?.total
+      )
 
       return {
         success: hasRealResults, // ✅ TRUE only if we have actual results
         results: response.data?.results || {},
         query: request.query,
         translatedQuery: translatedQuery,
-        timestamp: new Date().toISOString()
-      };
-
+        timestamp: new Date().toISOString(),
+      }
     } catch (error) {
-      console.error('❌ Error in SearchRag:', error);
-      return this.createErrorResponse(error, 'SearchRag') as RagSearchResponse;
+      console.error("❌ Error in SearchRag:", error)
+      return this.createErrorResponse(error, "SearchRag") as RagSearchResponse
     }
   }
 
-  public async contactOperator(request: { customerId: string, workspaceId: string, phoneNumber: string }): Promise<StandardResponse> {
+  public async contactOperator(request: {
+    customerId: string
+    workspaceId: string
+    phoneNumber: string
+  }): Promise<StandardResponse> {
     try {
-      console.log('🔧 Calling ContactOperator with:', request);
-      
+      console.log("🔧 Calling ContactOperator with:", request)
+
       // Import the ContactOperator function
-      const { ContactOperator } = require('../chatbot/calling-functions/ContactOperator');
-      
+      const {
+        ContactOperator,
+      } = require("../chatbot/calling-functions/ContactOperator")
+
       const result = await ContactOperator({
         phone: request.phoneNumber,
-        workspaceId: request.workspaceId
-      });
-      
-      console.log('✅ ContactOperator result:', result);
-      
+        workspaceId: request.workspaceId,
+      })
+
+      console.log("✅ ContactOperator result:", result)
+
       return {
         success: true,
-        message: result.message || "Certo, verrà contattato il prima possibile dal nostro operatore.",
-        timestamp: new Date().toISOString()
-      };
-      
+        message:
+          result.message ||
+          "Certo, verrà contattato il prima possibile dal nostro operatore.",
+        timestamp: new Date().toISOString(),
+      }
     } catch (error) {
-      console.error('❌ Error in contactOperator:', error);
+      console.error("❌ Error in contactOperator:", error)
       return {
         success: false,
-        message: "Si è verificato un errore nel contattare l'operatore. Riprova più tardi.",
-        timestamp: new Date().toISOString()
-      };
+        message:
+          "Si è verificato un errore nel contattare l'operatore. Riprova più tardi.",
+        timestamp: new Date().toISOString(),
+      }
     }
   }
 
-  public async getShipmentTrackingLink(request: GetShipmentTrackingLinkRequest): Promise<TokenResponse> {
+  public async getShipmentTrackingLink(
+    request: GetShipmentTrackingLinkRequest
+  ): Promise<TokenResponse> {
     try {
-      console.log('🔧 Calling getShipmentTrackingLink with:', request);
-      
+      console.log("🔧 Calling getShipmentTrackingLink with:", request)
+
       // Validate that orderCode exists in database and get trackingNumber
-      let order;
+      let order
       try {
-        console.log('🔍 Checking if order exists in database for tracking:', request.orderCode);
-        
+        console.log(
+          "🔍 Checking if order exists in database for tracking:",
+          request.orderCode
+        )
+
         // Import Prisma client
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
-        
+        const { PrismaClient } = require("@prisma/client")
+        const prisma = new PrismaClient()
+
         // Query the database for the order with trackingNumber
         // If no orderCode provided, get the last order for the customer
-        const whereClause = request.orderCode 
+        const whereClause = request.orderCode
           ? { orderCode: request.orderCode, workspaceId: request.workspaceId }
-          : { customerId: request.customerId, workspaceId: request.workspaceId };
-          
+          : { customerId: request.customerId, workspaceId: request.workspaceId }
+
         order = await prisma.orders.findFirst({
           where: whereClause,
-          orderBy: { createdAt: 'desc' }, // Get the most recent order if no specific orderCode
+          orderBy: { createdAt: "desc" }, // Get the most recent order if no specific orderCode
           select: {
             orderCode: true,
-            trackingNumber: true
-          }
-        });
-        
-        await prisma.$disconnect();
-        
+            trackingNumber: true,
+          },
+        })
+
+        await prisma.$disconnect()
+
         if (!order) {
-          console.log('❌ Order not found in database for tracking:', request.orderCode);
+          console.log(
+            "❌ Order not found in database for tracking:",
+            request.orderCode
+          )
           return {
             success: false,
             error: `Ordine non trovato`,
             message: `Ordine non trovato`,
-            timestamp: new Date().toISOString()
-          } as TokenResponse;
+            timestamp: new Date().toISOString(),
+          } as TokenResponse
         }
-        
+
         if (!order.trackingNumber) {
-          console.log('❌ No tracking number found for order:', request.orderCode);
+          console.log(
+            "❌ No tracking number found for order:",
+            request.orderCode
+          )
           return {
             success: false,
             error: `Non c'è il tracking-id nell'ordine`,
             message: `Non c'è il tracking-id nell'ordine`,
-            timestamp: new Date().toISOString()
-          } as TokenResponse;
+            timestamp: new Date().toISOString(),
+          } as TokenResponse
         }
 
-        console.log('✅ Order found with tracking number:', order.trackingNumber);
-        
+        console.log(
+          "✅ Order found with tracking number:",
+          order.trackingNumber
+        )
       } catch (dbError) {
-        console.log('❌ Database error while checking order for tracking:', dbError);
+        console.log(
+          "❌ Database error while checking order for tracking:",
+          dbError
+        )
         return {
           success: false,
           error: `Ordine non trovato`,
           message: `Ordine non trovato`,
-          timestamp: new Date().toISOString()
-        } as TokenResponse;
+          timestamp: new Date().toISOString(),
+        } as TokenResponse
       }
 
       // Generate DHL tracking link
-      const dhlTrackingUrl = `https://www.dhl.com/it-en/home/tracking.html?locale=true&tracking-id=${order.trackingNumber}`;
+      const dhlTrackingUrl = `https://www.dhl.com/it-en/home/tracking.html?locale=true&tracking-id=${order.trackingNumber}`
 
       return {
         success: true,
@@ -532,42 +580,52 @@ export class CallingFunctionsService {
         trackingNumber: order.trackingNumber,
         orderCode: order.orderCode,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        action: 'tracking',
-        timestamp: new Date().toISOString()
-      };
-
+        action: "tracking",
+        timestamp: new Date().toISOString(),
+      }
     } catch (error) {
-      return this.createErrorResponse(error, 'getShipmentTrackingLink') as TokenResponse;
+      return this.createErrorResponse(
+        error,
+        "getShipmentTrackingLink"
+      ) as TokenResponse
     }
   }
 
-
-  public async searchSpecificProduct(request: SearchSpecificProductRequest): Promise<ProductsResponse> {
+  public async searchSpecificProduct(
+    request: SearchSpecificProductRequest
+  ): Promise<ProductsResponse> {
     try {
-      console.log('🔧 Calling searchSpecificProduct with:', request);
-      
+      console.log("🔧 Calling searchSpecificProduct with:", request)
+
       // Import the SearchSpecificProduct function
-      const { SearchSpecificProduct } = require('../chatbot/calling-functions/SearchSpecificProduct');
-      
+      const {
+        SearchSpecificProduct,
+      } = require("../chatbot/calling-functions/SearchSpecificProduct")
+
       const result = await SearchSpecificProduct({
         phoneNumber: request.phoneNumber || "unknown",
         workspaceId: request.workspaceId,
         customerId: request.customerId,
         message: request.message || "Search specific product",
         productName: request.productName,
-        language: request.language || 'it'
-      });
-      
-      return this.createSuccessResponse({
-        products: result.products,
-        totalProducts: result.totalProducts,
-        message: result.response,
-        found: result.found
-      }, 'searchSpecificProduct') as ProductsResponse;
-      
+        language: request.language || "it",
+      })
+
+      return this.createSuccessResponse(
+        {
+          products: result.products,
+          totalProducts: result.totalProducts,
+          message: result.response,
+          found: result.found,
+        },
+        "searchSpecificProduct"
+      ) as ProductsResponse
     } catch (error) {
-      console.error('❌ Error in searchSpecificProduct:', error);
-      return this.createErrorResponse(error, 'searchSpecificProduct') as ProductsResponse;
+      console.error("❌ Error in searchSpecificProduct:", error)
+      return this.createErrorResponse(
+        error,
+        "searchSpecificProduct"
+      ) as ProductsResponse
     }
   }
 
@@ -575,37 +633,44 @@ export class CallingFunctionsService {
    * Replace [LINK_WITH_TOKEN] with generated link
    */
   public async replaceLinkWithToken(
-    response: string, 
-    linkType: string = 'auto', 
-    customerId: string, 
+    response: string,
+    linkType: string = "auto",
+    customerId: string,
     workspaceId: string
   ): Promise<StandardResponse> {
     try {
-      console.log('🔧 Calling replaceLinkWithToken with:', { response, linkType, customerId, workspaceId });
-      
+      console.log("🔧 Calling replaceLinkWithToken with:", {
+        response,
+        linkType,
+        customerId,
+        workspaceId,
+      })
+
       const result = await ReplaceLinkWithToken(
         { response, linkType: linkType as any },
         customerId,
         workspaceId
-      );
-      
+      )
+
       if (result.success) {
         return {
           success: true,
           message: result.response || response,
-          timestamp: new Date().toISOString()
-        };
+          timestamp: new Date().toISOString(),
+        }
       } else {
         return {
           success: false,
-          error: result.error || 'Failed to replace link token',
+          error: result.error || "Failed to replace link token",
           message: response, // Return original response if replacement fails
-          timestamp: new Date().toISOString()
-        };
+          timestamp: new Date().toISOString(),
+        }
       }
-      
     } catch (error) {
-      return this.createErrorResponse(error, 'replaceLinkWithToken') as StandardResponse;
+      return this.createErrorResponse(
+        error,
+        "replaceLinkWithToken"
+      ) as StandardResponse
     }
   }
 }

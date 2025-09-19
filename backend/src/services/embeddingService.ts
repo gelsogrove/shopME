@@ -26,7 +26,7 @@ export class EmbeddingService {
   // 🎯 CONFIGURABLE SIMILARITY THRESHOLDS (Andrea's Request)
   private readonly SIMILARITY_THRESHOLDS = {
     FAQ: 0.25, // 🎯 LOWERED: To allow better FAQ matching like "chi sei?" → "Chi sei?"
-    PRODUCTS: 0.3, // 🎯 FIXED: Lowered from 0.4 to allow Tiramisù (0.337 similarity)
+  PRODUCTS: 0.5, // 🎯 UPDATED: Set to 0.5 per user request for a balanced precision/recall
     SERVICES: 0.35, // 🎯 BALANCED: Higher threshold for service precision
     DOCUMENTS: 0.35, // 🎯 BALANCED: More restrictive document matching
   }
@@ -703,7 +703,7 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
 
       // Filter by minimum similarity threshold and sort by similarity (highest first)
       const MINIMUM_SIMILARITY =
-        typeof minSimilarity === 'number'
+        typeof minSimilarity === "number"
           ? minSimilarity
           : this.SIMILARITY_THRESHOLDS.PRODUCTS
 

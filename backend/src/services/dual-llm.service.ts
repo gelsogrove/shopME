@@ -176,11 +176,66 @@ export class DualLLMService {
           const { SearchSpecificProduct } = await import(
             "../chatbot/calling-functions/SearchSpecificProduct"
           )
+
+          // Sanitize product name extracted from the LLM function_call arguments.
+          // Sometimes the LLM returns a full sentence like:
+          // "L'utente ha richiesto informazioni su 'mozzarella'"
+          // We want to extract the core product term (e.g. mozzarella) before searching.
+          const rawArg = (functionResult.function_call.arguments && (functionResult.function_call.arguments.message || functionResult.function_call.arguments.productName)) || ""
+
+          const sanitizeProductName = (input: string) => {
+            if (!input) return input
+            let s = input.trim()
+
+            // If there is a quoted term, prefer the quoted content
+            const singleQuoteMatch = s.match(/'([^']+)'/) || s.match(/’([^’]+)’/)
+            if (singleQuoteMatch && singleQuoteMatch[1]) return singleQuoteMatch[1].trim()
+            const doubleQuoteMatch = s.match(/"([^"]+)"/)
+            if (doubleQuoteMatch && doubleQuoteMatch[1]) return doubleQuoteMatch[1].trim()
+
+            // Remove common verbose prefixes (Italian and English)
+            const prefixes = [
+              "l'utente ha richiesto informazioni su",
+              "l'utente ha chiesto",
+              "l'utente ha richiesto",
+              "the user asked for",
+              "the user requested",
+              "user asked for",
+              "user requested",
+              "do you have",
+              "do you have",
+              "avete",
+              "ho bisogno di",
+              "sto cercando",
+              "i'm looking for",
+            ]
+
+            const lower = s.toLowerCase()
+            for (const p of prefixes) {
+              if (lower.startsWith(p)) {
+                s = s.substring(p.length).trim()
+                break
+              }
+            }
+
+            // Remove leading punctuation and question words
+            s = s.replace(/^[:\-\s"'«»“”]+/, "")
+            // If still long, take last 3 words as a heuristic
+            const words = s.split(/\s+/).filter(Boolean)
+            if (words.length > 4) {
+              return words.slice(-3).join(' ')
+            }
+
+            return s
+          }
+
+          const cleaned = sanitizeProductName(String(rawArg))
+
           cfExecutionResult = await SearchSpecificProduct({
             phoneNumber: request.phone,
             workspaceId: request.workspaceId,
             customerId: customer?.id || "",
-            productName: functionResult.function_call.arguments.message || "",
+            productName: cleaned || (functionResult.function_call.arguments.message || ""),
             message: functionResult.function_call.arguments.message || "",
             language: "it",
           })
@@ -264,9 +319,7 @@ export class DualLLMService {
       console.log(`🔍 DualLLM: Executing SearchRag for: ${translatedQuery}`)
 
       // Adaptive tuning for short queries: increase top_k and lower similarity threshold
-      // Prefer using the original user query for RAG search (so product names in Italian match better)
-      const originalQuery = request.chatInput || translatedQuery
-
+      // Use the translatedQuery for RAG search (reverted to previous behavior)
       const isShortQuery = (str: string) => {
         if (!str) return false
         const wordCount = str.trim().split(/\s+/).length
@@ -279,16 +332,16 @@ export class DualLLMService {
       const shortQueryTopK = 30
       const shortQueryThreshold = 0.25
 
-      const top_k = isShortQuery(originalQuery) ? shortQueryTopK : defaultTopK
-      const similarityThreshold = isShortQuery(originalQuery)
+      const top_k = isShortQuery(translatedQuery) ? shortQueryTopK : defaultTopK
+      const similarityThreshold = isShortQuery(translatedQuery)
         ? shortQueryThreshold
         : defaultThreshold
 
       const searchRagResult = await this.callingFunctionsService.SearchRag({
         customerId: request.customerid || "",
         workspaceId: request.workspaceId,
-        // send original query so that product embeddings match language-specific tokens
-        query: originalQuery,
+        // send translatedQuery (reverted)
+        query: translatedQuery,
         messages: [],
         top_k,
         similarityThreshold,
