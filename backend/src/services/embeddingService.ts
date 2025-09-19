@@ -629,7 +629,8 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
   async searchProducts(
     query: string,
     workspaceId: string,
-    limit: number = 5
+    limit: number = 5,
+    minSimilarity?: number
   ): Promise<EmbeddingSearchResult[]> {
     try {
       // Generate embedding for search query
@@ -701,7 +702,11 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
       }
 
       // Filter by minimum similarity threshold and sort by similarity (highest first)
-      const MINIMUM_SIMILARITY = this.SIMILARITY_THRESHOLDS.PRODUCTS
+      const MINIMUM_SIMILARITY =
+        typeof minSimilarity === 'number'
+          ? minSimilarity
+          : this.SIMILARITY_THRESHOLDS.PRODUCTS
+
       const filteredResults = results
         .filter((result) => result.similarity >= MINIMUM_SIMILARITY)
         .sort((a, b) => b.similarity - a.similarity)

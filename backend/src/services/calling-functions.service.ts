@@ -384,15 +384,24 @@ export class CallingFunctionsService {
       const translatedQuery = request.query;
       console.log('🌐 Using original query (no translation):', translatedQuery);
       
-      const response = await axios.post(`${this.baseUrl}/rag-search`, {
+      // Prepare payload with optional tuning params
+      const payload: any = {
         query: translatedQuery, // Use query as-is (could be Italian or English)
         workspaceId: request.workspaceId,
         customerId: request.customerId,
         businessType: "ECOMMERCE", // Default business type
-        customerLanguage: "auto" // Let the system detect language automatically
-      }, {
-        timeout: 15000
-      });
+        customerLanguage: "auto", // Let the system detect language automatically
+      }
+
+      // Pass tuning params if provided (top_k, similarityThreshold)
+      const reqAny: any = request as any
+      if (typeof reqAny.top_k === 'number') payload.top_k = reqAny.top_k
+      if (typeof reqAny.similarityThreshold === 'number')
+        payload.similarityThreshold = reqAny.similarityThreshold
+
+      const response = await axios.post(`${this.baseUrl}/rag-search`, payload, {
+        timeout: 15000,
+      })
 
       console.log('✅ SearchRag response received:', {
         hasResults: !!response.data.results,

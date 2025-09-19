@@ -263,11 +263,35 @@ export class DualLLMService {
     try {
       console.log(`🔍 DualLLM: Executing SearchRag for: ${translatedQuery}`)
 
+      // Adaptive tuning for short queries: increase top_k and lower similarity threshold
+      // Prefer using the original user query for RAG search (so product names in Italian match better)
+      const originalQuery = request.chatInput || translatedQuery
+
+      const isShortQuery = (str: string) => {
+        if (!str) return false
+        const wordCount = str.trim().split(/\s+/).length
+        return wordCount <= 2 || str.trim().length <= 20
+      }
+
+      const defaultTopK = 10
+      const defaultThreshold = 0.35
+
+      const shortQueryTopK = 30
+      const shortQueryThreshold = 0.25
+
+      const top_k = isShortQuery(originalQuery) ? shortQueryTopK : defaultTopK
+      const similarityThreshold = isShortQuery(originalQuery)
+        ? shortQueryThreshold
+        : defaultThreshold
+
       const searchRagResult = await this.callingFunctionsService.SearchRag({
         customerId: request.customerid || "",
         workspaceId: request.workspaceId,
-        query: translatedQuery,
+        // send original query so that product embeddings match language-specific tokens
+        query: originalQuery,
         messages: [],
+        top_k,
+        similarityThreshold,
       })
 
       console.log(`🔍 DualLLM: SearchRag result:`, searchRagResult)

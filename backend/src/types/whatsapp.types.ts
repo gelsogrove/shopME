@@ -54,6 +54,9 @@ export interface RagSearchRequest {
   customerId: string;
   messages: any[];
   useCartData?: boolean;
+  // optional tuning params for short queries
+  top_k?: number;
+  similarityThreshold?: number;
 }
 
 export interface RagSearchResponse extends StandardResponse {

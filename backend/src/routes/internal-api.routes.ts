@@ -34,11 +34,18 @@ router.post('/rag-search', async (req: Request, res: Response) => {
     const cartIntentResult = detectCartIntent(query);
     logger.info(`🛒 Cart Intent Detection: ${JSON.stringify(cartIntentResult)}`);
 
+    // Determine optional tuning params from request body
+    const top_k = typeof req.body.top_k === 'number' ? req.body.top_k : 5
+    const similarityThreshold =
+      typeof req.body.similarityThreshold === 'number'
+        ? req.body.similarityThreshold
+        : undefined
+
     // Search across all content types with pricing
     const [productResults, faqResults, serviceResults] = await Promise.all([
-      embeddingService.searchProducts(query, workspaceId, 5),
-      embeddingService.searchFAQs(query, workspaceId, 5),
-      embeddingService.searchServices(query, workspaceId, 5)
+      embeddingService.searchProducts(query, workspaceId, top_k, similarityThreshold),
+      embeddingService.searchFAQs(query, workspaceId, top_k),
+      embeddingService.searchServices(query, workspaceId, top_k)
     ]);
 
     // Apply pricing calculation to products if any found
