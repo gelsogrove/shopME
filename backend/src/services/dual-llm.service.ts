@@ -53,11 +53,15 @@ export class DualLLMService {
         )
 
         // Se SearchRag non trova nulla nemmeno in traduzione, genera LLM response
-        if (
-          !searchRagResult.success ||
-          !searchRagResult.response ||
-          searchRagResult.response.trim() === ""
-        ) {
+        const isEmptyResponse = (r: any) => {
+          if (r == null) return true
+          if (typeof r === "string") return r.trim() === ""
+          // If it's an object (e.g. searchRagResult returned the whole object),
+          // consider it non-empty (we will let the formatter decide how to render)
+          return false
+        }
+
+        if (!searchRagResult.success || isEmptyResponse(searchRagResult.response)) {
           console.log(
             `🤖 DualLLM: SearchRag vuoto anche in traduzione, generating LLM fallback`
           )
@@ -379,106 +383,14 @@ export class DualLLMService {
         }
       }
 
-      // Compare similarity scores to decide between FAQ vs Products
-      const topFAQScore = hasFAQs
-        ? searchRagResult.results.faqs[0]?.similarity || 0
-        : 0
-      const topProductScore = hasProducts
-        ? searchRagResult.results.products[0]?.similarity || 0
-        : 0
-
-      console.log(
-        `🔍 DualLLM: Scores - FAQ: ${topFAQScore}, Products: ${topProductScore}`
-      )
-
-      // If products have higher similarity score, format products like a list
-      if (hasProducts && topProductScore > topFAQScore) {
-        console.log(
-          `🔍 DualLLM: Products have higher score, formatting product list`
-        )
-
-        const products = searchRagResult.results.products.slice(0, 10) // Max 10 products
-        let productList = "Ecco le mozzarelle disponibili:\n\n"
-
-        products.forEach((product) => {
-          const code =
-            product.content.match(/ProductCode: ([^\n]+)/)?.[1] || "N/A"
-          const name =
-            product.content.match(/Product: ([^\n]+)/)?.[1] ||
-            product.sourceName
-          const format = product.content.match(/Format: ([^\n]+)/)?.[1] || ""
-          const price = product.price || "N/A"
-          const originalPrice = product.originalPrice || price
-          const hasDiscount = product.hasDiscount
-
-          const formatText = format ? ` (${format})` : ""
-          const priceText = hasDiscount
-            ? `€${originalPrice} ~~€${price}~~`
-            : `€${price}`
-
-          productList += `• [${code}] **${name}**${formatText} - ${priceText}\n`
-
-          // Add description if available
-          const description = product.content.match(
-            /Description: ([^\n]+)/
-          )?.[1]
-          if (description) {
-            productList += `  _${description}_\n`
-          }
-          productList += "\n"
-        })
-
-        productList += `📦 Totale trovati: ${products.length}`
-
-        return {
-          success: true,
-          response: productList,
-          functionCalls: [{ name: "SearchRag", functionName: "SearchRag" }],
-        }
-      }
-
-      // Otherwise use FAQ response
-      console.log(`🔍 DualLLM: Using FAQ response (score: ${topFAQScore})`)
-
-      let faqAnswer =
-        searchRagResult.results.faqs[0]?.content ||
-        "Ciao! Come posso aiutarti oggi?"
-
-      // Extract answer from FAQ content (format: "Question: ...\nAnswer: ...")
-      if (faqAnswer.includes("Answer: ")) {
-        faqAnswer = faqAnswer.split("Answer: ")[1] || faqAnswer
-      }
-
-      // REGOLA 10: Replace variabili PRIMA di inviare al modello
-      if (faqAnswer.includes("[") && faqAnswer.includes("]")) {
-        console.log(
-          `🔧 DualLLM: REGOLA 10 - Replace variabili in FAQ: ${faqAnswer.substring(0, 100)}...`
-        )
-
-        try {
-          const { ReplaceLinkWithToken } = await import(
-            "../chatbot/calling-functions/ReplaceLinkWithToken"
-          )
-          const replaceResult = await ReplaceLinkWithToken(
-            { response: faqAnswer },
-            request.customerid || "",
-            request.workspaceId
-          )
-
-          if (replaceResult.success && replaceResult.response) {
-            faqAnswer = replaceResult.response
-            console.log(
-              `✅ DualLLM: Variables replaced: ${faqAnswer.substring(0, 100)}...`
-            )
-          }
-        } catch (error) {
-          console.error("❌ Error replacing variables in FAQ:", error)
-        }
-      }
-
+      // Per le regole architetturali: se SearchRag produce risultati (FAQ o
+      // prodotti), non effettuiamo qui logica di selezione; passiamo invece
+      // l'intero `searchRagResult` al Formatter, che deciderà come presentare
+      // i risultati nella lingua dell'utente. Questo mantiene il Formatter
+      // come unica fonte di presentazione (no branching server-side).
       return {
         success: true,
-        response: faqAnswer,
+        response: searchRagResult,
         functionCalls: [
           {
             name: "SearchRag",

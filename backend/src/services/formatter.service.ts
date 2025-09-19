@@ -57,14 +57,7 @@ export class FormatterService {
               return `- ${emoji} *${category.name}*`
             })
             .join("\n")
-
           response = response.replace("[LIST_CATEGORIES]", categoriesList)
-        } else {
-          // 🚨 GRACEFUL HANDLING: Empty database
-          response = response.replace(
-            "[LIST_CATEGORIES]",
-            "Al momento non abbiamo categorie disponibili 🙏"
-          )
         }
       } catch (error) {
         // 🚨 EXCEPTION HANDLING: Database query failure
@@ -466,6 +459,13 @@ export class FormatterService {
 
     // 2. SOLO traduzione naturale - NESSUNA CONDIZIONE
     console.log("🔧 FORMATTER: Applying simple natural language formatting...")
+    // NOTE: Per le regole architetturali, NON effettuare pre-formatting o
+    // logica di estrazione qui. Il Formatter deve solo formattare il testo
+    // fornito e rispettare la lingua dell'utente. Se il payload contiene
+    // JSON con `results.products` o `products`, l'LLM deve includerli
+    // esattamente come appaiono nel testo. Le istruzioni per questo sono
+    // fornite nel prompt di applySimpleLanguageFormatting.
+
     // Always use the simple language formatting LLM to produce the final
     // human-readable response. This centralizes natural-language generation in
     // one place (the Formatter) and avoids duplicating presentation logic here.
@@ -511,14 +511,16 @@ RISPOSTA DA FORMATTARE: ${text}
 LINGUA UTENTE: ${language}
 
 ISTRUZIONI:
-- Rispondi in modo naturale nella lingua dell'utente (${language})
-- Mantieni TUTTI i link, prodotti, prezzi, informazioni esatte come sono
-- NON aggiungere informazioni che non sono nella risposta originale
-- NON rimuovere link o informazioni importanti
-- Scrivi in modo conversazionale e amichevole
-- Se ci sono link HTTP, mantienili esattamente come sono
+- Rispondi in modo naturale nella lingua dell'utente (${language}).
+- Mantieni TUTTI i link, prodotti, prezzi e informazioni esatte come sono.
+- SE l'input è un JSON che contiene un campo "results.products" o "products", allora DEVI elencare ogni prodotto in una riga separata nel seguente formato esatto (senza simboli markdown):
+  Nome — Formato — Prezzo: €X.XX — Stock: N units
+  Esempio: Mozzarella FDL Barra — 1 Kg — Prezzo: €7.20 — Stock: 32 units
+- Non sintetizzare o omettere le righe di prodotto; includi fino a 10 prodotti se presenti.
+- Non aggiungere informazioni non presenti nel JSON; se un campo manca, scrivi "N/A" per quel valore.
+- Non usare bullets o formattazioni speciali, ritorna solo testo naturale.
 
-Rispondi solo con il testo formattato analizzando la domanda i dati e rispondi in modo naturale con qualche faccina simpatica e tono simoatico, niente altro.`
+Rispondi solo con il testo formattato analizzando la domanda e i dati, niente altro.`
 
     try {
       const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions"
@@ -622,7 +624,7 @@ Return ONLY the translated response, no explanations.`,
               content: text,
             },
           ],
-          temperature: 0.0,
+            temperature: 2.0,
           max_tokens: 300,
         },
         {
@@ -674,6 +676,18 @@ Return ONLY the translated response, no explanations.`,
           return `Here's the requested link: ${linkUrl}\n\nThe link will expire on ${new Date(expiresAt).toLocaleDateString("en-US")} at ${new Date(expiresAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}.`
       }
     }
+  }
+
+  // Small helper to pull a field value from a product chunk's content
+  private static extractFieldFromContent(content: string, regex: RegExp): string | null {
+    if (!content) return null
+    try {
+      const m = content.match(regex)
+      if (m && m[1]) return m[1].trim()
+    } catch (e) {
+      // ignore
+    }
+    return null
   }
 
   private static async applyWhatsAppFormatting(text: string): Promise<string> {
