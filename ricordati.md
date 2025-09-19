@@ -7,14 +7,11 @@ ricordati:
 - inoltre se il main prompt non chiama NULLA dobbiamo eseguire searchrag
 
 - se searchRag restituisce qualcosa passa il risultato al formatter
-    > il formatter fa un replace delle variabili prima di darlo a OPENROUTER
+  > il formatter fa un replace delle variabili prima di darlo a OPENROUTER
   > il formatter riceve la lingua sconto, workspaceId, customerId, domanda, e risposta del searchRag
-    > struttura del formatter molto semplice traduce la lingua, e poco piu' nessun if nessuna cosa strada ...sara llm che decidera' come stamprae i dati che gli arrivano ..noi dobbiamom mettere lungua conto e fargli capire che deve fare lda riposta...
+  > struttura del formatter molto semplice traduce la lingua, e poco piu' nessun if nessuna cosa strada ...sara llm che decidera' come stamprae i dati che gli arrivano ..noi dobbiamom mettere lungua conto e fargli capire che deve fare lda riposta...
 
-
-se searchRag non restituisce null array vuoto:
-    > ritorniamo all'utente la risposta generica salvata precedentemente
-
+se searchRag non restituisce null array vuoto: > ritorniamo all'utente la risposta generica salvata precedentemente
 
 - ricordati che non devi hardcodare nulla nel codice e' LLM che decide chi chiamare e con quali parametri
 
@@ -40,18 +37,15 @@ se searchRag non restituisce null array vuoto:
 
 - cancella log che non servono quando capiamo che la soluzione funziona, cancella file temporanei e log quando capiamo che la funzione va bene
 
-
-- non devi mai riavviare i servizi questo e' compito del nodemon installato ogni volta che salva il server si riavvia 
+- non devi mai riavviare i servizi questo e' compito del nodemon installato ogni volta che salva il server si riavvia
 
 - attualizza il memory bank con queste regole.
 
-
 - il FORMATTER riceve domanda dati, lingua, cusomerID etc..ec..e non deve far altro che rispondere in lngua...in maniera naturale
 
+- se la CF funziona, NON DEVE passare per traduzione e SearchRag!
 
-- se la CF funziona, NON DEVE passare per traduzione e SearchRag! 
-
-- traduzione layer deve tradurre bene dammi e dove e' perche' altrimenti e' confuso deve aver un prompt specifico che dice di usare give me or show me or where is nei momenti giusti 
+- traduzione layer deve tradurre bene dammi e dove e' perche' altrimenti e' confuso deve aver un prompt specifico che dice di usare give me or show me or where is nei momenti giusti
 
 🚨 **LEZIONI CRITICHE DEBUG CF:**
 
@@ -65,4 +59,6 @@ se searchRag non restituisce null array vuoto:
 
 - **REGOLA LOG INGANNEVOLI**: Se vedi log che sembrano vecchi (con timestamp passati) durante il debug, NON fidarti. Il sistema potrebbe funzionare correttamente ma mostrare cache di log precedenti.
 
-- **REGOLA INVESTIGAZIONE**: Prima di modificare codice, SEMPRE verificare che il problema sia reale testando con curl diretto. Non basarti solo sui log del MCP client che possono essere fuorvianti. 
+- **REGOLA INVESTIGAZIONE**: Prima di modificare codice, SEMPRE verificare che il problema sia reale testando con curl diretto. Non basarti solo sui log del MCP client che possono essere fuorvianti.
+
+PULIRE IL CODICE DA quello che non serve e non viene invocato da nessuno.

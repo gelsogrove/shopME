@@ -13,20 +13,17 @@
 - mostrami carrello
 - Quanto ci mette ad arrivare un ordine?
 - voglio modificare la mia mail
+- dove e' il mio ultimo ordine?
 - Che prodotti vendete?
-
+- dammi ordine ORD-006-2024
 
 CF
+
 - Che offerte avete?
 - dove e' il mio ultimo ordine?
-- dammi ordine ORD-006-2024
 - voglio vedere la fattura dell'ultimo ordine
 
-
 - NON VA!!!
-- PROBLEMA LINK
-- piU FACCINE
+- PROBLEMA LINK VALIDZIONE
 - inglese ?non va
 - DHL
-cd b    
-

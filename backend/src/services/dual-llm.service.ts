@@ -137,31 +137,22 @@ export class DualLLMService {
         
         console.log(`🚨 DualLLM: CF execution result:`, JSON.stringify(cfExecutionResult, null, 2))
 
-        // Estrai il messaggio naturale dalla CF
-        let naturalResponse = "CF executed successfully"
-        
-        if (cfExecutionResult.response) {
-          // Se response è una stringa, usala direttamente
-          if (typeof cfExecutionResult.response === 'string') {
-            naturalResponse = cfExecutionResult.response
-          } else if (typeof cfExecutionResult.response === 'object' && cfExecutionResult.response.response) {
-            // Se response è un oggetto con campo response, estrai quello
-            naturalResponse = cfExecutionResult.response.response
-          }
-        }
-        
-        // Gestione specifica per getShipmentTrackingLink che restituisce linkUrl
+        // CF può essere restituito in due forme:
+        // 1) direttamente come oggetto/primitive (es. SearchSpecificProduct)
+        // 2) incapsulato in { data: ... } quando passato tramite FunctionHandlerService
         const data = cfExecutionResult.data || cfExecutionResult
-        if (data.linkUrl && data.trackingNumber) {
-          const orderCode = data.orderCode || "il tuo ordine"
-          naturalResponse = `Ecco ${orderCode} (tracking: ${data.trackingNumber}). Puoi seguire la spedizione qui: ${data.linkUrl}`
-        }
-        
+
+        // attach cfExecutionResult to functionResult for better debugging downstream
+        const enrichedFunctionCall = { ...functionResult, result: cfExecutionResult }
+
+        // DO NOT build human-readable text here. Instead return the structured
+        // data object as the `response` so the Formatter can generate the final
+        // natural-language output (single source of presentation logic).
         return {
           success: true,
-          response: naturalResponse,
-          functionCalls: [functionResult],
-          cfExecutionResult: cfExecutionResult
+          response: data,
+          functionCalls: [enrichedFunctionCall],
+          cfExecutionResult: cfExecutionResult,
         }
       } else {
         console.log(`🚨 DualLLM: No specific CF selected - REGOLA 2: Salvare risposta LLM`)

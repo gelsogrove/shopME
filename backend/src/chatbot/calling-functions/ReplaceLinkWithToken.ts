@@ -10,6 +10,7 @@ interface ReplaceLinkWithTokenParams {
   response: string
   linkType?: 'cart' | 'profile' | 'orders' | 'tracking' | 'checkout' | 'auto'
   context?: 'offers' | 'services' | 'auto'
+  orderCode?: string
 }
 
 interface ReplaceLinkWithTokenResult {
@@ -132,8 +133,17 @@ export async function ReplaceLinkWithToken(
           undefined,
           customerId
         )
-        
-        const ordersLink = `http://localhost:3000/orders-public?token=${ordersToken}`
+
+        // If caller provided an orderCode, put it in the path: /orders-public/{orderCode}?token=...
+        const orderCodeParam = (params as any).orderCode || undefined
+        let ordersLink: string
+        if (orderCodeParam && typeof orderCodeParam === 'string' && orderCodeParam.trim() !== '') {
+          const safeCode = encodeURIComponent(orderCodeParam.trim())
+          ordersLink = `http://localhost:3000/orders-public/${safeCode}?token=${ordersToken}`
+        } else {
+          ordersLink = `http://localhost:3000/orders-public?token=${ordersToken}`
+        }
+
         replacedResponse = replacedResponse.replace(/\[LINK_ORDERS_WITH_TOKEN\]/g, ordersLink)
       } catch (error) {
         console.error("❌ Error generating orders link:", error)

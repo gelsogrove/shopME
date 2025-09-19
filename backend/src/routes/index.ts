@@ -20,17 +20,17 @@ import logger from "../utils/logger"
  * Checks if a customer is blacklisted and returns appropriate response
  */
 async function checkCustomerBlacklist(
-  phoneNumber: string, 
-  workspaceId: string, 
-  res: Response, 
-  format: 'WHATSAPP' | 'TEST' = 'WHATSAPP'
+  phoneNumber: string,
+  workspaceId: string,
+  res: Response,
+  format: "WHATSAPP" | "TEST" = "WHATSAPP"
 ): Promise<boolean> {
   try {
     const customer = await prisma.customers.findFirst({
       where: {
-        phone: phoneNumber.replace(/\s+/g, ''),
+        phone: phoneNumber.replace(/\s+/g, ""),
         workspaceId: workspaceId,
-        isActive: true
+        isActive: true,
       },
       select: {
         id: true,
@@ -39,32 +39,36 @@ async function checkCustomerBlacklist(
         company: true,
         discount: true,
         language: true,
-        isBlacklisted: true
-      }
-    });
+        isBlacklisted: true,
+      },
+    })
 
     // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
-    console.log(`🚫 ${format}: Checking blacklist status for ${phoneNumber}`);
-    
+    console.log(`🚫 ${format}: Checking blacklist status for ${phoneNumber}`)
+
     if (customer?.isBlacklisted) {
-      console.log(`🚫 ${format}: Customer ${phoneNumber} is blacklisted - IGNORING MESSAGE`);
+      console.log(
+        `🚫 ${format}: Customer ${phoneNumber} is blacklisted - IGNORING MESSAGE`
+      )
       res.status(200).json({
         success: true,
         data: {
           sessionId: null,
-          message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED"
-        }
-      });
-      return true;
+          message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED",
+        },
+      })
+      return true
     }
 
-    return false;
+    return false
   } catch (error) {
-    logger.error(`[BLACKLIST_CHECK] Error checking blacklist for ${phoneNumber}:`, error);
-    return false;
+    logger.error(
+      `[BLACKLIST_CHECK] Error checking blacklist for ${phoneNumber}:`,
+      error
+    )
+    return false
   }
 }
-
 
 /**
  * 🆕 NEW USER WELCOME FLOW HELPER
@@ -76,29 +80,32 @@ async function checkCustomerBlacklist(
  * @param format - Format type for logging ('WHATSAPP' or 'TEST')
  * @returns Promise<boolean> - true if handled (response sent), false if should continue normal flow
  */
-function getRegistrationText(language: string): { link: string; validity: string } {
+function getRegistrationText(language: string): {
+  link: string
+  validity: string
+} {
   switch (language.toLowerCase()) {
-    case 'en':
+    case "en":
       return {
-        link: 'To continue, register here',
-        validity: 'Link valid for 1 hour'
-      };
-    case 'es':
+        link: "To continue, register here",
+        validity: "Link valid for 1 hour",
+      }
+    case "es":
       return {
-        link: 'Para continuar, regístrate aquí',
-        validity: 'Enlace válido por 1 hora'
-      };
-    case 'pt':
+        link: "Para continuar, regístrate aquí",
+        validity: "Enlace válido por 1 hora",
+      }
+    case "pt":
       return {
-        link: 'Para continuar, registre-se aqui',
-        validity: 'Link válido por 1 hora'
-      };
-    case 'it':
+        link: "Para continuar, registre-se aqui",
+        validity: "Link válido por 1 hora",
+      }
+    case "it":
     default:
       return {
-        link: 'Per continuare, registrati qui',
-        validity: 'Link valido per 1 ora'
-      };
+        link: "Per continuare, registrati qui",
+        validity: "Link valido per 1 ora",
+      }
   }
 }
 
@@ -107,106 +114,305 @@ async function handleNewUserWelcomeFlow(
   workspaceId: string,
   messageContent: string,
   res: Response,
-  format: 'WHATSAPP' | 'TEST' = 'WHATSAPP'
+  format: "WHATSAPP" | "TEST" = "WHATSAPP"
 ): Promise<boolean> {
   try {
     // Initialize services
-    const secureTokenService = new SecureTokenService();
-    const messageRepository = new MessageRepository();
-    const registrationAttemptsService = new RegistrationAttemptsService(prisma);
+    const secureTokenService = new SecureTokenService()
+    const messageRepository = new MessageRepository()
+    const registrationAttemptsService = new RegistrationAttemptsService(prisma)
 
     // Check if user is blocked due to too many registration attempts
-    const isBlocked = await registrationAttemptsService.isBlocked(phoneNumber, workspaceId);
+    const isBlocked = await registrationAttemptsService.isBlocked(
+      phoneNumber,
+      workspaceId
+    )
     if (isBlocked) {
       // ✅ REGISTRATION ATTEMPTS CHECK ENABLED - Block users with too many attempts
-      console.log(`🚫 ${format}: User ${phoneNumber} is blocked due to too many registration attempts - IGNORING MESSAGE`);
+      console.log(
+        `🚫 ${format}: User ${phoneNumber} is blocked due to too many registration attempts - IGNORING MESSAGE`
+      )
       res.status(200).json({
         success: true,
         data: {
           sessionId: null,
-          message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED"
-        }
-      });
-      return true;
+          message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED",
+        },
+      })
+      return true
     }
 
     // Record this registration attempt
-    const attempt = await registrationAttemptsService.recordAttempt(phoneNumber, workspaceId);
-    console.log(`📊 ${format}: Registration attempt ${attempt.attemptCount}/3 for ${phoneNumber}`);
+    const attempt = await registrationAttemptsService.recordAttempt(
+      phoneNumber,
+      workspaceId
+    )
+    console.log(
+      `📊 ${format}: Registration attempt ${attempt.attemptCount}/3 for ${phoneNumber}`
+    )
 
     // If user is now blocked after this attempt, ignore completely (blacklist totale)
     if (attempt.isBlocked) {
       // ✅ REGISTRATION ATTEMPTS CHECK ENABLED - Block users after too many attempts
-      console.log(`🚫 ${format}: User ${phoneNumber} blocked after ${attempt.attemptCount} attempts - IGNORING MESSAGE`);
+      console.log(
+        `🚫 ${format}: User ${phoneNumber} blocked after ${attempt.attemptCount} attempts - IGNORING MESSAGE`
+      )
       res.status(200).json({
         success: true,
         data: {
           sessionId: null,
-          message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED"
-        }
-      });
-      return true;
+          message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED",
+        },
+      })
+      return true
     }
 
     // Detect language from message content
-    let detectedLanguage = 'it'; // Default to Italian
+    let detectedLanguage = "it" // Default to Italian
     if (messageContent) {
-      const lowerMessage = messageContent.toLowerCase();
-      
+      const lowerMessage = messageContent.toLowerCase()
+
       // Italian detection - FIXED: Added Italian words for proper language detection
-      const italianWords = ['ciao', 'buongiorno', 'buonasera', 'buonanotte', 'voglio', 'ho bisogno', 'vorrei', 'per favore', 'grazie', 'prego', 'sì', 'no', 'aggiungere', 'carrello', 'comprare', 'acquistare', 'ordine', 'prezzo', 'costo', 'quanto', 'consegna', 'spedizione', 'prodotto', 'prodotti', 'aiuto', 'informazioni', 'riguardo', 'il', 'la', 'i', 'le', 'e', 'o', 'ma', 'con', 'per', 'da', 'in', 'su', 'a', 'di'];
-      
+      const italianWords = [
+        "ciao",
+        "buongiorno",
+        "buonasera",
+        "buonanotte",
+        "voglio",
+        "ho bisogno",
+        "vorrei",
+        "per favore",
+        "grazie",
+        "prego",
+        "sì",
+        "no",
+        "aggiungere",
+        "carrello",
+        "comprare",
+        "acquistare",
+        "ordine",
+        "prezzo",
+        "costo",
+        "quanto",
+        "consegna",
+        "spedizione",
+        "prodotto",
+        "prodotti",
+        "aiuto",
+        "informazioni",
+        "riguardo",
+        "il",
+        "la",
+        "i",
+        "le",
+        "e",
+        "o",
+        "ma",
+        "con",
+        "per",
+        "da",
+        "in",
+        "su",
+        "a",
+        "di",
+      ]
+
       // English detection - more comprehensive
-      const englishWords = ['hello', 'hi', 'good morning', 'good afternoon', 'good evening', 'i want', 'i need', 'i would like', 'please', 'thank you', 'thanks', 'yes', 'no', 'add', 'cart', 'buy', 'purchase', 'order', 'price', 'cost', 'how much', 'delivery', 'shipping', 'product', 'products', 'help', 'information', 'about', 'the', 'and', 'or', 'but', 'with', 'for', 'to', 'from', 'in', 'on', 'at', 'by'];
-      
+      const englishWords = [
+        "hello",
+        "hi",
+        "good morning",
+        "good afternoon",
+        "good evening",
+        "i want",
+        "i need",
+        "i would like",
+        "please",
+        "thank you",
+        "thanks",
+        "yes",
+        "no",
+        "add",
+        "cart",
+        "buy",
+        "purchase",
+        "order",
+        "price",
+        "cost",
+        "how much",
+        "delivery",
+        "shipping",
+        "product",
+        "products",
+        "help",
+        "information",
+        "about",
+        "the",
+        "and",
+        "or",
+        "but",
+        "with",
+        "for",
+        "to",
+        "from",
+        "in",
+        "on",
+        "at",
+        "by",
+      ]
+
       // Spanish detection
-      const spanishWords = ['hola', 'buenos días', 'buenas tardes', 'buenas noches', 'quiero', 'necesito', 'me gustaría', 'por favor', 'gracias', 'sí', 'no', 'añadir', 'carrito', 'comprar', 'precio', 'costo', 'cuánto', 'entrega', 'envío', 'producto', 'productos', 'ayuda', 'información', 'sobre', 'el', 'la', 'los', 'las', 'y', 'o', 'pero', 'con', 'para', 'de', 'en', 'por'];
-      
+      const spanishWords = [
+        "hola",
+        "buenos días",
+        "buenas tardes",
+        "buenas noches",
+        "quiero",
+        "necesito",
+        "me gustaría",
+        "por favor",
+        "gracias",
+        "sí",
+        "no",
+        "añadir",
+        "carrito",
+        "comprar",
+        "precio",
+        "costo",
+        "cuánto",
+        "entrega",
+        "envío",
+        "producto",
+        "productos",
+        "ayuda",
+        "información",
+        "sobre",
+        "el",
+        "la",
+        "los",
+        "las",
+        "y",
+        "o",
+        "pero",
+        "con",
+        "para",
+        "de",
+        "en",
+        "por",
+      ]
+
       // Portuguese detection
-      const portugueseWords = ['olá', 'bom dia', 'boa tarde', 'boa noite', 'quero', 'preciso', 'gostaria', 'por favor', 'obrigado', 'obrigada', 'sim', 'não', 'adicionar', 'carrinho', 'comprar', 'preço', 'custo', 'quanto', 'entrega', 'envio', 'produto', 'produtos', 'ajuda', 'informação', 'sobre', 'o', 'a', 'os', 'as', 'e', 'ou', 'mas', 'com', 'para', 'de', 'em', 'por'];
-      
+      const portugueseWords = [
+        "olá",
+        "bom dia",
+        "boa tarde",
+        "boa noite",
+        "quero",
+        "preciso",
+        "gostaria",
+        "por favor",
+        "obrigado",
+        "obrigada",
+        "sim",
+        "não",
+        "adicionar",
+        "carrinho",
+        "comprar",
+        "preço",
+        "custo",
+        "quanto",
+        "entrega",
+        "envio",
+        "produto",
+        "produtos",
+        "ajuda",
+        "informação",
+        "sobre",
+        "o",
+        "a",
+        "os",
+        "as",
+        "e",
+        "ou",
+        "mas",
+        "com",
+        "para",
+        "de",
+        "em",
+        "por",
+      ]
+
       // Count matches for each language
-      const italianMatches = italianWords.filter(word => lowerMessage.includes(word)).length;
-      const englishMatches = englishWords.filter(word => lowerMessage.includes(word)).length;
-      const spanishMatches = spanishWords.filter(word => lowerMessage.includes(word)).length;
-      const portugueseMatches = portugueseWords.filter(word => lowerMessage.includes(word)).length;
-      
+      const italianMatches = italianWords.filter((word) =>
+        lowerMessage.includes(word)
+      ).length
+      const englishMatches = englishWords.filter((word) =>
+        lowerMessage.includes(word)
+      ).length
+      const spanishMatches = spanishWords.filter((word) =>
+        lowerMessage.includes(word)
+      ).length
+      const portugueseMatches = portugueseWords.filter((word) =>
+        lowerMessage.includes(word)
+      ).length
+
       // Determine language based on highest match count
-      if (italianMatches > englishMatches && italianMatches > spanishMatches && italianMatches > portugueseMatches) {
-        detectedLanguage = 'it';
-      } else if (englishMatches > italianMatches && englishMatches > spanishMatches && englishMatches > portugueseMatches) {
-        detectedLanguage = 'en';
-      } else if (spanishMatches > italianMatches && spanishMatches > englishMatches && spanishMatches > portugueseMatches) {
-        detectedLanguage = 'es';
-      } else if (portugueseMatches > italianMatches && portugueseMatches > englishMatches && portugueseMatches > spanishMatches) {
-        detectedLanguage = 'pt';
+      if (
+        italianMatches > englishMatches &&
+        italianMatches > spanishMatches &&
+        italianMatches > portugueseMatches
+      ) {
+        detectedLanguage = "it"
+      } else if (
+        englishMatches > italianMatches &&
+        englishMatches > spanishMatches &&
+        englishMatches > portugueseMatches
+      ) {
+        detectedLanguage = "en"
+      } else if (
+        spanishMatches > italianMatches &&
+        spanishMatches > englishMatches &&
+        spanishMatches > portugueseMatches
+      ) {
+        detectedLanguage = "es"
+      } else if (
+        portugueseMatches > italianMatches &&
+        portugueseMatches > englishMatches &&
+        portugueseMatches > spanishMatches
+      ) {
+        detectedLanguage = "pt"
       }
     }
 
     // Get welcome message from database
-    const welcomeMessage = await messageRepository.getWelcomeMessage(workspaceId, detectedLanguage);
+    const welcomeMessage = await messageRepository.getWelcomeMessage(
+      workspaceId,
+      detectedLanguage
+    )
     if (!welcomeMessage) {
-      console.error(`❌ ${format}: No welcome message found for language ${detectedLanguage} in workspace ${workspaceId}`);
-      res.status(500).send("ERROR");
-      return true;
+      console.error(
+        `❌ ${format}: No welcome message found for language ${detectedLanguage} in workspace ${workspaceId}`
+      )
+      res.status(500).send("ERROR")
+      return true
     }
 
     // Generate secure registration token
     const registrationToken = await secureTokenService.createToken(
-      'registration',
+      "registration",
       workspaceId,
       { phone: phoneNumber, language: detectedLanguage },
-      '1h',
+      "1h",
       undefined,
       phoneNumber
-    ); // 1 hour expiry
+    ) // 1 hour expiry
 
     // Construct registration URL with phone and workspace parameters
-    const registrationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?token=${registrationToken}&phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`;
+    const registrationUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/register?token=${registrationToken}&phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`
 
     // Send complete welcome message with registration link in customer's language
-    const registrationText = getRegistrationText(detectedLanguage);
-    const completeMessage = `${welcomeMessage}\n\n🔗 **${registrationText.link}:**\n${registrationUrl}\n\n⏰ ${registrationText.validity}`;
+    const registrationText = getRegistrationText(detectedLanguage)
+    const completeMessage = `${welcomeMessage}\n\n🔗 **${registrationText.link}:**\n${registrationUrl}\n\n⏰ ${registrationText.validity}`
 
     // 💾 SAVE MESSAGE TO HISTORY - Save both user message and welcome response
     try {
@@ -218,34 +424,44 @@ async function handleNewUserWelcomeFlow(
         direction: "INBOUND", // ✅ CORRECT: User message is INBOUND, system response is OUTBOUND
         agentSelected: "CHATBOT", // ✅ ADD: Set agentSelected to CHATBOT for green styling
         functionCallsDebug: [],
-        processingSource: 'new_user_welcome',
+        processingSource: "new_user_welcome",
         debugInfo: JSON.stringify({
           isNewUser: true,
           detectedLanguage: detectedLanguage,
           registrationUrl: registrationUrl,
-          attemptCount: attempt.attemptCount
-        })
-      });
-      console.log(`💾 ${format}: New user welcome message saved to history for ${phoneNumber}`);
+          attemptCount: attempt.attemptCount,
+        }),
+      })
+      console.log(
+        `💾 ${format}: New user welcome message saved to history for ${phoneNumber}`
+      )
     } catch (saveError) {
-      console.error(`❌ ${format}: Failed to save new user welcome message:`, saveError);
+      console.error(
+        `❌ ${format}: Failed to save new user welcome message:`,
+        saveError
+      )
       // Continue - don't fail the whole request if save fails
     }
 
-    console.log(`✅ ${format}: New user welcome message sent to ${phoneNumber} in ${detectedLanguage}`);
+    console.log(
+      `✅ ${format}: New user welcome message sent to ${phoneNumber} in ${detectedLanguage}`
+    )
     res.status(200).json({
       success: true,
       data: {
         sessionId: null, // New users don't have a session yet
-        message: completeMessage
-      }
-    });
+        message: completeMessage,
+      },
+    })
 
-    return true; // Handled successfully
+    return true // Handled successfully
   } catch (error) {
-    console.error(`❌ ${format}: Error handling new user welcome flow for ${phoneNumber}:`, error);
-    res.status(500).send("ERROR");
-    return true; // Error handled
+    console.error(
+      `❌ ${format}: Error handling new user welcome flow for ${phoneNumber}:`,
+      error
+    )
+    res.status(500).send("ERROR")
+    return true // Error handled
   }
 }
 
@@ -261,8 +477,8 @@ import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
 import {
-    customersRouter,
-    workspaceCustomersRouter,
+  customersRouter,
+  workspaceCustomersRouter,
 } from "../interfaces/http/routes/customers.routes"
 
 import { faqsRouter } from "../interfaces/http/routes/faqs.routes"
@@ -274,7 +490,6 @@ import createRegistrationRouter from "../interfaces/http/routes/registration.rou
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
 
-import { cartRouter } from "../interfaces/http/routes/cart.routes"
 import { checkoutRouter } from "../interfaces/http/routes/checkout.routes"
 // Removed whatsappRouter import
 import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
@@ -323,18 +538,20 @@ const router = Router()
 router.use(loggingMiddleware)
 
 // WhatsApp webhook routes (must be FIRST, before any authentication middleware)
-import { DualLLMService } from '../services/dual-llm.service'
-import { LLMRequest } from '../types/whatsapp.types'
+import { DualLLMService } from "../services/dual-llm.service"
+import { LLMRequest } from "../types/whatsapp.types"
 
 // 🔧 FIX: /api/chat endpoint for WhatsApp compatibility (NO AUTHENTICATION)
 router.post("/chat", async (req, res) => {
-  console.log("🔧 COMPATIBILITY: /api/chat called - forwarding to WhatsApp webhook logic");
-  
+  console.log(
+    "🔧 COMPATIBILITY: /api/chat called - forwarding to WhatsApp webhook logic"
+  )
+
   // Forward to the same webhook logic
   try {
     // Initialize services
-    const dualLLMService = new DualLLMService();
-    const messageRepository = new MessageRepository();
+    const dualLLMService = new DualLLMService()
+    const messageRepository = new MessageRepository()
 
     // Check if this is a verification request
     if (req.query["hub.mode"] && req.query["hub.verify_token"]) {
@@ -342,7 +559,8 @@ router.post("/chat", async (req, res) => {
       const token = req.query["hub.verify_token"]
       const challenge = req.query["hub.challenge"]
 
-      const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || "test-verify-token"
+      const verifyToken =
+        process.env.WHATSAPP_VERIFY_TOKEN || "test-verify-token"
       if (mode === "subscribe" && token === verifyToken) {
         console.log("WhatsApp webhook verified via /api/chat")
         res.status(200).send(challenge)
@@ -356,61 +574,65 @@ router.post("/chat", async (req, res) => {
     // Process as WhatsApp message - extract message from body
     const body = req.body
     console.log("🔧 /api/chat: Processing body:", JSON.stringify(body, null, 2))
-    
+
     // Handle direct message format: {message: "text", phoneNumber: "+123", workspaceId: "xyz"}
     if (body?.message && body?.phoneNumber && body?.workspaceId) {
       try {
-        const workspaceId = body.workspaceId;
-        const phoneNumber = body.phoneNumber;
-        const language = body.language || "it";
+        const workspaceId = body.workspaceId
+        const phoneNumber = body.phoneNumber
+        const language = body.language || "it"
 
         // 🔧 FIX: Get customer data and process variables like webhook does
         let variables = {
-          nameUser: 'Cliente',
-          discountUser: 'Nessuno sconto attivo',
-          companyName: 'L\'Altra Italia',
-          lastorder: 'Nessun ordine recente',
-          lastordercode: 'N/A',
-          languageUser: language
-        };
+          nameUser: "Cliente",
+          discountUser: "Nessuno sconto attivo",
+          companyName: "L'Altra Italia",
+          lastorder: "Nessun ordine recente",
+          lastordercode: "N/A",
+          languageUser: language,
+        }
 
         // Get customer data by phone number
         const customer = await prisma.customers.findFirst({
           where: {
             phone: phoneNumber,
-            workspaceId: workspaceId
+            workspaceId: workspaceId,
           },
           include: {
             orders: {
-              orderBy: { createdAt: 'desc' },
-              take: 1
-            }
-          }
-        });
+              orderBy: { createdAt: "desc" },
+              take: 1,
+            },
+          },
+        })
 
         if (customer) {
-          const lastOrder = customer.orders[0];
+          const lastOrder = customer.orders[0]
           variables = {
-            nameUser: customer?.name || 'Unknown Customer',
-            discountUser: customer?.discount ? `${customer.discount}% di sconto attivo` : 'Nessuno sconto attivo',
-            companyName: customer?.company || 'L\'Altra Italia',
-            lastorder: lastOrder ? lastOrder.createdAt.toLocaleDateString() : 'Nessun ordine recente',
-            lastordercode: lastOrder?.orderCode || 'N/A',
-            languageUser: customer?.language || language
-          };
+            nameUser: customer?.name || "Unknown Customer",
+            discountUser: customer?.discount
+              ? `${customer.discount}% di sconto attivo`
+              : "Nessuno sconto attivo",
+            companyName: customer?.company || "L'Altra Italia",
+            lastorder: lastOrder
+              ? lastOrder.createdAt.toLocaleDateString()
+              : "Nessun ordine recente",
+            lastordercode: lastOrder?.orderCode || "N/A",
+            languageUser: customer?.language || language,
+          }
         }
 
         // Get agent config with prompt from database
-        let agentPrompt = "WhatsApp conversation"; // fallback
+        let agentPrompt = "WhatsApp conversation" // fallback
         try {
           const agentConfig = await prisma.agentConfig.findFirst({
-            where: { workspaceId }
-          });
+            where: { workspaceId },
+          })
           if (agentConfig?.prompt) {
-            agentPrompt = agentConfig.prompt;
+            agentPrompt = agentConfig.prompt
           }
         } catch (error) {
-          console.error('❌ Error fetching agent config:', error);
+          console.error("❌ Error fetching agent config:", error)
         }
 
         // 🔧 CRITICAL FIX: Replace variables in prompt like webhook does
@@ -420,24 +642,30 @@ router.post("/chat", async (req, res) => {
           .replace(/\{\{companyName\}\}/g, variables.companyName)
           .replace(/\{\{lastorder\}\}/g, variables.lastorder)
           .replace(/\{\{lastordercode\}\}/g, variables.lastordercode)
-          .replace(/\{\{languageUser\}\}/g, variables.languageUser);
+          .replace(/\{\{languageUser\}\}/g, variables.languageUser)
 
         // 🔧 CRITICAL FIX: Get conversation history like webhook does
-        let chatHistory: any[] = [];
+        let chatHistory: any[] = []
         try {
           if (customer?.id && workspaceId) {
             // Get recent messages for this customer (last 10 messages)
-            const recentMessages = await messageRepository.getLatesttMessages(body.phoneNumber, 10, workspaceId);
-            
-            chatHistory = recentMessages.map(msg => ({
-              role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
-              content: msg.content
-            }));
-            
-            console.log(`🔍 /api/chat: Loaded ${chatHistory.length} messages from history for customer ${customer.id}`);
+            const recentMessages = await messageRepository.getLatesttMessages(
+              body.phoneNumber,
+              10,
+              workspaceId
+            )
+
+            chatHistory = recentMessages.map((msg) => ({
+              role: msg.direction === "INBOUND" ? "user" : "assistant",
+              content: msg.content,
+            }))
+
+            console.log(
+              `🔍 /api/chat: Loaded ${chatHistory.length} messages from history for customer ${customer.id}`
+            )
           }
         } catch (historyError) {
-          console.error('❌ Error loading chat history:', historyError);
+          console.error("❌ Error loading chat history:", historyError)
           // Continue without history if error occurs
         }
 
@@ -452,14 +680,18 @@ router.post("/chat", async (req, res) => {
           maxTokens: 3500,
           model: "gpt-4o",
           messages: chatHistory, // 🔧 NOW INCLUDES REAL CHAT HISTORY like webhook
-          prompt: agentPrompt // 🔧 Now includes processed prompt with variables
+          prompt: agentPrompt, // 🔧 Now includes processed prompt with variables
         }
-        
-        console.log(`🔧 /api/chat: LLM Request customerid: "${customer?.id || ""}" for customer: ${customer?.name || "Unknown"}`)
-        console.log(`🔧 /api/chat: LLM Request workspaceId: "${body.workspaceId}"`)
+
+        console.log(
+          `🔧 /api/chat: LLM Request customerid: "${customer?.id || ""}" for customer: ${customer?.name || "Unknown"}`
+        )
+        console.log(
+          `🔧 /api/chat: LLM Request workspaceId: "${body.workspaceId}"`
+        )
 
         const response = await dualLLMService.handleMessage(llmRequest)
-        
+
         // 🔧 CRITICAL FIX: Save message to database like webhook does
         try {
           if (customer?.id && workspaceId && response.success) {
@@ -469,70 +701,77 @@ router.post("/chat", async (req, res) => {
               message: body.message,
               response: response.output || "No response",
               direction: "INBOUND",
-              processingSource: "api-chat-endpoint"
-            });
-            console.log('💾 /api/chat: Message saved to database for conversation history');
+              processingSource: "api-chat-endpoint",
+            })
+            console.log(
+              "💾 /api/chat: Message saved to database for conversation history"
+            )
           }
         } catch (saveError) {
-          console.error('❌ /api/chat: Failed to save message:', saveError);
+          console.error("❌ /api/chat: Failed to save message:", saveError)
           // Continue - don't fail the whole request if save fails
         }
-        
+
         return res.json(response)
       } catch (error) {
-        console.error('❌ Error in /api/chat endpoint:', error);
+        console.error("❌ Error in /api/chat endpoint:", error)
         return res.status(500).json({
           status: "error",
-          message: "Internal server error processing chat request"
-        });
+          message: "Internal server error processing chat request",
+        })
       }
     }
 
     // If we get here, return error
     res.status(400).json({
       status: "error",
-      message: "Invalid request format for /api/chat endpoint. Expected: {message, phoneNumber, workspaceId}"
+      message:
+        "Invalid request format for /api/chat endpoint. Expected: {message, phoneNumber, workspaceId}",
     })
-
   } catch (error) {
     console.error("🔧 Error in /api/chat endpoint:", error)
     res.status(500).json({
-      status: "error", 
-      message: "Sorry, there was an error processing your message. Please try again later."
+      status: "error",
+      message:
+        "Sorry, there was an error processing your message. Please try again later.",
     })
   }
-});
+})
 
 // Public WhatsApp webhook routes (NO AUTHENTICATION)
 router.post("/whatsapp/webhook", async (req, res) => {
-  console.log("🔥 WEBHOOK POST RECEIVED", new Date().toISOString()); // 🔧 FIRST LOG
-  console.log("📨 Request body:", JSON.stringify(req.body, null, 2)); // 🔧 DEBUG BODY
-  console.log("📨 Request headers:", JSON.stringify(req.headers, null, 2)); // 🔧 DEBUG HEADERS
-  
+  console.log("🔥 WEBHOOK POST RECEIVED", new Date().toISOString()) // 🔧 FIRST LOG
+  console.log("📨 Request body:", JSON.stringify(req.body, null, 2)) // 🔧 DEBUG BODY
+  console.log("📨 Request headers:", JSON.stringify(req.headers, null, 2)) // 🔧 DEBUG HEADERS
+
   // 🔧 WRITE TO DEBUG FILE
-  const fs = require('fs');
+  const fs = require("fs")
   const debugData = {
     timestamp: new Date().toISOString(),
     body: req.body,
     headers: req.headers,
-    userAgent: req.headers['user-agent']
-  };
-  fs.appendFileSync('/tmp/webhook-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
-  
+    userAgent: req.headers["user-agent"],
+  }
+  fs.appendFileSync(
+    "/tmp/webhook-debug.log",
+    JSON.stringify(debugData, null, 2) + "\n---\n"
+  )
+
   try {
     console.log("🚨🚨🚨 WEBHOOK: INITIALIZING DUAL LLM SERVICE")
     // Initialize services
-    const dualLLMService = new DualLLMService();
-    const messageRepository = new MessageRepository();
+    const dualLLMService = new DualLLMService()
+    const messageRepository = new MessageRepository()
     console.log("🚨🚨🚨 WEBHOOK: DUAL LLM SERVICE INITIALIZED")
-    
+
     // For GET requests (verification)
     if (req.method === "GET") {
       const mode = req.query["hub.mode"]
       const token = req.query["hub.verify_token"]
       const challenge = req.query["hub.challenge"]
 
-      const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || "test-verify-token"
+      const verifyToken =
+        process.env.WHATSAPP_VERIFY_TOKEN || "test-verify-token"
       if (mode === "subscribe" && token === verifyToken) {
         console.log("WhatsApp webhook verified")
         res.status(200).send(challenge)
@@ -547,81 +786,27 @@ router.post("/whatsapp/webhook", async (req, res) => {
     const data = req.body
 
     // 🔍 DETECT FORMAT: WhatsApp vs Test Format
-    let phoneNumber, messageContent, workspaceId, customerId;
-    
+    let phoneNumber, messageContent, workspaceId, customerId
+
     // Check if it's WhatsApp format
-    console.log("🔍 CHECKING FORMAT - WhatsApp condition:", !!data.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from);
+    console.log(
+      "🔍 CHECKING FORMAT - WhatsApp condition:",
+      !!data.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from
+    )
     if (data.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from) {
-      console.log("📱 USING WHATSAPP FORMAT");
-      phoneNumber = data.entry[0].changes[0].value.messages[0].from;
-      messageContent = data.entry[0].changes[0].value.messages[0].text?.body;
-      workspaceId = process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv";
-      
+      console.log("📱 USING WHATSAPP FORMAT")
+      phoneNumber = data.entry[0].changes[0].value.messages[0].from
+      messageContent = data.entry[0].changes[0].value.messages[0].text?.body
+      workspaceId =
+        process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv"
+
       // Find customer by phone number with ALL needed data in ONE query
       try {
         const customer = await prisma.customers.findFirst({
           where: {
-            phone: phoneNumber.replace(/\s+/g, ''),
+            phone: phoneNumber.replace(/\s+/g, ""),
             workspaceId: workspaceId,
-            isActive: true
-          },
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-            company: true,
-            discount: true,
-            language: true
-          }
-        });
-
-        if (customer) {
-          // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
-          const isBlacklisted = await checkCustomerBlacklist(phoneNumber, workspaceId, res, 'WHATSAPP');
-          if (isBlacklisted) {
-            return; // Response already sent
-          }
-
-          customerId = customer.id;
-          console.log(`✅ WHATSAPP: Customer found: ${customer.name} (${customer.phone})`);
-        } else {
-          // 🆕 NEW USER DETECTED - Use handleNewUserWelcomeFlow for consistency
-          console.log(`🆕 New user detected for phone: ${phoneNumber}`);
-          
-          // Handle new user welcome flow using the centralized function
-          const handled = await handleNewUserWelcomeFlow(phoneNumber, workspaceId, messageContent, res, 'WHATSAPP');
-          if (handled) {
-            return; // Response already sent
-          }
-        }
-        
-        // Store customer data for later use (avoid double query)
-        if (customer) {
-          (req as any).customerData = customer;
-        }
-        
-      } catch (error) {
-        console.error('❌ Error finding customer:', error);
-        res.status(500).send("ERROR");
-        return;
-      }
-    }
-    // Check if it's frontend format (message, phoneNumber, workspaceId, isNewConversation)
-    else if (data.message && data.phoneNumber && data.workspaceId) {
-      messageContent = data.message;
-      phoneNumber = data.phoneNumber;
-      workspaceId = data.workspaceId;
-      
-      console.log(`🖥️ FRONTEND FORMAT: Processing message from ${phoneNumber}: "${messageContent}"`);
-      
-      // Get full customer data (including language) for frontend format
-      try {
-        console.log(`🔍 FRONTEND FORMAT: Searching for customer with phone="${phoneNumber}", workspaceId="${workspaceId}"`);
-        const customer = await prisma.customers.findFirst({
-          where: {
-            phone: phoneNumber.replace(/\s+/g, ''),
-            workspaceId: workspaceId,
-            isActive: true
+            isActive: true,
           },
           select: {
             id: true,
@@ -630,59 +815,72 @@ router.post("/whatsapp/webhook", async (req, res) => {
             company: true,
             discount: true,
             language: true,
-            isBlacklisted: true
-          }
-        });
+          },
+        })
 
         if (customer) {
           // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
-          if (customer.isBlacklisted) {
-            console.log(`🚫 FRONTEND FORMAT: Customer ${phoneNumber} is blacklisted - IGNORING MESSAGE`);
-            res.status(200).json({
-              success: true,
-              data: {
-                sessionId: null,
-                message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED"
-              }
-            });
-            return;
+          const isBlacklisted = await checkCustomerBlacklist(
+            phoneNumber,
+            workspaceId,
+            res,
+            "WHATSAPP"
+          )
+          if (isBlacklisted) {
+            return // Response already sent
           }
 
-          customerId = customer.id;
-          console.log(`✅ FRONTEND FORMAT: Customer found: ${customer.name} (${customer.phone})`);
+          customerId = customer.id
+          console.log(
+            `✅ WHATSAPP: Customer found: ${customer.name} (${customer.phone})`
+          )
         } else {
-          // New user - handle welcome flow
-          console.log(`🆕 FRONTEND FORMAT: New user detected: ${phoneNumber}`);
-          
-          // Handle new user welcome flow (includes blocking logic)
-          const handled = await handleNewUserWelcomeFlow(phoneNumber, workspaceId, messageContent, res, 'TEST');
+          // 🆕 NEW USER DETECTED - Use handleNewUserWelcomeFlow for consistency
+          console.log(`🆕 New user detected for phone: ${phoneNumber}`)
+
+          // Handle new user welcome flow using the centralized function
+          const handled = await handleNewUserWelcomeFlow(
+            phoneNumber,
+            workspaceId,
+            messageContent,
+            res,
+            "WHATSAPP"
+          )
           if (handled) {
-            return; // Response already sent
+            return // Response already sent
           }
         }
+
+        // Store customer data for later use (avoid double query)
+        if (customer) {
+          ;(req as any).customerData = customer
+        }
       } catch (error) {
-        console.error('❌ Error getting customer data in frontend format:', error);
-        res.status(500).send("ERROR");
-        return;
+        console.error("❌ Error finding customer:", error)
+        res.status(500).send("ERROR")
+        return
       }
     }
-    // Check if it's test format
-    else if (data.chatInput && data.workspaceId) {
-      messageContent = data.chatInput;
-      workspaceId = data.workspaceId;
-      
-      // For test format, use phone number if provided, otherwise use test phone
-      phoneNumber = data.phone || "test-phone-123";
-      
-      // Get full customer data (including language) for test format
+    // Check if it's frontend format (message, phoneNumber, workspaceId, isNewConversation)
+    else if (data.message && data.phoneNumber && data.workspaceId) {
+      messageContent = data.message
+      phoneNumber = data.phoneNumber
+      workspaceId = data.workspaceId
+
+      console.log(
+        `🖥️ FRONTEND FORMAT: Processing message from ${phoneNumber}: "${messageContent}"`
+      )
+
+      // Get full customer data (including language) for frontend format
       try {
-        // console.log(`🔍 TEST FORMAT: Looking for customer with phone: "${phoneNumber}" in workspace: "${workspaceId}"`);
-        
+        console.log(
+          `🔍 FRONTEND FORMAT: Searching for customer with phone="${phoneNumber}", workspaceId="${workspaceId}"`
+        )
         const customer = await prisma.customers.findFirst({
           where: {
-            phone: phoneNumber.replace(/\s+/g, ''),
+            phone: phoneNumber.replace(/\s+/g, ""),
             workspaceId: workspaceId,
-            isActive: true
+            isActive: true,
           },
           select: {
             id: true,
@@ -690,39 +888,127 @@ router.post("/whatsapp/webhook", async (req, res) => {
             phone: true,
             company: true,
             discount: true,
-            language: true
+            language: true,
+            isBlacklisted: true,
+          },
+        })
+
+        if (customer) {
+          // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
+          if (customer.isBlacklisted) {
+            console.log(
+              `🚫 FRONTEND FORMAT: Customer ${phoneNumber} is blacklisted - IGNORING MESSAGE`
+            )
+            res.status(200).json({
+              success: true,
+              data: {
+                sessionId: null,
+                message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED",
+              },
+            })
+            return
           }
-        });
+
+          customerId = customer.id
+          console.log(
+            `✅ FRONTEND FORMAT: Customer found: ${customer.name} (${customer.phone})`
+          )
+        } else {
+          // New user - handle welcome flow
+          console.log(`🆕 FRONTEND FORMAT: New user detected: ${phoneNumber}`)
+
+          // Handle new user welcome flow (includes blocking logic)
+          const handled = await handleNewUserWelcomeFlow(
+            phoneNumber,
+            workspaceId,
+            messageContent,
+            res,
+            "TEST"
+          )
+          if (handled) {
+            return // Response already sent
+          }
+        }
+      } catch (error) {
+        console.error(
+          "❌ Error getting customer data in frontend format:",
+          error
+        )
+        res.status(500).send("ERROR")
+        return
+      }
+    }
+    // Check if it's test format
+    else if (data.chatInput && data.workspaceId) {
+      messageContent = data.chatInput
+      workspaceId = data.workspaceId
+
+      // For test format, use phone number if provided, otherwise use test phone
+      phoneNumber = data.phone || "test-phone-123"
+
+      // Get full customer data (including language) for test format
+      try {
+        // console.log(`🔍 TEST FORMAT: Looking for customer with phone: "${phoneNumber}" in workspace: "${workspaceId}"`);
+
+        const customer = await prisma.customers.findFirst({
+          where: {
+            phone: phoneNumber.replace(/\s+/g, ""),
+            workspaceId: workspaceId,
+            isActive: true,
+          },
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            company: true,
+            discount: true,
+            language: true,
+          },
+        })
 
         // console.log(`🔍 TEST FORMAT: Customer search result:`, customer);
 
         if (customer) {
           // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
-          const isBlacklisted = await checkCustomerBlacklist(phoneNumber, workspaceId, res, 'TEST');
+          const isBlacklisted = await checkCustomerBlacklist(
+            phoneNumber,
+            workspaceId,
+            res,
+            "TEST"
+          )
           if (isBlacklisted) {
-            return; // Response already sent
+            return // Response already sent
           }
 
-          phoneNumber = customer.phone || "test-phone-123";
-          console.log(`✅ TEST: Customer found: ${customer.name} (${customer.phone}) - Language: ${customer.language}`);
-          
+          phoneNumber = customer.phone || "test-phone-123"
+          console.log(
+            `✅ TEST: Customer found: ${customer.name} (${customer.phone}) - Language: ${customer.language}`
+          )
+
           // Store customer data for later use
-          (req as any).customerData = customer;
+          ;(req as any).customerData = customer
         } else {
           // 🆕 NEW USER DETECTED IN TEST FORMAT - Use handleNewUserWelcomeFlow for consistency
-          console.log(`🆕 TEST FORMAT: New user detected for phone: ${phoneNumber}`);
-          
+          console.log(
+            `🆕 TEST FORMAT: New user detected for phone: ${phoneNumber}`
+          )
+
           // Handle new user welcome flow using the centralized function
-          const handled = await handleNewUserWelcomeFlow(phoneNumber, workspaceId, messageContent, res, 'TEST');
+          const handled = await handleNewUserWelcomeFlow(
+            phoneNumber,
+            workspaceId,
+            messageContent,
+            res,
+            "TEST"
+          )
           if (handled) {
-            return; // Response already sent
+            return // Response already sent
           }
         }
-        
       } catch (error) {
-        console.error('❌ Error getting customer data in test format:', error);
-        res.status(500).send("ERROR");
-        return;
+        console.error("❌ Error getting customer data in test format:", error)
+        res.status(500).send("ERROR")
+        return
       }
     }
     // Invalid format
@@ -732,148 +1018,168 @@ router.post("/whatsapp/webhook", async (req, res) => {
     }
 
     // 🔧 DECLARE CHAT SESSION FOR GLOBAL SCOPE (used throughout the webhook)
-    let chatSession: any = null;
+    let chatSession: any = null
 
     // 🚨 SPAM DETECTION - Check for spam behavior (50 messages in 60 seconds)
     try {
-      const spamDetectionService = new SpamDetectionService();
-      const spamResult = await spamDetectionService.checkSpamBehavior(phoneNumber, workspaceId);
-      
+      const spamDetectionService = new SpamDetectionService()
+      const spamResult = await spamDetectionService.checkSpamBehavior(
+        phoneNumber,
+        workspaceId
+      )
+
       if (spamResult.isSpam) {
-        console.log(`🚨 SPAM DETECTED: ${phoneNumber} sent ${spamResult.messageCount} messages in ${spamResult.timeWindow} seconds`);
-        
+        console.log(
+          `🚨 SPAM DETECTED: ${phoneNumber} sent ${spamResult.messageCount} messages in ${spamResult.timeWindow} seconds`
+        )
+
         // Block the spam user
         await spamDetectionService.blockSpamUser(
-          phoneNumber, 
-          workspaceId, 
-          spamResult.reason || 'Spam behavior detected'
-        );
-        
+          phoneNumber,
+          workspaceId,
+          spamResult.reason || "Spam behavior detected"
+        )
+
         // 🚨 SPAM DETECTION ENABLED - Block spam users
         res.status(200).json({
           success: true,
           data: {
             sessionId: null,
-            message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED"
-          }
-        });
-        return;
+            message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED",
+          },
+        })
+        return
       }
     } catch (spamError) {
-      console.error('❌ Error in spam detection:', spamError);
+      console.error("❌ Error in spam detection:", spamError)
       // Continue processing if spam detection fails
     }
 
     // Check if chat session is disabled (operator escalation)
-    let isSessionDisabled = false;
+    let isSessionDisabled = false
     try {
       const activeSession = await prisma.chatSession.findFirst({
         where: {
           customerId: customerId,
           workspaceId: workspaceId,
-          status: 'operator_escalated'
+          status: "operator_escalated",
         },
         orderBy: {
-          createdAt: 'desc'
-        }
-      });
-      
+          createdAt: "desc",
+        },
+      })
+
       if (activeSession) {
-        isSessionDisabled = true;
+        isSessionDisabled = true
       }
-      
     } catch (sessionError) {
-      console.error('❌ Error checking session status:', sessionError);
+      console.error("❌ Error checking session status:", sessionError)
       // Continue with normal processing if check fails
     }
 
-    let result;
-    let llmRequest: LLMRequest | null = null;
-    
+    let result
+    let llmRequest: LLMRequest | null = null
+
     if (isSessionDisabled) {
       // Session disabled - send operator message
       result = {
         success: true,
-        output: "Un operatore ti contatterà al più presto. Nel frattempo, il chatbot è temporaneamente disabilitato per questa conversazione. Grazie per la tua pazienza! 🤝"
-      };
+        output:
+          "Un operatore ti contatterà al più presto. Nel frattempo, il chatbot è temporaneamente disabilitato per questa conversazione. Grazie per la tua pazienza! 🤝",
+      }
     } else {
       // Session active - setup dual LLM system
-      
+
       // Initialize variables with defaults
       let variables = {
-        nameUser: 'Cliente',
-        discountUser: 'Nessuno sconto attivo',
-        companyName: 'L\'Altra Italia',
-        lastorder: 'Nessun ordine recente',
-        lastordercode: 'N/A',
-        languageUser: 'it'
-      };
-      
+        nameUser: "Cliente",
+        discountUser: "Nessuno sconto attivo",
+        companyName: "L'Altra Italia",
+        lastorder: "Nessun ordine recente",
+        lastordercode: "N/A",
+        languageUser: "it",
+      }
+
       // Get agent config with prompt from database
-      let agentPrompt = "WhatsApp conversation"; // fallback
-      let welcomeBackMessage = null; // 🎯 TASK: Declare welcome back message variable
+      let agentPrompt = "WhatsApp conversation" // fallback
+      let welcomeBackMessage = null // 🎯 TASK: Declare welcome back message variable
       try {
         const agentConfig = await prisma.agentConfig.findFirst({
-          where: { workspaceId: workspaceId }
-        });
+          where: { workspaceId: workspaceId },
+        })
         if (agentConfig && agentConfig.prompt) {
-          agentPrompt = agentConfig.prompt;
+          agentPrompt = agentConfig.prompt
         }
-        
+
         // Use customer data from first query (avoid double query)
-        const customer = (req as any).customerData;
+        const customer = (req as any).customerData
         // console.log('🔍 Customer data for variables:', customer);
-        
+
         // Get last order
         const lastOrder = await prisma.orders.findFirst({
           where: {
             customerId: customerId,
-            workspaceId: workspaceId
+            workspaceId: workspaceId,
           },
           orderBy: {
-            createdAt: 'desc'
+            createdAt: "desc",
           },
           select: {
             id: true,
             orderCode: true,
-            createdAt: true
-          }
-        });
-        
+            createdAt: true,
+          },
+        })
+
         // Prepare variables for replacement
         variables = {
-          nameUser: customer?.name || 'Unknown Customer',
-          discountUser: customer?.discount ? `${customer.discount}% di sconto attivo` : 'Nessuno sconto attivo',
-          companyName: customer?.company || 'L\'Altra Italia',
-          lastorder: lastOrder ? lastOrder.createdAt.toLocaleDateString() : 'Nessun ordine recente',
-          lastordercode: lastOrder?.orderCode || 'N/A',
-          languageUser: customer?.language || 'it'
-        };
-        
+          nameUser: customer?.name || "Unknown Customer",
+          discountUser: customer?.discount
+            ? `${customer.discount}% di sconto attivo`
+            : "Nessuno sconto attivo",
+          companyName: customer?.company || "L'Altra Italia",
+          lastorder: lastOrder
+            ? lastOrder.createdAt.toLocaleDateString()
+            : "Nessun ordine recente",
+          lastordercode: lastOrder?.orderCode || "N/A",
+          languageUser: customer?.language || "it",
+        }
+
         // 🎯 TASK: Check if customer has recent activity for "Bentornato {NOME}" functionality
         try {
-          const messageRepository = new MessageRepository();
-          const hasRecentActivity = await messageRepository.hasRecentActivity(customerId, 2, workspaceId);
-          
+          const messageRepository = new MessageRepository()
+          const hasRecentActivity = await messageRepository.hasRecentActivity(
+            customerId,
+            2,
+            workspaceId
+          )
+
           if (!hasRecentActivity) {
             // Customer hasn't been active in last 2 hours - show welcome back message
             welcomeBackMessage = await messageRepository.getWelcomeBackMessage(
-              workspaceId, 
-              customer?.name || 'Cliente', 
-              customer?.language || 'it'
-            );
-            console.log(`👋 WELCOME BACK: Customer ${customer?.name} returning after >2 hours - message: ${welcomeBackMessage}`);
+              workspaceId,
+              customer?.name || "Cliente",
+              customer?.language || "it"
+            )
+            console.log(
+              `👋 WELCOME BACK: Customer ${customer?.name} returning after >2 hours - message: ${welcomeBackMessage}`
+            )
           } else {
-            console.log(`👋 WELCOME BACK: Customer ${customer?.name} has recent activity - no welcome back needed`);
+            console.log(
+              `👋 WELCOME BACK: Customer ${customer?.name} has recent activity - no welcome back needed`
+            )
           }
         } catch (welcomeBackError) {
-          console.error('❌ Error checking welcome back status:', welcomeBackError);
+          console.error(
+            "❌ Error checking welcome back status:",
+            welcomeBackError
+          )
           // Continue without welcome back message if error occurs
         }
-        
+
         // console.log('✅ Variables prepared:', variables);
         // console.log(`🌐 WEBHOOK DEBUG: Customer language is "${customer?.language}", setting languageUser to "${variables.languageUser}"`);
-        
+
         // Replace variables in prompt
         agentPrompt = agentPrompt
           .replace(/\{\{nameUser\}\}/g, variables.nameUser)
@@ -881,42 +1187,41 @@ router.post("/whatsapp/webhook", async (req, res) => {
           .replace(/\{\{companyName\}\}/g, variables.companyName)
           .replace(/\{\{lastorder\}\}/g, variables.lastorder)
           .replace(/\{\{lastordercode\}\}/g, variables.lastordercode)
-          .replace(/\{\{languageUser\}\}/g, variables.languageUser);
-        
+          .replace(/\{\{languageUser\}\}/g, variables.languageUser)
+
         // console.log(`🌐 WEBHOOK DEBUG: Prompt after language substitution contains: ${agentPrompt.includes('languageUser: en') ? 'YES' : 'NO'} "languageUser: en"`);
-        
       } catch (error) {
-        console.error('❌ Error processing customer data:', error);
+        console.error("❌ Error processing customer data:", error)
       }
 
       // console.log(`🔍 STARTING CHAT HISTORY RETRIEVAL - Customer: ${customerId}, Workspace: ${workspaceId}`); // 🔧 MOVED OUTSIDE TRY-CATCH
 
       //  RETRIEVE CHAT HISTORY FOR CONTEXT
-      let chatHistory: any[] = [];
+      let chatHistory: any[] = []
       try {
         // console.log(`🔍 SEARCHING FOR CHAT SESSION - Customer: ${customerId}, Workspace: ${workspaceId}`); // 🔧 DEBUG
-        
+
         // Find or create chat session
         chatSession = await prisma.chatSession.findFirst({
           where: {
             customerId: customerId,
             workspaceId: workspaceId,
-            status: 'active' // 🔧 FIX: Only find active sessions
+            status: "active", // 🔧 FIX: Only find active sessions
           },
           include: {
             messages: {
               where: {
                 createdAt: {
-                  gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Only messages from last 24 hours
-                }
+                  gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Only messages from last 24 hours
+                },
               },
               orderBy: {
-                createdAt: 'asc'
+                createdAt: "asc",
               },
-              take: 10 // Last 10 messages for context
-            }
-          }
-        });
+              take: 10, // Last 10 messages for context
+            },
+          },
+        })
 
         // 🔧 CREATE CHAT SESSION IF NOT EXISTS
         if (!chatSession) {
@@ -925,26 +1230,26 @@ router.post("/whatsapp/webhook", async (req, res) => {
             data: {
               customerId: customerId,
               workspaceId: workspaceId,
-              status: 'ACTIVE',
-              startedAt: new Date()
+              status: "ACTIVE",
+              startedAt: new Date(),
             },
             include: {
               messages: {
                 orderBy: {
-                  createdAt: 'asc'
+                  createdAt: "asc",
                 },
-                take: 10
-              }
-            }
-          });
+                take: 10,
+              },
+            },
+          })
         }
 
         if (chatSession && chatSession.messages.length > 0) {
           // Convert messages to OpenAI format
-          chatHistory = chatSession.messages.map(msg => ({
-            role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
-            content: msg.content
-          }));
+          chatHistory = chatSession.messages.map((msg) => ({
+            role: msg.direction === "INBOUND" ? "user" : "assistant",
+            content: msg.content,
+          }))
           // console.log(`🗨️ WEBHOOK: Retrieved ${chatHistory.length} messages from chat history (last 24h only)`);
           // console.log(`🗨️ WEBHOOK: Chat history preview:`, chatHistory.slice(-3)); // Last 3 messages
           // console.log(`⏰ WEBHOOK: Time filter applied - excluding messages older than 24 hours`);
@@ -957,19 +1262,22 @@ router.post("/whatsapp/webhook", async (req, res) => {
 
         // 💾 NOTE: User message will be saved AFTER LLM processing by messageRepository.saveMessage()
         // This avoids duplicate message saving in the database
-        console.log('� WEBHOOK: Skipping immediate user message save to avoid duplication');
-        console.log('� WEBHOOK: User message will be saved by messageRepository.saveMessage() after LLM processing');
-        
+        console.log(
+          "� WEBHOOK: Skipping immediate user message save to avoid duplication"
+        )
+        console.log(
+          "� WEBHOOK: User message will be saved by messageRepository.saveMessage() after LLM processing"
+        )
       } catch (historyError) {
-        console.error('❌ Error retrieving chat history:', historyError);
+        console.error("❌ Error retrieving chat history:", historyError)
         // Continue without history if error occurs
       }
-      
+
       llmRequest = {
         chatInput: messageContent,
         workspaceId: workspaceId,
         customerid: customerId,
-        phone: phoneNumber.replace(/\s+/g, ''),
+        phone: phoneNumber.replace(/\s+/g, ""),
         language: variables.languageUser,
         sessionId: "webhook-session",
         temperature: 0.0, // Zero temperature for webhook responses - no variations
@@ -977,35 +1285,40 @@ router.post("/whatsapp/webhook", async (req, res) => {
         model: "gpt-4o",
         messages: chatHistory, // 🔥 NOW INCLUDES REAL CHAT HISTORY
         prompt: agentPrompt,
-        welcomeBackMessage: welcomeBackMessage || null // 🎯 TASK: Pass welcome back message to LLM
-      };
-      
-      console.log(`🔧 WEBHOOK: LLM Request customerid: "${customerId}" workspaceId: "${workspaceId}"`)
-      
+        welcomeBackMessage: welcomeBackMessage || null, // 🎯 TASK: Pass welcome back message to LLM
+      }
+
+      console.log(
+        `🔧 WEBHOOK: LLM Request customerid: "${customerId}" workspaceId: "${workspaceId}"`
+      )
+
       // Process with dual LLM service
-      console.log('🚀 WEBHOOK: About to call dual LLM service with input:', messageContent);
-      result = await dualLLMService.handleMessage(llmRequest);
-      console.log('🚀 WEBHOOK: Dual LLM result received:', {
+      console.log(
+        "🚀 WEBHOOK: About to call dual LLM service with input:",
+        messageContent
+      )
+      result = await dualLLMService.handleMessage(llmRequest)
+      console.log("🚀 WEBHOOK: Dual LLM result received:", {
         success: result.success,
         hasOutput: !!result.output,
         translatedQuery: result.translatedQuery,
         outputLength: result.output?.length || 0,
         functionCallsCount: result.functionCalls?.length || 0,
         functionCallsContent: JSON.stringify(result.functionCalls, null, 2),
-        debugInfo: result.debugInfo
-      });
+        debugInfo: result.debugInfo,
+      })
     }
-    
+
     // Save message and track usage
     if (result.success && result.output) {
       try {
         // 💰 Calculate LLM cost for this response
-        const llmCost = config.llm.defaultPrice; // €0.50 per LLM response
-        
+        const llmCost = config.llm.defaultPrice // €0.50 per LLM response
+
         // Get current total usage for this workspace
-        const usageSummary = await usageService.getUsageSummary(workspaceId, 30);
-        const currentTotalUsage = usageSummary.totalCost;
-        const newTotalUsage = currentTotalUsage + llmCost;
+        const usageSummary = await usageService.getUsageSummary(workspaceId, 30)
+        const currentTotalUsage = usageSummary.totalCost
+        const newTotalUsage = currentTotalUsage + llmCost
 
         await messageRepository.saveMessage({
           workspaceId: workspaceId,
@@ -1018,68 +1331,77 @@ router.post("/whatsapp/webhook", async (req, res) => {
           translatedQuery: result.translatedQuery,
           processedPrompt: result.processedPrompt,
           functionCallsDebug: result.functionCalls,
-          processingSource: result.functionCalls?.[0]?.source || 'unknown',
+          processingSource: result.functionCalls?.[0]?.source || "unknown",
           debugInfo: JSON.stringify({
             ...(result.debugInfo || {}),
             // 💰 Cost tracking info
             currentCallCost: llmCost,
             previousTotalUsage: currentTotalUsage,
             newTotalUsage: newTotalUsage,
-            costTimestamp: new Date().toISOString()
-          })
-        });
+            costTimestamp: new Date().toISOString(),
+          }),
+        })
 
         // 💰 Track usage for registered customers only
-        if (customerId && customerId !== 'unknown') {
+        if (customerId && customerId !== "unknown") {
           await usageService.trackUsage({
             workspaceId: workspaceId,
             clientId: customerId,
-            price: llmCost
-          });
-          console.log(`💰 Usage tracked: €${llmCost} for customer ${customerId} (Total: €${newTotalUsage.toFixed(2)})`);
+            price: llmCost,
+          })
+          console.log(
+            `💰 Usage tracked: €${llmCost} for customer ${customerId} (Total: €${newTotalUsage.toFixed(2)})`
+          )
         } else {
-          console.log(`💰 Usage not tracked: customer not registered (Cost would be: €${llmCost})`);
+          console.log(
+            `💰 Usage not tracked: customer not registered (Cost would be: €${llmCost})`
+          )
         }
 
         // 💾 SAVE MESSAGE RESPONSE - handled by messageRepository.saveMessage() above
         // Assistant response is already saved by messageRepository.saveMessage()
-        console.log('💾 Message and assistant response saved by messageRepository.saveMessage()');
-
+        console.log(
+          "💾 Message and assistant response saved by messageRepository.saveMessage()"
+        )
       } catch (saveError) {
-        console.error('❌ Failed to save message:', saveError);
+        console.error("❌ Failed to save message:", saveError)
         // Continue - don't fail the whole request if save fails
       }
     }
-    
+
     // TODO: Send response back to WhatsApp
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       data: {
         sessionId: chatSession?.id || null,
-        message: result.output
+        message: result.output,
       },
       debug: {
         translatedQuery: result.translatedQuery,
         processedPrompt: result.processedPrompt,
         functionCalls: result.functionCalls || [],
         // 💰 Cost tracking info
-        costInfo: result.success && result.output ? {
-          currentCallCost: config.llm.defaultPrice,
-          previousTotalUsage: result.debugInfo?.previousTotalUsage || 0,
-          newTotalUsage: result.debugInfo?.newTotalUsage || config.llm.defaultPrice,
-          costTimestamp: new Date().toISOString()
-        } : null
-      }
-    });
+        costInfo:
+          result.success && result.output
+            ? {
+                currentCallCost: config.llm.defaultPrice,
+                previousTotalUsage: result.debugInfo?.previousTotalUsage || 0,
+                newTotalUsage:
+                  result.debugInfo?.newTotalUsage || config.llm.defaultPrice,
+                costTimestamp: new Date().toISOString(),
+              }
+            : null,
+      },
+    })
   } catch (error) {
-    console.error('❌ WHATSAPP WEBHOOK ERROR:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
+    console.error("❌ WHATSAPP WEBHOOK ERROR:", error)
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    })
   }
-});
+})
 
 router.get("/whatsapp/webhook", async (req, res) => {
   // Same logic as POST for verification
@@ -1095,9 +1417,11 @@ router.get("/whatsapp/webhook", async (req, res) => {
   }
 
   res.status(403).send("Verification failed")
-});
+})
 
-logger.info("Registered WhatsApp webhook routes FIRST (public, no authentication)")
+logger.info(
+  "Registered WhatsApp webhook routes FIRST (public, no authentication)"
+)
 
 // Mount internal API routes (for N8N calling functions) - NO AUTHENTICATION REQUIRED
 router.use("/internal", internalApiRoutes)
@@ -1138,9 +1462,6 @@ const settingsController = new SettingsController()
 // Public routes (MUST BE BEFORE AUTH ROUTES)
 router.use("/checkout", checkoutRouter)
 logger.info("Registered checkout routes for order processing")
-
-router.use("/cart", cartRouter)
-logger.info("Registered cart routes for cart token validation")
 
 router.use("/auth", authRouter(authController))
 router.use("/registration", createRegistrationRouter())
@@ -1246,7 +1567,6 @@ logger.info("Registered document router with workspace and upload endpoints")
 // Mount analytics routes
 router.use("/analytics", analyticsRoutes)
 logger.info("Registered analytics routes for dashboard metrics")
-
 
 // Add special route for GDPR default content (to handle frontend request to /gdpr/default)
 router.get(

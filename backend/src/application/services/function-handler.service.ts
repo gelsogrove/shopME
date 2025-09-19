@@ -17,7 +17,7 @@ interface DisambiguationSession {
   customerId: string
   workspaceId: string
   query: string // Query originale "aggiungi vino al carrello"
-  action: 'add' | 'remove' // Azione richiesta
+  action: "add" | "remove" // Azione richiesta
   productQuery: string // "vino"
   quantity: number // 1
   products: ProductOption[] // Prodotti trovati 🔧 RENAMED
@@ -49,7 +49,7 @@ interface ParsedProduct {
 
 interface DisambiguationResult {
   success: boolean
-  action: 'resolved' | 'expired' | 'cancelled'
+  action: "resolved" | "expired" | "cancelled"
   selectedProduct?: ProductOption
   error?: string
 }
@@ -64,34 +64,42 @@ export class FunctionHandlerService {
   /**
    * Handle get order status request
    */
-  private async handleGetOrderStatus(phoneNumber: string, workspaceId: string, customerId: string, orderId?: string): Promise<any> {
+  private async handleGetOrderStatus(
+    phoneNumber: string,
+    workspaceId: string,
+    customerId: string,
+    orderId?: string
+  ): Promise<any> {
     try {
-      console.log(`🔍 FunctionHandler: Getting order status for customer ${customerId}, orderId: ${orderId}`)
-      
+      console.log(
+        `🔍 FunctionHandler: Getting order status for customer ${customerId}, orderId: ${orderId}`
+      )
+
       // Find customer
       const customer = await this.prisma.customers.findFirst({
         where: {
           phone: phoneNumber,
-          workspaceId: workspaceId
-        }
+          workspaceId: workspaceId,
+        },
       })
-      
+
       if (!customer) {
         return {
           success: false,
-          response: "Mi dispiace, non riesco a trovare il tuo account. Contatta il nostro supporto per assistenza.",
-          error: "Customer not found"
+          response:
+            "Mi dispiace, non riesco a trovare il tuo account. Contatta il nostro supporto per assistenza.",
+          error: "Customer not found",
         }
       }
-      
+
       // Get orders for this customer
       const orders = await this.prisma.orders.findMany({
         where: {
           customerId: customer.id,
-          workspaceId: workspaceId
+          workspaceId: workspaceId,
         },
         orderBy: {
-          createdAt: 'desc'
+          createdAt: "desc",
         },
         take: 5, // Last 5 orders
         select: {
@@ -99,35 +107,39 @@ export class FunctionHandlerService {
           orderCode: true,
           status: true,
           totalAmount: true,
-          createdAt: true
-        }
+          createdAt: true,
+        },
       })
-      
+
       if (orders.length === 0) {
         return {
           success: true,
-          response: "Non hai ancora effettuato ordini. Quando farai il tuo primo ordine, potrai controllarne lo stato qui!",
-          orders: []
+          response:
+            "Non hai ancora effettuato ordini. Quando farai il tuo primo ordine, potrai controllarne lo stato qui!",
+          orders: [],
         }
       }
-      
+
       // Format orders for display
-      const ordersList = orders.map(order => 
-        `📦 Ordine ${order.orderCode} - ${order.status} - €${order.totalAmount} (${order.createdAt.toLocaleDateString('it-IT')})`
-      ).join('\n')
-      
+      const ordersList = orders
+        .map(
+          (order) =>
+            `📦 Ordine ${order.orderCode} - ${order.status} - €${order.totalAmount} (${order.createdAt.toLocaleDateString("it-IT")})`
+        )
+        .join("\n")
+
       return {
         success: true,
         response: `Ecco i tuoi ordini recenti:\n\n${ordersList}\n\nPer maggiori dettagli su un ordine specifico, fammi sapere il codice ordine!`,
-        orders: orders
+        orders: orders,
       }
-      
     } catch (error) {
-      console.error('❌ Error getting order status:', error)
+      console.error("❌ Error getting order status:", error)
       return {
         success: false,
-        response: "Mi dispiace, si è verificato un errore nel recuperare i tuoi ordini. Riprova più tardi o contatta il supporto.",
-        error: error.message
+        response:
+          "Mi dispiace, si è verificato un errore nel recuperare i tuoi ordini. Riprova più tardi o contatta il supporto.",
+        error: error.message,
       }
     }
   }
@@ -141,37 +153,39 @@ export class FunctionHandlerService {
       const orphanedItems = await this.prisma.cartItems.findMany({
         where: {
           cart: {
-            workspaceId: workspaceId
+            workspaceId: workspaceId,
           },
-          product: null
+          product: null,
         },
         include: {
-          cart: true
-        }
+          cart: true,
+        },
       })
 
       if (orphanedItems.length > 0) {
-        console.warn(`🧹 Found ${orphanedItems.length} orphaned cart items in workspace ${workspaceId}`)
-        
+        console.warn(
+          `🧹 Found ${orphanedItems.length} orphaned cart items in workspace ${workspaceId}`
+        )
+
         // Delete orphaned items
         await this.prisma.cartItems.deleteMany({
           where: {
             id: {
-              in: orphanedItems.map(item => item.id)
-            }
-          }
+              in: orphanedItems.map((item) => item.id),
+            },
+          },
         })
 
         console.log(`🧹 Cleaned up ${orphanedItems.length} orphaned cart items`)
       }
     } catch (error) {
-      console.error('❌ Error cleaning up orphaned cart items:', error)
+      console.error("❌ Error cleaning up orphaned cart items:", error)
     }
   }
   private messageRepository: MessageRepository
   private tokenService: TokenService
   private priceCalculationService: PriceCalculationService
-  
+
   // 🆕 DISAMBIGUATION SESSION MANAGEMENT
   private disambiguationSessions: Map<string, DisambiguationSession> = new Map()
   private readonly SESSION_TTL = 5 * 60 * 1000 // 5 minuti in millisecondi
@@ -181,8 +195,9 @@ export class FunctionHandlerService {
     this.messageRepository = new MessageRepository()
     this.tokenService = new TokenService()
     this.priceCalculationService = new PriceCalculationService(this.prisma)
-    this.callingFunctionsService = require('../../services/calling-functions.service').default
-    
+    this.callingFunctionsService =
+      require("../../services/calling-functions.service").default
+
     // Auto-cleanup sessioni scadute ogni ora
     setInterval(() => this.cleanExpiredSessions(), 60 * 60 * 1000)
   }
@@ -203,73 +218,95 @@ export class FunctionHandlerService {
     workspaceId: string,
     phoneNumber: string
   ): Promise<FunctionCallResult> {
-    logger.info(`🎯 FunctionHandlerService: Chiamata ricevuta per ${functionName}`, {
-      functionName,
-      params,
-      customerId: customer?.id,
-      workspaceId,
-      phoneNumber
-    })
+    logger.info(
+      `🎯 FunctionHandlerService: Chiamata ricevuta per ${functionName}`,
+      {
+        functionName,
+        params,
+        customerId: customer?.id,
+        workspaceId,
+        phoneNumber,
+      }
+    )
 
     try {
       switch (functionName) {
         // 🛒 CART OPERATIONS - REMOVED (now handled via web link)
 
-
-
-
-
-
-        // 📦 PRODUCT OPERATIONS  
-        case 'get_all_products':
+        // 📦 PRODUCT OPERATIONS
+        case "get_all_products":
           return {
-            data: await this.handleGetAllProducts(phoneNumber, workspaceId, customer?.id, ''),
-            functionName
+            data: await this.handleGetAllProducts(
+              phoneNumber,
+              workspaceId,
+              customer?.id,
+              ""
+            ),
+            functionName,
           }
 
         // 🚚 SHIPMENT TRACKING
-        case 'getShipmentTrackingLink':
+        case "getShipmentTrackingLink":
           return {
-            data: await this.handleGetShipmentTrackingLink(params, customer, workspaceId),
-            functionName
+            data: await this.handleGetShipmentTrackingLink(
+              params,
+              customer,
+              workspaceId
+            ),
+            functionName,
           }
 
         // 🛒 CART LINK
-        case 'GetCartLink':
+        case "GetCartLink":
           return {
             data: await this.handleGetCartLink(customer, workspaceId),
-            functionName
+            functionName,
           }
 
-        case 'search_specific_product':
+        case "search_specific_product":
           return {
-            data: await this.handleSearchSpecificProduct(phoneNumber, workspaceId, customer?.id, params.message || '', params),
-            functionName
+            data: await this.handleSearchSpecificProduct(
+              phoneNumber,
+              workspaceId,
+              customer?.id,
+              params.message || "",
+              params
+            ),
+            functionName,
           }
 
-        case 'get_all_categories':
+        case "get_all_categories":
           return {
             functionName,
-            data: null // No data needed for this function
+            data: null, // No data needed for this function
           }
 
-        case 'get_order_status':
+        case "get_order_status":
           return {
-            data: await this.handleGetOrderStatus(phoneNumber, workspaceId, customer?.id, params.order_id),
-            functionName
+            data: await this.handleGetOrderStatus(
+              phoneNumber,
+              workspaceId,
+              customer?.id,
+              params.order_id
+            ),
+            functionName,
           }
 
-        case 'search_products':
+        case "search_products":
           return {
             data: await this.searchProducts(params.query, workspaceId),
-            functionName
+            functionName,
           }
 
         // 🔗 ORDER LINK
-        case 'GetOrderLink':
+        case "GetLinkOrderByCode":
           return {
-            data: await this.handleGetOrderLink(params, customer, workspaceId),
-            functionName
+            data: await this.handleGetLinkOrderByCode(
+              params,
+              customer,
+              workspaceId
+            ),
+            functionName,
           }
 
         // 🚚 ORDER OPERATIONS & 🛒 CART OPERATIONS (REMOVED)
@@ -280,18 +317,17 @@ export class FunctionHandlerService {
         //       functionName
         //     }
 
-
         // 📄 DOCUMENTATION & FAQ
-        case 'search_documents':
+        case "search_documents":
           return {
             data: await this.searchDocuments(params.query, workspaceId),
-            functionName
+            functionName,
           }
 
-        case 'get_faq_info':
+        case "get_faq_info":
           return {
             data: await this.getFaqInfo(params.question, workspaceId),
-            functionName
+            functionName,
           }
 
         // 🎯 DEFAULT CASE
@@ -302,27 +338,33 @@ export class FunctionHandlerService {
               success: false,
               error: `Funzione ${functionName} non supportata`,
               supportedFunctions: [
-                'confirm_order',
-                'generateCartLink',
-                'get_all_products',
-                'get_all_categories',
-                'search_products',
-                'search_documents',
-                'get_faq_info'
-              ]
+                "confirm_order",
+                "generateCartLink",
+                "get_all_products",
+                "get_all_categories",
+                "search_products",
+                "search_documents",
+                "get_faq_info",
+              ],
             },
-            functionName
+            functionName,
           }
       }
     } catch (error) {
-      logger.error(`❌ Errore in handleFunctionCall per ${functionName}:`, error)
+      logger.error(
+        `❌ Errore in handleFunctionCall per ${functionName}:`,
+        error
+      )
       return {
         data: {
           success: false,
-          error: error instanceof Error ? error.message : 'Errore interno del server',
-          errorType: 'internal_error'
+          error:
+            error instanceof Error
+              ? error.message
+              : "Errore interno del server",
+          errorType: "internal_error",
         },
-        functionName
+        functionName,
       }
     }
   }
@@ -336,27 +378,33 @@ export class FunctionHandlerService {
    */
   async handleGetCartLink(customer: any, workspaceId: string): Promise<any> {
     try {
-      console.log('🔧 FunctionHandlerService: handleGetCartLink called')
-      
+      console.log("🔧 FunctionHandlerService: handleGetCartLink called")
+
       // Import the CallingFunctionsService
-      const { CallingFunctionsService } = require('../../services/calling-functions.service')
+      const {
+        CallingFunctionsService,
+      } = require("../../services/calling-functions.service")
       const callingFunctionsService = new CallingFunctionsService()
-      
+
       // Call the getCartLink function
       const result = await callingFunctionsService.getCartLink({
-        customerId: customer?.id || '',
-        workspaceId: workspaceId
+        customerId: customer?.id || "",
+        workspaceId: workspaceId,
       })
-      
-      console.log('🔧 FunctionHandlerService: getCartLink result:', result)
-      
+
+      console.log("🔧 FunctionHandlerService: getCartLink result:", result)
+
       return result
     } catch (error) {
-      console.error('❌ FunctionHandlerService: Error in handleGetCartLink:', error)
+      console.error(
+        "❌ FunctionHandlerService: Error in handleGetCartLink:",
+        error
+      )
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Errore interno del server',
-        errorType: 'internal_error'
+        error:
+          error instanceof Error ? error.message : "Errore interno del server",
+        errorType: "internal_error",
       }
     }
   }
@@ -368,31 +416,47 @@ export class FunctionHandlerService {
   /**
    * Gestisce la richiesta di link ordine intelligente
    */
-  async handleGetOrderLink(params: any, customer: any, workspaceId: string): Promise<any> {
+  async handleGetLinkOrderByCode(
+    params: any,
+    customer: any,
+    workspaceId: string
+  ): Promise<any> {
     try {
-      console.log('🔧 FunctionHandlerService: handleGetOrderLink called with:', params)
-      
-      // Import the GetOrderLink function
-      const { GetOrderLink } = require('../../chatbot/calling-functions/GetOrderLink')
-      
-      // Call the GetOrderLink function
-      const result = await GetOrderLink({
-        customerId: customer?.id || '',
+      console.log(
+        "🔧 FunctionHandlerService: handleGetLinkOrderByCode called with:",
+        params
+      )
+
+      // Import the GetLinkOrderByCode function
+      const {
+        GetLinkOrderByCode,
+      } = require("../../chatbot/calling-functions/GetLinkOrderByCode")
+
+      // Call the GetLinkOrderByCode function
+      const result = await GetLinkOrderByCode({
+        customerId: customer?.id || "",
         workspaceId: workspaceId,
         orderCode: params.orderCode || undefined,
-        documentType: params.documentType || 'order',
-        language: params.language || 'it'
+        documentType: params.documentType || "order",
+        language: params.language || "it",
       })
-      
-      console.log('🔧 FunctionHandlerService: GetOrderLink result:', result)
-      
+
+      console.log(
+        "🔧 FunctionHandlerService: GetLinkOrderByCode result:",
+        result
+      )
+
       return result
     } catch (error) {
-      console.error('❌ FunctionHandlerService: Error in handleGetOrderLink:', error)
+      console.error(
+        "❌ FunctionHandlerService: Error in handleGetLinkOrderByCode:",
+        error
+      )
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Errore interno del server',
-        errorType: 'internal_error'
+        error:
+          error instanceof Error ? error.message : "Errore interno del server",
+        errorType: "internal_error",
       }
     }
   }
@@ -404,30 +468,46 @@ export class FunctionHandlerService {
   /**
    * Gestisce la richiesta di tracking della spedizione
    */
-  async handleGetShipmentTrackingLink(params: any, customer: any, workspaceId: string): Promise<any> {
+  async handleGetShipmentTrackingLink(
+    params: any,
+    customer: any,
+    workspaceId: string
+  ): Promise<any> {
     try {
-      console.log('🔧 FunctionHandlerService: handleGetShipmentTrackingLink called with:', params)
-      
+      console.log(
+        "🔧 FunctionHandlerService: handleGetShipmentTrackingLink called with:",
+        params
+      )
+
       // Import the CallingFunctionsService
-      const { CallingFunctionsService } = require('../../services/calling-functions.service')
+      const {
+        CallingFunctionsService,
+      } = require("../../services/calling-functions.service")
       const callingFunctionsService = new CallingFunctionsService()
-      
+
       // Call the getShipmentTrackingLink function
       const result = await callingFunctionsService.getShipmentTrackingLink({
-        customerId: customer?.id || '',
+        customerId: customer?.id || "",
         workspaceId: workspaceId,
-        orderCode: params.order_code || undefined
+        orderCode: params.order_code || undefined,
       })
-      
-      console.log('🔧 FunctionHandlerService: getShipmentTrackingLink result:', result)
-      
+
+      console.log(
+        "🔧 FunctionHandlerService: getShipmentTrackingLink result:",
+        result
+      )
+
       return result
     } catch (error) {
-      console.error('❌ FunctionHandlerService: Error in handleGetShipmentTrackingLink:', error)
+      console.error(
+        "❌ FunctionHandlerService: Error in handleGetShipmentTrackingLink:",
+        error
+      )
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Errore interno del server',
-        errorType: 'internal_error'
+        error:
+          error instanceof Error ? error.message : "Errore interno del server",
+        errorType: "internal_error",
       }
     }
   }
@@ -450,31 +530,31 @@ export class FunctionHandlerService {
           workspaceId,
           isActive: true,
           OR: [
-            { name: { contains: query, mode: 'insensitive' } },
-            { description: { contains: query, mode: 'insensitive' } }
-          ]
+            { name: { contains: query, mode: "insensitive" } },
+            { description: { contains: query, mode: "insensitive" } },
+          ],
         },
-        take: 10
+        take: 10,
       })
 
       return {
         success: true,
-        products: products.map(product => ({
+        products: products.map((product) => ({
           id: product.id,
           name: product.name,
           price: product.price,
           description: product.description,
           stock: product.stock,
-          productCode: product.ProductCode
+          productCode: product.ProductCode,
         })),
         query,
-        totalFound: products.length
+        totalFound: products.length,
       }
     } catch (error) {
-      logger.error('❌ Errore in searchProducts:', error)
+      logger.error("❌ Errore in searchProducts:", error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Errore interno'
+        error: error instanceof Error ? error.message : "Errore interno",
       }
     }
   }
@@ -482,7 +562,12 @@ export class FunctionHandlerService {
   /**
    * Ottiene tutti i prodotti
    */
-  async handleGetAllProducts(phoneNumber: string, workspaceId: string, customerId: string, message: string): Promise<any> {
+  async handleGetAllProducts(
+    phoneNumber: string,
+    workspaceId: string,
+    customerId: string,
+    message: string
+  ): Promise<any> {
     try {
       // TODO: Implement getAllProducts functionality
       // const result = await getAllProducts({
@@ -494,15 +579,15 @@ export class FunctionHandlerService {
 
       return {
         success: true,
-        response: 'Prodotti ottenuti con successo',
+        response: "Prodotti ottenuti con successo",
         products: [],
-        totalProducts: 0
+        totalProducts: 0,
       }
     } catch (error) {
-      logger.error('❌ Errore in handleGetAllProducts:', error)
+      logger.error("❌ Errore in handleGetAllProducts:", error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Errore interno'
+        error: error instanceof Error ? error.message : "Errore interno",
       }
     }
   }
@@ -510,25 +595,31 @@ export class FunctionHandlerService {
   /**
    * Cerca un prodotto specifico
    */
-  async handleSearchSpecificProduct(phoneNumber: string, workspaceId: string, customerId: string, message: string, functionArgs: any): Promise<any> {
+  async handleSearchSpecificProduct(
+    phoneNumber: string,
+    workspaceId: string,
+    customerId: string,
+    message: string,
+    functionArgs: any
+  ): Promise<any> {
     try {
-      const productName = functionArgs?.productName || message;
-      
+      const productName = functionArgs?.productName || message
+
       const result = await this.callingFunctionsService.searchSpecificProduct({
         phoneNumber,
         workspaceId,
         customerId: customerId || undefined,
         productName,
         message,
-        language: 'it'
-      });
+        language: "it",
+      })
 
-      return result;
+      return result
     } catch (error) {
-      logger.error('❌ Errore in handleSearchSpecificProduct:', error)
+      logger.error("❌ Errore in handleSearchSpecificProduct:", error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Errore interno'
+        error: error instanceof Error ? error.message : "Errore interno",
       }
     }
   }
@@ -542,21 +633,23 @@ export class FunctionHandlerService {
    */
   async searchDocuments(query: string, workspaceId: string): Promise<any> {
     try {
-      logger.info(`🔍 Ricerca documenti per query: "${query}" in workspace ${workspaceId}`)
-      
+      logger.info(
+        `🔍 Ricerca documenti per query: "${query}" in workspace ${workspaceId}`
+      )
+
       const results = await documentService.searchDocuments(query, workspaceId)
-      
+
       return {
         success: true,
         results,
         query,
-        workspaceId
+        workspaceId,
       }
     } catch (error) {
-      logger.error('❌ Errore in searchDocuments:', error)
+      logger.error("❌ Errore in searchDocuments:", error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Errore interno'
+        error: error instanceof Error ? error.message : "Errore interno",
       }
     }
   }
@@ -571,27 +664,27 @@ export class FunctionHandlerService {
           workspaceId,
           isActive: true, // ✅ Only return active FAQs
           OR: [
-            { question: { contains: question, mode: 'insensitive' } },
-            { answer: { contains: question, mode: 'insensitive' } }
-          ]
+            { question: { contains: question, mode: "insensitive" } },
+            { answer: { contains: question, mode: "insensitive" } },
+          ],
         },
-        take: 5
+        take: 5,
       })
 
       return {
         success: true,
-        faqs: faqs.map(faq => ({
+        faqs: faqs.map((faq) => ({
           id: faq.id,
           question: faq.question,
-          answer: faq.answer
+          answer: faq.answer,
         })),
-        query: question
+        query: question,
       }
     } catch (error) {
-      logger.error('❌ Errore in getFaqInfo:', error)
+      logger.error("❌ Errore in getFaqInfo:", error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Errore interno'
+        error: error instanceof Error ? error.message : "Errore interno",
       }
     }
   }
@@ -616,32 +709,35 @@ export class FunctionHandlerService {
   /**
    * Genera un saluto basato sull'ora del giorno
    */
-  getTimeBasedGreeting(language: string = 'it'): string {
+  getTimeBasedGreeting(language: string = "it"): string {
     const hour = new Date().getHours()
-    
-    if (language === 'en') {
-      if (hour < 12) return 'Good morning!'
-      if (hour < 18) return 'Good afternoon!'
-      return 'Good evening!'
+
+    if (language === "en") {
+      if (hour < 12) return "Good morning!"
+      if (hour < 18) return "Good afternoon!"
+      return "Good evening!"
     }
-    
+
     // Default italiano
-    if (hour < 12) return 'Buongiorno!'
-    if (hour < 18) return 'Buon pomeriggio!'
-    return 'Buonasera!'
+    if (hour < 12) return "Buongiorno!"
+    if (hour < 18) return "Buon pomeriggio!"
+    return "Buonasera!"
   }
 
   /**
    * Calcola il prezzo personalizzato per il cliente
    */
-  async calculateCustomerPrice(basePrice: number, customerId: string | null = null): Promise<number> {
+  async calculateCustomerPrice(
+    basePrice: number,
+    customerId: string | null = null
+  ): Promise<number> {
     if (!customerId) {
       return basePrice
     }
 
     try {
       const customer = await this.prisma.customers.findUnique({
-        where: { id: customerId }
+        where: { id: customerId },
       })
 
       if (!customer) {
@@ -652,9 +748,8 @@ export class FunctionHandlerService {
       // Applica eventuali sconti personalizzati
       const discountPercent = customer.discount || 0
       return basePrice * (1 - discountPercent / 100)
-
     } catch (error) {
-      logger.error('❌ Errore nel calcolo prezzo cliente:', error)
+      logger.error("❌ Errore nel calcolo prezzo cliente:", error)
       return basePrice
     }
   }
@@ -664,6 +759,6 @@ export class FunctionHandlerService {
    */
   getProductIcon(productType: any): string {
     // Implementazione base
-    return '📦'
+    return "📦"
   }
 }

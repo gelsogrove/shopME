@@ -1262,18 +1262,6 @@ const availableFunctions = [
     }
   },
   {
-    name: "getShipmentTrackingLink",
-    description: "Get shipment tracking link when user asks about order status, delivery, where is my order, when will it arrive, tracking information, last order",
-    parameters: {
-      type: "object",
-      properties: {
-        orderCode: { type: "string", description: "Order number or code to track" },
-        message: { type: "string", description: "User's original tracking request" }
-      },
-      required: ["message"]
-    }
-  },
-  {
     name: "search_specific_product",
     description: "Search for specific products when user mentions a specific product name like mozzarella, parmigiano, prosciutto, wine, pasta, etc.",
     parameters: {
@@ -1283,6 +1271,31 @@ const availableFunctions = [
         message: { type: "string", description: "User's original product search request" }
       },
       required: ["productName", "message"]
+    }
+  },
+  {
+    name: "GetLinkOrderByCode",
+    description: "Get a secure link to view a specific order (or the last order if omitted). Triggers when user asks for a specific order or invoice.",
+    parameters: {
+      type: "object",
+      properties: {
+        orderCode: { type: "string", description: "Order number or code to retrieve (optional, falls back to last order)" },
+        documentType: { type: "string", description: "Type of document requested: invoice, ddt, order (optional)" },
+        message: { type: "string", description: "User's original request" }
+      },
+      required: ["message"]
+    }
+  },
+  {
+    name: "getShipmentTrackingLink",
+    description: "Get shipment tracking link when user asks about order status, delivery, where is my order, when will it arrive, tracking information, last order",
+    parameters: {
+      type: "object",
+      properties: {
+        orderCode: { type: "string", description: "Order number or code to track" },
+        message: { type: "string", description: "User's original tracking request" }
+      },
+      required: ["message"]
     }
   }
 ]
@@ -1305,7 +1318,7 @@ const availableFunctions = [
       console.log("🔍 DEBUG - OpenRouter API Key present:", !!openRouterApiKey)
 
       const requestPayload = {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-5-mini",
         messages: [
           { role: "system", content: functionRouterPrompt },
           { role: "user", content: message },
@@ -1372,6 +1385,16 @@ const availableFunctions = [
           name: toolCall.function.name,
           arguments: functionArgs,
         },
+        // Normalize for debug clients and downstream services
+        name: toolCall.function.name,
+        arguments: functionArgs,
+        functionCalls: [
+          {
+            name: toolCall.function.name,
+            arguments: functionArgs,
+            source: 'function-router'
+          }
+        ]
       }
     } catch (error) {
       logger.error("Error calling function router:", error)
