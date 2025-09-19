@@ -463,60 +463,190 @@ export class MessageRepository {
       // If no customer exists, create a temporary "Unknown User-XXX" for new users
       // This allows us to save messages in chat history even before registration
       if (!customer) {
-        logger.info(`saveMessage: No customer found for phone ${data.phoneNumber} - creating temporary customer for new user`)
-        
+        logger.info(
+          `saveMessage: No customer found for phone ${data.phoneNumber} - creating temporary customer for new user`
+        )
+
         // Generate random 3-digit number for temporary user
-        const randomNumber = Math.floor(Math.random() * 900) + 100; // 100-999
-        
+        const randomNumber = Math.floor(Math.random() * 900) + 100 // 100-999
+
         // Detect language from message content
-        let detectedLanguage = 'IT'; // Default to Italian
+        let detectedLanguage = "IT" // Default to Italian
         if (data.message) {
-          const lowerMessage = data.message.toLowerCase();
-          
+          const lowerMessage = data.message.toLowerCase()
+
           // Italian detection
-          const italianWords = ['ciao', 'buongiorno', 'buonasera', 'buonanotte', 'voglio', 'ho bisogno', 'vorrei', 'per favore', 'grazie', 'prego', 'sì', 'no', 'il', 'la', 'i', 'le', 'e', 'o', 'ma', 'con', 'per', 'da', 'in', 'su', 'a', 'di'];
-          
+          const italianWords = [
+            "ciao",
+            "buongiorno",
+            "buonasera",
+            "buonanotte",
+            "voglio",
+            "ho bisogno",
+            "vorrei",
+            "per favore",
+            "grazie",
+            "prego",
+            "sì",
+            "no",
+            "il",
+            "la",
+            "i",
+            "le",
+            "e",
+            "o",
+            "ma",
+            "con",
+            "per",
+            "da",
+            "in",
+            "su",
+            "a",
+            "di",
+          ]
+
           // English detection
-          const englishWords = ['hello', 'hi', 'good morning', 'good afternoon', 'good evening', 'i want', 'i need', 'i would like', 'please', 'thank you', 'thanks', 'yes', 'no', 'the', 'and', 'or', 'but', 'with', 'for', 'to', 'from', 'in', 'on', 'at', 'by'];
-          
+          const englishWords = [
+            "hello",
+            "hi",
+            "good morning",
+            "good afternoon",
+            "good evening",
+            "i want",
+            "i need",
+            "i would like",
+            "please",
+            "thank you",
+            "thanks",
+            "yes",
+            "no",
+            "the",
+            "and",
+            "or",
+            "but",
+            "with",
+            "for",
+            "to",
+            "from",
+            "in",
+            "on",
+            "at",
+            "by",
+          ]
+
           // Spanish detection
-          const spanishWords = ['hola', 'buenos días', 'buenas tardes', 'buenas noches', 'quiero', 'necesito', 'me gustaría', 'por favor', 'gracias', 'sí', 'no', 'el', 'la', 'los', 'las', 'y', 'o', 'pero', 'con', 'para', 'de', 'en', 'por'];
-          
+          const spanishWords = [
+            "hola",
+            "buenos días",
+            "buenas tardes",
+            "buenas noches",
+            "quiero",
+            "necesito",
+            "me gustaría",
+            "por favor",
+            "gracias",
+            "sí",
+            "no",
+            "el",
+            "la",
+            "los",
+            "las",
+            "y",
+            "o",
+            "pero",
+            "con",
+            "para",
+            "de",
+            "en",
+            "por",
+          ]
+
           // Portuguese detection
-          const portugueseWords = ['olá', 'bom dia', 'boa tarde', 'boa noite', 'quero', 'preciso', 'gostaria', 'por favor', 'obrigado', 'obrigada', 'sim', 'não', 'o', 'a', 'os', 'as', 'e', 'ou', 'mas', 'com', 'para', 'de', 'em', 'por'];
-          
+          const portugueseWords = [
+            "olá",
+            "bom dia",
+            "boa tarde",
+            "boa noite",
+            "quero",
+            "preciso",
+            "gostaria",
+            "por favor",
+            "obrigado",
+            "obrigada",
+            "sim",
+            "não",
+            "o",
+            "a",
+            "os",
+            "as",
+            "e",
+            "ou",
+            "mas",
+            "com",
+            "para",
+            "de",
+            "em",
+            "por",
+          ]
+
           // Count matches for each language
-          const italianMatches = italianWords.filter(word => lowerMessage.includes(word)).length;
-          const englishMatches = englishWords.filter(word => lowerMessage.includes(word)).length;
-          const spanishMatches = spanishWords.filter(word => lowerMessage.includes(word)).length;
-          const portugueseMatches = portugueseWords.filter(word => lowerMessage.includes(word)).length;
-          
+          const italianMatches = italianWords.filter((word) =>
+            lowerMessage.includes(word)
+          ).length
+          const englishMatches = englishWords.filter((word) =>
+            lowerMessage.includes(word)
+          ).length
+          const spanishMatches = spanishWords.filter((word) =>
+            lowerMessage.includes(word)
+          ).length
+          const portugueseMatches = portugueseWords.filter((word) =>
+            lowerMessage.includes(word)
+          ).length
+
           // Determine language based on highest match count
-          if (italianMatches > englishMatches && italianMatches > spanishMatches && italianMatches > portugueseMatches) {
-            detectedLanguage = 'IT';
-          } else if (englishMatches > italianMatches && englishMatches > spanishMatches && englishMatches > portugueseMatches) {
-            detectedLanguage = 'ENG';
-          } else if (spanishMatches > italianMatches && spanishMatches > englishMatches && spanishMatches > portugueseMatches) {
-            detectedLanguage = 'ESP';
-          } else if (portugueseMatches > italianMatches && portugueseMatches > englishMatches && portugueseMatches > spanishMatches) {
-            detectedLanguage = 'PRT';
+          if (
+            italianMatches > englishMatches &&
+            italianMatches > spanishMatches &&
+            italianMatches > portugueseMatches
+          ) {
+            detectedLanguage = "IT"
+          } else if (
+            englishMatches > italianMatches &&
+            englishMatches > spanishMatches &&
+            englishMatches > portugueseMatches
+          ) {
+            detectedLanguage = "ENG"
+          } else if (
+            spanishMatches > italianMatches &&
+            spanishMatches > englishMatches &&
+            spanishMatches > portugueseMatches
+          ) {
+            detectedLanguage = "ESP"
+          } else if (
+            portugueseMatches > italianMatches &&
+            portugueseMatches > englishMatches &&
+            portugueseMatches > spanishMatches
+          ) {
+            detectedLanguage = "PRT"
           }
         }
-        
+
         // Create a temporary customer for new users
         customer = await this.prisma.customers.create({
           data: {
             name: `Unknown User-${randomNumber}`,
-            email: `${data.phoneNumber.replace(/[^0-9]/g, '')}@temp.com`,
+            email: `${data.phoneNumber.replace(/[^0-9]/g, "")}@temp.com`,
             phone: data.phoneNumber,
             workspaceId: workspaceId,
             isActive: false, // Mark as inactive until they register
             language: detectedLanguage,
-            currency: "EUR"
-          }
+            currency: "EUR",
+          },
         })
-        
-        logger.info(`saveMessage: Created temporary customer ${customer.id} (Unknown User-${randomNumber}) for new user ${data.phoneNumber} with detected language: ${detectedLanguage}`)
+
+        logger.info(
+          `saveMessage: Created temporary customer ${customer.id} (Unknown User-${randomNumber}) for new user ${data.phoneNumber} with detected language: ${detectedLanguage}`
+        )
       }
 
       // Update customer's lastContact field
@@ -610,7 +740,8 @@ export class MessageRepository {
       // Save bot response (ensure it's not empty)
       let botResponse = null
       // Fix: Ensure botMessage is a string before calling trim()
-      const botMessageStr = typeof botMessage === 'string' ? botMessage : String(botMessage || '')
+      const botMessageStr =
+        typeof botMessage === "string" ? botMessage : String(botMessage || "")
       if (botMessageStr && botMessageStr.trim()) {
         // 🚨 ANTI-DUPLICATE CHECK: Verify if similar bot response exists in same hour:minute
         const now = new Date()
@@ -695,7 +826,9 @@ export class MessageRepository {
               // 🔧 Debug fields
               translatedQuery: data.translatedQuery,
               processedPrompt: data.processedPrompt,
-              functionCallsDebug: data.functionCallsDebug ? JSON.stringify(data.functionCallsDebug) : null,
+              functionCallsDebug: data.functionCallsDebug
+                ? JSON.stringify(data.functionCallsDebug)
+                : null,
               processingSource: data.processingSource,
               debugInfo: data.debugInfo, // 🔧 NEW: Debug info (already JSON string)
             },
@@ -1230,9 +1363,9 @@ export class MessageRepository {
       console.log("🔍 DEBUG - OPENROUTER_API_KEY check:", {
         present: !!process.env.OPENROUTER_API_KEY,
         length: process.env.OPENROUTER_API_KEY?.length || 0,
-        prefix: process.env.OPENROUTER_API_KEY?.substring(0, 15) || "MISSING"
+        prefix: process.env.OPENROUTER_API_KEY?.substring(0, 15) || "MISSING",
       })
-      
+
       if (!process.env.OPENROUTER_API_KEY) {
         logger.warn(
           "OpenRouter API key not configured properly for function router"
@@ -1248,57 +1381,88 @@ export class MessageRepository {
       // Ottieni il prompt del function router
       const functionRouterPrompt = await this.getFunctionRouterPrompt()
 
-// ANDREA DECISION: CF ATTIVE CON NOMI CORRETTI
-const availableFunctions = [
-  {
-    name: "ContactOperator",
-    description: "Contact a human operator when the user explicitly requests to speak with a human representative, operator, or customer service agent",
-    parameters: {
-      type: "object",
-      properties: {
-        message: { type: "string", description: "The user's original message requesting operator contact" }
-      },
-      required: ["message"]
-    }
-  },
-  {
-    name: "search_specific_product",
-    description: "Search for specific products when user mentions a specific product name like mozzarella, parmigiano, prosciutto, wine, pasta, etc.",
-    parameters: {
-      type: "object",
-      properties: {
-        productName: { type: "string", description: "Name of the specific product to search" },
-        message: { type: "string", description: "User's original product search request" }
-      },
-      required: ["productName", "message"]
-    }
-  },
-  {
-    name: "GetLinkOrderByCode",
-    description: "Get a secure link to view a specific order (or the last order if omitted). Triggers when user asks for a specific order or invoice.",
-    parameters: {
-      type: "object",
-      properties: {
-        orderCode: { type: "string", description: "Order number or code to retrieve (optional, falls back to last order)" },
-        documentType: { type: "string", description: "Type of document requested: invoice, ddt, order (optional)" },
-        message: { type: "string", description: "User's original request" }
-      },
-      required: ["message"]
-    }
-  },
-  {
-    name: "getShipmentTrackingLink",
-    description: "Get shipment tracking link when user asks about order status, delivery, where is my order, when will it arrive, tracking information, last order",
-    parameters: {
-      type: "object",
-      properties: {
-        orderCode: { type: "string", description: "Order number or code to track" },
-        message: { type: "string", description: "User's original tracking request" }
-      },
-      required: ["message"]
-    }
-  }
-]
+      // ANDREA DECISION: CF ATTIVE CON NOMI CORRETTI
+      const availableFunctions = [
+        {
+          name: "ContactOperator",
+          description:
+            "Contact a human operator when the user explicitly requests to speak with a human representative, operator, or customer service agent",
+          parameters: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                description:
+                  "The user's original message requesting operator contact",
+              },
+            },
+            required: ["message"],
+          },
+        },
+        {
+          name: "search_specific_product",
+          description:
+            "Search for specific products when user mentions a specific product name like mozzarella, parmigiano, prosciutto, wine, pasta, etc.",
+          parameters: {
+            type: "object",
+            properties: {
+              productName: {
+                type: "string",
+                description: "Name of the specific product to search",
+              },
+              message: {
+                type: "string",
+                description: "User's original product search request",
+              },
+            },
+            required: ["productName", "message"],
+          },
+        },
+        {
+          name: "GetLinkOrderByCode",
+          description:
+            "Get a secure link to view a specific order (or the last order if omitted). Triggers when user asks for a specific order or invoice.",
+          parameters: {
+            type: "object",
+            properties: {
+              orderCode: {
+                type: "string",
+                description:
+                  "Order number or code to retrieve (optional, falls back to last order)",
+              },
+              documentType: {
+                type: "string",
+                description:
+                  "Type of document requested: invoice, ddt, order (optional)",
+              },
+              message: {
+                type: "string",
+                description: "User's original request",
+              },
+            },
+            required: ["message"],
+          },
+        },
+        {
+          name: "getShipmentTrackingLink",
+          description:
+            "Get shipment tracking link when user asks about order status, delivery, where is my order, when will it arrive, tracking information, last order",
+          parameters: {
+            type: "object",
+            properties: {
+              orderCode: {
+                type: "string",
+                description: "Order number or code to track",
+              },
+              message: {
+                type: "string",
+                description: "User's original tracking request",
+              },
+            },
+            required: ["message"],
+          },
+        },
+      ]
 
       logger.info(
         `Calling function router for message: "${message.substring(0, 30)}${
@@ -1307,13 +1471,19 @@ const availableFunctions = [
       )
 
       // Chiamata all'API OpenRouter con le funzioni definite
-      const axios = require('axios')
+      const axios = require("axios")
       const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions"
       const openRouterApiKey = process.env.OPENROUTER_API_KEY
 
       // DEBUG: Log prompt e funzioni
-      console.log("🔍 DEBUG - Function Router Prompt:", functionRouterPrompt.substring(0, 200) + "...")
-      console.log("🔍 DEBUG - Available Functions:", availableFunctions.map(f => f.name))
+      console.log(
+        "🔍 DEBUG - Function Router Prompt:",
+        functionRouterPrompt.substring(0, 200) + "..."
+      )
+      console.log(
+        "🔍 DEBUG - Available Functions:",
+        availableFunctions.map((f) => f.name)
+      )
       console.log("🔍 DEBUG - User Message:", message)
       console.log("🔍 DEBUG - OpenRouter API Key present:", !!openRouterApiKey)
 
@@ -1323,36 +1493,45 @@ const availableFunctions = [
           { role: "system", content: functionRouterPrompt },
           { role: "user", content: message },
         ],
-        tools: availableFunctions.map(func => ({
+        tools: availableFunctions.map((func) => ({
           type: "function",
-          function: func
+          function: func,
         })),
         tool_choice: "auto",
       }
 
-      console.log("🔍 DEBUG - Request payload:", JSON.stringify(requestPayload, null, 2))
+      console.log(
+        "🔍 DEBUG - Request payload:",
+        JSON.stringify(requestPayload, null, 2)
+      )
 
       let response
       try {
         response = await axios.post(openRouterUrl, requestPayload, {
           headers: {
-            "Authorization": `Bearer ${openRouterApiKey}`,
+            Authorization: `Bearer ${openRouterApiKey}`,
             "Content-Type": "application/json",
             "HTTP-Referer": process.env.FRONTEND_URL || "http://localhost:5173",
-            "X-Title": "ShopME Function Router"
-          }
+            "X-Title": "ShopME Function Router",
+          },
         })
         console.log("🔍 DEBUG - Axios call successful")
       } catch (axiosError) {
         console.error("🔍 DEBUG - Axios error:", axiosError.message)
         if (axiosError.response) {
-          console.error("🔍 DEBUG - Axios response error:", axiosError.response.data)
+          console.error(
+            "🔍 DEBUG - Axios response error:",
+            axiosError.response.data
+          )
         }
         throw axiosError
       }
 
       // DEBUG: Log risposta OpenRouter
-      console.log("🔍 DEBUG - OpenRouter Response:", JSON.stringify(response.data.choices[0]?.message, null, 2))
+      console.log(
+        "🔍 DEBUG - OpenRouter Response:",
+        JSON.stringify(response.data.choices[0]?.message, null, 2)
+      )
 
       // Estrai la chiamata di tool dal risultato
       const toolCalls = response.data.choices[0]?.message?.tool_calls
@@ -1392,9 +1571,9 @@ const availableFunctions = [
           {
             name: toolCall.function.name,
             arguments: functionArgs,
-            source: 'function-router'
-          }
-        ]
+            source: "function-router",
+          },
+        ],
       }
     } catch (error) {
       logger.error("Error calling function router:", error)
@@ -2415,8 +2594,8 @@ INSTRUCTIONS FOR LLM FORMATTER:
   }) {
     try {
       // Generate unique order code - 5 uppercase letters
-      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-      let orderCode = ''
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      let orderCode = ""
       for (let i = 0; i < 5; i++) {
         orderCode += letters.charAt(Math.floor(Math.random() * letters.length))
       }
