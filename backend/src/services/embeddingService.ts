@@ -26,7 +26,7 @@ export class EmbeddingService {
   // 🎯 CONFIGURABLE SIMILARITY THRESHOLDS (Andrea's Request)
   private readonly SIMILARITY_THRESHOLDS = {
     FAQ: 0.25, // 🎯 LOWERED: To allow better FAQ matching like "chi sei?" → "Chi sei?"
-  PRODUCTS: 0.5, // 🎯 UPDATED: Set to 0.5 per user request for a balanced precision/recall
+    PRODUCTS: 0.5, // 🎯 UPDATED: Set to 0.5 per user request for a balanced precision/recall
     SERVICES: 0.35, // 🎯 BALANCED: Higher threshold for service precision
     DOCUMENTS: 0.35, // 🎯 BALANCED: More restrictive document matching
   }

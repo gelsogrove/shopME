@@ -181,17 +181,24 @@ export class DualLLMService {
           // Sometimes the LLM returns a full sentence like:
           // "L'utente ha richiesto informazioni su 'mozzarella'"
           // We want to extract the core product term (e.g. mozzarella) before searching.
-          const rawArg = (functionResult.function_call.arguments && (functionResult.function_call.arguments.message || functionResult.function_call.arguments.productName)) || ""
+          const rawArg =
+            (functionResult.function_call.arguments &&
+              (functionResult.function_call.arguments.message ||
+                functionResult.function_call.arguments.productName)) ||
+            ""
 
           const sanitizeProductName = (input: string) => {
             if (!input) return input
             let s = input.trim()
 
             // If there is a quoted term, prefer the quoted content
-            const singleQuoteMatch = s.match(/'([^']+)'/) || s.match(/’([^’]+)’/)
-            if (singleQuoteMatch && singleQuoteMatch[1]) return singleQuoteMatch[1].trim()
+            const singleQuoteMatch =
+              s.match(/'([^']+)'/) || s.match(/’([^’]+)’/)
+            if (singleQuoteMatch && singleQuoteMatch[1])
+              return singleQuoteMatch[1].trim()
             const doubleQuoteMatch = s.match(/"([^"]+)"/)
-            if (doubleQuoteMatch && doubleQuoteMatch[1]) return doubleQuoteMatch[1].trim()
+            if (doubleQuoteMatch && doubleQuoteMatch[1])
+              return doubleQuoteMatch[1].trim()
 
             // Remove common verbose prefixes (Italian and English)
             const prefixes = [
@@ -223,7 +230,7 @@ export class DualLLMService {
             // If still long, take last 3 words as a heuristic
             const words = s.split(/\s+/).filter(Boolean)
             if (words.length > 4) {
-              return words.slice(-3).join(' ')
+              return words.slice(-3).join(" ")
             }
 
             return s
@@ -235,7 +242,8 @@ export class DualLLMService {
             phoneNumber: request.phone,
             workspaceId: request.workspaceId,
             customerId: customer?.id || "",
-            productName: cleaned || (functionResult.function_call.arguments.message || ""),
+            productName:
+              cleaned || functionResult.function_call.arguments.message || "",
             message: functionResult.function_call.arguments.message || "",
             language: "it",
           })

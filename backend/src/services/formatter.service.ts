@@ -728,6 +728,8 @@ EXAMPLE OF BAD FORMATTING (NEVER DO THIS):
 "- **Spedizione**: 5 EUR
 - **Confezione regalo**: 30 EUR"
 
+non invnetare stai nei dati che ricevi magari condiscei manon invenare.
+tono professionale e cordiale perche' parli con un cliente  privilegiatao dell'altra italia
 Return ONLY the natural, unformatted text, no explanations.`,
             },
             {
@@ -735,7 +737,7 @@ Return ONLY the natural, unformatted text, no explanations.`,
               content: text,
             },
           ],
-          temperature: 0.0, // Zero temperature to prevent inventions
+          temperature: 0.3, // Zero temperature to prevent inventions
           max_tokens: 4000,
         },
         {
