@@ -16,10 +16,10 @@
 - dove e' il mio ultimo ordine?
 - Che prodotti vendete?
 - dammi ordine ORD-006-2024
+- Che offerte avete?
 
 CF
 
-- Che offerte avete?
 - dove e' il mio ultimo ordine?
 - voglio vedere la fattura dell'ultimo ordine
 

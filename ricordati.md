@@ -2,24 +2,20 @@ ricordati:
 
 - LLM del prompt principale decide la funzione da chiamare (per modificarlo correggi prompt_agent.md e lancia npm run update:prompt)
 
-- se il main prompt non chiama nessuna call function il codice deve salvare in una variabile la risposta generica del modello
+- Se il main prompt non chiama nessuna call function:
 
-- inoltre se il main prompt non chiama NULLA dobbiamo eseguire searchrag
+  1. il codice DEVE salvare in una variabile la risposta generica del modello (genericReply).
+  2. poi eseguire SearchRag usando domanda, workspaceId, customerId e languageUser.
+  3. se SearchRag restituisce risultati -> passare il risultato al Formatter.
+     - Il Formatter fa SOLO replace delle variabili (includere lingua), e restituisce il testo finale in modo naturale.
+     - Il Formatter NON deve eseguire logica, branching o usare regex; deve solo "rispondere nella lingua del cliente".
+  4. se SearchRag non restituisce risultati (array vuoto) -> ritorniamo al'utente la genericReply salvata precedentemente.
 
-- se searchRag restituisce qualcosa passa il risultato al formatter
-  > il formatter fa un replace delle variabili prima di darlo a OPENROUTER
-  > il formatter riceve la lingua sconto, workspaceId, customerId, domanda, e risposta del searchRag
-  > struttura del formatter molto semplice traduce la lingua, e poco piu' nessun if nessuna cosa strada ...sara llm che decidera' come stamprae i dati che gli arrivano ..noi dobbiamom mettere lungua conto e fargli capire che deve fare lda riposta...
-
-se searchRag non restituisce null array vuoto: > ritorniamo all'utente la risposta generica salvata precedentemente
-
-- ricordati che non devi hardcodare nulla nel codice e' LLM che decide chi chiamare e con quali parametri
-
-- togli codice sporco, duplicato voglio la soluzione pulita e che rispetta le regole
-
-- il formatter ricordiamoci che ha il compito di fare il replace e mandare solo la risposta in modo naturale
-
-- il formatter quando ha la variabile deve fare un replace ovviamente prima di inviarlo al modello
+- NON hardcodare nulla: è l'LLM che decide quale funzione chiamare e con quali parametri.
+- I nomi delle CF devono corrispondere ESATTAMENTE a quelli in prompt_agent.md (PascalCase).
+- Durante il debug usare SEMPRE curl diretto al webhook per verificare le functionCalls reali; il client MCP con log=true può mostrare log vecchi.
+- Il layer di traduzione (se presente) deve essere chiaramente separato e usato solo quando necessario; il prompt deve sempre contenere languageUser.
+- Pulisci log/temporanei una volta che la soluzione è verificata.
 
 - controlla quello che fai chiediti se stai facendo le cose giuste se fa la build se stai allineando controlla quello che hai fatto con test
 
@@ -62,3 +58,23 @@ se searchRag non restituisce null array vuoto: > ritorniamo all'utente la rispos
 - **REGOLA INVESTIGAZIONE**: Prima di modificare codice, SEMPRE verificare che il problema sia reale testando con curl diretto. Non basarti solo sui log del MCP client che possono essere fuorvianti.
 
 PULIRE IL CODICE DA quello che non serve e non viene invocato da nessuno.
+
+- **REGOLA LOG INGANNEVOLI**: Se vedi log che sembrano vecchi (con timestamp passati) durante il debug, NON fidarti. Il sistema potrebbe funzionare correttamente ma mostrare cache di log precedenti.
+
+- **REGOLA INVESTIGAZIONE**: Prima di modificare codice, SEMPRE verificare che il problema sia reale testando con curl diretto. Non basarti solo sui log del MCP client che possono essere fuorvianti.
+
+PULIRE IL CODICE DA quello che non serve e non viene invocato da nessuno.
+
+- Verifica rapida chiamata CF:
+
+  1. Se nei log/webhook vedi un campo `functionCalls` con un oggetto che ha `"name": "GetLinkOrderByCode"` (o altro nome CF esatto) e `result.data.success === true` → la CF è stata chiamata con successo (sì).
+  2. Per debug affidabile usa sempre `curl` diretto al webhook e controlla la risposta JSON (campo `functionCalls` e `result`), non fidarti solo dei log MCP client che potrebbero essere cache.
+  3. Se `functionCalls` è vuoto o non presente → la LLM non ha chiamato alcuna CF (no); in questo caso il flusso deve salvare `genericReply` ed eseguire SearchRag come da regole.
+
+- Verifica rapida il CF di replace:
+  - Se nei log del formatter appaiono:
+    - "Token replacement completed" e
+    - "Final response" con il link completo,
+      allora la CF di replace ha funzionato correttamente (NON è il problema).
+  - Se il link è troncato solo nei log ma nel webhook/result.json è presente correttamente → problema di logging/troncamento, non del replace.
+  - Sempre confermare con `curl` diretto al webhook controllando `functionCalls` e `result.data.link`.
