@@ -90,7 +90,7 @@ async function generateEmbeddingsAfterSeed() {
         console.log("⚠️ FAQ errors:", faqResult.errors)
       }
     } catch (error) {
-      console.log("❌ FAQ embeddings failed:", error.message)
+      console.log("❌ FAQ embeddings failed:", (error as any).message)
     }
 
     console.log("🔄 2. Generating Service embeddings...")
@@ -104,7 +104,7 @@ async function generateEmbeddingsAfterSeed() {
         console.log("⚠️ Service errors:", serviceResult.errors)
       }
     } catch (error) {
-      console.log("❌ Service embeddings failed:", error.message)
+      console.log("❌ Service embeddings failed:", (error as any).message)
     }
 
     console.log("🔄 3. Generating Product embeddings...")
@@ -118,7 +118,7 @@ async function generateEmbeddingsAfterSeed() {
         console.log("⚠️ Product errors:", productResult.errors)
       }
     } catch (error) {
-      console.log("❌ Product embeddings failed:", error.message)
+      console.log("❌ Product embeddings failed:", (error as any).message)
     }
 
     // console.log("🔄 4. Generating Document embeddings...")
@@ -144,7 +144,7 @@ async function generateEmbeddingsAfterSeed() {
     console.log("✅ RAG search should now work correctly")
     console.log("✅ Chatbot will use ONLY database data")
   } catch (error) {
-    console.log("❌ Error during embedding generation:", error.message)
+    console.log("❌ Error during embedding generation:", (error as any).message)
     console.log("⚠️ You may need to generate embeddings manually via frontend")
   }
 }
@@ -354,7 +354,7 @@ async function main() {
       })
       console.log("Eliminati document chunks")
     } catch (error) {
-      console.log("Errore eliminazione document chunks:", error.message)
+      console.log("Errore eliminazione document chunks:", (error as any).message)
     }
 
     try {
@@ -367,7 +367,7 @@ async function main() {
       })
       console.log("Eliminati FAQ chunks")
     } catch (error) {
-      console.log("Errore eliminazione FAQ chunks:", error.message)
+      console.log("Errore eliminazione FAQ chunks:", (error as any).message)
     }
 
     try {
@@ -380,7 +380,7 @@ async function main() {
       })
       console.log("Eliminati service chunks")
     } catch (error) {
-      console.log("Errore eliminazione service chunks:", error.message)
+      console.log("Errore eliminazione service chunks:", (error as any).message)
     }
 
     // Elimina tutti gli ordini e gli items
@@ -2525,6 +2525,14 @@ async function main() {
     {
       question: "che offerte avete?",
       answer: "Ciao! Ecco le nostre offerte attive: [LIST_OFFERS]",
+    },
+    {
+      question: "dammi la lista i prodotti",
+      answer: "[LIST_ALL_PRODUCTS]",
+    },
+    {
+      question: "give me the list of products",
+      answer: "[LIST_ALL_PRODUCTS]",
     },
     {
       question: "what offers do you have?",

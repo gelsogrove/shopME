@@ -18,6 +18,8 @@ export interface TextChunk {
 }
 
 export class EmbeddingService {
+  // Default search result limit used across the app
+  public static readonly DEFAULT_SEARCH_LIMIT = 100
   // Using local embeddings instead of OpenRouter (which doesn't support embeddings)
   private readonly LOCAL_MODEL = "Xenova/all-MiniLM-L6-v2"
   private readonly MAX_CHUNK_SIZE = 1500 // 🚀 OPTIMIZED: Increased from 500 to 1500 for better context preservation
@@ -629,7 +631,7 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
   async searchProducts(
     query: string,
     workspaceId: string,
-    limit: number = 5,
+    limit: number = EmbeddingService.DEFAULT_SEARCH_LIMIT,
     minSimilarity?: number
   ): Promise<EmbeddingSearchResult[]> {
     try {

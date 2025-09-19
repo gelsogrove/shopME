@@ -61,7 +61,10 @@ export class DualLLMService {
           return false
         }
 
-        if (!searchRagResult.success || isEmptyResponse(searchRagResult.response)) {
+        if (
+          !searchRagResult.success ||
+          isEmptyResponse(searchRagResult.response)
+        ) {
           console.log(
             `🤖 DualLLM: SearchRag vuoto anche in traduzione, generating LLM fallback`
           )
@@ -338,10 +341,11 @@ export class DualLLMService {
         return wordCount <= 2 || str.trim().length <= 20
       }
 
-      const defaultTopK = 10
+  // Increase default top_k to allow more results to flow through (no hard 10 limit)
+  const defaultTopK = 100
       const defaultThreshold = 0.35
 
-      const shortQueryTopK = 30
+  const shortQueryTopK = 200
       const shortQueryThreshold = 0.25
 
       const top_k = isShortQuery(translatedQuery) ? shortQueryTopK : defaultTopK

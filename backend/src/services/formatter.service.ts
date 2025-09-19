@@ -407,6 +407,35 @@ export class FormatterService {
     )
     fs.appendFileSync("/tmp/formatter-debug.log", `Input: ${response}\n`)
     fs.appendFileSync("/tmp/formatter-debug.log", `Language: ${language}\n`)
+    // If the incoming response is JSON and contains results.products, dump it separately for inspection
+    try {
+      const parsed = JSON.parse(response)
+      if (
+        parsed &&
+        parsed.results &&
+        Array.isArray(parsed.results.products) &&
+        parsed.results.products.length > 0
+      ) {
+        const dumpPath = "/tmp/formatter-products-debug.log"
+        fs.appendFileSync(
+          dumpPath,
+          `\n===== PRODUCTS DUMP ${new Date().toISOString()} =====\n`
+        )
+        fs.appendFileSync(
+          dumpPath,
+          JSON.stringify(parsed.results.products, null, 2) + "\n"
+        )
+        console.log(
+          `🔧 FORMATTER: Detected results.products, dumped ${parsed.results.products.length} products to ${dumpPath}`
+        )
+        fs.appendFileSync(
+          "/tmp/formatter-debug.log",
+          `Detected results.products and dumped to ${dumpPath}\n`
+        )
+      }
+    } catch (e) {
+      // Not JSON - ignore
+    }
     if (!response || response.trim() === "") {
       return "Nessuna risposta disponibile."
     }
@@ -427,6 +456,8 @@ export class FormatterService {
     - 🚨 NO EXAMPLE LINKS: Do not use example.com, laltraitalia.com, or any other website links
     - ✅ TOKEN RULE: Tokens have already been replaced with real data from the database
     - 🚨 FORBIDDEN: Adding "Trova i nostri prodotti qui:" or any website links
+    - NON MOSTRARE MAI LO STOCK NON MOSTRARE MAI IL CODICE PRODOTTO
+    - SE ARRIVANO LISTE DI DATO METTI I BULLETPOINT E ORGANIZZA PER categorie e tutti devono avere gli stessi spazi deve essere ben formattato.
     `
 
     // Combine critical rule with any additional format rules
@@ -516,7 +547,7 @@ ISTRUZIONI:
 - SE l'input è un JSON che contiene un campo "results.products" o "products", allora DEVI elencare ogni prodotto in una riga separata nel seguente formato esatto (senza simboli markdown):
   Nome — Formato — Prezzo: €X.XX — Stock: N units
   Esempio: Mozzarella FDL Barra — 1 Kg — Prezzo: €7.20 — Stock: 32 units
-- Non sintetizzare o omettere le righe di prodotto; includi fino a 10 prodotti se presenti.
+- Non sintetizzare o omettere le righe di prodotto; includi tutti i prodotti presenti nel JSON (nessun limite fisso).
 - Non aggiungere informazioni non presenti nel JSON; se un campo manca, scrivi "N/A" per quel valore.
 - Non usare bullets o formattazioni speciali, ritorna solo testo naturale.
 
@@ -624,7 +655,7 @@ Return ONLY the translated response, no explanations.`,
               content: text,
             },
           ],
-            temperature: 2.0,
+          temperature: 2.0,
           max_tokens: 300,
         },
         {
@@ -679,7 +710,10 @@ Return ONLY the translated response, no explanations.`,
   }
 
   // Small helper to pull a field value from a product chunk's content
-  private static extractFieldFromContent(content: string, regex: RegExp): string | null {
+  private static extractFieldFromContent(
+    content: string,
+    regex: RegExp
+  ): string | null {
     if (!content) return null
     try {
       const m = content.match(regex)

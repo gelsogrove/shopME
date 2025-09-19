@@ -2224,11 +2224,15 @@ export class MessageRepository {
       logger.info(`[RAG] Searching all content types for: "${message}"`)
 
       // Search all content types in parallel using semantic search
+      // Use embedding service default search limit to allow higher recall
+      const { EmbeddingService } = await import("../services/embeddingService")
+      const defaultLimit = EmbeddingService.DEFAULT_SEARCH_LIMIT
+
       const [productResults, faqResults, serviceResults, documentResults] =
         await Promise.all([
-          embeddingService.searchProducts(message, workspaceId, 5),
-          embeddingService.searchFAQs(message, workspaceId, 5),
-          embeddingService.searchServices(message, workspaceId, 5),
+          embeddingService.searchProducts(message, workspaceId, defaultLimit),
+          embeddingService.searchFAQs(message, workspaceId, defaultLimit),
+          embeddingService.searchServices(message, workspaceId, defaultLimit),
           Promise.resolve([]), // Documents search not implemented yet
         ])
 
