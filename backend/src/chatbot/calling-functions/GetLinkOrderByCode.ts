@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client"
+import { SecureTokenService } from "../../application/services/secure-token.service"
 
 const prisma = new PrismaClient()
 
@@ -79,8 +80,18 @@ export async function GetLinkOrderByCode(
       }
     }
 
-    // Genera token sicuro per l'ordine
-    const token = generateSecureToken(targetOrder.id, customerId, workspaceId)
+    // Genera token sicuro per l'ordine usando SecureTokenService
+    const secureTokenService = new SecureTokenService()
+    const token = await secureTokenService.createToken(
+      "orders",
+      workspaceId,
+      { orderId: targetOrder.id, customerId, workspaceId },
+      "1h",
+      undefined,
+      undefined,
+      undefined,
+      customerId
+    )
 
     // Determina il link in base al tipo di documento
     let link: string
@@ -122,13 +133,4 @@ export async function GetLinkOrderByCode(
   }
 }
 
-function generateSecureToken(
-  orderId: string,
-  customerId: string,
-  workspaceId: string
-): string {
-  // Genera un token sicuro basato su orderId, customerId e workspaceId
-  const crypto = require("crypto")
-  const data = `${orderId}-${customerId}-${workspaceId}-${Date.now()}`
-  return crypto.createHash("sha256").update(data).digest("hex")
-}
+

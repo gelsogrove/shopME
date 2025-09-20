@@ -86,9 +86,11 @@ export class DualLLMService {
       }
 
       // Step 4: Formatter receives: language, discount, question, workspaceId, customerId
-      const language = this.detectLanguageFromMessage(
+      // REGOLA 28, 56: Ottenere lingua dal database cliente
+      const language = await this.detectLanguageFromMessage(
         request.chatInput,
-        request.phone
+        request.phone,
+        request.workspaceId
       )
       const formattedResponse = await this.executeFormatter(
         request,
@@ -423,9 +425,11 @@ export class DualLLMService {
     try {
       console.log(`🎨 DualLLM: Executing formatter for ${functionName}`)
 
-      const language = this.detectLanguageFromMessage(
+      // REGOLA 28, 56: Ottenere lingua dal database cliente
+      const language = await this.detectLanguageFromMessage(
         request.chatInput,
-        request.phone
+        request.phone,
+        request.workspaceId
       )
 
       // REGOLA 9: Ottenere sconto cliente per il formatter
@@ -475,12 +479,66 @@ export class DualLLMService {
     }
   }
 
-  private detectLanguageFromMessage(
+  private async detectLanguageFromMessage(
     message: string,
-    phoneNumber?: string
-  ): string {
-    // Let the CF handle language detection
-    return "it" // Default fallback
+    phoneNumber?: string,
+    workspaceId?: string
+  ): Promise<string> {
+    try {
+      if (!phoneNumber || !workspaceId) {
+        return "it" // Default fallback
+      }
+
+      // REGOLA 28, 56: Ottenere lingua dal database cliente
+      const messageRepository = new MessageRepository()
+      const customer = await messageRepository.findCustomerByPhone(
+        phoneNumber,
+        workspaceId
+      )
+      
+      if (customer?.language) {
+        console.log(`🌍 DualLLM: Customer language from DB: ${customer.language}`)
+        return customer.language
+      }
+
+      // Fallback: rilevamento automatico dal messaggio
+      const detectedLanguage = this.detectLanguageFromText(message)
+      console.log(`🌍 DualLLM: Auto-detected language: ${detectedLanguage}`)
+      return detectedLanguage
+    } catch (error) {
+      console.error("❌ Error detecting language:", error)
+      return "it" // Default fallback
+    }
+  }
+
+  private detectLanguageFromText(text: string): string {
+    const lowerText = text.toLowerCase()
+    
+    // Rilevamento italiano
+    if (lowerText.includes('ciao') || lowerText.includes('grazie') || 
+        lowerText.includes('per favore') || lowerText.includes('prego')) {
+      return "it"
+    }
+    
+    // Rilevamento inglese
+    if (lowerText.includes('hello') || lowerText.includes('thank you') || 
+        lowerText.includes('please') || lowerText.includes('hi')) {
+      return "en"
+    }
+    
+    // Rilevamento spagnolo
+    if (lowerText.includes('hola') || lowerText.includes('gracias') || 
+        lowerText.includes('por favor') || lowerText.includes('adiós')) {
+      return "es"
+    }
+    
+    // Rilevamento portoghese
+    if (lowerText.includes('olá') || lowerText.includes('obrigado') || 
+        lowerText.includes('por favor') || lowerText.includes('tchau')) {
+      return "pt"
+    }
+    
+    return "it" // Default italiano
   }
 
   private async generateLLMResponse(

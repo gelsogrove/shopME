@@ -33,6 +33,10 @@ export async function ReplaceLinkWithToken(
     })
     const { response, linkType = "auto", context = "auto" } = params
 
+    if (!customerId || !workspaceId) {
+      return { success: false, response }
+    }
+
     const hasCartToken = response.includes("[LINK_CART_WITH_TOKEN]")
     const hasProfileToken = response.includes("[LINK_PROFILE_WITH_TOKEN]")
     const hasOrdersToken = response.includes("[LINK_ORDERS_WITH_TOKEN]")

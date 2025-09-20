@@ -45,6 +45,16 @@ ricordati:
 
 -Ho applicato la regola "token-first" richiesta: quando i risultati da RAG contengono uno o più elementi con i token speciali [LIST_ALL_PRODUCTS], [LIST_SERVICES], [LIST_CATEGORIES], [LIST_OFFERS], il servizio interno /api/internal/rag-search ora restituisce solo quegli elementi e scarta tutti gli altri. Se non ci sono token, il comportamento resta invariato.
 
+- la generazione del token deve esserre centralizzata, si deve creare un token nuovo solo se il vecchio e' scaduto quindi se e' attivo ritorna sempre lo stesso token de sicurezza
+- lato FE dobbiaom solo verigicare se il token e' valid
+
+  - prendiamo il token vediamo a che cliente appartiene
+  - verifichiamo la scadenza
+  - e diamo un messaggio di ok token valido o token non valido
+  - e' molto semplice non complicare le cose
+
+- ricordati che il formatter riceve la lignua e deve avere un messaggio nel prompt rispondi in lingua {{variabii}}
+
 🚨 **LEZIONI CRITICHE DEBUG CF:**
 
 - **REGOLA DEBUG MCP**: Il MCP client con log=true può mostrare log VECCHI dal file /tmp/shopme-server.log invece dei log attuali. Per debug accurato usa SEMPRE curl diretto al webhook per vedere la risposta reale.
@@ -74,9 +84,38 @@ PULIRE IL CODICE DA quello che non serve e non viene invocato da nessuno.
   3. Se `functionCalls` è vuoto o non presente → la LLM non ha chiamato alcuna CF (no); in questo caso il flusso deve salvare `genericReply` ed eseguire SearchRag come da regole.
 
 - Verifica rapida il CF di replace:
+
   - Se nei log del formatter appaiono:
     - "Token replacement completed" e
     - "Final response" con il link completo,
       allora la CF di replace ha funzionato correttamente (NON è il problema).
   - Se il link è troncato solo nei log ma nel webhook/result.json è presente correttamente → problema di logging/troncamento, non del replace.
   - Sempre confermare con `curl` diretto al webhook controllando `functionCalls` e `result.data.link`.
+
+- Verifica rapida token 401:
+  - Se link tokenizzati danno 401 Unauthorized, il token NON è stato creato con SecureTokenService (centralizzato).
+  - Controllare che la CF usi secureTokenService.createToken() e NON funzioni locali come generateSecureToken().
+  - Verificare che customerId sia valido (non "") quando si genera il token.
+  - Se token esiste nel DB ma dà 401, controllare scadenza o workspaceId nella validazione.
+
+🌍 **REGOLE CRITICHE LINGUA E LOCALIZZAZIONE:**
+
+- **REGOLA LINGUA DATABASE**: SEMPRE ottenere la lingua dal database cliente tramite `findCustomerByPhone()`, NON hardcodare mai "it" come default. Il sistema deve rilevare la lingua corretta per ogni cliente.
+
+- **REGOLA FALLBACK LINGUA**: Se la lingua non è trovata nel database cliente, fare rilevamento automatico dal testo del messaggio usando parole chiave specifiche per ogni lingua (ciao/grazie=it, hello/thank you=en, hola/gracias=es, olá/obrigado=pt).
+
+- **REGOLA LANGUAGEUSER**: Il formatter deve SEMPRE ricevere `languageUser` correttamente dal database. Il prompt principale deve contenere `{{languageUser}}` e il formatter deve rispondere nella lingua del cliente.
+
+- **REGOLA DEBUG LINGUA**: Durante il debug, verificare SEMPRE che la lingua sia passata correttamente al formatter. Controllare nei log: "Customer language from DB: [lingua]" e "Auto-detected language: [lingua]".
+
+- **REGOLA MULTILINGUA**: Il sistema deve supportare IT, EN, ES, PT. Ogni cliente deve ricevere risposte nella SUA lingua, non sempre in italiano.
+
+- **REGOLA TRADUZIONE**: Se presente un layer di traduzione, deve essere chiaramente separato e usato solo quando necessario. Il prompt deve sempre contenere `languageUser` per il fallback.
+
+- **REGOLA FORMATTER LINGUA**: Il formatter riceve domanda, dati, lingua, customerID e deve SOLO rispondere nella lingua del cliente in modo naturale. NON deve eseguire logica, branching o usare regex.
+
+- **REGOLA CF LINGUA**: Se una CF funziona, NON deve passare per traduzione e SearchRag. La CF deve gestire direttamente la lingua corretta.
+
+- **REGOLA PROMPT LINGUA**: Il prompt principale deve contenere la lingua perché se non passiamo dal RAG, DEVE SAPERE CHE LINGUA PARLARE.
+
+- **REGOLA VERIFICA LINGUA**: Dopo ogni modifica al sistema di lingua, testare con clienti di lingue diverse per verificare che ricevano risposte nella loro lingua corretta.
