@@ -135,7 +135,7 @@ export async function ReplaceLinkWithToken(
           const profileToken = Buffer.from(
             `${customerId}:${workspaceId}:${Date.now()}`
           ).toString("base64")
-          const profileLink = `http://localhost:3000/profile-public?token=${profileToken}`
+          const profileLink = `http://localhost:3000/customer-profile?token=${profileToken}`
           replacedResponse = replacedResponse.replace(
             /\[LINK_PROFILE_WITH_TOKEN\]/g,
             profileLink
