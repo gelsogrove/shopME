@@ -93,10 +93,14 @@ PULIRE IL CODICE DA quello che non serve e non viene invocato da nessuno.
   - Sempre confermare con `curl` diretto al webhook controllando `functionCalls` e `result.data.link`.
 
 - Verifica rapida token 401:
+
   - Se link tokenizzati danno 401 Unauthorized, il token NON è stato creato con SecureTokenService (centralizzato).
   - Controllare che la CF usi secureTokenService.createToken() e NON funzioni locali come generateSecureToken().
   - Verificare che customerId sia valido (non "") quando si genera il token.
   - Se token esiste nel DB ma dà 401, controllare scadenza o workspaceId nella validazione.
+
+  -non va ma ci dobbiamo capire
+  LLM > Cf or SEARRCHRAG > tutte aterrano sul formatter che ritorna un messaggio in MARK DOWN all'utente non c'e nessun altro livello intermedio....pero' ovviamente il FE POTREBBE FARE QUALCHE ALTRA FORMATTAZIONE
 
 🌍 **REGOLE CRITICHE LINGUA E LOCALIZZAZIONE:**
 

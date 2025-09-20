@@ -42,14 +42,23 @@ export class DualLLMService {
         functionCalls = cfResult.functionCalls
       } else {
         console.log(
-          `🔍 DualLLM: No CF called - FLUSSO CORRETTO: SearchRag SOLO con traduzione inglese`
+          `🔍 DualLLM: No CF called - FLUSSO CORRETTO: Salvare genericReply e poi SearchRag`
         )
 
-        // FLUSSO CORRETTO: SearchRag SOLO con traduzione inglese
+        // REGOLA 1: Salvare genericReply quando LLM non chiama CF
+        console.log("💾 DualLLM: Generando e salvando genericReply...")
+        const genericReply = await this.generateLLMResponse(
+          translatedQuery,
+          request.workspaceId,
+          request.language || "it"
+        )
+        console.log("✅ DualLLM: genericReply salvata:", genericReply.substring(0, 100) + "...")
+
+        // REGOLA 2: Eseguire SearchRag
         let searchRagResult = await this.executeSearchRagFallback(
           request,
           translatedQuery,
-          { response: "" }
+          { response: genericReply } // Passare la genericReply salvata
         )
 
         // Se SearchRag non trova nulla nemmeno in traduzione, genera LLM response
@@ -432,8 +441,9 @@ export class DualLLMService {
         request.workspaceId
       )
 
-      // REGOLA 9: Ottenere sconto cliente per il formatter
+      // REGOLA 9: Ottenere sconto cliente e nome per il formatter
       let customerDiscount = 0
+      let customerName = "Utente"
       if (request.customerid) {
         try {
           const messageRepository = new MessageRepository()
@@ -442,12 +452,14 @@ export class DualLLMService {
             request.workspaceId
           )
           customerDiscount = customer?.discount || 0
+          customerName = customer?.name || "Utente"
           console.log(
-            `💰 DualLLM: Customer discount found: ${customerDiscount}%`
+            `💰 DualLLM: Customer found: ${customerName} with ${customerDiscount}% discount`
           )
         } catch (error) {
-          console.error("❌ Error getting customer discount:", error)
+          console.error("❌ Error getting customer info:", error)
           customerDiscount = 0
+          customerName = "Utente"
         }
       }
 
@@ -461,14 +473,14 @@ export class DualLLMService {
             : String(responseForFormatter || "")
       }
 
-      const formattedResponse = await FormatterService.formatResponse(
+      const formattedResponse = await FormatterService.formatToMarkdown(
         responseForFormatter,
-        language,
-        undefined, // formatRules
-        request.customerid || "",
-        request.workspaceId,
-        request.chatInput, // originalQuestion
-        customerDiscount // REGOLA 9: Sconto cliente
+        request.chatInput || "", // question
+        customerName || "Utente", // nameUser  
+        customerDiscount || 0, // discount
+        request.customerid || "", // customerId
+        request.workspaceId, // workspaceId
+        language // language
       )
 
       console.log(`✅ DualLLM: Formatter completed for ${functionName}`)
@@ -495,9 +507,11 @@ export class DualLLMService {
         phoneNumber,
         workspaceId
       )
-      
+
       if (customer?.language) {
-        console.log(`🌍 DualLLM: Customer language from DB: ${customer.language}`)
+        console.log(
+          `🌍 DualLLM: Customer language from DB: ${customer.language}`
+        )
         return customer.language
       }
 
@@ -513,31 +527,47 @@ export class DualLLMService {
 
   private detectLanguageFromText(text: string): string {
     const lowerText = text.toLowerCase()
-    
+
     // Rilevamento italiano
-    if (lowerText.includes('ciao') || lowerText.includes('grazie') || 
-        lowerText.includes('per favore') || lowerText.includes('prego')) {
+    if (
+      lowerText.includes("ciao") ||
+      lowerText.includes("grazie") ||
+      lowerText.includes("per favore") ||
+      lowerText.includes("prego")
+    ) {
       return "it"
     }
-    
+
     // Rilevamento inglese
-    if (lowerText.includes('hello') || lowerText.includes('thank you') || 
-        lowerText.includes('please') || lowerText.includes('hi')) {
+    if (
+      lowerText.includes("hello") ||
+      lowerText.includes("thank you") ||
+      lowerText.includes("please") ||
+      lowerText.includes("hi")
+    ) {
       return "en"
     }
-    
+
     // Rilevamento spagnolo
-    if (lowerText.includes('hola') || lowerText.includes('gracias') || 
-        lowerText.includes('por favor') || lowerText.includes('adiós')) {
+    if (
+      lowerText.includes("hola") ||
+      lowerText.includes("gracias") ||
+      lowerText.includes("por favor") ||
+      lowerText.includes("adiós")
+    ) {
       return "es"
     }
-    
+
     // Rilevamento portoghese
-    if (lowerText.includes('olá') || lowerText.includes('obrigado') || 
-        lowerText.includes('por favor') || lowerText.includes('tchau')) {
+    if (
+      lowerText.includes("olá") ||
+      lowerText.includes("obrigado") ||
+      lowerText.includes("por favor") ||
+      lowerText.includes("tchau")
+    ) {
       return "pt"
     }
-    
+
     return "it" // Default italiano
   }
 
@@ -602,7 +632,7 @@ export class DualLLMService {
           role: "system",
           content:
             agentPrompt ||
-            "You are SofIA, an Italian e-commerce assistant. Respond naturally and helpfully in Italian.",
+            "You are SofIA, an Italian e-commerce assistant. Respond naturally and helpfully in Italian. Use emoji 😊 and *bold text* when appropriate.",
         },
         ...conversationHistory,
         {
@@ -629,7 +659,7 @@ export class DualLLMService {
             model: "openai/gpt-3.5-turbo",
             messages: messages,
             temperature: 0.3,
-            max_tokens: 150,
+            max_tokens: 1500,
           }),
         }
       )

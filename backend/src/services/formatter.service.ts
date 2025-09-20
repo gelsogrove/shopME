@@ -1,64 +1,213 @@
 /**
  * Formatter Service
  *
- * Centralizes all response formatting rules for ShopME chatbot.
- * Handles cart display, product formatting, and system response styling.
- * Supports multiple languages: IT, EN, ES, PT
- *
- * 🎭 PERSONALITÀ E STILE:
- * - Tono: Professionale ma caldo e accogliente, tipicamente italiano
- * - Multilingua: Adatta automaticamente la lingua all'utente
- * - Proattivo: Suggerisce prodotti correlati e ricette abbinate
- * - Esperto: Condivide conoscenze sui prodotti italiani e la loro origine
- *
- * 📋 BEST PRACTICES:
- * 1. Sempre contestualizza le risposte con le informazioni dell'utente
- * 2. Suggerisce abbinamenti quando possibile (ricette + prodotti)
- * 3. È specifico sui dettagli dei prodotti (origine, caratteristiche)
- * 4. Offre alternative se un prodotto non è disponibile
- * 5. Facilita il contatto con l'operatore quando necessario
+ * Simple service with one method that formats responses to Markdown
  */
 
 export class FormatterService {
-  // Simple in-memory cache for translated category names: key -> workspaceId:language:categoryId
+  // Cache for translated category names
   private static categoryTranslationCache: Map<string, string> = new Map()
-  private static async replaceAllVariables(
-    response: string,
-    customerId?: string,
-    workspaceId?: string,
-    language?: string,
-    customerDiscount?: number
-  ): Promise<string> {
-    console.log(
-      "🔧 Formatter: replaceAllVariables called with:",
-      response.substring(0, 100)
-    )
 
-    // 🚨 EXCEPTION HANDLING: Parameter validation
-    if (!workspaceId) {
-      throw new Error("workspaceId is required for variable replacement")
+  /**
+   * Main formatting method - takes input, replaces tokens, and returns Markdown formatted output
+   *
+   * @param data - The raw response text/data from CF or searchRag (can contain tokens)
+   * @param question - The user's original question
+   * @param nameUser - The user's name
+   * @param discount - The user's discount percentage
+   * @param customerId - Customer ID for token replacement
+   * @param workspaceId - Workspace ID for token replacement
+   * @param language - Target language (it, en, es, pt)
+   * @returns Promise<string> - Formatted Markdown response with replaced tokens
+   */
+  static async formatToMarkdown(
+    data: string,
+    question: string,
+    nameUser: string,
+    discount: number,
+    customerId: string,
+    workspaceId: string,
+    language: string = "it"
+  ): Promise<string> {
+    console.log("🔧 FORMATTER: === INIZIO FORMATTING ===")
+    console.log("📊 FORMATTER: Parametri ricevuti:", {
+      data: data ? `"${data.substring(0, 100)}..."` : "null/undefined",
+      dataLength: data?.length || 0,
+      question: question || "null/undefined", 
+      nameUser: nameUser || "null/undefined",
+      discount: discount !== undefined ? discount : "undefined",
+      customerId: customerId || "null/undefined",
+      workspaceId: workspaceId || "null/undefined",
+      language: language || "null/undefined"
+    })
+
+    if (!data || data.trim() === "") {
+      console.log("❌ FORMATTER: Data vuoto o nullo")
+      return language === "it"
+        ? "Nessuna risposta disponibile."
+        : "No response available."
     }
 
-    // Handle [LIST_CATEGORIES] VARIABLE
-    if (response.includes("[LIST_CATEGORIES]")) {
-      console.log("🔧 Formatter: Found [LIST_CATEGORIES] VARIABLE!")
+    // 1. REPLACE TOKENS FIRST
+    let processedInput = data
+    console.log("🔄 FORMATTER: Iniziando sostituzione token...")
+    try {
+      processedInput = await this.replaceTokens(
+        data,
+        question,
+        nameUser,
+        discount,
+        customerId,
+        workspaceId,
+        language
+      )
+      console.log("✅ FORMATTER: Token replacement completato")
+      console.log("📝 FORMATTER: Dati dopo token replacement:", {
+        originalLength: data.length,
+        processedLength: processedInput.length,
+        changed: data !== processedInput,
+        preview: processedInput.substring(0, 200) + "..."
+      })
+    } catch (error) {
+      console.error("❌ FORMATTER: Token replacement error:", error.message)
+      console.error("📋 FORMATTER: Error stack:", error.stack)
+      // Continue with original data if token replacement fails
+    }
 
+    // 2. HANDLE JSON FAQs
+    try {
+      const parsed = JSON.parse(processedInput)
+      if (parsed?.results?.faqs?.length > 0) {
+        const faq = parsed.results.faqs[0]
+        let content = faq.content || ""
+
+        // Clean up FAQ content
+        content = content
+          .replace(/^Question:\s*.*?\nAnswer:\s*/i, "")
+          .replace(/^Answer:\s*/i, "")
+          .trim()
+
+        return content
+      }
+    } catch (e) {
+      // Not JSON, continue with LLM formatting
+    }
+
+    // Use LLM to format to Markdown
+    const prompt = `Tu sei un assistente esperto nella formattazione Markdown per un negozio di prodotti italiani.
+
+UTENTE: ${nameUser}
+SCONTO UTENTE: ${discount}%
+DOMANDA UTENTE: ${question}
+DATI DA FORMATTARE: ${processedInput}
+LINGUA TARGET: ${language}
+
+ISTRUZIONI:
+1. **LISTE PRODOTTI**: Se il testo contiene prodotti JSON:
+   - Raggruppa per categoria: ## Nome Categoria
+   - Formato prodotto: - **Nome** — Formato — Prezzo: €X.XX
+   - NON mostrare stock o codici
+
+2. **FORMATTAZIONE MARKDOWN**:
+   - **Grassetto** per nomi importanti
+   - ## per intestazioni 
+   - - per bullet points
+   - [Testo](url) per link
+   - *Corsivo* per enfasi
+
+3. **REGOLE**:
+   - Mantieni ESATTAMENTE i dati originali
+   - NON inventare nulla
+   - Personalizza con il nome utente: ${nameUser}
+   - Se lo sconto è > 0, menziona il ${discount}% di sconto disponibile
+   - Rispondi in ${language === "it" ? "italiano" : language === "en" ? "inglese" : language === "es" ? "spagnolo" : "portoghese"}
+
+Restituisci testo formattato in Markdown arricchiendo le risposte e saludando l'utente per nome, ciao, bentornato, :`
+
+    console.log("🤖 FORMATTER: Invio richiesta a OpenRouter...")
+    console.log("📤 FORMATTER: Prompt length:", prompt.length)
+    
+    try {
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:3001",
+            "X-Title": "ShopME Formatter",
+          },
+          body: JSON.stringify({
+            model: "anthropic/claude-3.5-sonnet",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.3,
+          }),
+        }
+      )
+
+      console.log("📡 FORMATTER: Response status:", response.status)
+      
+      if (!response.ok) {
+        console.error("❌ FORMATTER: OpenRouter error:", response.status)
+        console.error("📋 FORMATTER: Response text:", await response.text())
+        return data // Return original on error
+      }
+
+      const result = await response.json()
+      console.log("📨 FORMATTER: Raw LLM response:", {
+        hasContent: !!result.choices?.[0]?.message?.content,
+        contentLength: result.choices?.[0]?.message?.content?.length || 0,
+        fullResponse: result
+      })
+      
+      const formatted = result.choices?.[0]?.message?.content || data
+
+      console.log("✅ FORMATTER: Successfully formatted to Markdown")
+      console.log("📄 FORMATTER: Final result:", {
+        length: formatted.length,
+        preview: formatted.substring(0, 200) + "..."
+      })
+      console.log("🔧 FORMATTER: === FINE FORMATTING ===")
+      return formatted.trim()
+    } catch (error) {
+      console.error("❌ FORMATTER: Error:", error)
+      console.error("📋 FORMATTER: Error stack:", error.stack)
+      console.log("🔧 FORMATTER: === FINE FORMATTING (CON ERRORE) ===")
+      return data // Return original on error
+    }
+  }
+
+  /**
+   * Replaces tokens in the input text with real data from the database
+   */
+  private static async replaceTokens(
+    text: string,
+    question: string,
+    nameUser: string,
+    discount: number,
+    customerId: string,
+    workspaceId: string,
+    language: string
+  ): Promise<string> {
+    let result = text
+
+    // Handle [LIST_CATEGORIES] token
+    if (result.includes("[LIST_CATEGORIES]")) {
       try {
-        // ✅ USE EXISTING SERVICE: CategoryService
         const {
           CategoryService,
         } = require("../application/services/category.service")
         const categoryService = new CategoryService()
-
         const categories = await categoryService.getAllForWorkspace(workspaceId)
-        if (categories && categories.length > 0) {
-          // Translate category names to customer's language if provided
+
+        if (categories?.length > 0) {
           const translationService =
             new (require("./translation.service").TranslationService)()
 
           const translatedNames = await Promise.all(
             categories.map(async (category) => {
-              const cacheKey = `${workspaceId}:${language || "it"}:${category.id}`
+              const cacheKey = `${workspaceId}:${language}:${category.id}`
               if (this.categoryTranslationCache.has(cacheKey)) {
                 return {
                   id: category.id,
@@ -69,13 +218,11 @@ export class FormatterService {
               try {
                 const translated = await translationService.translateToLanguage(
                   category.name,
-                  language || "it"
+                  language
                 )
-                // store in cache
                 this.categoryTranslationCache.set(cacheKey, translated)
                 return { id: category.id, name: translated }
               } catch (e) {
-                // If translation fails, fall back to original name
                 return { id: category.id, name: category.name }
               }
             })
@@ -87,80 +234,32 @@ export class FormatterService {
                 translatedNames.find((t: any) => t.id === category.id)?.name ||
                 category.name
               const emoji = this.getCategoryEmoji(translated)
-              return `- ${emoji} *${translated}*`
+              return `- ${emoji} **${translated}**`
             })
             .join("\n")
 
-          response = response.replace("[LIST_CATEGORIES]", categoriesList)
+          result = result.replace("[LIST_CATEGORIES]", categoriesList)
         }
       } catch (error) {
-        // 🚨 EXCEPTION HANDLING: Database query failure
-        throw new Error(
-          `Database query failed for [LIST_CATEGORIES]: ${error.message}`
+        console.error("❌ Error replacing [LIST_CATEGORIES]:", error.message)
+      }
+    }
+
+    // Handle [USER_DISCOUNT] token
+    if (result.includes("[USER_DISCOUNT]")) {
+      if (discount > 0) {
+        result = result.replace("[USER_DISCOUNT]", `${discount}%`)
+      } else {
+        result = result.replace(
+          "[USER_DISCOUNT]",
+          "Nessuno sconto attivo al momento 🙏"
         )
       }
     }
 
-    // Handle [USER_DISCOUNT] VARIABLE
-    if (response.includes("[USER_DISCOUNT]")) {
-      console.log("🔧 Formatter: Found [USER_DISCOUNT] VARIABLE!")
-
-      // 🚨 EXCEPTION HANDLING: Parameter validation
-      if (!customerId) {
-        throw new Error(
-          "customerId is required for [USER_DISCOUNT] variable replacement"
-        )
-      }
-
+    // Handle [LINK_ORDERS_WITH_TOKEN] token
+    if (result.includes("[LINK_ORDERS_WITH_TOKEN]")) {
       try {
-        // ✅ USE EXISTING SERVICE: PriceCalculationService
-        const {
-          PriceCalculationService,
-        } = require("../application/services/price-calculation.service")
-        const { PrismaClient } = require("@prisma/client")
-        const prisma = new PrismaClient()
-        const priceService = new PriceCalculationService(prisma)
-
-        const discounts = await priceService.getAvailableDiscounts(
-          workspaceId,
-          customerId
-        )
-
-        await prisma.$disconnect()
-
-        if (discounts.customerDiscount > 0) {
-          response = response.replace(
-            "[USER_DISCOUNT]",
-            `${discounts.customerDiscount}%`
-          )
-        } else {
-          // 🚨 GRACEFUL HANDLING: No discount
-          response = response.replace(
-            "[USER_DISCOUNT]",
-            "Nessuno sconto attivo al momento 🙏"
-          )
-        }
-      } catch (error) {
-        // 🚨 EXCEPTION HANDLING: Database query failure
-        throw new Error(
-          `Database query failed for [USER_DISCOUNT]: ${error.message}`
-        )
-      }
-    }
-
-    // Handle [LINK_ORDERS_WITH_TOKEN] VARIABLE
-    if (response.includes("[LINK_ORDERS_WITH_TOKEN]")) {
-      console.log("🔧 Formatter: Found [LINK_ORDERS_WITH_TOKEN] VARIABLE!")
-
-      // 🚨 EXCEPTION HANDLING: Parameter validation
-      if (!customerId) {
-        throw new Error(
-          "customerId is required for [LINK_ORDERS_WITH_TOKEN] variable replacement"
-        )
-      }
-
-      try {
-        // ✅ USE EXISTING SERVICE: SecureTokenService
         const {
           SecureTokenService,
         } = require("../application/services/secure-token.service")
@@ -178,153 +277,68 @@ export class FormatterService {
         )
 
         const ordersLink = `http://localhost:3000/orders-public?token=${ordersToken}`
-        response = response.replace("[LINK_ORDERS_WITH_TOKEN]", ordersLink)
+        result = result.replace("[LINK_ORDERS_WITH_TOKEN]", ordersLink)
       } catch (error) {
-        // 🚨 EXCEPTION HANDLING: Token generation failure
-        throw new Error(
-          `Token generation failed for [LINK_ORDERS_WITH_TOKEN]: ${error.message}`
+        console.error(
+          "❌ Error replacing [LINK_ORDERS_WITH_TOKEN]:",
+          error.message
         )
       }
     }
 
-    // Handle other tokens using existing ReplaceLinkWithToken function
-    const hasListAllProducts = response.includes("[LIST_ALL_PRODUCTS]")
-    const hasListServices = response.includes("[LIST_SERVICES]")
-    const hasListOffers = response.includes("[LIST_OFFERS]")
-    const hasListActiveOffers = response.includes("[LIST_ACTIVE_OFFERS]")
-    const hasLinkProfile = response.includes("[LINK_PROFILE_WITH_TOKEN]")
-    const hasLinkCart = response.includes("[LINK_CART_WITH_TOKEN]")
-    const hasLinkTracking = response.includes("[LINK_TRACKING_WITH_TOKEN]")
-    const hasLinkCheckout = response.includes("[LINK_CHECKOUT_WITH_TOKEN]")
-    const hasLinkLastOrderInvoice = response.includes(
-      "[LINK_LAST_ORDER_INVOICE_WITH_TOKEN]"
-    )
-
-    console.log("🔧 Formatter: Token detection:", {
-      hasListAllProducts,
-      hasListServices,
-      hasListOffers,
-      hasListActiveOffers,
-      hasLinkProfile,
-      hasLinkCart,
-      hasLinkTracking,
-      hasLinkCheckout,
-      hasLinkLastOrderInvoice,
-      response: response.substring(0, 100),
-    })
-
-    // Handle [LIST_ALL_PRODUCTS] token with GetAllProducts function
-    if (hasListAllProducts) {
-      console.log(
-        "🔧 Formatter: Found [LIST_ALL_PRODUCTS] token, calling GetAllProducts"
-      )
-
+    // Handle [LIST_ALL_PRODUCTS] token
+    if (result.includes("[LIST_ALL_PRODUCTS]")) {
       try {
         const {
           GetAllProducts,
         } = require("../chatbot/calling-functions/GetAllProducts")
 
-        if (!customerId || !workspaceId) {
-          throw new Error(
-            "customerId and workspaceId are required for GetAllProducts"
-          )
-        }
-
         const productsResult = await GetAllProducts({
-          phoneNumber: "unknown", // We don't have phone number in formatter context
+          phoneNumber: "unknown",
           workspaceId: workspaceId,
           customerId: customerId,
           message: "Get all products",
-          language: language || "it",
-        })
-
-        console.log("🔧 Formatter: GetAllProducts returned:", {
-          success: !!productsResult.response,
-          totalProducts: productsResult.totalProducts,
+          language: language,
         })
 
         if (productsResult.response) {
-          // Replace [LIST_ALL_PRODUCTS] with a deterministic formatted products list
-          try {
-            const formatted = this.formatProductsDeterministic(
-              productsResult.products,
-              language || "it",
-              "WHATSAPP"
-            )
-            response = response.replace(/\[LIST_ALL_PRODUCTS\]/g, formatted)
-            console.log(
-              "🔧 Formatter: Replaced [LIST_ALL_PRODUCTS] with deterministic products list"
-            )
-          } catch (e) {
-            // fallback to CF response if deterministic formatting fails
-            response = response.replace(
-              /\[LIST_ALL_PRODUCTS\]/g,
-              productsResult.response
-            )
-          }
+          result = result.replace(
+            /\[LIST_ALL_PRODUCTS\]/g,
+            productsResult.response
+          )
         }
       } catch (error) {
-        console.error("❌ Formatter: GetAllProducts error:", error)
-        // Replace with fallback message
-        response = response.replace(
-          /\[LIST_ALL_PRODUCTS\]/g,
+        console.error("❌ Error replacing [LIST_ALL_PRODUCTS]:", error.message)
+        const fallback =
           language === "it"
             ? "Nessun prodotto disponibile al momento"
             : "No products available at the moment"
-        )
+        result = result.replace(/\[LIST_ALL_PRODUCTS\]/g, fallback)
       }
     }
 
-    // Handle other tokens using existing ReplaceLinkWithToken function
-    if (
-      hasListOffers ||
-      hasListActiveOffers ||
-      hasListServices ||
-      hasLinkProfile ||
-      hasLinkCart ||
-      hasLinkTracking ||
-      hasLinkCheckout ||
-      hasLinkLastOrderInvoice
-    ) {
-      console.log("🔧 Formatter: Found tokens that need replacement:", {
-        hasListAllProducts: response.includes("[LIST_ALL_PRODUCTS]"),
-        hasListServices: response.includes("[LIST_SERVICES]"),
-        hasListOffers: response.includes("[LIST_OFFERS]"),
-        customerId: customerId,
-        workspaceId: workspaceId,
-      })
+    // Handle other tokens using ReplaceLinkWithToken
+    const hasOtherTokens = [
+      "[LIST_SERVICES]",
+      "[LIST_OFFERS]",
+      "[LIST_ACTIVE_OFFERS]",
+      "[LINK_PROFILE_WITH_TOKEN]",
+      "[LINK_CART_WITH_TOKEN]",
+      "[LINK_TRACKING_WITH_TOKEN]",
+      "[LINK_CHECKOUT_WITH_TOKEN]",
+      "[LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
+    ].some((token) => result.includes(token))
 
+    if (hasOtherTokens) {
       try {
         const {
           ReplaceLinkWithToken,
         } = require("../chatbot/calling-functions/ReplaceLinkWithToken")
 
-        console.log("🔧 Formatter: Token replacement params:", {
-          customerId: customerId,
-          workspaceId: workspaceId,
-          hasCustomerId: !!customerId,
-          hasWorkspaceId: !!workspaceId,
-        })
-
-        if (!customerId || !workspaceId) {
-          throw new Error(
-            "customerId and workspaceId are required for token replacement"
-          )
-        }
-
-        console.log("🔧 Formatter: About to call ReplaceLinkWithToken with:", {
-          response: response.substring(0, 100),
-          customerId,
-          workspaceId,
-        })
-
-        // If the response string is actually JSON coming from a CF and contains
-        // an orderCode, pass it through so ReplaceLinkWithToken can build a
-        // URL with the order code in the path: /orders-public/{orderCode}?token=...
         let detectedOrderCode: string | undefined = undefined
         try {
-          const parsedResp = JSON.parse(response)
-          if (parsedResp && parsedResp.orderCode) {
+          const parsedResp = JSON.parse(result)
+          if (parsedResp?.orderCode) {
             detectedOrderCode = parsedResp.orderCode
           }
         } catch (e) {
@@ -332,105 +346,25 @@ export class FormatterService {
         }
 
         const replaceResult = await ReplaceLinkWithToken(
-          { response, orderCode: detectedOrderCode },
+          { response: result, orderCode: detectedOrderCode },
           customerId,
           workspaceId
         )
 
-        console.log("🔧 Formatter: ReplaceLinkWithToken returned:", {
-          success: replaceResult.success,
-          hasResponse: !!replaceResult.response,
-          error: replaceResult.error,
-        })
-
-        console.log("🔧 Formatter: ReplaceLinkWithToken result:", {
-          success: replaceResult.success,
-          hasResponse: !!replaceResult.response,
-          error: replaceResult.error,
-        })
-
         if (replaceResult.success && replaceResult.response) {
-          response = replaceResult.response
-          console.log(
-            "🔧 Formatter: Response after replacement:",
-            response.substring(0, 200)
-          )
+          result = replaceResult.response
         }
       } catch (error) {
-        console.error("❌ Formatter: Error replacing other tokens:", error)
+        console.error("❌ Error replacing other tokens:", error.message)
       }
     }
 
-    return response
+    return result
   }
 
   /**
-   * Deterministic formatting for product arrays.
-   * Ensures: grouped by category, one-line per product, bullet '-' + space,
-   * product name wrapped with '*' for WhatsApp bold, no stock or sku shown,
-   * single empty line between categories only.
+   * Gets appropriate emoji for category name
    */
-  private static formatProductsDeterministic(
-    products: Array<any>,
-    language: string,
-    channel: "WHATSAPP" | "MARKDOWN" | "PLAIN" = "WHATSAPP"
-  ): string {
-    if (!products || products.length === 0) return ""
-
-    // normalize fields and group by category
-    const grouped: Record<string, any[]> = {}
-    products.forEach((p) => {
-      const cat = (p.category && p.category.name) || "N/A"
-      if (!grouped[cat]) grouped[cat] = []
-
-      // normalize name and formato to single-line strings
-      const name = (p.name || "N/A").toString().replace(/\s+/g, " ").trim()
-      const formato = (p.formato || "N/A")
-        .toString()
-        .replace(/\s+/g, " ")
-        .trim()
-      const price =
-        typeof p.finalPrice === "number" ? p.finalPrice : p.price || 0
-
-      grouped[cat].push({ name, formato, price })
-    })
-
-    const lines: string[] = []
-    Object.keys(grouped).forEach((cat, idx) => {
-      // category header
-      if (channel === "MARKDOWN") {
-        lines.push(`## ${cat}`)
-      } else {
-        // WHATSAPP or PLAIN
-        lines.push(`${cat}:`)
-      }
-
-      grouped[cat].forEach((prod) => {
-        const priceStr =
-          typeof prod.price === "number" ? `€${prod.price.toFixed(2)}` : "N/A"
-        // ensure asterisks around name only (remove underscores)
-        const safeName = prod.name.replace(/_/g, " ").trim()
-
-        if (channel === "MARKDOWN") {
-          lines.push(
-            `- **${safeName}** — ${prod.formato} — Prezzo: ${priceStr}`
-          )
-        } else if (channel === "WHATSAPP") {
-          // WhatsApp uses single asterisks for bold
-          lines.push(`- *${safeName}* — ${prod.formato} — Prezzo: ${priceStr}`)
-        } else {
-          // PLAIN
-          lines.push(`- ${safeName} — ${prod.formato} — Prezzo: ${priceStr}`)
-        }
-      })
-
-      // add single empty line between categories (but not after last)
-      if (idx < Object.keys(grouped).length - 1) lines.push("")
-    })
-
-    return lines.join("\n")
-  }
-
   private static getCategoryEmoji(categoryName: string): string {
     const lowerCategory = categoryName.toLowerCase()
 
@@ -490,443 +424,7 @@ export class FormatterService {
     ) {
       return "🍅"
     } else {
-      return "📦" // Default emoji
+      return "📦"
     }
-  }
-  static async formatResponse(
-    response: string,
-    language: string = "it",
-    formatRules?: string,
-    customerId?: string,
-    workspaceId?: string,
-    originalQuestion?: string,
-    customerDiscount?: number,
-    conversationHistory?: Array<{ role: string; content: string }>
-  ): Promise<string> {
-    console.log("🔧 FORMATTER: ===== START FORMATTING =====")
-    console.log("🔧 FORMATTER: Input response:", response)
-    console.log("🔧 FORMATTER: Language:", language)
-    console.log("🔧 FORMATTER: Format rules:", formatRules)
-    console.log("🔧 FORMATTER: Customer ID:", customerId)
-    console.log("🔧 FORMATTER: Workspace ID:", workspaceId)
-
-    // Write to file for debugging
-    const fs = require("fs")
-    fs.appendFileSync(
-      "/tmp/formatter-debug.log",
-      `\n===== FORMATTER DEBUG =====\n`
-    )
-    fs.appendFileSync("/tmp/formatter-debug.log", `Input: ${response}\n`)
-    fs.appendFileSync("/tmp/formatter-debug.log", `Language: ${language}\n`)
-    // If the incoming response is JSON and contains results.products, dump it separately for inspection
-    try {
-      const parsed = JSON.parse(response)
-      if (
-        parsed &&
-        parsed.results &&
-        Array.isArray(parsed.results.products) &&
-        parsed.results.products.length > 0
-      ) {
-        const dumpPath = "/tmp/formatter-products-debug.log"
-        fs.appendFileSync(
-          dumpPath,
-          `\n===== PRODUCTS DUMP ${new Date().toISOString()} =====\n`
-        )
-        fs.appendFileSync(
-          dumpPath,
-          JSON.stringify(parsed.results.products, null, 2) + "\n"
-        )
-        console.log(
-          `🔧 FORMATTER: Detected results.products, dumped ${parsed.results.products.length} products to ${dumpPath}`
-        )
-        fs.appendFileSync(
-          "/tmp/formatter-debug.log",
-          `Detected results.products and dumped to ${dumpPath}\n`
-        )
-      }
-    } catch (e) {
-      // Not JSON - ignore
-    }
-    if (!response || response.trim() === "") {
-      return "Nessuna risposta disponibile."
-    }
-
-    // 🚨 CRITICAL RULE: NEVER INVENT ANYTHING - ONLY USE REAL DATABASE DATA
-    const criticalRule = `
-    🚨 CRITICAL FORMATTING RULE - NEVER INVENT ANYTHING:
-    - You are a helpful assistant for L'Altra Italia, specialized in Italian products
-    - NEVER invent codes, dates, prices, products, links, or any information not in the database
-    - NEVER add fake checkout codes, expiration dates, promotional messages, or website links
-    - NEVER invent product names, discounts, offers, or any content
-    - ONLY use the exact data provided in the response
-    - If data is missing, say "Information not available" - DO NOT INVENT
-    - NO FANTASY, NO CREATIVITY - ONLY REAL DATABASE FACTS
-    - 🚨 ABSOLUTE RULE: If you don't have real data, don't make it up - just format what's there
-    - 🚨 LINK RULE: NEVER add any links unless they are explicitly provided in the response
-    - 🚨 NO WEBSITE LINKS: Do not add "Trova i nostri prodotti qui:" or any website links
-    - 🚨 NO EXAMPLE LINKS: Do not use example.com, laltraitalia.com, or any other website links
-    - ✅ TOKEN RULE: Tokens have already been replaced with real data from the database
-    - 🚨 FORBIDDEN: Adding "Trova i nostri prodotti qui:" or any website links
-    - NON MOSTRARE MAI LO STOCK NON MOSTRARE MAI IL CODICE PRODOTTO
-    - SE ARRIVANO LISTE DI DATO METTI I BULLETPOINT E ORGANIZZA PER categorie e tutti devono avere gli stessi spazi deve essere ben formattato.
-    `
-
-    // Combine critical rule with any additional format rules
-    const combinedRules =
-      criticalRule +
-      (formatRules ? `\n\nADDITIONAL RULES:\n${formatRules}` : "")
-
-    // FLUSSO PULITO FORMATTER - SOLO TRADUZIONE NATURALE
-    let formattedResponse = response
-
-    // 1. Sostituisci i token prima
-    try {
-      formattedResponse = await this.replaceAllVariables(
-        response,
-        customerId,
-        workspaceId,
-        language,
-        customerDiscount
-      )
-      console.log("✅ FORMATTER: Token replacement completed")
-      console.log("🔧 FORMATTER: After token replacement:", formattedResponse)
-      fs.appendFileSync(
-        "/tmp/formatter-debug.log",
-        `After token replacement: ${formattedResponse}\n`
-      )
-    } catch (error) {
-      console.error("❌ FORMATTER: Token replacement error:", error.message)
-      formattedResponse = response
-    }
-
-    // 2. SOLO traduzione naturale - NESSUNA CONDIZIONE
-    console.log("🔧 FORMATTER: Applying simple natural language formatting...")
-    // NOTE: Per le regole architetturali, NON effettuare pre-formatting o
-    // logica di estrazione qui. Il Formatter deve solo formattare il testo
-    // fornito e rispettare la lingua dell'utente. Se il payload contiene
-    // JSON con `results.products` o `products`, l'LLM deve includerli
-    // esattamente come appaiono nel testo. Le istruzioni per questo sono
-    // fornite nel prompt di applySimpleLanguageFormatting.
-
-    // Always use the simple language formatting LLM to produce the final
-    // human-readable response. This centralizes natural-language generation in
-    // one place (the Formatter) and avoids duplicating presentation logic here.
-    // It also guarantees we follow the CRITICAL RULE: do not invent data.
-    let finalResponse = await this.applySimpleLanguageFormatting(
-      formattedResponse,
-      language,
-      originalQuestion
-    )
-    console.log(
-      "🔧 FORMATTER: Final response:",
-      finalResponse.substring(0, 200)
-    )
-    fs.appendFileSync(
-      "/tmp/formatter-debug.log",
-      `Final result: ${finalResponse}\n`
-    )
-    fs.appendFileSync(
-      "/tmp/formatter-debug.log",
-      `===== END FORMATTER DEBUG =====\n`
-    )
-
-    return finalResponse
-  }
-
-  private static async applySimpleLanguageFormatting(
-    text: string,
-    language: string,
-    originalQuestion: string
-  ): Promise<string> {
-    if (!text) return text
-
-    console.log("🔧 SIMPLE FORMATTER: Input:", {
-      text: text.substring(0, 100),
-      language,
-      originalQuestion,
-    })
-
-    const prompt = `Tu sei un assistente per un negozio di prodotti italiani.
-
-  DOMANDA UTENTE: ${originalQuestion}
-  RISPOSTA DA FORMATTARE: ${text}
-  LINGUA UTENTE: ${language}
-
-  ISTRUZIONI RIGUARDO ALLE LISTE (versione compatta):
-  - Se l'input è un JSON che contiene un campo "results.products" o "products", procedi così:
-    1) Raggruppa i prodotti per categoria (usa il campo category o "N/A" se assente).
-    2) Per ogni categoria valida (non vuota), stampa una singola riga di intestazione con il nome della categoria.
-    3) Sotto l'intestazione, elenca ogni prodotto in UNA SOLA RIGA come bullet point con questo esatto formato (senza righe vuote extra):
-       - *Nome prodotto* — Formato — Prezzo: €X.XX
-       Esempio: - *Mozzarella FDL Barra* — 1 Kg — Prezzo: €7.20
-    4) Omessi campi sensibili: NON mostrare lo stock, NON mostrare codici prodotto o SKU.
-    5) Se un prodotto ha più line-break o campi multilinea, normalizzali in una singola riga separando i campi con ' — '.
-
-  REGOLE GENERALI:
-  
-  - Mantieni esattamente i dati forniti (prezzi, nomi, formati). Non inventare nulla.
-  - Per campi mancanti, usa "N/A".
-  - Non aggiungere link, codici, date o informazioni non presenti nella sorgente.
-
-  OUTPUT:
-  - Usa esattamente un trattino seguito da uno spazio per i bullet.
-  - Usa *asterischi* per il bold del nome (WhatsApp friendly).
-  - Non inserire righe vuote tra prodotti o categorie; lascia una sola linea vuota tra categorie diverse.
-
-  - Rispondi in modo naturale nella lingua dell'utente: (${language}). (se it e' italiano se e' en inglese se es e' spagnolo se pt e' portoghese) 
-  Rispondi solo con test ben formattato se ci sono liste mettti bullet point organizza per categorie usa i bold e guarda bene le linee vuote che ci sono. Se viene fornito un link di checkout, NON chiedere all'utente di scrivere "nuovo ordine" - il link è sufficiente per procedere.`
-
-    try {
-      const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions"
-      const response = await fetch(openRouterUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3001",
-          "X-Title": "ShopME Formatter",
-        },
-        body: JSON.stringify({
-          model: "anthropic/claude-3.5-sonnet",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.0,
-        }),
-      })
-
-      if (!response.ok) {
-        console.error(
-          "❌ SIMPLE FORMATTER: OpenRouter error:",
-          response.status,
-          response.statusText
-        )
-        return text
-      }
-
-      const data = await response.json()
-      const formattedText = data.choices?.[0]?.message?.content || text
-
-      console.log("✅ SIMPLE FORMATTER: Success")
-      return formattedText.trim()
-    } catch (error) {
-      console.error("❌ SIMPLE FORMATTER: Error:", error)
-      return text
-    }
-  }
-
-  private static async applyLanguageFormatting(
-    text: string,
-    language: string,
-    formatRules: string
-  ): Promise<string> {
-    if (!text) return text
-
-    console.log("🔧 NEW FORMATTER: applyLanguageFormatting called with:", {
-      text: text.substring(0, 100),
-      language,
-      formatRules: formatRules?.substring(0, 50),
-    })
-
-    // Check if this is a JSON response with action type
-    try {
-      const jsonData = JSON.parse(text)
-      if (jsonData.action && jsonData.linkUrl) {
-        return this.formatActionResponse(jsonData, language)
-      }
-    } catch (e) {
-      // Not JSON, continue with normal formatting
-    }
-
-    try {
-      const axios = require("axios")
-      const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions"
-      const openRouterApiKey = process.env.OPENROUTER_API_KEY
-
-      const languageNames = {
-        it: "Italian",
-        en: "English",
-        es: "Spanish",
-        pt: "Portuguese",
-      }
-
-      const targetLanguage = languageNames[language] || "Italian"
-
-      const languageResponse = await axios.post(
-        openRouterUrl,
-        {
-          model: "openai/gpt-3.5-turbo",
-          messages: [
-            {
-              role: "system",
-              content: `You are a WhatsApp message formatter. Your ONLY job is to translate the response to ${targetLanguage} while PRESERVING ALL LISTS AND SPECIFIC INFORMATION.
-
-🚨 CRITICAL RULES:
-1. Respond ONLY in ${targetLanguage}
-2. PRESERVE ALL LISTS - never remove or replace them
-3. PRESERVE ALL SPECIFIC INFORMATION - never replace with generic text
-4. Only translate the language, don't change the content structure
-5. If there are categories or products listed, KEEP THEM EXACTLY
-
-EXAMPLE:
-Original: "Ecco le categorie: • Cheeses & Dairy • Pasta & Rice • Sauces"
-Good: "Ecco le nostre categorie: • Formaggi e Latticini • Pasta e Riso • Salse"
-Bad: "Ciao! Abbiamo tanti prodotti disponibili!" (NEVER replace lists with generic text)
-
-Return ONLY the translated response, no explanations.`,
-            },
-            {
-              role: "user",
-              content: text,
-            },
-          ],
-          temperature: 2.0,
-          max_tokens: 300,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${openRouterApiKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost:3001",
-            "X-Title": "ShopMe Language Formatter",
-          },
-          timeout: 10000,
-        }
-      )
-
-      const formattedText =
-        languageResponse.data.choices[0]?.message?.content?.trim() || text
-      console.log("🔧 NEW FORMATTER: LLM response:", formattedText)
-      console.log(`✅ Language formatting to ${targetLanguage} completed`)
-      return formattedText
-    } catch (error) {
-      console.error("❌ Language formatting error:", error)
-      return text // Return original text if formatting fails
-    }
-  }
-
-  private static formatActionResponse(jsonData: any, language: string): string {
-    const { action, linkUrl, expiresAt } = jsonData
-
-    if (language === "it") {
-      switch (action) {
-        case "cart":
-          return `Ecco il tuo carrello: ${linkUrl}\n\nIl link scadrà il ${new Date(expiresAt).toLocaleDateString("it-IT")} alle ${new Date(expiresAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}. Buon shopping! 🛒`
-        case "orders":
-          return `Ecco i tuoi ordini: ${linkUrl}\n\nIl link scadrà il ${new Date(expiresAt).toLocaleDateString("it-IT")} alle ${new Date(expiresAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}.`
-        case "checkout":
-          return `Procedi con il checkout: ${linkUrl}\n\nIl link scadrà il ${new Date(expiresAt).toLocaleDateString("it-IT")} alle ${new Date(expiresAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}.`
-        default:
-          return `Ecco il link richiesto: ${linkUrl}\n\nIl link scadrà il ${new Date(expiresAt).toLocaleDateString("it-IT")} alle ${new Date(expiresAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}.`
-      }
-    } else {
-      // English
-      switch (action) {
-        case "cart":
-          return `Here's your cart: ${linkUrl}\n\nThe link will expire on ${new Date(expiresAt).toLocaleDateString("en-US")} at ${new Date(expiresAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}. Happy shopping! 🛒`
-        case "orders":
-          return `Here are your orders: ${linkUrl}\n\nThe link will expire on ${new Date(expiresAt).toLocaleDateString("en-US")} at ${new Date(expiresAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}.`
-        case "checkout":
-          return `Proceed to checkout: ${linkUrl}\n\nThe link will expire on ${new Date(expiresAt).toLocaleDateString("en-US")} at ${new Date(expiresAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}.`
-        default:
-          return `Here's the requested link: ${linkUrl}\n\nThe link will expire on ${new Date(expiresAt).toLocaleDateString("en-US")} at ${new Date(expiresAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}.`
-      }
-    }
-  }
-
-  // Small helper to pull a field value from a product chunk's content
-  private static extractFieldFromContent(
-    content: string,
-    regex: RegExp
-  ): string | null {
-    if (!content) return null
-    try {
-      const m = content.match(regex)
-      if (m && m[1]) return m[1].trim()
-    } catch (e) {
-      // ignore
-    }
-    return null
-  }
-
-  private static async applyWhatsAppFormatting(text: string): Promise<string> {
-    if (!text) return text
-
-    try {
-      const axios = require("axios")
-      const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions"
-      const openRouterApiKey = process.env.OPENROUTER_API_KEY
-
-      const formattingResponse = await axios.post(
-        openRouterUrl,
-        {
-          model: "openai/gpt-3.5-turbo",
-          messages: [
-            {
-              role: "system",
-              content: `You are a WhatsApp message formatter for ShopME, an Italian food e-commerce. Your ONLY job is to make the text natural and conversational for WhatsApp.
-
-🎭 PERSONALITÀ E STILE:
-- Tono: Professionale ma caldo e accogliente, tipicamente italiano
-- Multilingua: Adatta automaticamente la lingua all'utente
-- Proattivo: Suggerisce prodotti correlati e ricette abbinate
-- Esperto: Condivide conoscenze sui prodotti italiani e la loro origine
-
-📋 BEST PRACTICES:
-1. Sempre contestualizza le risposte con le informazioni dell'utente
-2. Suggerisce abbinamenti quando possibile (ricette + prodotti)
-3. È specifico sui dettagli dei prodotti (origine, caratteristiche)
-4. Offre alternative se un prodotto non è disponibile
-5. Facilita il contatto con l'operatore quando necessario
-
-🚨 CRITICAL RULES - FOLLOW EXACTLY:
-1. NEVER use any markdown formatting (no **bold**, _italics_, ~strikethrough~, \`code\`)
-2. NEVER use bullet points, dashes, or structured lists
-3. Write in flowing, natural sentences
-4. Use simple line breaks only when necessary
-5. Make it sound like a friendly conversation
-6. Do NOT add any NEW links, websites, or URLs that are not in the original text
-7. DO include any links that are already present in the original text
-8. Do NOT add any additional information not in the original text
-9. Do NOT use any formatting symbols or special characters
-10. Be proactive and suggest related products or recipes
-11. Share knowledge about Italian products and their origins
-12. Always contextualize responses with user information
-13. Offer alternatives when products are not available
-
-EXAMPLE OF GOOD FORMATTING:
-"Ciao! Offriamo spedizione per 5 EUR con consegna entro 3-5 giorni lavorativi, e confezione regalo per 30 EUR con messaggio personalizzato e materiali premium. Ti consiglio anche di abbinare il nostro Parmigiano Reggiano DOP con il nostro Aceto Balsamico di Modena IGP per un sapore autentico italiano!"
-
-EXAMPLE OF BAD FORMATTING (NEVER DO THIS):
-"- **Spedizione**: 5 EUR
-- **Confezione regalo**: 30 EUR"
-
-non invnetare stai nei dati che ricevi magari condiscei manon invenare.
-tono professionale e cordiale perche' parli con un cliente  privilegiatao dell'altra italia
-Return ONLY the natural, unformatted text, no explanations.`,
-            },
-            {
-              role: "user",
-              content: text,
-            },
-          ],
-          temperature: 0.3, // Zero temperature to prevent inventions
-          max_tokens: 4000,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${openRouterApiKey}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 10000,
-        }
-      )
-
-      if (formattingResponse.data?.choices?.[0]?.message?.content) {
-        return formattingResponse.data.choices[0].message.content.trim()
-      }
-    } catch (error) {
-      console.error("❌ WhatsApp formatting failed, using original:", error)
-    }
-
-    return text
   }
 }
