@@ -79,14 +79,10 @@ GetShipmentTrackingLink() # utilizza {{lastordercode}}
 **QUANDO USARE**: Richieste di prodotti in categoria specifica
 **TRIGGER SEMANTICI**:
 
-- "formaggi", "salumi", "vini", "pasta" (nomi categorie)
-- "cheeses", "cured meats", "wines", "pasta" (category names)
-
-**QUANDO USARE**: Richieste sui servizi offerti
-**TRIGGER SEMANTICI**:
-
-- "che servizi", "servizi disponibili", "cosa offrite"
-- "what services", "available services", "what do you offer"
+- "formaggi", "salumi", "vini", "pasta", "prodotti congelati", "surgelati", "frozen products" (nomi categorie)
+- "cheeses", "cured meats", "wines", "pasta", "frozen products", "congelati" (category names)
+- "prodotti congelati", "surgelati", "congelati", "frozen", "gelati"
+- "prodotti surgelati", "surgelati", "frozen products"
 
 ---
 

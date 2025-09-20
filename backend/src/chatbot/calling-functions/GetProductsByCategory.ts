@@ -143,9 +143,30 @@ Prova a controllare altre categorie o contatta il nostro staff per maggiori info
     const icon = categoryIcons[categoryName] || '📦';
 
     // 🚨 REGOLA PROMPT: COMPLETEZZA OBBLIGATORIA - Mostra TUTTI i prodotti della categoria
-    const productsMessage = `${icon} **${categoryName}** - Tutti i prodotti disponibili:
+    // Verificare se ci sono sconti nella categoria
+    const hasCategoryDiscount = products.some(product => {
+      const priceData = priceMap.get(product.id);
+      return (priceData?.appliedDiscount || 0) > 0;
+    });
+
+    // Trovare lo sconto più alto applicato
+    const maxDiscount = Math.max(...products.map(product => {
+      const priceData = priceMap.get(product.id);
+      return priceData?.appliedDiscount || 0;
+    }));
+
+    // Costruire il messaggio con informazioni di sconto
+    let categoryHeader = `${icon} **${categoryName}**`;
+    if (hasCategoryDiscount) {
+      categoryHeader += ` (Sconto ${maxDiscount}% applicato)`;
+    }
+    categoryHeader += ` - Tutti i prodotti disponibili:`;
+
+    const productsMessage = `${categoryHeader}
 
 ${productList}
+
+${hasCategoryDiscount ? `💰 *Sconto ${maxDiscount}%* sui ${categoryName.toLowerCase()} (il più alto tra i tuoi sconti disponibili)` : ''}
 
 Scrivi il codice del prodotto che ti interessa o dimmi quale vorresti aggiungere al carrello! 🛒`;
 
