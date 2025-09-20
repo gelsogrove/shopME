@@ -674,7 +674,7 @@ export class FormatterService {
   - Non inserire righe vuote tra prodotti o categorie; lascia una sola linea vuota tra categorie diverse.
 
   - Rispondi in modo naturale nella lingua dell'utente: (${language}). (se it e' italiano se e' en inglese se es e' spagnolo se pt e' portoghese) 
-  Rispondi solo con test ben formattato se ci sono liste mettti bullet point organizza per categorie usa i bold e guarda bene le linee vuote che ci sono , inoltre se si parla di prodotti scrivi "Se vuoi procedere con un nuovo ordine, srivi nuovo ordine"·`
+  Rispondi solo con test ben formattato se ci sono liste mettti bullet point organizza per categorie usa i bold e guarda bene le linee vuote che ci sono. Se viene fornito un link di checkout, NON chiedere all'utente di scrivere "nuovo ordine" - il link è sufficiente per procedere.`
 
     try {
       const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions"

@@ -28,7 +28,6 @@
 
 NON VA!!!
 
-- inglese ?non va
 - FORMATTER FORMAT
 - troppi log!
 - non vedo gli sconti sui prodotti
