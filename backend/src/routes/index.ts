@@ -475,6 +475,7 @@ import { UserController } from "../interfaces/http/controllers/user.controller"
 import { createAgentRouter } from "../interfaces/http/routes/agent.routes"
 import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
+import { cartRouter } from "../interfaces/http/routes/cart.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
 import {
   customersRouter,
@@ -1462,6 +1463,9 @@ const settingsController = new SettingsController()
 // Public routes (MUST BE BEFORE AUTH ROUTES)
 router.use("/checkout", checkoutRouter)
 logger.info("Registered checkout routes for order processing")
+
+router.use("/cart", cartRouter)
+logger.info("Registered cart routes for shopping cart operations")
 
 router.use("/auth", authRouter(authController))
 router.use("/registration", createRegistrationRouter())

@@ -370,8 +370,8 @@ export class DualLLMService {
       const searchRagResult = await this.callingFunctionsService.SearchRag({
         customerId: request.customerid || "",
         workspaceId: request.workspaceId,
-        // send translatedQuery (reverted)
-        query: translatedQuery,
+        // Use original query to find FAQs in customer's language
+        query: request.chatInput,
         messages: [],
         top_k,
         similarityThreshold,
@@ -486,6 +486,9 @@ export class DualLLMService {
         language // language
       )
 
+      console.log(`🌍 DualLLM: Language passed to formatter: ${language}`)
+      console.log(`🔤 DualLLM: Input for formatter - question: "${request.chatInput}"`)
+      console.log(`📄 DualLLM: Input for formatter - response: "${responseForFormatter?.substring(0, 200)}..."`)
       console.log(`✅ DualLLM: Formatter completed for ${functionName}`)
       return formattedResponse
     } catch (error) {
@@ -531,12 +534,30 @@ export class DualLLMService {
   private detectLanguageFromText(text: string): string {
     const lowerText = text.toLowerCase()
 
-    // Rilevamento italiano
+    // Rilevamento italiano - parole più comuni
     if (
       lowerText.includes("ciao") ||
       lowerText.includes("grazie") ||
       lowerText.includes("per favore") ||
-      lowerText.includes("prego")
+      lowerText.includes("prego") ||
+      lowerText.includes("voglio") ||
+      lowerText.includes("fare") ||
+      lowerText.includes("ordine") ||
+      lowerText.includes("prodotti") ||
+      lowerText.includes("cosa") ||
+      lowerText.includes("come") ||
+      lowerText.includes("quanto") ||
+      lowerText.includes("quando") ||
+      lowerText.includes("dove") ||
+      lowerText.includes("che") ||
+      lowerText.includes("della") ||
+      lowerText.includes("del") ||
+      lowerText.includes("con") ||
+      lowerText.includes("sono") ||
+      lowerText.includes("ho") ||
+      lowerText.includes("hai") ||
+      lowerText.includes("può") ||
+      lowerText.includes("puoi")
     ) {
       return "it"
     }

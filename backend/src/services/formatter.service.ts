@@ -105,13 +105,16 @@ LINGUA TARGET: ${language}
 ISTRUZIONI:
 1. **LISTE PRODOTTI**: Se il testo contiene prodotti JSON:
    - Raggruppa per categoria: ## Nome Categoria
-   - Formato prodotto: - **Nome** — Formato — Prezzo: €X.XX
+   - Formato prodotto compatto: 
+     **Nome Prodotto**
+     (formato) > €prezzo
    - NON mostrare stock o codici
+   - Una riga vuota tra i prodotti
 
 2. **FORMATTAZIONE MARKDOWN**:
    - **Grassetto** per nomi importanti
    - ## per intestazioni 
-   - - per bullet points
+   - - per bullet points se non sono prodotti
    - [Testo](url) per link
    - *Corsivo* per enfasi
 
@@ -120,8 +123,14 @@ ISTRUZIONI:
    - NON inventare nulla
    - Personalizza con il nome utente: ${nameUser}
    - Se lo sconto è > 0, menziona il ${discount}% di sconto disponibile
-   - Rispondi in ${language === "it" ? "italiano" : language === "en" ? "inglese" : language === "es" ? "spagnolo" : "portoghese"}
+   - **TRADUCI SEMPRE** tutti i nomi di categorie in ${language === "it" ? "italiano" : language === "en" ? "inglese" : language === "es" ? "spagnolo" : "portoghese"}:
+     * "Various & Spices" → "Varie & Spezie"
+     * "Cheeses & Dairy" → "Formaggi & Latticini" 
+     * "Frozen Products" → "Prodotti Surgelati"
+     * "Sauces & Preserves" → "Salse & Conserve"
+   - Rispondi SEMPRE in ${language === "it" ? "italiano" : language === "en" ? "inglese" : language === "es" ? "spagnolo" : "portoghese"}
 
+stai attento alle linee vuote e alle liste devono avere una bella presentaazione uniform e usa bullet point    
 Restituisci testo formattato in Markdown arricchiendo le risposte e saludando l'utente per nome, ciao, bentornato, :`
 
     console.log("🤖 FORMATTER: Invio richiesta a OpenRouter...")
@@ -141,7 +150,7 @@ Restituisci testo formattato in Markdown arricchiendo le risposte e saludando l'
           body: JSON.stringify({
             model: "anthropic/claude-3.5-sonnet",
             messages: [{ role: "user", content: prompt }],
-            temperature: 0.3,
+            temperature: 0.4,
           }),
         }
       )

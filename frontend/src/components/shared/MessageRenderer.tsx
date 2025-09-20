@@ -13,23 +13,23 @@ export function MessageRenderer({
   variant = "chat" 
 }: MessageRendererProps) {
   // Base classes for consistent formatting
-  const baseClasses = "break-words text-sm"
+  const baseClasses = "break-words text-sm text-left"
   
   // Variant-specific classes
   const variantClasses = {
-    modal: "whitespace-pre-line block leading-relaxed overflow-wrap-anywhere hyphens-auto",
-    chat: "whitespace-pre-line leading-normal",
-    compact: "whitespace-pre-line leading-tight"
+    modal: "whitespace-pre-line block leading-relaxed",
+    chat: "whitespace-pre-line leading-relaxed",
+    compact: "whitespace-pre-line leading-normal"
   }
   
-  // Inline styles for complex text wrapping (especially for WhatsApp-like formatting)
+  // Inline styles for text formatting without hyphenation issues
   const textStyle = {
-    wordWrap: 'break-word' as const,
-    overflowWrap: 'anywhere' as const,
-    hyphens: 'auto' as const,
-    wordBreak: 'break-word' as const,
+    textAlign: 'left' as const,
     whiteSpace: 'pre-wrap' as const,
-    maxWidth: '100%'
+    wordBreak: 'normal' as const,
+    textJustify: 'none' as const,
+    maxWidth: '100%',
+    direction: 'ltr' as const
   }
 
   return (
@@ -50,11 +50,22 @@ export function MessageRenderer({
               className="text-blue-600 hover:underline"
             />
           ),
-          // Preserve WhatsApp-style formatting
-          p: ({ children }) => <div className="mb-2 last:mb-0">{children}</div>,
-          // Handle bullet points consistently
-          ul: ({ children }) => <ul className="space-y-1">{children}</ul>,
-          li: ({ children }) => <li className="flex items-start gap-1">{children}</li>,
+          // Preserve WhatsApp-style formatting with better spacing
+          p: ({ children }) => (
+            <div 
+              className="mb-3 last:mb-0 leading-relaxed" 
+              style={{ textAlign: 'left', direction: 'ltr' }}
+            >
+              {children}
+            </div>
+          ),
+          // Handle bullet points consistently with better emoji spacing
+          ul: ({ children }) => <ul className="space-y-2 my-2">{children}</ul>,
+          li: ({ children }) => (
+            <li className="flex items-center gap-2 leading-relaxed py-1">
+              {children}
+            </li>
+          ),
           // Preserve bold/italic formatting with stronger styling
           strong: ({ children }) => <strong className="font-bold text-gray-900">{children}</strong>,
           em: ({ children }) => <em className="italic">{children}</em>,

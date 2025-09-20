@@ -178,6 +178,9 @@ CRITICAL RULES:
 3. FOR ANY OTHER TEXT (not a product query), return a faithful English translation, but ALWAYS KEEP Italian product/dish/brand names UNCHANGED (do not translate them to English).
 
 4. Return ONLY the translated sentence or the extracted product name. DO NOT add explanations, extra text, or markup. If you extract a product name, return it exactly as in the original (preserve accents).
+
+Se l'utente scrive : Voglio comparre un ordine converti a > I want to place an order
+
 `
       }
     } catch (error) {

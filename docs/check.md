@@ -27,10 +27,10 @@
 - dammi link ORD-001-2024
 
 NON VA!!!
-- non vedo gli sconti sui prodotti
+
 - carrello
-- icone
 - storico?
 - conversazione piu' samrt (peor esempuo saluta )
 - troppi log!
 - FORMATTER FORMAT
+- detectLanguageFromText
