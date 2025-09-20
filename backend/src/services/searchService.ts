@@ -86,10 +86,23 @@ export class SearchService {
       //   // ... convert to unified format
       // }
 
-      // Sort all results by similarity and limit
-      return allResults
-        .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, limit);
+      // Apply a small ranking boost to FAQ results so that explicit
+      // FAQ matches can surface above product/document matches when
+      // the semantic score is comparable. This increases the chance
+      // that intent-like queries (e.g. "Give me the list of products")
+      // will be fulfilled by FAQ-based function calls.
+      const FAQ_BOOST = Number(process.env.SEARCH_FAQ_BOOST) || 1.25
+
+      const scored = allResults.map((r) => {
+        const boost = r.sourceType === "faq" ? FAQ_BOOST : 1
+        return { r, score: r.similarity * boost }
+      })
+
+      // Sort by boosted score and limit
+      const sorted = scored.sort((a, b) => b.score - a.score)
+
+      // Return the original unified result objects in the new order
+      return sorted.slice(0, limit).map((s) => s.r)
 
     } catch (error) {
       logger.error('Error in unified search:', error);

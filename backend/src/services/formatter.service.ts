@@ -20,6 +20,8 @@
  */
 
 export class FormatterService {
+  // Simple in-memory cache for translated category names: key -> workspaceId:language:categoryId
+  private static categoryTranslationCache: Map<string, string> = new Map()
   private static async replaceAllVariables(
     response: string,
     customerId?: string,
@@ -49,14 +51,46 @@ export class FormatterService {
         const categoryService = new CategoryService()
 
         const categories = await categoryService.getAllForWorkspace(workspaceId)
-
         if (categories && categories.length > 0) {
+          // Translate category names to customer's language if provided
+          const translationService =
+            new (require("./translation.service").TranslationService)()
+
+          const translatedNames = await Promise.all(
+            categories.map(async (category) => {
+              const cacheKey = `${workspaceId}:${language || "it"}:${category.id}`
+              if (this.categoryTranslationCache.has(cacheKey)) {
+                return {
+                  id: category.id,
+                  name: this.categoryTranslationCache.get(cacheKey)!,
+                }
+              }
+
+              try {
+                const translated = await translationService.translateToLanguage(
+                  category.name,
+                  language || "it"
+                )
+                // store in cache
+                this.categoryTranslationCache.set(cacheKey, translated)
+                return { id: category.id, name: translated }
+              } catch (e) {
+                // If translation fails, fall back to original name
+                return { id: category.id, name: category.name }
+              }
+            })
+          )
+
           const categoriesList = categories
             .map((category) => {
-              const emoji = this.getCategoryEmoji(category.name)
-              return `- ${emoji} *${category.name}*`
+              const translated =
+                translatedNames.find((t: any) => t.id === category.id)?.name ||
+                category.name
+              const emoji = this.getCategoryEmoji(translated)
+              return `- ${emoji} *${translated}*`
             })
             .join("\n")
+
           response = response.replace("[LIST_CATEGORIES]", categoriesList)
         }
       } catch (error) {
@@ -210,14 +244,24 @@ export class FormatterService {
         })
 
         if (productsResult.response) {
-          // Replace [LIST_ALL_PRODUCTS] with the actual products list
-          response = response.replace(
-            /\[LIST_ALL_PRODUCTS\]/g,
-            productsResult.response
-          )
-          console.log(
-            "🔧 Formatter: Replaced [LIST_ALL_PRODUCTS] with products list"
-          )
+          // Replace [LIST_ALL_PRODUCTS] with a deterministic formatted products list
+          try {
+            const formatted = this.formatProductsDeterministic(
+              productsResult.products,
+              language || "it",
+              "WHATSAPP"
+            )
+            response = response.replace(/\[LIST_ALL_PRODUCTS\]/g, formatted)
+            console.log(
+              "🔧 Formatter: Replaced [LIST_ALL_PRODUCTS] with deterministic products list"
+            )
+          } catch (e) {
+            // fallback to CF response if deterministic formatting fails
+            response = response.replace(
+              /\[LIST_ALL_PRODUCTS\]/g,
+              productsResult.response
+            )
+          }
         }
       } catch (error) {
         console.error("❌ Formatter: GetAllProducts error:", error)
@@ -318,6 +362,73 @@ export class FormatterService {
     }
 
     return response
+  }
+
+  /**
+   * Deterministic formatting for product arrays.
+   * Ensures: grouped by category, one-line per product, bullet '-' + space,
+   * product name wrapped with '*' for WhatsApp bold, no stock or sku shown,
+   * single empty line between categories only.
+   */
+  private static formatProductsDeterministic(
+    products: Array<any>,
+    language: string,
+    channel: "WHATSAPP" | "MARKDOWN" | "PLAIN" = "WHATSAPP"
+  ): string {
+    if (!products || products.length === 0) return ""
+
+    // normalize fields and group by category
+    const grouped: Record<string, any[]> = {}
+    products.forEach((p) => {
+      const cat = (p.category && p.category.name) || "N/A"
+      if (!grouped[cat]) grouped[cat] = []
+
+      // normalize name and formato to single-line strings
+      const name = (p.name || "N/A").toString().replace(/\s+/g, " ").trim()
+      const formato = (p.formato || "N/A")
+        .toString()
+        .replace(/\s+/g, " ")
+        .trim()
+      const price =
+        typeof p.finalPrice === "number" ? p.finalPrice : p.price || 0
+
+      grouped[cat].push({ name, formato, price })
+    })
+
+    const lines: string[] = []
+    Object.keys(grouped).forEach((cat, idx) => {
+      // category header
+      if (channel === "MARKDOWN") {
+        lines.push(`## ${cat}`)
+      } else {
+        // WHATSAPP or PLAIN
+        lines.push(`${cat}:`)
+      }
+
+      grouped[cat].forEach((prod) => {
+        const priceStr =
+          typeof prod.price === "number" ? `€${prod.price.toFixed(2)}` : "N/A"
+        // ensure asterisks around name only (remove underscores)
+        const safeName = prod.name.replace(/_/g, " ").trim()
+
+        if (channel === "MARKDOWN") {
+          lines.push(
+            `- **${safeName}** — ${prod.formato} — Prezzo: ${priceStr}`
+          )
+        } else if (channel === "WHATSAPP") {
+          // WhatsApp uses single asterisks for bold
+          lines.push(`- *${safeName}* — ${prod.formato} — Prezzo: ${priceStr}`)
+        } else {
+          // PLAIN
+          lines.push(`- ${safeName} — ${prod.formato} — Prezzo: ${priceStr}`)
+        }
+      })
+
+      // add single empty line between categories (but not after last)
+      if (idx < Object.keys(grouped).length - 1) lines.push("")
+    })
+
+    return lines.join("\n")
   }
 
   private static getCategoryEmoji(categoryName: string): string {
@@ -537,21 +648,33 @@ export class FormatterService {
 
     const prompt = `Tu sei un assistente per un negozio di prodotti italiani.
 
-DOMANDA UTENTE: ${originalQuestion}
-RISPOSTA DA FORMATTARE: ${text}
-LINGUA UTENTE: ${language}
+  DOMANDA UTENTE: ${originalQuestion}
+  RISPOSTA DA FORMATTARE: ${text}
+  LINGUA UTENTE: ${language}
 
-ISTRUZIONI:
-- Rispondi in modo naturale nella lingua dell'utente (${language}).
-- Mantieni TUTTI i link, prodotti, prezzi e informazioni esatte come sono.
-- SE l'input è un JSON che contiene un campo "results.products" o "products", allora DEVI elencare ogni prodotto in una riga separata nel seguente formato esatto (senza simboli markdown):
-  Nome — Formato — Prezzo: €X.XX — Stock: N units
-  Esempio: Mozzarella FDL Barra — 1 Kg — Prezzo: €7.20 — Stock: 32 units
-- Non sintetizzare o omettere le righe di prodotto; includi tutti i prodotti presenti nel JSON (nessun limite fisso).
-- Non aggiungere informazioni non presenti nel JSON; se un campo manca, scrivi "N/A" per quel valore.
-- Non usare bullets o formattazioni speciali, ritorna solo testo naturale.
+  ISTRUZIONI RIGUARDO ALLE LISTE (versione compatta):
+  - Se l'input è un JSON che contiene un campo "results.products" o "products", procedi così:
+    1) Raggruppa i prodotti per categoria (usa il campo category o "N/A" se assente).
+    2) Per ogni categoria valida (non vuota), stampa una singola riga di intestazione con il nome della categoria.
+    3) Sotto l'intestazione, elenca ogni prodotto in UNA SOLA RIGA come bullet point con questo esatto formato (senza righe vuote extra):
+       - *Nome prodotto* — Formato — Prezzo: €X.XX
+       Esempio: - *Mozzarella FDL Barra* — 1 Kg — Prezzo: €7.20
+    4) Omessi campi sensibili: NON mostrare lo stock, NON mostrare codici prodotto o SKU.
+    5) Se un prodotto ha più line-break o campi multilinea, normalizzali in una singola riga separando i campi con ' — '.
 
-Rispondi solo con il testo formattato analizzando la domanda e i dati, niente altro.`
+  REGOLE GENERALI:
+  
+  - Mantieni esattamente i dati forniti (prezzi, nomi, formati). Non inventare nulla.
+  - Per campi mancanti, usa "N/A".
+  - Non aggiungere link, codici, date o informazioni non presenti nella sorgente.
+
+  OUTPUT:
+  - Usa esattamente un trattino seguito da uno spazio per i bullet.
+  - Usa *asterischi* per il bold del nome (WhatsApp friendly).
+  - Non inserire righe vuote tra prodotti o categorie; lascia una sola linea vuota tra categorie diverse.
+
+  - Rispondi in modo naturale nella lingua dell'utente: (${language}). (se it e' italiano se e' en inglese se es e' spagnolo se pt e' portoghese) 
+  Rispondi solo con test ben formattato se ci sono liste mettti bullet point organizza per categorie usa i bold e guarda bene le linee vuote che ci sono , inoltre se si parla di prodotti scrivi "Se vuoi procedere con un nuovo ordine, srivi nuovo ordine"·`
 
     try {
       const openRouterUrl = "https://openrouter.ai/api/v1/chat/completions"

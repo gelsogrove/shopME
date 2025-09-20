@@ -19,7 +19,7 @@ export interface TextChunk {
 
 export class EmbeddingService {
   // Default search result limit used across the app
-  public static readonly DEFAULT_SEARCH_LIMIT = 100
+  public static readonly DEFAULT_SEARCH_LIMIT = 200
   // Using local embeddings instead of OpenRouter (which doesn't support embeddings)
   private readonly LOCAL_MODEL = "Xenova/all-MiniLM-L6-v2"
   private readonly MAX_CHUNK_SIZE = 1500 // 🚀 OPTIMIZED: Increased from 500 to 1500 for better context preservation
@@ -27,7 +27,7 @@ export class EmbeddingService {
 
   // 🎯 CONFIGURABLE SIMILARITY THRESHOLDS (Andrea's Request)
   private readonly SIMILARITY_THRESHOLDS = {
-    FAQ: 0.25, // 🎯 LOWERED: To allow better FAQ matching like "chi sei?" → "Chi sei?"
+    FAQ: 0.4, // 🎯 INCREASED: Make FAQ matches more conservative to reduce false positives
     PRODUCTS: 0.5, // 🎯 UPDATED: Set to 0.5 per user request for a balanced precision/recall
     SERVICES: 0.35, // 🎯 BALANCED: Higher threshold for service precision
     DOCUMENTS: 0.35, // 🎯 BALANCED: More restrictive document matching

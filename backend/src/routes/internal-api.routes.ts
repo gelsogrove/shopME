@@ -144,6 +144,57 @@ router.post("/rag-search", async (req: Request, res: Response) => {
       }
     }
 
+    // TOKEN-FIRST RULE: If any result (product/faq/service) contains one of the
+    // special tokens used by the Formatter ([LIST_ALL_PRODUCTS], [LIST_SERVICES],
+    // [LIST_CATEGORIES], [LIST_OFFERS]) then we MUST return ONLY those results and
+    // exclude all others. This ensures the Formatter receives the token and can
+    // perform the correct replacement/action.
+    const SPECIAL_TOKENS = [
+      "[LIST_ALL_PRODUCTS]",
+      "[LIST_SERVICES]",
+      "[LIST_CATEGORIES]",
+      "[LIST_OFFERS]",
+    ]
+
+    // Helper to check if a content string contains any special token
+    const containsSpecialToken = (content: string | undefined) => {
+      if (!content) return false
+      return SPECIAL_TOKENS.some((t) => content.includes(t))
+    }
+
+    // Collect all items that include a special token
+    const tokenProducts = enhancedProductResults.filter((p) =>
+      containsSpecialToken(p.content)
+    )
+    const tokenFaqs = faqResults.filter((f) => containsSpecialToken(f.content))
+    const tokenServices = serviceResults.filter((s) =>
+      containsSpecialToken(s.content)
+    )
+
+    const anyTokensFound =
+      (tokenProducts && tokenProducts.length > 0) ||
+      (tokenFaqs && tokenFaqs.length > 0) ||
+      (tokenServices && tokenServices.length > 0)
+
+    if (anyTokensFound) {
+      logger.info("🔁 TOKEN-FIRST: special token(s) detected in RAG results. Returning only token items.")
+      return res.json({
+        success: true,
+        results: {
+          products: tokenProducts,
+          faqs: tokenFaqs,
+          services: tokenServices,
+          total: tokenProducts.length + tokenFaqs.length + tokenServices.length,
+        },
+        cartIntent: cartIntentResult,
+        cartOperation: cartOperationResult,
+        welcomeBackMessage: welcomeBackMessage || null,
+        query,
+        workspaceId,
+        timestamp: new Date().toISOString(),
+      })
+    }
+
     return res.json({
       success: true,
       results: {

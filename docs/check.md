@@ -1,6 +1,7 @@
 - chi sei?
-- dammi la lista degli ordini
 - posso vedere il catalogo ?
+- dammi la lista degli ordini
+- dove'e' il mio ordine'
 - Voglio fare un ordine
 - Avete la mozzarella?
 - Che sconto ho sui prodotti?
@@ -20,17 +21,16 @@
 - prodotti surgelati
 - vendete la mozzarella?
 - prezzo della mozzarella di Bufala
+- dammi la lista dei prodotti
+- fammi vedere i prodotti della categoria dei surgelati
+- nuovo ordine
+- dammi link ORD-001-2024
 
 NON VA!!!
 
-- dammi lista i prodotti
-  (devi aggiungere la faq nel seed)
-  no traduce le categorie?
-  no voglio Units
-- fammi vedere i prodotti della categoria dei surgelati
-- Stock: 12 units NON LO VOGLIO
-- PROBLEMA LINK VALIDZIONE
 - inglese ?non va
-- DHL
-- le seed deveono essere tutte in inglese
 - FORMATTER FORMAT
+- troppi log!
+- non vedo gli sconti sui prodotti
+- carrello
+- lINK NO NVAnNO

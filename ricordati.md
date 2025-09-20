@@ -43,6 +43,8 @@ ricordati:
 
 - traduzione layer deve tradurre bene dammi e dove e' perche' altrimenti e' confuso deve aver un prompt specifico che dice di usare give me or show me or where is nei momenti giusti
 
+-Ho applicato la regola "token-first" richiesta: quando i risultati da RAG contengono uno o più elementi con i token speciali [LIST_ALL_PRODUCTS], [LIST_SERVICES], [LIST_CATEGORIES], [LIST_OFFERS], il servizio interno /api/internal/rag-search ora restituisce solo quegli elementi e scarta tutti gli altri. Se non ci sono token, il comportamento resta invariato.
+
 🚨 **LEZIONI CRITICHE DEBUG CF:**
 
 - **REGOLA DEBUG MCP**: Il MCP client con log=true può mostrare log VECCHI dal file /tmp/shopme-server.log invece dei log attuali. Per debug accurato usa SEMPRE curl diretto al webhook per vedere la risposta reale.

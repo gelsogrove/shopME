@@ -2467,7 +2467,7 @@ async function main() {
       answer: "Hello! We offer the following services: [LIST_SERVICES]",
     },
     {
-      question: "What products do you sell?",
+      question: "Give me the list of products",
       answer: "Hello! We sell the following products: [LIST_ALL_PRODUCTS]",
     },
     {
@@ -2638,12 +2638,17 @@ async function main() {
       answer: "Ecco il tuo carrello! 🛒 [LINK_CART_WITH_TOKEN]",
     },
     {
-      question: "mostra carello",
-      answer: "Ecco il tuo carrello! 🛒 [LINK_CART_WITH_TOKEN]",
+      question: "show cart",
+      answer: "Here is your cart! 🛒 [LINK_CART_WITH_TOKEN]",
     },
     {
-      question: "mostrai carrello",
-      answer: "Ecco il tuo carrello! 🛒 [LINK_CART_WITH_TOKEN]",
+      question: "show my cart",
+      answer: "Here is your cart! 🛒 [LINK_CART_WITH_TOKEN]",
+    },
+    // New FAQ: activate cart / new order
+    {
+      question: "new order",
+      answer: "Click here to activate your cart 🛒 [LINK_CART_WITH_TOKEN]",
     },
     {
       question: "show cart",
