@@ -914,7 +914,7 @@ export function WhatsAppChatModal({
                                   {message.functionCalls.map((call, index) => (
                                     <div key={index} className="bg-white border border-purple-100 rounded p-2">
                                       <div className="text-xs font-medium text-purple-700 mb-1">
-                                        {call.type === 'searchrag_result' ? '🔍' : '🔧'} {call.functionName || call.type || 'Unknown'}
+                                        {call.type === 'searchrag_result' ? '🔍' : '🔧'} {call.functionName || call.name || call.type || 'Unknown'}
                                       </div>
                                       {call.type === 'searchrag_result' && call.data && (
                                         <div className="text-xs text-green-600">
@@ -927,6 +927,11 @@ export function WhatsAppChatModal({
                                       {call.result && call.type !== 'searchrag_result' && (
                                         <div className="text-xs text-green-600 mt-1">
                                           <strong>Result:</strong> {JSON.stringify(call.result)}
+                                        </div>
+                                      )}
+                                      {call.arguments && (
+                                        <div className="text-xs text-blue-600 mt-1">
+                                          <strong>Arguments:</strong> {JSON.stringify(call.arguments)}
                                         </div>
                                       )}
                                     </div>

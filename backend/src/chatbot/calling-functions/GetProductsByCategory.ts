@@ -68,8 +68,6 @@ export async function GetProductsByCategory(params: GetProductsByCategoryParams)
         description: true,
         formato: true,
         price: true,
-        stock: true,
-        sku: true,
         category: {
           select: {
             name: true
@@ -99,6 +97,7 @@ Prova a controllare altre categorie o contatta il nostro staff per maggiori info
     const priceService = new PriceCalculationService(prisma);
     const productIds = products.map((p) => p.id);
     const customerDiscount = customerId ? (await prisma.customers.findUnique({ where: { id: customerId }, select: { discount: true } }))?.discount || 0 : 0;
+    
     const priceResult = await priceService.calculatePricesWithDiscounts(workspaceId, productIds, customerDiscount);
     const priceMap = new Map(priceResult.products.map(p => [p.id, p]));
 
@@ -118,7 +117,7 @@ Prova a controllare altre categorie o contatta il nostro staff per maggiori info
         priceText += ")";
       }
       
-      const stockText = product.stock > 0 ? `✅ Disponibile (${product.stock})` : '❌ Esaurito';
+      const stockText = `✅ Disponibile`;
       const formatoText = product.formato ? ` (${product.formato})` : '';
       const productCode = product.ProductCode || 'N/A';
       
@@ -145,13 +144,13 @@ Prova a controllare altre categorie o contatta il nostro staff per maggiori info
     // 🚨 REGOLA PROMPT: COMPLETEZZA OBBLIGATORIA - Mostra TUTTI i prodotti della categoria
     // Verificare se ci sono sconti nella categoria
     const hasCategoryDiscount = products.some(product => {
-      const priceData = priceMap.get(product.id);
+      const priceData = priceMap.get(product.id) as ProductWithPrice | undefined;
       return (priceData?.appliedDiscount || 0) > 0;
     });
 
     // Trovare lo sconto più alto applicato
     const maxDiscount = Math.max(...products.map(product => {
-      const priceData = priceMap.get(product.id);
+      const priceData = priceMap.get(product.id) as ProductWithPrice | undefined;
       return priceData?.appliedDiscount || 0;
     }));
 
@@ -200,8 +199,8 @@ Scrivi il codice del prodotto che ti interessa o dimmi quale vorresti aggiungere
           finalPrice: prezzoFinale,
           appliedDiscount: scontoPercentuale,
           discountSource: scontoTipo,
-          stock: product.stock,
-          sku: product.sku,
+          stock: 0,
+          sku: product.ProductCode || 'N/A',
           category: product.category?.name,
           formatted,
         };

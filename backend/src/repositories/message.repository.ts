@@ -1,8 +1,8 @@
 import {
-  MessageDirection,
-  MessageType,
-  OrderStatus,
-  PrismaClient,
+    MessageDirection,
+    MessageType,
+    OrderStatus,
+    PrismaClient,
 } from "@prisma/client"
 import * as dotenv from "dotenv"
 import OpenAI from "openai"
@@ -1460,6 +1460,26 @@ export class MessageRepository {
               },
             },
             required: ["message"],
+          },
+        },
+        {
+          name: "GetProductsByCategory",
+          description:
+            "Get products by category when user asks for specific product categories like frozen products, cheeses, cured meats, etc.",
+          parameters: {
+            type: "object",
+            properties: {
+              categoryName: {
+                type: "string",
+                description:
+                  "Name of the category to search (e.g., 'Frozen Products', 'Cheeses & Dairy')",
+              },
+              message: {
+                type: "string",
+                description: "User's original request",
+              },
+            },
+            required: ["categoryName", "message"],
           },
         },
       ]

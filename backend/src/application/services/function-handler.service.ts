@@ -230,6 +230,7 @@ export class FunctionHandlerService {
     )
 
     try {
+      console.log("🔧 [DEBUG] Entering switch statement for functionName:", functionName)
       switch (functionName) {
         // 🛒 CART OPERATIONS - REMOVED (now handled via web link)
 
@@ -330,6 +331,21 @@ export class FunctionHandlerService {
             functionName,
           }
 
+        // 🛍️ PRODUCTS BY CATEGORY
+        case "GetProductsByCategory":
+          console.log("🔧 [DEBUG] Entering GetProductsByCategory case")
+          console.log("🔧 [DEBUG] Params:", params)
+          console.log("🔧 [DEBUG] Customer:", customer)
+          console.log("🔧 [DEBUG] WorkspaceId:", workspaceId)
+          return {
+            data: await this.handleGetProductsByCategory(
+              params,
+              customer,
+              workspaceId
+            ),
+            functionName,
+          }
+
         // 🎯 DEFAULT CASE
         default:
           logger.warn(`⚠️ Funzione non riconosciuta: ${functionName}`)
@@ -345,12 +361,15 @@ export class FunctionHandlerService {
                 "search_products",
                 "search_documents",
                 "get_faq_info",
+                "GetProductsByCategory",
               ],
             },
             functionName,
           }
       }
     } catch (error) {
+      console.error("❌ [DEBUG] Error in handleFunctionCall:", error)
+      console.error("❌ [DEBUG] Error stack:", error.stack)
       logger.error(
         `❌ Errore in handleFunctionCall per ${functionName}:`,
         error
@@ -751,6 +770,51 @@ export class FunctionHandlerService {
     } catch (error) {
       logger.error("❌ Errore nel calcolo prezzo cliente:", error)
       return basePrice
+    }
+  }
+
+  /**
+   * Handle GetProductsByCategory function
+   */
+  async handleGetProductsByCategory(
+    params: any,
+    customer: any,
+    workspaceId: string
+  ): Promise<any> {
+    try {
+      console.log("🔧 handleGetProductsByCategory called with:", params)
+      console.log("🔧 Customer:", customer)
+      console.log("🔧 WorkspaceId:", workspaceId)
+      
+      // Import the GetProductsByCategory function
+      const { GetProductsByCategory } = require("../../chatbot/calling-functions/GetProductsByCategory")
+      console.log("🔧 GetProductsByCategory imported successfully")
+      
+      const result = await GetProductsByCategory({
+        phoneNumber: params.phoneNumber || "unknown",
+        workspaceId: workspaceId,
+        customerId: customer?.id,
+        message: params.message || "Get products by category",
+        categoryName: params.categoryName,
+      })
+      
+      console.log("🔧 GetProductsByCategory result:", result)
+      
+      return {
+        success: true,
+        response: result.response,
+        products: result.products,
+        totalProducts: result.totalProducts,
+        categoryName: result.categoryName,
+      }
+    } catch (error) {
+      console.error("❌ Error in handleGetProductsByCategory:", error)
+      console.error("❌ Error stack:", error.stack)
+      return {
+        success: false,
+        error: error.message || "Error getting products by category",
+        message: "Errore nel recuperare i prodotti della categoria",
+      }
     }
   }
 

@@ -23,6 +23,10 @@ const logger = winston.createLogger({
     new winston.transports.Console({
       stderrLevels: ['error'],
     }),
+    new winston.transports.File({
+      filename: '/tmp/shopme-server.log',
+      level: 'debug',
+    }),
   ],
 });
 
