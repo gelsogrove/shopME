@@ -177,7 +177,9 @@ router.post("/rag-search", async (req: Request, res: Response) => {
       (tokenServices && tokenServices.length > 0)
 
     if (anyTokensFound) {
-      logger.info("🔁 TOKEN-FIRST: special token(s) detected in RAG results. Returning only token items.")
+      logger.info(
+        "🔁 TOKEN-FIRST: special token(s) detected in RAG results. Returning only token items."
+      )
       return res.json({
         success: true,
         results: {

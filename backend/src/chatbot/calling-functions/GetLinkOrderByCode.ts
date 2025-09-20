@@ -89,7 +89,9 @@ export async function GetLinkOrderByCode(
     try {
       // If we have an orderCode, prefer the path-style URL: /orders-public/{orderCode}?token=...
       if (targetOrder && targetOrder.orderCode) {
-        const safeCode = encodeURIComponent(String(targetOrder.orderCode).trim())
+        const safeCode = encodeURIComponent(
+          String(targetOrder.orderCode).trim()
+        )
         link = `http://localhost:3000/orders-public/${safeCode}?token=${token}`
       } else {
         const url = new URL("http://localhost:3000/orders-public")
