@@ -52,7 +52,10 @@ export class DualLLMService {
           request.workspaceId,
           request.language || "it"
         )
-        console.log("✅ DualLLM: genericReply salvata:", genericReply.substring(0, 100) + "...")
+        console.log(
+          "✅ DualLLM: genericReply salvata:",
+          genericReply.substring(0, 100) + "..."
+        )
 
         // REGOLA 2: Eseguire SearchRag
         let searchRagResult = await this.executeSearchRagFallback(
@@ -476,7 +479,7 @@ export class DualLLMService {
       const formattedResponse = await FormatterService.formatToMarkdown(
         responseForFormatter,
         request.chatInput || "", // question
-        customerName || "Utente", // nameUser  
+        customerName || "Utente", // nameUser
         customerDiscount || 0, // discount
         request.customerid || "", // customerId
         request.workspaceId, // workspaceId

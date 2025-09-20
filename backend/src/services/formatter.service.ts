@@ -33,12 +33,12 @@ export class FormatterService {
     console.log("📊 FORMATTER: Parametri ricevuti:", {
       data: data ? `"${data.substring(0, 100)}..."` : "null/undefined",
       dataLength: data?.length || 0,
-      question: question || "null/undefined", 
+      question: question || "null/undefined",
       nameUser: nameUser || "null/undefined",
       discount: discount !== undefined ? discount : "undefined",
       customerId: customerId || "null/undefined",
       workspaceId: workspaceId || "null/undefined",
-      language: language || "null/undefined"
+      language: language || "null/undefined",
     })
 
     if (!data || data.trim() === "") {
@@ -66,7 +66,7 @@ export class FormatterService {
         originalLength: data.length,
         processedLength: processedInput.length,
         changed: data !== processedInput,
-        preview: processedInput.substring(0, 200) + "..."
+        preview: processedInput.substring(0, 200) + "...",
       })
     } catch (error) {
       console.error("❌ FORMATTER: Token replacement error:", error.message)
@@ -126,7 +126,7 @@ Restituisci testo formattato in Markdown arricchiendo le risposte e saludando l'
 
     console.log("🤖 FORMATTER: Invio richiesta a OpenRouter...")
     console.log("📤 FORMATTER: Prompt length:", prompt.length)
-    
+
     try {
       const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -147,7 +147,7 @@ Restituisci testo formattato in Markdown arricchiendo le risposte e saludando l'
       )
 
       console.log("📡 FORMATTER: Response status:", response.status)
-      
+
       if (!response.ok) {
         console.error("❌ FORMATTER: OpenRouter error:", response.status)
         console.error("📋 FORMATTER: Response text:", await response.text())
@@ -158,15 +158,15 @@ Restituisci testo formattato in Markdown arricchiendo le risposte e saludando l'
       console.log("📨 FORMATTER: Raw LLM response:", {
         hasContent: !!result.choices?.[0]?.message?.content,
         contentLength: result.choices?.[0]?.message?.content?.length || 0,
-        fullResponse: result
+        fullResponse: result,
       })
-      
+
       const formatted = result.choices?.[0]?.message?.content || data
 
       console.log("✅ FORMATTER: Successfully formatted to Markdown")
       console.log("📄 FORMATTER: Final result:", {
         length: formatted.length,
-        preview: formatted.substring(0, 200) + "..."
+        preview: formatted.substring(0, 200) + "...",
       })
       console.log("🔧 FORMATTER: === FINE FORMATTING ===")
       return formatted.trim()
