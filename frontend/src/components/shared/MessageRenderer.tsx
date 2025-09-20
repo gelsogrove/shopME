@@ -7,33 +7,33 @@ interface MessageRendererProps {
   variant?: "modal" | "chat" | "compact"
 }
 
-export function MessageRenderer({ 
-  content, 
-  className = "", 
-  variant = "chat" 
+export function MessageRenderer({
+  content,
+  className = "",
+  variant = "chat",
 }: MessageRendererProps) {
   // Base classes for consistent formatting
   const baseClasses = "break-words text-sm text-left"
-  
+
   // Variant-specific classes
   const variantClasses = {
     modal: "whitespace-pre-line block leading-relaxed",
     chat: "whitespace-pre-line leading-relaxed",
-    compact: "whitespace-pre-line leading-normal"
+    compact: "whitespace-pre-line leading-normal",
   }
-  
+
   // Inline styles for text formatting without hyphenation issues
   const textStyle = {
-    textAlign: 'left' as const,
-    whiteSpace: 'pre-wrap' as const,
-    wordBreak: 'normal' as const,
-    textJustify: 'none' as const,
-    maxWidth: '100%',
-    direction: 'ltr' as const
+    textAlign: "left" as const,
+    whiteSpace: "pre-wrap" as const,
+    wordBreak: "normal" as const,
+    textJustify: "none" as const,
+    maxWidth: "100%",
+    direction: "ltr" as const,
   }
 
   return (
-    <span 
+    <span
       className={`${baseClasses} ${variantClasses[variant]} ${className}`}
       style={textStyle}
     >
@@ -52,9 +52,9 @@ export function MessageRenderer({
           ),
           // Preserve WhatsApp-style formatting with better spacing
           p: ({ children }) => (
-            <div 
-              className="mb-3 last:mb-0 leading-relaxed" 
-              style={{ textAlign: 'left', direction: 'ltr' }}
+            <div
+              className="mb-3 last:mb-0 leading-relaxed"
+              style={{ textAlign: "left", direction: "ltr" }}
             >
               {children}
             </div>
@@ -67,7 +67,9 @@ export function MessageRenderer({
             </li>
           ),
           // Preserve bold/italic formatting with stronger styling
-          strong: ({ children }) => <strong className="font-bold text-gray-900">{children}</strong>,
+          strong: ({ children }) => (
+            <strong className="font-bold text-gray-900">{children}</strong>
+          ),
           em: ({ children }) => <em className="italic">{children}</em>,
         }}
       >

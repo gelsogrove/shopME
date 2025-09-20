@@ -474,8 +474,8 @@ import { UserController } from "../interfaces/http/controllers/user.controller"
 // Removed WhatsAppController import
 import { createAgentRouter } from "../interfaces/http/routes/agent.routes"
 import { authRouter } from "../interfaces/http/routes/auth.routes"
-import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { cartRouter } from "../interfaces/http/routes/cart.routes"
+import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
 import {
   customersRouter,

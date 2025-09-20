@@ -24,7 +24,10 @@ const cartController = new CartController()
  *       404:
  *         description: Cart not found
  */
-router.get("/:token", asyncMiddleware(cartController.getCartByToken.bind(cartController)))
+router.get(
+  "/:token",
+  asyncMiddleware(cartController.getCartByToken.bind(cartController))
+)
 
 /**
  * @swagger
@@ -56,7 +59,10 @@ router.get("/:token", asyncMiddleware(cartController.getCartByToken.bind(cartCon
  *       404:
  *         description: Cart or product not found
  */
-router.post("/:token/add", asyncMiddleware(cartController.addItemToCart.bind(cartController)))
+router.post(
+  "/:token/add",
+  asyncMiddleware(cartController.addItemToCart.bind(cartController))
+)
 
 /**
  * @swagger
@@ -83,7 +89,10 @@ router.post("/:token/add", asyncMiddleware(cartController.addItemToCart.bind(car
  *       404:
  *         description: Cart or product not found
  */
-router.delete("/:token/remove", asyncMiddleware(cartController.removeCartItem.bind(cartController)))
+router.delete(
+  "/:token/remove",
+  asyncMiddleware(cartController.removeCartItem.bind(cartController))
+)
 
 /**
  * @swagger
@@ -115,7 +124,10 @@ router.delete("/:token/remove", asyncMiddleware(cartController.removeCartItem.bi
  *       404:
  *         description: Cart or product not found
  */
-router.put("/:token/update", asyncMiddleware(cartController.updateCartItem.bind(cartController)))
+router.put(
+  "/:token/update",
+  asyncMiddleware(cartController.updateCartItem.bind(cartController))
+)
 
 /**
  * @swagger
@@ -136,6 +148,9 @@ router.put("/:token/update", asyncMiddleware(cartController.updateCartItem.bind(
  *       404:
  *         description: Cart not found
  */
-router.post("/:token/checkout", asyncMiddleware(cartController.checkoutByToken.bind(cartController)))
+router.post(
+  "/:token/checkout",
+  asyncMiddleware(cartController.checkoutByToken.bind(cartController))
+)
 
 export { router as cartRouter }

@@ -487,8 +487,12 @@ export class DualLLMService {
       )
 
       console.log(`🌍 DualLLM: Language passed to formatter: ${language}`)
-      console.log(`🔤 DualLLM: Input for formatter - question: "${request.chatInput}"`)
-      console.log(`📄 DualLLM: Input for formatter - response: "${responseForFormatter?.substring(0, 200)}..."`)
+      console.log(
+        `🔤 DualLLM: Input for formatter - question: "${request.chatInput}"`
+      )
+      console.log(
+        `📄 DualLLM: Input for formatter - response: "${responseForFormatter?.substring(0, 200)}..."`
+      )
       console.log(`✅ DualLLM: Formatter completed for ${functionName}`)
       return formattedResponse
     } catch (error) {
