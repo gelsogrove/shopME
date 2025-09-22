@@ -175,26 +175,68 @@ export class CartController {
       }
 
       const payload = validation.payload as any
+      const customerId = payload.customerId || validation.data.customerId
+      const workspaceId = validation.data.workspaceId
       
       // 🎯 TASK: Clean up orphaned cart items before retrieving cart
-      await this.cleanupOrphanedCartItems(validation.data.workspaceId)
+      await this.cleanupOrphanedCartItems(workspaceId)
       
-      // Get updated cart data from database
-      const cart = await prisma.carts.findFirst({
-        where: {
-          id: payload.cartId,
-          customerId: payload.customerId,
-          workspaceId: validation.data.workspaceId
-        },
-        include: {
-          items: {
-            include: {
-              product: true
-            }
+      // Try to get existing cart by cartId (if available) or find/create cart for customer
+      let cart = null
+      
+      if (payload.cartId) {
+        // Token has specific cartId
+        cart = await prisma.carts.findFirst({
+          where: {
+            id: payload.cartId,
+            customerId: customerId,
+            workspaceId: workspaceId
           },
-          customer: true
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            },
+            customer: true
+          }
+        })
+      } else {
+        // Token doesn't have cartId (e.g., checkout token), find or create cart for customer
+        cart = await prisma.carts.findFirst({
+          where: {
+            customerId: customerId,
+            workspaceId: workspaceId
+          },
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            },
+            customer: true
+          }
+        })
+        
+        // If no cart exists, create one
+        if (!cart) {
+          console.log(`🛒 Creating new cart for customer ${customerId} in workspace ${workspaceId}`)
+          cart = await prisma.carts.create({
+            data: {
+              customerId: customerId,
+              workspaceId: workspaceId
+            },
+            include: {
+              items: {
+                include: {
+                  product: true
+                }
+              },
+              customer: true
+            }
+          })
         }
-      })
+      }
 
       if (!cart) {
         res.status(400).json({
@@ -462,7 +504,7 @@ export class CartController {
   async updateCartItem(req: Request, res: Response): Promise<void> {
     try {
       const token = req.params.token
-      const itemId = req.params.itemId
+      const productId = req.params.productId
       const { quantity } = req.body
 
       if (quantity === undefined) {
@@ -484,16 +526,30 @@ export class CartController {
       }
 
       const payload = validation.payload as any
+      const customerId = payload.customerId || validation.data.customerId
+      const workspaceId = validation.data.workspaceId
 
-      // Verify cart item belongs to this cart
+      // Find the cart for this customer/token
+      let cart = await prisma.carts.findFirst({
+        where: {
+          customerId: customerId,
+          workspaceId: workspaceId
+        }
+      })
+
+      if (!cart) {
+        res.status(400).json({
+          success: false,
+          error: "Cart not found"
+        })
+        return
+      }
+
+      // Find cart item by productId
       const cartItem = await prisma.cartItems.findFirst({
         where: {
-          id: itemId,
-          cart: {
-            id: payload.cartId,
-            customerId: payload.customerId,
-            workspaceId: validation.data.workspaceId
-          }
+          productId: productId,
+          cartId: cart.id
         },
         include: {
           product: true
@@ -510,7 +566,7 @@ export class CartController {
 
       // Update cart item
       const updatedCartItem = await prisma.cartItems.update({
-        where: { id: itemId },
+        where: { id: cartItem.id },
         data: { quantity },
         include: {
           product: true
@@ -519,7 +575,7 @@ export class CartController {
 
       // Calculate cart totals
       const cartWithItems = await prisma.carts.findFirst({
-        where: { id: payload.cartId },
+        where: { id: cart.id },
         include: {
           items: {
             include: {
@@ -538,7 +594,7 @@ export class CartController {
         return sum + ((item.product.price || 0) * item.quantity)
       }, 0)
 
-      logger.info(`[CART] Item ${itemId} updated in cart ${payload.cartId} via token`)
+      logger.info(`[CART] Item ${cartItem.id} updated in cart ${cart.id} via token`)
 
       res.json({
         success: true,
@@ -572,7 +628,7 @@ export class CartController {
   async removeCartItem(req: Request, res: Response): Promise<void> {
     try {
       const token = req.params.token
-      const itemId = req.params.itemId
+      const productId = req.params.productId
 
       const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
       
@@ -585,16 +641,30 @@ export class CartController {
       }
 
       const payload = validation.payload as any
+      const customerId = payload.customerId || validation.data.customerId
+      const workspaceId = validation.data.workspaceId
 
-      // Verify cart item belongs to this cart
+      // Find the cart for this customer/token
+      let cart = await prisma.carts.findFirst({
+        where: {
+          customerId: customerId,
+          workspaceId: workspaceId
+        }
+      })
+
+      if (!cart) {
+        res.status(400).json({
+          success: false,
+          error: "Cart not found"
+        })
+        return
+      }
+
+      // Find cart item by productId
       const cartItem = await prisma.cartItems.findFirst({
         where: {
-          id: itemId,
-          cart: {
-            id: payload.cartId,
-            customerId: payload.customerId,
-            workspaceId: validation.data.workspaceId
-          }
+          productId: productId,
+          cartId: cart.id
         }
       })
 
@@ -608,7 +678,7 @@ export class CartController {
 
       // Remove cart item
       await prisma.cartItems.delete({
-        where: { id: itemId }
+        where: { id: cartItem.id }
       })
 
       // Calculate cart totals
@@ -632,7 +702,7 @@ export class CartController {
         return sum + ((item.product.price || 0) * item.quantity)
       }, 0)
 
-      logger.info(`[CART] Item ${itemId} removed from cart ${payload.cartId} via token`)
+      logger.info(`[CART] Item with productId ${productId} removed from cart ${cart.id} via token`)
 
       res.json({
         success: true,

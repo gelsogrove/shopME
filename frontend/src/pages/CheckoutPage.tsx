@@ -7,16 +7,19 @@ import { useCheckoutTokenValidation } from "../hooks/useTokenValidation"
 import { getPublicPageTexts } from "../utils/publicPageTranslations"
 
 interface Product {
+  id: string // Cart item ID
+  productId: string // Product ID
   codice: string
   descrizione: string
   formato?: string // 🧀 Include formato field
   qty: number
+  quantita?: number // Alias for qty
   prezzo: number
   prezzoOriginale?: number
+  prezzoScontato?: number // Discounted price
   scontoApplicato?: number
   fonteSconto?: string
   nomeSconto?: string
-  productId: string
 }
 
 interface Customer {
@@ -26,6 +29,7 @@ interface Customer {
   phone: string
   address?: any
   invoiceAddress?: any
+  language?: string
 }
 
 interface Address {
@@ -207,13 +211,13 @@ const CheckoutPage: React.FC = () => {
 
     try {
       const product = prodotti[index]
-      if (!product.id) {
+      if (!product.productId) {
         toast.error('ID prodotto non valido')
         return
       }
 
       // 🚀 Call backend API to update quantity
-      const response = await fetch(`/api/cart/${token}/items/${product.id}`, {
+      const response = await fetch(`/api/cart/${token}/items/${product.productId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -258,13 +262,13 @@ const CheckoutPage: React.FC = () => {
 
     try {
       const product = prodotti[productToDelete.index]
-      if (!product.id) {
+      if (!product.productId) {
         toast.error('ID prodotto non valido')
         return
       }
 
       // 🚀 Call backend API to remove product
-      const response = await fetch(`/api/cart/${token}/items/${product.id}`, {
+      const response = await fetch(`/api/cart/${token}/items/${product.productId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

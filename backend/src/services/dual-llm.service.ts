@@ -1,30 +1,31 @@
 import { MessageRepository } from "../repositories/message.repository"
 import { LLMRequest } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
-import { FormatterService } from "./formatter.service"
-import { TranslationService } from "./translation.service"
+// import { FormatterService } from "./formatter.service" // 🚫 FORMATTER DISABILITATO
+// import { TranslationService } from "./translation.service" // 🚫 TRANSLATION DISABILITATO
+import { ReplaceLinkWithToken } from "../chatbot/calling-functions/ReplaceLinkWithToken";
 
 export class DualLLMService {
-  private translationService: TranslationService
-  private formatterService: FormatterService
+  // private translationService: TranslationService // 🚫 TRANSLATION DISABILITATO
+  // private formatterService: FormatterService // 🚫 FORMATTER DISABILITATO
   private callingFunctionsService: CallingFunctionsService
 
   constructor() {
-    this.translationService = new TranslationService()
-    this.formatterService = new FormatterService()
+    // this.translationService = new TranslationService() // 🚫 TRANSLATION DISABILITATO
+    // this.formatterService = new FormatterService() // 🚫 FORMATTER DISABILITATO
     this.callingFunctionsService = new CallingFunctionsService()
   }
 
-  async handleMessage(request: LLMRequest): Promise<any> {
+  async handleMessage(llmRequest: LLMRequest, customerData?: any): Promise<any> {
     try {
-      console.log(`🔄 DualLLM: Processing message: ${request.chatInput}`)
+      console.log(`🔄 DualLLM: Processing message: ${llmRequest.chatInput}`)
 
-      // Step 1: LLM decides what to do - calls CF if needed (use translated query for CF detection)
-      const translatedQuery = await this.translationService.translateToEnglish(
-        request.chatInput
-      )
+      // Step 1: LLM decides what to do - calls CF if needed (usa query originale)
+      // 🚫 TRANSLATION DISABILITATO - usa query originale
+      const translatedQuery = llmRequest.chatInput // Era: await this.translationService.translateToEnglish(request.chatInput)
+      
       const cfResult = await this.executeCallingFunctions(
-        request,
+        llmRequest,
         translatedQuery
       )
 
@@ -49,20 +50,26 @@ export class DualLLMService {
         console.log("💾 DualLLM: Generando e salvando genericReply...")
         const genericReply = await this.generateLLMResponse(
           translatedQuery,
-          request.workspaceId,
-          request.language || "it"
+          llmRequest.workspaceId,
+          llmRequest.language || "it"
         )
         console.log(
           "✅ DualLLM: genericReply salvata:",
           genericReply.substring(0, 100) + "..."
         )
 
-        // REGOLA 2: Eseguire SearchRag
-        let searchRagResult = await this.executeSearchRagFallback(
-          request,
+        // REGOLA 2: Eseguire SearchRag - COMMENTATO PER DISABILITARE
+        /* let searchRagResult = await this.executeSearchRagFallback(
+          llmRequest,
           translatedQuery,
           { response: genericReply } // Passare la genericReply salvata
-        )
+        ) */
+
+        // 🚫 SearchRag DISABILITATO - ritorna direttamente la genericReply
+        let searchRagResult = { 
+          success: false, 
+          response: genericReply 
+        }
 
         // Se SearchRag non trova nulla nemmeno in traduzione, genera LLM response
         const isEmptyResponse = (r: any) => {
@@ -82,8 +89,8 @@ export class DualLLMService {
           )
           const llmResponse = await this.generateLLMResponse(
             translatedQuery,
-            request.workspaceId,
-            request.phone
+            llmRequest.workspaceId,
+            llmRequest.phone
           )
           finalResult = {
             success: true,
@@ -100,25 +107,52 @@ export class DualLLMService {
       // Step 4: Formatter receives: language, discount, question, workspaceId, customerId
       // REGOLA 28, 56: Ottenere lingua dal database cliente
       const language = await this.detectLanguageFromMessage(
-        request.chatInput,
-        request.phone,
-        request.workspaceId
+        llmRequest.chatInput,
+        llmRequest.phone,
+        llmRequest.workspaceId
       )
-      const formattedResponse = await this.executeFormatter(
-        request,
+      
+      // 🚫 FORMATTER DISABILITATO - ritorna direttamente la risposta
+      /* const formattedResponse = await this.executeFormatter(
+        llmRequest,
         finalResult,
         finalResult === cfResult ? "CF" : "SearchRag"
-      )
+      ) */
+      
+      // Estrai direttamente la risposta senza formatter
+      let directResponse = finalResult.response
+      if (typeof directResponse !== "string") {
+        directResponse = typeof directResponse === "object" 
+          ? JSON.stringify(directResponse) 
+          : String(directResponse)
+      }
+
+      // 🔧 SOSTITUZIONE VARIABILI - Prima del return per evitare {{nameUser}} non sostituiti
+      if (customerData) {
+        directResponse = this.replaceVariables(directResponse, customerData)
+      }
+
+      // 🔗 SOSTITUZIONE LINK TOKEN
+      if (llmRequest.customerid && llmRequest.workspaceId) {
+        const linkResult = await ReplaceLinkWithToken(
+          { response: directResponse },
+          llmRequest.customerid,
+          llmRequest.workspaceId
+        )
+        if (linkResult.success && linkResult.response) {
+          directResponse = linkResult.response
+        }
+      }
 
       return {
         success: true,
-        output: formattedResponse,
+        output: directResponse, // Era formattedResponse
         translatedQuery,
         functionCalls: functionCalls,
         debugInfo: {
-          stage: finalResult === cfResult ? "CF" : "SearchRag",
+          stage: finalResult === cfResult ? "CF" : "LLM_Only", // Era SearchRag
           success: true,
-          functionCalled: finalResult === cfResult ? "CF" : "SearchRag",
+          functionCalled: finalResult === cfResult ? "CF" : "LLM_Only", // Era SearchRag
           cfResult: cfResult,
           finalResult: finalResult,
         },
@@ -128,7 +162,7 @@ export class DualLLMService {
       return {
         success: false,
         output: "Mi dispiace, si è verificato un errore. Riprova più tardi.",
-        translatedQuery: request.chatInput,
+        translatedQuery: llmRequest.chatInput,
         functionCalls: [],
         debugInfo: {
           stage: "error",
@@ -193,7 +227,7 @@ export class DualLLMService {
         )
 
         // Execute the specific CF based on function name
-        if (functionResult.function_call.name === "search_specific_product") {
+        if (false) { // SearchSpecificProduct removed - all functions use FunctionHandlerService
           const { SearchSpecificProduct } = await import(
             "../chatbot/calling-functions/SearchSpecificProduct"
           )
@@ -313,20 +347,38 @@ export class DualLLMService {
         }
       } else {
         console.log(
-          `🚨 DualLLM: No specific CF selected - REGOLA 2: Salvare risposta LLM`
+          `🚨 DualLLM: No specific CF selected - REGOLA 2: Salvare risposta LLM e procedere con SearchRag`
         )
 
         // REGOLA 2: Salvare risposta LLM quando non chiama funzioni
-        const llmResponse = await this.generateLLMResponse(
-          translatedQuery,
-          request.workspaceId
+          const llmResponse = await this.generateLLMResponse(
+            translatedQuery,
+            request.workspaceId
+          )
+
+        console.log(
+          `🔍 DualLLM: SearchRag DISABILITATO - ritorna solo LLM response`
         )
 
+        // Procedi automaticamente con SearchRag secondo ricordati.md - COMMENTATO PER DISABILITARE
+        /* const searchRagResult = await this.executeSearchRagFallback(
+          request,
+          translatedQuery
+        ) */
+
+        // 🚫 SearchRag DISABILITATO - ritorna solo la risposta LLM
         return {
-          success: false, // No CF called
+          success: true,
           response: llmResponse,
-          functionCalls: [],
+          functionCalls: [
+            {
+              name: "LLM_Only", // Era SearchRag
+              arguments: { query: translatedQuery },
+              result: { success: true, response: llmResponse },
+            },
+          ],
           llmGeneratedResponse: llmResponse,
+          // searchRagResult: null, // DISABILITATO
         }
       }
     } catch (error) {
@@ -429,7 +481,8 @@ export class DualLLMService {
     }
   }
 
-  private async executeFormatter(
+  // 🚫 FORMATTER DISABILITATO - Metodo executeFormatter commentato
+  /* private async executeFormatter(
     request: LLMRequest,
     result: any,
     functionName: string
@@ -499,7 +552,7 @@ export class DualLLMService {
       console.error(`❌ Formatter error for ${functionName}:`, error)
       return result.response || "Errore nella formattazione della risposta."
     }
-  }
+  } */
 
   private async detectLanguageFromMessage(
     message: string,
@@ -633,11 +686,11 @@ export class DualLLMService {
             where: {
               chatSession: {
                 customerId: customer.id,
-                workspaceId: workspaceId,
+                workspaceId: workspaceId, // Using parameter workspaceId instead of request.workspaceId
               },
             },
             orderBy: { createdAt: "desc" },
-            take: 10, // Last 10 messages as per memory
+            take: 5, // Last 5 messages for optimized performance
             include: {
               chatSession: true,
             },
@@ -684,7 +737,7 @@ export class DualLLMService {
             "X-Title": "ShopMe LLM Response",
           },
           body: JSON.stringify({
-            model: "openai/gpt-3.5-turbo",
+            model: "openai/gpt-4-mini",
             messages: messages,
             temperature: 0.3,
             max_tokens: 1500,
@@ -702,5 +755,16 @@ export class DualLLMService {
       console.error("❌ Error generating LLM response:", error)
       return "Ciao! Come posso aiutarti oggi?"
     }
+  }
+
+  private replaceVariables(response: string, customerData: any): string {
+    if (!response || !customerData) return response
+
+    return response
+      .replace(/\{\{nameUser\}\}/g, customerData.nameUser || "Cliente")
+      .replace(/\{\{discountUser\}\}/g, customerData.discountUser || "Nessuno sconto attivo")
+      .replace(/\{\{companyName\}\}/g, customerData.companyName || "L'Altra Italia")
+      .replace(/\{\{lastordercode\}\}/g, customerData.lastordercode || "N/A")
+      .replace(/\{\{languageUser\}\}/g, customerData.languageUser || "it")
   }
 }

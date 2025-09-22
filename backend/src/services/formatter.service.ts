@@ -118,16 +118,29 @@ ISTRUZIONI:
    - [Testo](url) per link
    - *Corsivo* per enfasi
 
-3. **REGOLE**:
+3. **REGOLE CRITICHE - NON INVENTARE MAI**:
    - Mantieni ESATTAMENTE i dati originali
-   - NON inventare nulla
+   - **NON INVENTARE NULLA**: Non aggiungere informazioni che non sono nei dati forniti
+   - **NON inventare date di consegna, numeri di tracking, dettagli ordini**
+   - **NON aggiungere informazioni di contatto non presenti nei dati**
+   - **NON creare link o servizi non menzionati**
+   - **LIMITATI RIGOROSAMENTE** alle informazioni presenti nei dati forniti
    - Personalizza con il nome utente: ${nameUser}
    - Se lo sconto è > 0, menziona il ${discount}% di sconto disponibile
    - **TRADUCI SEMPRE** tutti i nomi di categorie in ${language === "it" ? "italiano" : language === "en" ? "inglese" : language === "es" ? "spagnolo" : "portoghese"}:
-     * "Various & Spices" → "Varie & Spezie"
-     * "Cheeses & Dairy" → "Formaggi & Latticini" 
+     * "Cheeses & Dairy" → "Formaggi e Latticini"
+     * "Various & Spices" → "Varie e Spezie"
      * "Frozen Products" → "Prodotti Surgelati"
-     * "Sauces & Preserves" → "Salse & Conserve"
+     * "Sauces & Preserves" → "Salse e Conserve"
+     * "Pasta & Rice" → "Pasta e Riso"
+     * "Meat & Salami" → "Carne e Salumi"
+     * "Water & Beverages" → "Acqua e Bevande"
+     * **IMPORTANTE**: Sostituisci sempre "&" con "e" in italiano
+     * **IMPORTANTE**: Se nel testo ci sono nomi di categorie in inglese come "Formaggi & Latticini", "Salumi", ecc. mantienili come sono, sono già corretti
+   - **TRADUCI ANCHE nel contenuto del messaggio** qualsiasi nome di categoria che appare:
+     * Se vedi "Cheeses & Dairy" scrivilo come "Formaggi & Latticini"
+     * Se vedi "Various & Spices" scrivilo come "Varie & Spezie"
+     * Se vedi "Frozen Products" scrivilo come "Prodotti Surgelati"
    - Rispondi SEMPRE in ${language === "it" ? "italiano" : language === "en" ? "inglese" : language === "es" ? "spagnolo" : "portoghese"}
 
 stai attento alle linee vuote e alle liste devono avere una bella presentaazione uniform e usa bullet point    
@@ -150,7 +163,7 @@ Restituisci testo formattato in Markdown arricchiendo le risposte e saludando l'
           body: JSON.stringify({
             model: "anthropic/claude-3.5-sonnet",
             messages: [{ role: "user", content: prompt }],
-            temperature: 0.4,
+            temperature: 0.1,
           }),
         }
       )

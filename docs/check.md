@@ -28,9 +28,27 @@
 
 NON VA!!!
 
-- carrello
 - storico?
-- conversazione piu' samrt (peor esempuo saluta )
 - troppi log!
-- FORMATTER FORMAT
-- detectLanguageFromText
+
+Dimmi quante mozzarelle ho comprato l'ultimo mese
+situaizone pago
+dammi link oridni
+Che offerte avete?
+dammi link oridni
+
+In quanto tempo arriva l'ordine?
+22:37
+Ciao! Per visualizzare i tuoi ordini, clicca su questo link: http://localhost:3000/orders-public?token=6952bb940b84871b429abdf1526795b38dd9ab65d8717c33755c5862a94710e5
+
+dammi lista degli ordini
+22:32
+Ciao Mario Rossi, bentornato! 👋
+
+Ecco il catalogo completo dei nostri prodotti italiani:
+
+Dimmi quante mozzarelle ho comprato l'ultimo mese
+22:30
+Ciao! Ecco le nostre offerte attive: • Offerta Frozen Products 20%
+
+Foramttazione di linee vuote

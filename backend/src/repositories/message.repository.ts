@@ -1400,25 +1400,6 @@ export class MessageRepository {
           },
         },
         {
-          name: "search_specific_product",
-          description:
-            "Search for specific products when user mentions a specific product name like mozzarella, parmigiano, prosciutto, wine, pasta, etc.",
-          parameters: {
-            type: "object",
-            properties: {
-              productName: {
-                type: "string",
-                description: "Name of the specific product to search",
-              },
-              message: {
-                type: "string",
-                description: "User's original product search request",
-              },
-            },
-            required: ["productName", "message"],
-          },
-        },
-        {
           name: "GetLinkOrderByCode",
           description:
             "Get a secure link to view a specific order (or the last order if omitted). Triggers when user asks for a specific order or invoice.",
@@ -1460,26 +1441,6 @@ export class MessageRepository {
               },
             },
             required: ["message"],
-          },
-        },
-        {
-          name: "GetProductsByCategory",
-          description:
-            "Get products by category when user asks for specific product categories like frozen products, cheeses, cured meats, etc.",
-          parameters: {
-            type: "object",
-            properties: {
-              categoryName: {
-                type: "string",
-                description:
-                  "Name of the category to search (e.g., 'Frozen Products', 'Cheeses & Dairy')",
-              },
-              message: {
-                type: "string",
-                description: "User's original request",
-              },
-            },
-            required: ["categoryName", "message"],
           },
         },
       ]

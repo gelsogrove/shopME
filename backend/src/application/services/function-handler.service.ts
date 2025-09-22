@@ -264,18 +264,6 @@ export class FunctionHandlerService {
             functionName,
           }
 
-        case "search_specific_product":
-          return {
-            data: await this.handleSearchSpecificProduct(
-              phoneNumber,
-              workspaceId,
-              customer?.id,
-              params.message || "",
-              params
-            ),
-            functionName,
-          }
-
         case "get_all_categories":
           return {
             functionName,
@@ -331,18 +319,10 @@ export class FunctionHandlerService {
             functionName,
           }
 
-        // 🛍️ PRODUCTS BY CATEGORY
-        case "GetProductsByCategory":
-          console.log("🔧 [DEBUG] Entering GetProductsByCategory case")
-          console.log("🔧 [DEBUG] Params:", params)
-          console.log("🔧 [DEBUG] Customer:", customer)
-          console.log("🔧 [DEBUG] WorkspaceId:", workspaceId)
+        //  CONTACT OPERATOR
+        case "ContactOperator":
           return {
-            data: await this.handleGetProductsByCategory(
-              params,
-              customer,
-              workspaceId
-            ),
+            data: await this.handleContactOperator(params, customer, workspaceId),
             functionName,
           }
 
@@ -361,7 +341,7 @@ export class FunctionHandlerService {
                 "search_products",
                 "search_documents",
                 "get_faq_info",
-                "GetProductsByCategory",
+                "ContactOperator",
               ],
             },
             functionName,
@@ -611,38 +591,6 @@ export class FunctionHandlerService {
     }
   }
 
-  /**
-   * Cerca un prodotto specifico
-   */
-  async handleSearchSpecificProduct(
-    phoneNumber: string,
-    workspaceId: string,
-    customerId: string,
-    message: string,
-    functionArgs: any
-  ): Promise<any> {
-    try {
-      const productName = functionArgs?.productName || message
-
-      const result = await this.callingFunctionsService.searchSpecificProduct({
-        phoneNumber,
-        workspaceId,
-        customerId: customerId || undefined,
-        productName,
-        message,
-        language: "it",
-      })
-
-      return result
-    } catch (error) {
-      logger.error("❌ Errore in handleSearchSpecificProduct:", error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Errore interno",
-      }
-    }
-  }
-
   // =============================================================================
   // 📄 DOCUMENTATION METHODS
   // =============================================================================
@@ -774,46 +722,34 @@ export class FunctionHandlerService {
   }
 
   /**
-   * Handle GetProductsByCategory function
+   * Handle contact operator request
    */
-  async handleGetProductsByCategory(
-    params: any,
-    customer: any,
-    workspaceId: string
-  ): Promise<any> {
+  async handleContactOperator(params: any, customer: any, workspaceId: string): Promise<any> {
     try {
-      console.log("🔧 handleGetProductsByCategory called with:", params)
-      console.log("🔧 Customer:", customer)
-      console.log("🔧 WorkspaceId:", workspaceId)
-      
-      // Import the GetProductsByCategory function
-      const { GetProductsByCategory } = require("../../chatbot/calling-functions/GetProductsByCategory")
-      console.log("🔧 GetProductsByCategory imported successfully")
-      
-      const result = await GetProductsByCategory({
-        phoneNumber: params.phoneNumber || "unknown",
+      console.log("🔧 FunctionHandlerService: handleContactOperator called")
+
+      // Import the CallingFunctionsService
+      const {
+        CallingFunctionsService,
+      } = require("../../services/calling-functions.service")
+      const callingFunctionsService = new CallingFunctionsService()
+
+      // Call the ContactOperator function with required phoneNumber parameter
+      const result = await callingFunctionsService.ContactOperator({
+        message: params.message || "",
+        phoneNumber: customer?.phone || "", // Ora usiamo phoneNumber
+        customerId: customer?.id || "",
         workspaceId: workspaceId,
-        customerId: customer?.id,
-        message: params.message || "Get products by category",
-        categoryName: params.categoryName,
       })
-      
-      console.log("🔧 GetProductsByCategory result:", result)
-      
-      return {
-        success: true,
-        response: result.response,
-        products: result.products,
-        totalProducts: result.totalProducts,
-        categoryName: result.categoryName,
-      }
+
+      console.log("🔧 ContactOperator result:", result)
+      return result
     } catch (error) {
-      console.error("❌ Error in handleGetProductsByCategory:", error)
-      console.error("❌ Error stack:", error.stack)
+      console.error("❌ Error in handleContactOperator:", error)
       return {
         success: false,
-        error: error.message || "Error getting products by category",
-        message: "Errore nel recuperare i prodotti della categoria",
+        error: error.message || "Error contacting operator",
+        message: "Errore nel contattare l'operatore",
       }
     }
   }

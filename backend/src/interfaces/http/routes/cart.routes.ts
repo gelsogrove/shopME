@@ -31,7 +31,7 @@ router.get(
 
 /**
  * @swagger
- * /api/cart/{token}/add:
+ * /api/cart/{token}/items:
  *   post:
  *     summary: Add product to cart
  *     tags: [Cart]
@@ -59,10 +59,70 @@ router.get(
  *       404:
  *         description: Cart or product not found
  */
-router.post(
-  "/:token/add",
-  asyncMiddleware(cartController.addItemToCart.bind(cartController))
-)
+router.post("/:token/items", asyncMiddleware(cartController.addItemToCart.bind(cartController)))
+
+/**
+ * @swagger
+ * /api/cart/{token}/items/{productId}:
+ *   delete:
+ *     summary: Remove product from cart
+ *     tags: [Cart]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The cart token
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The product ID to remove
+ *     responses:
+ *       200:
+ *         description: Product removed from cart successfully
+ *       404:
+ *         description: Cart or product not found
+ */
+router.delete("/:token/items/:productId", asyncMiddleware(cartController.removeCartItem.bind(cartController)))
+
+/**
+ * @swagger
+ * /api/cart/{token}/items/{productId}:
+ *   put:
+ *     summary: Update cart item quantity
+ *     tags: [Cart]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The cart token
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The product ID to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               quantity:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Cart item updated successfully
+ *       404:
+ *         description: Cart or product not found
+ */
+router.put("/:token/items/:productId", asyncMiddleware(cartController.updateCartItem.bind(cartController)))
 
 /**
  * @swagger

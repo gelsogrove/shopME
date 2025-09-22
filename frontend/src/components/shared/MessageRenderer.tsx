@@ -22,20 +22,9 @@ export function MessageRenderer({
     compact: "whitespace-pre-line leading-normal",
   }
 
-  // Inline styles for text formatting without hyphenation issues
-  const textStyle = {
-    textAlign: "left" as const,
-    whiteSpace: "pre-wrap" as const,
-    wordBreak: "normal" as const,
-    textJustify: "none" as const,
-    maxWidth: "100%",
-    direction: "ltr" as const,
-  }
-
   return (
-    <span
+    <div
       className={`${baseClasses} ${variantClasses[variant]} ${className}`}
-      style={textStyle}
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
@@ -50,31 +39,44 @@ export function MessageRenderer({
               className="text-blue-600 hover:underline"
             />
           ),
-          // Preserve WhatsApp-style formatting with better spacing
+          // Clean paragraph rendering
           p: ({ children }) => (
-            <div
-              className="mb-3 last:mb-0 leading-relaxed"
-              style={{ textAlign: "left", direction: "ltr" }}
-            >
+            <p className="mb-2 last:mb-0">
               {children}
-            </div>
+            </p>
           ),
-          // Handle bullet points consistently with better emoji spacing
-          ul: ({ children }) => <ul className="space-y-2 my-2">{children}</ul>,
+          // Proper list rendering
+          ul: ({ children }) => (
+            <ul className="list-none space-y-1 my-2">
+              {children}
+            </ul>
+          ),
           li: ({ children }) => (
-            <li className="flex items-center gap-2 leading-relaxed py-1">
+            <li className="text-left">
               {children}
             </li>
           ),
-          // Preserve bold/italic formatting with stronger styling
-          strong: ({ children }) => (
-            <strong className="font-bold text-gray-900">{children}</strong>
+          // Headers
+          h1: ({ children }) => (
+            <h1 className="text-lg font-bold mb-2">{children}</h1>
           ),
-          em: ({ children }) => <em className="italic">{children}</em>,
+          h2: ({ children }) => (
+            <h2 className="text-base font-bold mb-2">{children}</h2>
+          ),
+          h3: ({ children }) => (
+            <h3 className="text-sm font-bold mb-1">{children}</h3>
+          ),
+          // Text formatting
+          strong: ({ children }) => (
+            <strong className="font-bold">{children}</strong>
+          ),
+          em: ({ children }) => (
+            <em className="italic">{children}</em>
+          ),
         }}
       >
         {content}
       </ReactMarkdown>
-    </span>
+    </div>
   )
 }

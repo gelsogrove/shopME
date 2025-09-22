@@ -36,12 +36,12 @@ graph LR
 - **Formatter**: Context-aware per categorie (emoji 🛍️ 🧀 📦)
 - **Test**: "che prodotti avete?" → Lista categorie con conteggi
 
-#### **3. GetProductsByCategory** ✅
+#### **3. Ricerche per categoria** ✅
 - **Trigger**: "formaggi", "cheese", "surgelati", "frozen", "salse"
-- **Recognition**: `isAboutCategory(translatedQuery)` + `extractCategoryFromQuery()`
-- **CF**: `callingFunctionsService.getProductsByCategory()`
+- **Recognition**: Ora gestito da SearchRag seguendo regole ricordati.md
+- **CF**: SearchRag (invece di GetProductsByCategory rimosso)
 - **Formatter**: Context-aware per prodotti (formato completo con codici)
-- **Test**: "che formaggi avete?" → Lista completa 66 prodotti con codici
+- **Test**: "che formaggi avete?" → Ricerca tramite SearchRag
 
 ### ✅ **PATTERN REPLICABILE PER OGNI NUOVA CF:**
 
