@@ -691,7 +691,10 @@ router.post("/chat", async (req, res) => {
           `🔧 /api/chat: LLM Request workspaceId: "${body.workspaceId}"`
         )
 
-        const response = await dualLLMService.handleMessage(llmRequest, variables)
+        const response = await dualLLMService.handleMessage(
+          llmRequest,
+          variables
+        )
 
         // 🔧 CRITICAL FIX: Save message to database like webhook does
         try {

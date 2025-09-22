@@ -1,8 +1,8 @@
 import {
-    MessageDirection,
-    MessageType,
-    OrderStatus,
-    PrismaClient,
+  MessageDirection,
+  MessageType,
+  OrderStatus,
+  PrismaClient,
 } from "@prisma/client"
 import * as dotenv from "dotenv"
 import OpenAI from "openai"

@@ -23,9 +23,7 @@ export function MessageRenderer({
   }
 
   return (
-    <div
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
-    >
+    <div className={`${baseClasses} ${variantClasses[variant]} ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         skipHtml={false}
@@ -40,22 +38,12 @@ export function MessageRenderer({
             />
           ),
           // Clean paragraph rendering
-          p: ({ children }) => (
-            <p className="mb-2 last:mb-0">
-              {children}
-            </p>
-          ),
+          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
           // Proper list rendering
           ul: ({ children }) => (
-            <ul className="list-none space-y-1 my-2">
-              {children}
-            </ul>
+            <ul className="list-none space-y-1 my-2">{children}</ul>
           ),
-          li: ({ children }) => (
-            <li className="text-left">
-              {children}
-            </li>
-          ),
+          li: ({ children }) => <li className="text-left">{children}</li>,
           // Headers
           h1: ({ children }) => (
             <h1 className="text-lg font-bold mb-2">{children}</h1>
@@ -70,9 +58,7 @@ export function MessageRenderer({
           strong: ({ children }) => (
             <strong className="font-bold">{children}</strong>
           ),
-          em: ({ children }) => (
-            <em className="italic">{children}</em>
-          ),
+          em: ({ children }) => <em className="italic">{children}</em>,
         }}
       >
         {content}

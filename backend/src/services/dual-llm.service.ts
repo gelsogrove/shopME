@@ -3,7 +3,7 @@ import { LLMRequest } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
 // import { FormatterService } from "./formatter.service" // 🚫 FORMATTER DISABILITATO
 // import { TranslationService } from "./translation.service" // 🚫 TRANSLATION DISABILITATO
-import { ReplaceLinkWithToken } from "../chatbot/calling-functions/ReplaceLinkWithToken";
+import { ReplaceLinkWithToken } from "../chatbot/calling-functions/ReplaceLinkWithToken"
 
 export class DualLLMService {
   // private translationService: TranslationService // 🚫 TRANSLATION DISABILITATO
@@ -16,14 +16,17 @@ export class DualLLMService {
     this.callingFunctionsService = new CallingFunctionsService()
   }
 
-  async handleMessage(llmRequest: LLMRequest, customerData?: any): Promise<any> {
+  async handleMessage(
+    llmRequest: LLMRequest,
+    customerData?: any
+  ): Promise<any> {
     try {
       console.log(`🔄 DualLLM: Processing message: ${llmRequest.chatInput}`)
 
       // Step 1: LLM decides what to do - calls CF if needed (usa query originale)
       // 🚫 TRANSLATION DISABILITATO - usa query originale
       const translatedQuery = llmRequest.chatInput // Era: await this.translationService.translateToEnglish(request.chatInput)
-      
+
       const cfResult = await this.executeCallingFunctions(
         llmRequest,
         translatedQuery
@@ -66,9 +69,9 @@ export class DualLLMService {
         ) */
 
         // 🚫 SearchRag DISABILITATO - ritorna direttamente la genericReply
-        let searchRagResult = { 
-          success: false, 
-          response: genericReply 
+        let searchRagResult = {
+          success: false,
+          response: genericReply,
         }
 
         // Se SearchRag non trova nulla nemmeno in traduzione, genera LLM response
@@ -111,20 +114,21 @@ export class DualLLMService {
         llmRequest.phone,
         llmRequest.workspaceId
       )
-      
+
       // 🚫 FORMATTER DISABILITATO - ritorna direttamente la risposta
       /* const formattedResponse = await this.executeFormatter(
         llmRequest,
         finalResult,
         finalResult === cfResult ? "CF" : "SearchRag"
       ) */
-      
+
       // Estrai direttamente la risposta senza formatter
       let directResponse = finalResult.response
       if (typeof directResponse !== "string") {
-        directResponse = typeof directResponse === "object" 
-          ? JSON.stringify(directResponse) 
-          : String(directResponse)
+        directResponse =
+          typeof directResponse === "object"
+            ? JSON.stringify(directResponse)
+            : String(directResponse)
       }
 
       // 🔧 SOSTITUZIONE VARIABILI - Prima del return per evitare {{nameUser}} non sostituiti
@@ -227,81 +231,8 @@ export class DualLLMService {
         )
 
         // Execute the specific CF based on function name
-        if (false) { // SearchSpecificProduct removed - all functions use FunctionHandlerService
-          const { SearchSpecificProduct } = await import(
-            "../chatbot/calling-functions/SearchSpecificProduct"
-          )
-
-          // Sanitize product name extracted from the LLM function_call arguments.
-          // Sometimes the LLM returns a full sentence like:
-          // "L'utente ha richiesto informazioni su 'mozzarella'"
-          // We want to extract the core product term (e.g. mozzarella) before searching.
-          const rawArg =
-            (functionResult.function_call.arguments &&
-              (functionResult.function_call.arguments.message ||
-                functionResult.function_call.arguments.productName)) ||
-            ""
-
-          const sanitizeProductName = (input: string) => {
-            if (!input) return input
-            let s = input.trim()
-
-            // If there is a quoted term, prefer the quoted content
-            const singleQuoteMatch =
-              s.match(/'([^']+)'/) || s.match(/’([^’]+)’/)
-            if (singleQuoteMatch && singleQuoteMatch[1])
-              return singleQuoteMatch[1].trim()
-            const doubleQuoteMatch = s.match(/"([^"]+)"/)
-            if (doubleQuoteMatch && doubleQuoteMatch[1])
-              return doubleQuoteMatch[1].trim()
-
-            // Remove common verbose prefixes (Italian and English)
-            const prefixes = [
-              "l'utente ha richiesto informazioni su",
-              "l'utente ha chiesto",
-              "l'utente ha richiesto",
-              "the user asked for",
-              "the user requested",
-              "user asked for",
-              "user requested",
-              "do you have",
-              "do you have",
-              "avete",
-              "ho bisogno di",
-              "sto cercando",
-              "i'm looking for",
-            ]
-
-            const lower = s.toLowerCase()
-            for (const p of prefixes) {
-              if (lower.startsWith(p)) {
-                s = s.substring(p.length).trim()
-                break
-              }
-            }
-
-            // Remove leading punctuation and question words
-            s = s.replace(/^[:\-\s"'«»“”]+/, "")
-            // If still long, take last 3 words as a heuristic
-            const words = s.split(/\s+/).filter(Boolean)
-            if (words.length > 4) {
-              return words.slice(-3).join(" ")
-            }
-
-            return s
-          }
-
-          const cleaned = sanitizeProductName(String(rawArg))
-
-          cfExecutionResult = await SearchSpecificProduct({
-            phoneNumber: request.phone,
-            workspaceId: request.workspaceId,
-            customerId: customer?.id || "",
-            productName:
-              cleaned || functionResult.function_call.arguments.message || "",
-            message: functionResult.function_call.arguments.message || "",
-            language: "it",
-          })
+        if (false) {
+          // SearchSpecificProduct removed - all functions use FunctionHandlerService
         } else {
           console.log(
             `🔧 DualLLM: Using FunctionHandlerService for function: ${functionResult.function_call.name}`
@@ -351,10 +282,10 @@ export class DualLLMService {
         )
 
         // REGOLA 2: Salvare risposta LLM quando non chiama funzioni
-          const llmResponse = await this.generateLLMResponse(
-            translatedQuery,
-            request.workspaceId
-          )
+        const llmResponse = await this.generateLLMResponse(
+          translatedQuery,
+          request.workspaceId
+        )
 
         console.log(
           `🔍 DualLLM: SearchRag DISABILITATO - ritorna solo LLM response`
@@ -762,8 +693,14 @@ export class DualLLMService {
 
     return response
       .replace(/\{\{nameUser\}\}/g, customerData.nameUser || "Cliente")
-      .replace(/\{\{discountUser\}\}/g, customerData.discountUser || "Nessuno sconto attivo")
-      .replace(/\{\{companyName\}\}/g, customerData.companyName || "L'Altra Italia")
+      .replace(
+        /\{\{discountUser\}\}/g,
+        customerData.discountUser || "Nessuno sconto attivo"
+      )
+      .replace(
+        /\{\{companyName\}\}/g,
+        customerData.companyName || "L'Altra Italia"
+      )
       .replace(/\{\{lastordercode\}\}/g, customerData.lastordercode || "N/A")
       .replace(/\{\{languageUser\}\}/g, customerData.languageUser || "it")
   }

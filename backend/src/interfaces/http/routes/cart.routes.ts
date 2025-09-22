@@ -59,7 +59,10 @@ router.get(
  *       404:
  *         description: Cart or product not found
  */
-router.post("/:token/items", asyncMiddleware(cartController.addItemToCart.bind(cartController)))
+router.post(
+  "/:token/items",
+  asyncMiddleware(cartController.addItemToCart.bind(cartController))
+)
 
 /**
  * @swagger
@@ -86,7 +89,10 @@ router.post("/:token/items", asyncMiddleware(cartController.addItemToCart.bind(c
  *       404:
  *         description: Cart or product not found
  */
-router.delete("/:token/items/:productId", asyncMiddleware(cartController.removeCartItem.bind(cartController)))
+router.delete(
+  "/:token/items/:productId",
+  asyncMiddleware(cartController.removeCartItem.bind(cartController))
+)
 
 /**
  * @swagger
@@ -122,7 +128,10 @@ router.delete("/:token/items/:productId", asyncMiddleware(cartController.removeC
  *       404:
  *         description: Cart or product not found
  */
-router.put("/:token/items/:productId", asyncMiddleware(cartController.updateCartItem.bind(cartController)))
+router.put(
+  "/:token/items/:productId",
+  asyncMiddleware(cartController.updateCartItem.bind(cartController))
+)
 
 /**
  * @swagger

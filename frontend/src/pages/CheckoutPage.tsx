@@ -55,87 +55,120 @@ const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const location = useLocation()
   const token = searchParams.get("token")
-  
-  
+
   // 🌐 Use centralized localization system
 
   // 🔐 Validate checkout token (TOKEN-ONLY)
-  const { valid, loading, error, errorType, expiresAt, tokenData, payload, validateToken } =
-    useCheckoutTokenValidation(token)
+  const {
+    valid,
+    loading,
+    error,
+    errorType,
+    expiresAt,
+    tokenData,
+    payload,
+    validateToken,
+  } = useCheckoutTokenValidation(token)
 
   // State management
   const [currentStep, setCurrentStep] = useState(1)
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [prodotti, setProdotti] = useState<Product[]>([])
   const [formData, setFormData] = useState<FormData>({
-    shippingAddress: { name: "", street: "", city: "", postalCode: "", province: "", country: "", phone: "" },
-    billingAddress: { name: "", street: "", city: "", postalCode: "", province: "", country: "", phone: "" },
+    shippingAddress: {
+      name: "",
+      street: "",
+      city: "",
+      postalCode: "",
+      province: "",
+      country: "",
+      phone: "",
+    },
+    billingAddress: {
+      name: "",
+      street: "",
+      city: "",
+      postalCode: "",
+      province: "",
+      country: "",
+      phone: "",
+    },
     sameAsBilling: false,
-    notes: ""
+    notes: "",
   })
   const [submitStatus, setSubmitStatus] = useState({
     loading: false,
     success: false,
-    error: ""
+    error: "",
   })
   const [showAddProducts, setShowAddProducts] = useState(false)
   const [availableProducts, setAvailableProducts] = useState<any[]>([])
   const [loadingProducts, setLoadingProducts] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [productToDelete, setProductToDelete] = useState<{index: number, name: string} | null>(null)
+  const [productToDelete, setProductToDelete] = useState<{
+    index: number
+    name: string
+  } | null>(null)
 
   // Load data from token when validated
   useEffect(() => {
     if (valid && tokenData) {
       // Minimum 1000ms loading + process data
       const startTime = Date.now()
-      
+
       const processData = async () => {
         setCustomer(tokenData.customer)
-        
+
         // 🔧 Clean up and normalize product data from backend
-        console.log('🔍 DEBUG: tokenData.prodotti from backend:', tokenData.prodotti)
-        const cleanedProdotti = (tokenData.prodotti || []).map(prodotto => {
-          console.log('🔍 DEBUG: Processing product:', {
+        console.log(
+          "🔍 DEBUG: tokenData.prodotti from backend:",
+          tokenData.prodotti
+        )
+        const cleanedProdotti = (tokenData.prodotti || []).map((prodotto) => {
+          console.log("🔍 DEBUG: Processing product:", {
             name: prodotto.descrizione,
             formato: prodotto.formato,
-            hasFormato: !!prodotto.formato
+            hasFormato: !!prodotto.formato,
           })
           return {
             ...prodotto,
-            descrizione: prodotto.descrizione === 'Unknown Product' ? 'Prodotto senza nome' : prodotto.descrizione,
+            descrizione:
+              prodotto.descrizione === "Unknown Product"
+                ? "Prodotto senza nome"
+                : prodotto.descrizione,
             formato: prodotto.formato, // 🧀 Preserve formato field
             qty: prodotto.quantita || 1, // Map quantita to qty for frontend compatibility
             prezzoOriginale: prodotto.prezzo, // Original price
             prezzo: prodotto.prezzoScontato || prodotto.prezzo, // Use discounted price as display price
-            scontoApplicato: prodotto.sconto || 0 // Discount percentage
+            scontoApplicato: prodotto.sconto || 0, // Discount percentage
           }
         })
-        
+
         setProdotti(cleanedProdotti)
-        
+
         // 🔧 ALWAYS pre-fill basic customer data (name and phone) from token
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           shippingAddress: {
             ...prev.shippingAddress,
             name: tokenData.customer.name || "",
-            phone: tokenData.customer.phone || ""
+            phone: tokenData.customer.phone || "",
           },
           billingAddress: {
             ...prev.billingAddress,
             name: tokenData.customer.name || "",
-            phone: tokenData.customer.phone || ""
-          }
+            phone: tokenData.customer.phone || "",
+          },
         }))
-        
+
         // Pre-fill addresses if available (will override basic data if present)
         if (tokenData.customer.address) {
-          const address = typeof tokenData.customer.address === 'string' 
-            ? JSON.parse(tokenData.customer.address) 
-            : tokenData.customer.address;
-          setFormData(prev => ({
+          const address =
+            typeof tokenData.customer.address === "string"
+              ? JSON.parse(tokenData.customer.address)
+              : tokenData.customer.address
+          setFormData((prev) => ({
             ...prev,
             shippingAddress: {
               name: address.name || "",
@@ -144,47 +177,50 @@ const CheckoutPage: React.FC = () => {
               postalCode: address.postalCode || address.zipCode || "",
               province: address.province || "",
               country: address.country || "",
-              phone: address.phone || ""
-            }
+              phone: address.phone || "",
+            },
           }))
         }
 
         // Pre-fill billing address if available
         if (tokenData.customer.invoiceAddress) {
-          const invoiceAddress = typeof tokenData.customer.invoiceAddress === 'string' 
-            ? JSON.parse(tokenData.customer.invoiceAddress) 
-            : tokenData.customer.invoiceAddress;
-          setFormData(prev => ({
+          const invoiceAddress =
+            typeof tokenData.customer.invoiceAddress === "string"
+              ? JSON.parse(tokenData.customer.invoiceAddress)
+              : tokenData.customer.invoiceAddress
+          setFormData((prev) => ({
             ...prev,
             billingAddress: {
-              name: `${invoiceAddress.firstName || ""} ${invoiceAddress.lastName || ""}`.trim(),
+              name: `${invoiceAddress.firstName || ""} ${
+                invoiceAddress.lastName || ""
+              }`.trim(),
               street: invoiceAddress.address || "",
               city: invoiceAddress.city || "",
               postalCode: invoiceAddress.postalCode || "",
               province: invoiceAddress.province || "",
               country: invoiceAddress.country || "",
-              phone: invoiceAddress.phone || ""
+              phone: invoiceAddress.phone || "",
             },
-            sameAsBilling: false
+            sameAsBilling: false,
           }))
         } else {
           // If no invoice address, use shipping address as billing
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
-            sameAsBilling: true
+            sameAsBilling: true,
           }))
         }
-        
+
         // 🎯 TASK: Auto-copy billing address after data is loaded
         setTimeout(() => {
           checkAndAutoCopyBillingAddress()
         }, 100)
       }
-      
+
       processData().finally(() => {
         const elapsedTime = Date.now() - startTime
         const remainingTime = Math.max(0, 1000 - elapsedTime)
-        
+
         setTimeout(() => {
           setInitialLoading(false)
         }, remainingTime)
@@ -197,7 +233,7 @@ const CheckoutPage: React.FC = () => {
     return prodotti.reduce((sum, prodotto) => {
       const finalPrice = prodotto.prezzoScontato || prodotto.prezzo
       const quantity = prodotto.qty || prodotto.quantita || 1
-      return sum + (finalPrice * quantity)
+      return sum + finalPrice * quantity
     }, 0)
   }
 
@@ -205,44 +241,46 @@ const CheckoutPage: React.FC = () => {
   const handleQuantityChange = async (index: number, newQuantity: number) => {
     if (newQuantity < 1) return
     if (!token) {
-      toast.error('Token non valido per aggiornare la quantità')
+      toast.error("Token non valido per aggiornare la quantità")
       return
     }
 
     try {
       const product = prodotti[index]
       if (!product.productId) {
-        toast.error('ID prodotto non valido')
+        toast.error("ID prodotto non valido")
         return
       }
 
       // 🚀 Call backend API to update quantity
-      const response = await fetch(`/api/cart/${token}/items/${product.productId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          quantity: newQuantity
-        })
-      })
+      const response = await fetch(
+        `/api/cart/${token}/items/${product.productId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            quantity: newQuantity,
+          }),
+        }
+      )
 
       if (!response.ok) {
-        throw new Error('Failed to update quantity')
+        throw new Error("Failed to update quantity")
       }
 
       const result = await response.json()
-      
+
       if (!result.success) {
-        throw new Error(result.error || 'Failed to update quantity')
+        throw new Error(result.error || "Failed to update quantity")
       }
 
       // 🔄 Refresh cart data from backend
       await refreshCartFromBackend()
-      
     } catch (error) {
-      console.error('❌ Error updating quantity:', error)
-      toast.error('Errore nell\'aggiornare la quantità')
+      console.error("❌ Error updating quantity:", error)
+      toast.error("Errore nell'aggiornare la quantità")
     }
   }
 
@@ -256,48 +294,50 @@ const CheckoutPage: React.FC = () => {
   const removeProduct = async () => {
     if (!productToDelete) return
     if (!token) {
-      toast.error('Token non valido per rimuovere il prodotto')
+      toast.error("Token non valido per rimuovere il prodotto")
       return
     }
 
     try {
       const product = prodotti[productToDelete.index]
       if (!product.productId) {
-        toast.error('ID prodotto non valido')
+        toast.error("ID prodotto non valido")
         return
       }
 
       // 🚀 Call backend API to remove product
-      const response = await fetch(`/api/cart/${token}/items/${product.productId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `/api/cart/${token}/items/${product.productId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      })
+      )
 
       if (!response.ok) {
-        throw new Error('Failed to remove product')
+        throw new Error("Failed to remove product")
       }
 
       const result = await response.json()
-      
+
       if (!result.success) {
-        throw new Error(result.error || 'Failed to remove product')
+        throw new Error(result.error || "Failed to remove product")
       }
 
       // 🔄 Refresh cart data from backend
       await refreshCartFromBackend()
-      
+
       // Close confirmation dialog
       setShowDeleteConfirm(false)
       setProductToDelete(null)
-      
+
       // Show success message
       toast.success(`${productToDelete.name} rimosso dal carrello`)
-      
     } catch (error) {
-      console.error('❌ Error removing product:', error)
-      toast.error('Errore nel rimuovere il prodotto')
+      console.error("❌ Error removing product:", error)
+      toast.error("Errore nel rimuovere il prodotto")
     }
   }
 
@@ -313,34 +353,34 @@ const CheckoutPage: React.FC = () => {
 
     try {
       const response = await fetch(`/api/cart/${token}`)
-      
+
       if (!response.ok) {
-        throw new Error('Failed to refresh cart')
+        throw new Error("Failed to refresh cart")
       }
 
       const result = await response.json()
-      
+
       if (result.success && result.data) {
         // Convert backend cart items to frontend format
         const updatedProdotti = result.data.items.map((item: any) => ({
           id: item.id,
           productId: item.productId,
-          codice: item.product?.code || item.product?.sku || 'Non disponibile',
-          descrizione: item.product?.name || 'Prodotto senza nome',
+          codice: item.product?.code || item.product?.sku || "Non disponibile",
+          descrizione: item.product?.name || "Prodotto senza nome",
           formato: item.product?.formato || null,
           prezzo: item.product?.price || 0,
           prezzoOriginale: item.product?.price || 0,
           scontoApplicato: 0,
           fonteSconto: null,
           nomeSconto: null,
-          qty: item.quantity
+          qty: item.quantity,
         }))
-        
+
         setProdotti(updatedProdotti)
-        console.log('✅ Cart refreshed from backend:', updatedProdotti)
+        console.log("✅ Cart refreshed from backend:", updatedProdotti)
       }
     } catch (error) {
-      console.error('❌ Error refreshing cart from backend:', error)
+      console.error("❌ Error refreshing cart from backend:", error)
     }
   }
 
@@ -349,38 +389,43 @@ const CheckoutPage: React.FC = () => {
     // 🔧 FIX: Get workspaceId from tokenData.data (correct path)
     const workspaceId = tokenData?.data?.workspaceId || tokenData?.workspaceId
     if (!workspaceId) {
-      console.error('❌ No workspaceId found in tokenData:', tokenData)
+      console.error("❌ No workspaceId found in tokenData:", tokenData)
       return
     }
-    
-    console.log('🔍 Loading products for workspaceId:', workspaceId, 'customerId:', customer?.id)
-    
+
+    console.log(
+      "🔍 Loading products for workspaceId:",
+      workspaceId,
+      "customerId:",
+      customer?.id
+    )
+
     setLoadingProducts(true)
     try {
-      const response = await fetch('/api/internal/get-all-products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/internal/get-all-products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           workspaceId: workspaceId,
-          customerId: customer?.id
-        })
+          customerId: customer?.id,
+        }),
       })
-      
+
       const result = await response.json()
       if (result.success) {
         // 🔍 DEBUG: Log products data to understand the structure
-        console.log('🔍 Loaded products from API:', result.data.products)
-        
+        console.log("🔍 Loaded products from API:", result.data.products)
+
         // 🔧 Clean up any products with missing names
-        const cleanedProducts = (result.data.products || []).map(product => ({
+        const cleanedProducts = (result.data.products || []).map((product) => ({
           ...product,
-          name: product.name || 'Prodotto senza nome'
+          name: product.name || "Prodotto senza nome",
         }))
-        
+
         setAvailableProducts(cleanedProducts)
       }
     } catch (error) {
-      console.error('Error loading products:', error)
+      console.error("Error loading products:", error)
     } finally {
       setLoadingProducts(false)
     }
@@ -389,71 +434,74 @@ const CheckoutPage: React.FC = () => {
   // Add product to cart
   const addProductToCart = async (product: any) => {
     if (!token) {
-      toast.error('Token non valido per aggiungere prodotti al carrello')
+      toast.error("Token non valido per aggiungere prodotti al carrello")
       return
     }
 
     try {
       // 🔍 DEBUG: Log product data to understand the structure
-      console.log('🔍 Adding product to cart:', {
+      console.log("🔍 Adding product to cart:", {
         id: product.id,
         name: product.name,
         ProductCode: product.ProductCode,
         sku: product.sku,
         price: product.price,
-        finalPrice: product.finalPrice
+        finalPrice: product.finalPrice,
       })
-      
+
       // 🚀 Call backend API to add product to cart
       const response = await fetch(`/api/cart/${token}/items`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           productId: product.id,
           quantity: 1,
-          notes: `Added from checkout page - ${product.name}`
-        })
+          notes: `Added from checkout page - ${product.name}`,
+        }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to add product to cart')
+        throw new Error("Failed to add product to cart")
       }
 
       const result = await response.json()
-      
+
       if (!result.success) {
-        throw new Error(result.error || 'Failed to add product to cart')
+        throw new Error(result.error || "Failed to add product to cart")
       }
 
       // 🔄 Refresh cart data from backend
       await refreshCartFromBackend()
-      
+
       // Close popup and show updated cart
       setShowAddProducts(false)
-      
+
       // Show success message
-      toast.success(`${product.name || 'Prodotto'} aggiunto al carrello!`)
-      
+      toast.success(`${product.name || "Prodotto"} aggiunto al carrello!`)
     } catch (error) {
-      console.error('❌ Error adding product to cart:', error)
-      toast.error('Errore nell\'aggiungere il prodotto al carrello')
+      console.error("❌ Error adding product to cart:", error)
+      toast.error("Errore nell'aggiungere il prodotto al carrello")
     }
   }
 
   // Handle form input changes
-  const handleInputChange = (section: 'shippingAddress' | 'billingAddress', field: string, value: string) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    section: "shippingAddress" | "billingAddress",
+    field: string,
+    value: string
+  ) => {
+    setFormData((prev) => ({
       ...prev,
       [section]: {
         ...prev[section],
-        [field]: value
-      }
+        [field]: value,
+      },
     }))
 
     // 🎯 TASK: Auto-copy billing address if shipping address is being updated
-    if (section === 'shippingAddress') {
+    if (section === "shippingAddress") {
       // Use setTimeout to ensure state is updated before checking
       setTimeout(() => {
         checkAndAutoCopyBillingAddress()
@@ -463,34 +511,36 @@ const CheckoutPage: React.FC = () => {
 
   // Handle same as billing checkbox
   const handleSameAsBillingChange = (checked: boolean) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       sameAsBilling: checked,
-      billingAddress: checked ? prev.shippingAddress : prev.billingAddress
+      billingAddress: checked ? prev.shippingAddress : prev.billingAddress,
     }))
   }
 
   // 🎯 TASK: Auto-copy billing address from shipping when billing is empty
   const checkAndAutoCopyBillingAddress = () => {
-    setFormData(prev => {
+    setFormData((prev) => {
       // Check if billing address is empty (all fields empty or just whitespace)
-      const isBillingEmpty = !prev.billingAddress.name?.trim() && 
-                            !prev.billingAddress.street?.trim() && 
-                            !prev.billingAddress.city?.trim() && 
-                            !prev.billingAddress.postalCode?.trim()
+      const isBillingEmpty =
+        !prev.billingAddress.name?.trim() &&
+        !prev.billingAddress.street?.trim() &&
+        !prev.billingAddress.city?.trim() &&
+        !prev.billingAddress.postalCode?.trim()
 
       // Check if shipping address has data
-      const hasShippingData = prev.shippingAddress.name?.trim() || 
-                             prev.shippingAddress.street?.trim() || 
-                             prev.shippingAddress.city?.trim() || 
-                             prev.shippingAddress.postalCode?.trim()
+      const hasShippingData =
+        prev.shippingAddress.name?.trim() ||
+        prev.shippingAddress.street?.trim() ||
+        prev.shippingAddress.city?.trim() ||
+        prev.shippingAddress.postalCode?.trim()
 
       // Auto-copy if billing is empty and shipping has data
       if (isBillingEmpty && hasShippingData && !prev.sameAsBilling) {
         return {
           ...prev,
           sameAsBilling: true,
-          billingAddress: prev.shippingAddress
+          billingAddress: prev.shippingAddress,
         }
       }
 
@@ -505,17 +555,20 @@ const CheckoutPage: React.FC = () => {
     setSubmitStatus({ loading: true, success: false, error: "" })
 
     try {
-      const response = await fetch("http://localhost:3001/api/checkout/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token,
-          prodotti,
-          shippingAddress: formData.shippingAddress,
-          billingAddress: formData.billingAddress,
-          notes: formData.notes
-        })
-      })
+      const response = await fetch(
+        "http://localhost:3001/api/checkout/submit",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token,
+            prodotti,
+            shippingAddress: formData.shippingAddress,
+            billingAddress: formData.billingAddress,
+            notes: formData.notes,
+          }),
+        }
+      )
 
       const result = await response.json()
 
@@ -526,10 +579,18 @@ const CheckoutPage: React.FC = () => {
           window.location.href = `/checkout-success?orderCode=${result.orderCode}`
         }, 2000)
       } else {
-        setSubmitStatus({ loading: false, success: false, error: result.error || "Errore durante la creazione dell'ordine" })
+        setSubmitStatus({
+          loading: false,
+          success: false,
+          error: result.error || "Errore durante la creazione dell'ordine",
+        })
       }
     } catch (error) {
-      setSubmitStatus({ loading: false, success: false, error: "Errore di connessione" })
+      setSubmitStatus({
+        loading: false,
+        success: false,
+        error: "Errore di connessione",
+      })
     }
   }
 
@@ -538,10 +599,7 @@ const CheckoutPage: React.FC = () => {
 
   if (loading || (valid && initialLoading)) {
     return (
-      <UnifiedLoading 
-        title={texts.loading}
-        message={texts.loadingMessage}
-      />
+      <UnifiedLoading title={texts.loading} message={texts.loadingMessage} />
     )
   }
 
@@ -569,8 +627,18 @@ const CheckoutPage: React.FC = () => {
         <div className="flex flex-col space-y-1 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="h-8 w-8 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               <h1 className="text-3xl font-bold text-gray-900">
                 {texts.finalizeOrder}
@@ -584,8 +652,18 @@ const CheckoutPage: React.FC = () => {
                 }}
                 className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
                 {texts.viewOrders}
               </button>
@@ -596,15 +674,25 @@ const CheckoutPage: React.FC = () => {
                 }}
                 className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
                 </svg>
                 {texts.viewProfile}
               </button>
             </div>
           </div>
           <div className="text-sm text-gray-600 ml-10">
-            {texts.greeting.replace('{name}', customer?.name || '')}
+            {texts.greeting.replace("{name}", customer?.name || "")}
           </div>
         </div>
 
@@ -622,18 +710,23 @@ const CheckoutPage: React.FC = () => {
                 >
                   {step}
                 </div>
-                <span className={`mt-2 text-sm ${
-                  currentStep >= step ? "text-gray-900 font-semibold" : "text-gray-500"
-                }`}>
-                  {step === 1 ? texts.steps.products : 
-                   step === 2 ? texts.steps.addresses : 
-                   texts.steps.confirm}
+                <span
+                  className={`mt-2 text-sm ${
+                    currentStep >= step
+                      ? "text-gray-900 font-semibold"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {step === 1
+                    ? texts.steps.products
+                    : step === 2
+                    ? texts.steps.addresses
+                    : texts.steps.confirm}
                 </span>
               </div>
             ))}
           </div>
         </div>
-
 
         {/* Step Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -660,42 +753,51 @@ const CheckoutPage: React.FC = () => {
                       <div className="flex-1">
                         {/* Product Code */}
                         <div className="text-sm font-mono text-gray-500 mb-1">
-                          {prodotto.codice !== 'N/A' ? prodotto.codice : 'Non disponibile'}
+                          {prodotto.codice !== "N/A"
+                            ? prodotto.codice
+                            : "Non disponibile"}
                         </div>
-                        
+
                         {/* Product Name */}
                         <div className="text-lg font-semibold text-gray-900 mb-1">
                           {prodotto.descrizione}
                         </div>
-                        
+
                         {/* Format */}
                         {prodotto.formato && (
                           <div className="text-sm text-blue-600 mb-2 font-medium">
                             Format: {prodotto.formato}
                           </div>
                         )}
-                        
+
                         {/* Quantity and Price */}
                         <div className="flex items-center space-x-4">
                           <div className="flex items-center space-x-2">
                             <button
-                              onClick={() => handleQuantityChange(index, prodotto.qty - 1)}
+                              onClick={() =>
+                                handleQuantityChange(index, prodotto.qty - 1)
+                              }
                               className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
                               disabled={prodotto.qty <= 1}
                             >
                               -
                             </button>
-                            <span className="w-8 text-center font-semibold">{prodotto.qty}</span>
+                            <span className="w-8 text-center font-semibold">
+                              {prodotto.qty}
+                            </span>
                             <button
-                              onClick={() => handleQuantityChange(index, prodotto.qty + 1)}
+                              onClick={() =>
+                                handleQuantityChange(index, prodotto.qty + 1)
+                              }
                               className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
                             >
                               +
                             </button>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2">
-                            {prodotto.prezzoOriginale && prodotto.prezzoOriginale > prodotto.prezzo ? (
+                            {prodotto.prezzoOriginale &&
+                            prodotto.prezzoOriginale > prodotto.prezzo ? (
                               <>
                                 <span className="text-sm text-gray-600">
                                   a €{prodotto.prezzo.toFixed(2)} cad.
@@ -703,11 +805,12 @@ const CheckoutPage: React.FC = () => {
                                 <span className="text-sm text-gray-500 line-through">
                                   (era €{prodotto.prezzoOriginale.toFixed(2)})
                                 </span>
-                                {prodotto.scontoApplicato && prodotto.scontoApplicato > 0 && (
-                                  <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                                    -{prodotto.scontoApplicato}%
-                                  </span>
-                                )}
+                                {prodotto.scontoApplicato &&
+                                  prodotto.scontoApplicato > 0 && (
+                                    <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                                      -{prodotto.scontoApplicato}%
+                                    </span>
+                                  )}
                               </>
                             ) : (
                               <span className="text-sm text-gray-600">
@@ -720,11 +823,19 @@ const CheckoutPage: React.FC = () => {
 
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
-                          <p className="font-bold text-lg text-green-600">€{((prodotto.prezzoScontato || prodotto.prezzo) * (prodotto.qty || prodotto.quantita || 1)).toFixed(2)}</p>
+                          <p className="font-bold text-lg text-green-600">
+                            €
+                            {(
+                              (prodotto.prezzoScontato || prodotto.prezzo) *
+                              (prodotto.qty || prodotto.quantita || 1)
+                            ).toFixed(2)}
+                          </p>
                         </div>
 
                         <button
-                          onClick={() => showDeleteConfirmation(index, prodotto.descrizione)}
+                          onClick={() =>
+                            showDeleteConfirmation(index, prodotto.descrizione)
+                          }
                           className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"
                           title="Rimuovi prodotto"
                         >
@@ -748,7 +859,9 @@ const CheckoutPage: React.FC = () => {
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-xl font-bold">
                   <span>{texts.total}</span>
-                  <span className="text-green-600 font-bold">€{calculateTotal().toFixed(2)}</span>
+                  <span className="text-green-600 font-bold">
+                    €{calculateTotal().toFixed(2)}
+                  </span>
                 </div>
               </div>
 
@@ -767,78 +880,135 @@ const CheckoutPage: React.FC = () => {
 
           {currentStep === 2 && (
             <div>
-
               {/* Shipping Address */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">🚚 Indirizzo di Spedizione</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  🚚 Indirizzo di Spedizione
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nome completo
+                    </label>
                     <input
                       type="text"
                       placeholder="Nome completo"
                       value={formData.shippingAddress.name}
-                      onChange={(e) => handleInputChange("shippingAddress", "name", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "shippingAddress",
+                          "name",
+                          e.target.value
+                        )
+                      }
                       className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Telefono
+                    </label>
                     <input
                       type="text"
                       placeholder="Telefono"
                       value={formData.shippingAddress.phone}
-                      onChange={(e) => handleInputChange("shippingAddress", "phone", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "shippingAddress",
+                          "phone",
+                          e.target.value
+                        )
+                      }
                       className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Via e numero civico</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Via e numero civico
+                    </label>
                     <input
                       type="text"
                       placeholder="Via e numero civico"
                       value={formData.shippingAddress.street}
-                      onChange={(e) => handleInputChange("shippingAddress", "street", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "shippingAddress",
+                          "street",
+                          e.target.value
+                        )
+                      }
                       className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Città</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Città
+                    </label>
                     <input
                       type="text"
                       placeholder="Città"
                       value={formData.shippingAddress.city}
-                      onChange={(e) => handleInputChange("shippingAddress", "city", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "shippingAddress",
+                          "city",
+                          e.target.value
+                        )
+                      }
                       className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      CAP
+                    </label>
                     <input
                       type="text"
                       placeholder="CAP"
                       value={formData.shippingAddress.postalCode}
-                      onChange={(e) => handleInputChange("shippingAddress", "postalCode", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "shippingAddress",
+                          "postalCode",
+                          e.target.value
+                        )
+                      }
                       className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Provincia
+                    </label>
                     <input
                       type="text"
                       placeholder="Provincia"
                       value={formData.shippingAddress.province}
-                      onChange={(e) => handleInputChange("shippingAddress", "province", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "shippingAddress",
+                          "province",
+                          e.target.value
+                        )
+                      }
                       className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Paese</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Paese
+                    </label>
                     <input
                       type="text"
                       placeholder="Paese"
                       value={formData.shippingAddress.country}
-                      onChange={(e) => handleInputChange("shippingAddress", "country", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "shippingAddress",
+                          "country",
+                          e.target.value
+                        )
+                      }
                       className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     />
                   </div>
@@ -847,18 +1017,24 @@ const CheckoutPage: React.FC = () => {
 
               {/* Billing Address */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">🧾 Indirizzo di Fatturazione</h3>
-                
+                <h3 className="text-lg font-semibold mb-4">
+                  🧾 Indirizzo di Fatturazione
+                </h3>
+
                 {/* Same as shipping checkbox */}
                 <div className="mb-4">
                   <label className="flex items-center">
                     <input
                       type="checkbox"
                       checked={formData.sameAsBilling}
-                      onChange={(e) => handleSameAsBillingChange(e.target.checked)}
+                      onChange={(e) =>
+                        handleSameAsBillingChange(e.target.checked)
+                      }
                       className="mr-2"
                     />
-                    <span className="text-sm text-gray-700">Stesso indirizzo di spedizione</span>
+                    <span className="text-sm text-gray-700">
+                      Stesso indirizzo di spedizione
+                    </span>
                   </label>
                 </div>
 
@@ -866,72 +1042,128 @@ const CheckoutPage: React.FC = () => {
                 {!formData.sameAsBilling && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nome completo
+                      </label>
                       <input
                         type="text"
                         placeholder="Nome completo"
                         value={formData.billingAddress.name}
-                        onChange={(e) => handleInputChange("billingAddress", "name", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "billingAddress",
+                            "name",
+                            e.target.value
+                          )
+                        }
                         className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Telefono
+                      </label>
                       <input
                         type="text"
                         placeholder="Telefono"
                         value={formData.billingAddress.phone}
-                        onChange={(e) => handleInputChange("billingAddress", "phone", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "billingAddress",
+                            "phone",
+                            e.target.value
+                          )
+                        }
                         className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Via e numero civico</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Via e numero civico
+                      </label>
                       <input
                         type="text"
                         placeholder="Via e numero civico"
                         value={formData.billingAddress.street}
-                        onChange={(e) => handleInputChange("billingAddress", "street", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "billingAddress",
+                            "street",
+                            e.target.value
+                          )
+                        }
                         className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Città</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Città
+                      </label>
                       <input
                         type="text"
                         placeholder="Città"
                         value={formData.billingAddress.city}
-                        onChange={(e) => handleInputChange("billingAddress", "city", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "billingAddress",
+                            "city",
+                            e.target.value
+                          )
+                        }
                         className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        CAP
+                      </label>
                       <input
                         type="text"
                         placeholder="CAP"
                         value={formData.billingAddress.postalCode}
-                        onChange={(e) => handleInputChange("billingAddress", "postalCode", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "billingAddress",
+                            "postalCode",
+                            e.target.value
+                          )
+                        }
                         className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Provincia
+                      </label>
                       <input
                         type="text"
                         placeholder="Provincia"
                         value={formData.billingAddress.province}
-                        onChange={(e) => handleInputChange("billingAddress", "province", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "billingAddress",
+                            "province",
+                            e.target.value
+                          )
+                        }
                         className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Paese</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Paese
+                      </label>
                       <input
                         type="text"
                         placeholder="Paese"
                         value={formData.billingAddress.country}
-                        onChange={(e) => handleInputChange("billingAddress", "country", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "billingAddress",
+                            "country",
+                            e.target.value
+                          )
+                        }
                         className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       />
                     </div>
@@ -963,27 +1195,47 @@ const CheckoutPage: React.FC = () => {
 
           {currentStep === 3 && (
             <div>
-              <h2 className="text-2xl font-bold mb-6">📝 {texts.confirmOrder}</h2>
+              <h2 className="text-2xl font-bold mb-6">
+                📝 {texts.confirmOrder}
+              </h2>
 
               {/* Order Summary */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">{texts.productSummary}</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  {texts.productSummary}
+                </h3>
                 {prodotti.map((prodotto, index) => (
-                  <div key={index} className="flex justify-between py-2 border-b">
+                  <div
+                    key={index}
+                    className="flex justify-between py-2 border-b"
+                  >
                     <div className="flex-1">
                       <div>
-                        <span>{(prodotto.qty || prodotto.quantita || 1)}x {prodotto.descrizione}</span>
+                        <span>
+                          {prodotto.qty || prodotto.quantita || 1}x{" "}
+                          {prodotto.descrizione}
+                        </span>
                         {prodotto.formato && (
-                          <div className="text-sm text-blue-600">Format: {prodotto.formato}</div>
+                          <div className="text-sm text-blue-600">
+                            Format: {prodotto.formato}
+                          </div>
                         )}
                       </div>
                     </div>
-                    <span>€{((prodotto.prezzoScontato || prodotto.prezzo) * (prodotto.qty || prodotto.quantita || 1)).toFixed(2)}</span>
+                    <span>
+                      €
+                      {(
+                        (prodotto.prezzoScontato || prodotto.prezzo) *
+                        (prodotto.qty || prodotto.quantita || 1)
+                      ).toFixed(2)}
+                    </span>
                   </div>
                 ))}
                 <div className="flex justify-between py-2 text-xl font-bold border-t-2 mt-2">
                   <span>Totale:</span>
-                  <span className="text-green-600">€{calculateTotal().toFixed(2)}</span>
+                  <span className="text-green-600">
+                    €{calculateTotal().toFixed(2)}
+                  </span>
                 </div>
               </div>
 
@@ -992,31 +1244,69 @@ const CheckoutPage: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Shipping Address */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">🚚 Indirizzo di Spedizione</h3>
+                    <h3 className="text-lg font-semibold mb-4">
+                      🚚 Indirizzo di Spedizione
+                    </h3>
                     <div className="bg-gray-50 p-3 rounded-lg">
-                      <p><strong>{formData.shippingAddress.name || 'Non specificato'}</strong></p>
-                      <p>{formData.shippingAddress.street || 'Non specificato'}</p>
-                      <p>{formData.shippingAddress.city || 'Non specificato'} {formData.shippingAddress.postalCode || ''}</p>
-                      {formData.shippingAddress.province && <p>{formData.shippingAddress.province}</p>}
-                      {formData.shippingAddress.country && <p>{formData.shippingAddress.country}</p>}
-                      {formData.shippingAddress.phone && <p>📞 {formData.shippingAddress.phone}</p>}
+                      <p>
+                        <strong>
+                          {formData.shippingAddress.name || "Non specificato"}
+                        </strong>
+                      </p>
+                      <p>
+                        {formData.shippingAddress.street || "Non specificato"}
+                      </p>
+                      <p>
+                        {formData.shippingAddress.city || "Non specificato"}{" "}
+                        {formData.shippingAddress.postalCode || ""}
+                      </p>
+                      {formData.shippingAddress.province && (
+                        <p>{formData.shippingAddress.province}</p>
+                      )}
+                      {formData.shippingAddress.country && (
+                        <p>{formData.shippingAddress.country}</p>
+                      )}
+                      {formData.shippingAddress.phone && (
+                        <p>📞 {formData.shippingAddress.phone}</p>
+                      )}
                     </div>
                   </div>
 
                   {/* Billing Address */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">🧾 Indirizzo di Fatturazione</h3>
+                    <h3 className="text-lg font-semibold mb-4">
+                      🧾 Indirizzo di Fatturazione
+                    </h3>
                     <div className="bg-gray-50 p-3 rounded-lg">
                       {formData.sameAsBilling ? (
-                        <p className="text-gray-600 italic">Stesso indirizzo di spedizione</p>
+                        <p className="text-gray-600 italic">
+                          Stesso indirizzo di spedizione
+                        </p>
                       ) : (
                         <>
-                          <p><strong>{formData.billingAddress.name || 'Non specificato'}</strong></p>
-                          <p>{formData.billingAddress.street || 'Non specificato'}</p>
-                          <p>{formData.billingAddress.city || 'Non specificato'} {formData.billingAddress.postalCode || ''}</p>
-                          {formData.billingAddress.province && <p>{formData.billingAddress.province}</p>}
-                          {formData.billingAddress.country && <p>{formData.billingAddress.country}</p>}
-                          {formData.billingAddress.phone && <p>📞 {formData.billingAddress.phone}</p>}
+                          <p>
+                            <strong>
+                              {formData.billingAddress.name ||
+                                "Non specificato"}
+                            </strong>
+                          </p>
+                          <p>
+                            {formData.billingAddress.street ||
+                              "Non specificato"}
+                          </p>
+                          <p>
+                            {formData.billingAddress.city || "Non specificato"}{" "}
+                            {formData.billingAddress.postalCode || ""}
+                          </p>
+                          {formData.billingAddress.province && (
+                            <p>{formData.billingAddress.province}</p>
+                          )}
+                          {formData.billingAddress.country && (
+                            <p>{formData.billingAddress.country}</p>
+                          )}
+                          {formData.billingAddress.phone && (
+                            <p>📞 {formData.billingAddress.phone}</p>
+                          )}
                         </>
                       )}
                     </div>
@@ -1026,10 +1316,14 @@ const CheckoutPage: React.FC = () => {
 
               {/* Notes */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Note aggiuntive</label>
+                <label className="block text-sm font-medium mb-2">
+                  Note aggiuntive
+                </label>
                 <textarea
                   value={formData.notes}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, notes: e.target.value }))
+                  }
                   placeholder="Eventuali note per la consegna..."
                   rows={3}
                   className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1101,25 +1395,45 @@ const CheckoutPage: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {availableProducts.map((product) => (
-                    <div key={product.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <h4 className="font-semibold text-sm mb-1">{product.name}</h4>
+                    <div
+                      key={product.id}
+                      className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <h4 className="font-semibold text-sm mb-1">
+                        {product.name}
+                      </h4>
                       {product.formato && (
-                        <div className="text-xs text-blue-600 mb-1 font-medium">Format: {product.formato}</div>
+                        <div className="text-xs text-blue-600 mb-1 font-medium">
+                          Format: {product.formato}
+                        </div>
                       )}
-                      <p className="text-xs text-gray-600 mb-1">Codice: {product.ProductCode || product.sku || 'Non disponibile'}</p>
+                      <p className="text-xs text-gray-600 mb-1">
+                        Codice:{" "}
+                        {product.ProductCode ||
+                          product.sku ||
+                          "Non disponibile"}
+                      </p>
                       <div className="mb-3">
-                        {product.finalPrice && product.finalPrice < product.price ? (
+                        {product.finalPrice &&
+                        product.finalPrice < product.price ? (
                           <div className="flex items-center space-x-2">
-                            <p className="text-lg font-bold text-green-600">€{product.finalPrice.toFixed(2)}</p>
-                            <p className="text-sm text-gray-500 line-through">€{product.price.toFixed(2)}</p>
-                            {product.appliedDiscount && product.appliedDiscount > 0 && (
-                              <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                                -{product.appliedDiscount}%
-                              </span>
-                            )}
+                            <p className="text-lg font-bold text-green-600">
+                              €{product.finalPrice.toFixed(2)}
+                            </p>
+                            <p className="text-sm text-gray-500 line-through">
+                              €{product.price.toFixed(2)}
+                            </p>
+                            {product.appliedDiscount &&
+                              product.appliedDiscount > 0 && (
+                                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                                  -{product.appliedDiscount}%
+                                </span>
+                              )}
                           </div>
                         ) : (
-                          <p className="text-lg font-bold text-green-600">€{product.price.toFixed(2)}</p>
+                          <p className="text-lg font-bold text-green-600">
+                            €{product.price.toFixed(2)}
+                          </p>
                         )}
                       </div>
                       <button
@@ -1154,15 +1468,18 @@ const CheckoutPage: React.FC = () => {
                   <span className="text-red-600 text-xl">⚠️</span>
                 </div>
               </div>
-              
+
               <div className="text-center">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   {texts.confirmDelete}
                 </h3>
                 <p className="text-sm text-gray-500 mb-6">
-                  {texts.confirmDeleteMessage.replace('{name}', productToDelete.name)}
+                  {texts.confirmDeleteMessage.replace(
+                    "{name}",
+                    productToDelete.name
+                  )}
                 </p>
-                
+
                 <div className="flex space-x-3 justify-center">
                   <button
                     onClick={cancelDelete}

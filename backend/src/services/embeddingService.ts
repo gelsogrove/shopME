@@ -27,7 +27,7 @@ export class EmbeddingService {
 
   // 🎯 CONFIGURABLE SIMILARITY THRESHOLDS (Andrea's Request)
   private readonly SIMILARITY_THRESHOLDS = {
-    FAQ: 0.6, // 🎯 INCREASED: Much higher threshold to prevent irrelevant FAQ matches 
+    FAQ: 0.6, // 🎯 INCREASED: Much higher threshold to prevent irrelevant FAQ matches
     PRODUCTS: 0.5, // 🎯 UPDATED: Set to 0.5 per user request for a balanced precision/recall
     SERVICES: 0.35, // 🎯 BALANCED: Higher threshold for service precision
     DOCUMENTS: 0.35, // 🎯 BALANCED: More restrictive document matching
@@ -735,43 +735,154 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
    */
   private readonly CATEGORY_TRANSLATIONS = {
     // Cheeses & Dairy
-    "cheeses & dairy": ["formaggi e latticini", "formaggio", "latticini", "cheese", "dairy", "queso", "lácteos", "fromage", "produits laitiers", "käse", "milchprodukte"],
-    "cheeses": ["formaggi", "formaggio", "cheese", "queso", "fromage", "käse"],
-    "dairy": ["latticini", "dairy", "lácteos", "produits laitiers", "milchprodukte"],
-    
-    // Sauces & Preserves  
-    "sauces & preserves": ["salse e conserve", "salse", "conserve", "sugo", "ragù", "sauce", "sauces", "preserves", "salsas", "conservas", "sauces", "conserves", "soßen", "konserven"],
-    "sauces": ["salse", "sugo", "ragù", "sauce", "salsas", "sauces", "soßen"],
-    "preserves": ["conserve", "preserves", "conservas", "conserves", "konserven"],
-    
+    "cheeses & dairy": [
+      "formaggi e latticini",
+      "formaggio",
+      "latticini",
+      "cheese",
+      "dairy",
+      "queso",
+      "lácteos",
+      "fromage",
+      "produits laitiers",
+      "käse",
+      "milchprodukte",
+    ],
+    cheeses: ["formaggi", "formaggio", "cheese", "queso", "fromage", "käse"],
+    dairy: [
+      "latticini",
+      "dairy",
+      "lácteos",
+      "produits laitiers",
+      "milchprodukte",
+    ],
+
+    // Sauces & Preserves
+    "sauces & preserves": [
+      "salse e conserve",
+      "salse",
+      "conserve",
+      "sugo",
+      "ragù",
+      "sauce",
+      "sauces",
+      "preserves",
+      "salsas",
+      "conservas",
+      "sauces",
+      "conserves",
+      "soßen",
+      "konserven",
+    ],
+    sauces: ["salse", "sugo", "ragù", "sauce", "salsas", "sauces", "soßen"],
+    preserves: ["conserve", "preserves", "conservas", "conserves", "konserven"],
+
     // Frozen Products
-    "frozen products": ["prodotti surgelati", "surgelati", "congelati", "frozen", "productos congelados", "produits surgelés", "tiefkühlprodukte"],
-    "frozen": ["surgelato", "congelato", "frozen", "congelado", "surgelé", "tiefgekühlt"],
-    
+    "frozen products": [
+      "prodotti surgelati",
+      "surgelati",
+      "congelati",
+      "frozen",
+      "productos congelados",
+      "produits surgelés",
+      "tiefkühlprodukte",
+    ],
+    frozen: [
+      "surgelato",
+      "congelato",
+      "frozen",
+      "congelado",
+      "surgelé",
+      "tiefgekühlt",
+    ],
+
     // Pasta & Rice
-    "pasta & rice": ["pasta e riso", "pasta", "riso", "rice", "pasta y arroz", "pâtes et riz", "nudeln und reis"],
-    "pasta": ["pasta", "spaghetti", "penne", "fusilli", "tagliatelle", "linguine"],
-    "rice": ["riso", "rice", "arroz", "riz", "reis"],
-    
+    "pasta & rice": [
+      "pasta e riso",
+      "pasta",
+      "riso",
+      "rice",
+      "pasta y arroz",
+      "pâtes et riz",
+      "nudeln und reis",
+    ],
+    pasta: [
+      "pasta",
+      "spaghetti",
+      "penne",
+      "fusilli",
+      "tagliatelle",
+      "linguine",
+    ],
+    rice: ["riso", "rice", "arroz", "riz", "reis"],
+
     // Meat & Fish
-    "meat & fish": ["carne e pesce", "carne", "pesce", "meat", "fish", "carne y pescado", "viande et poisson", "fleisch und fisch"],
-    "meat": ["carne", "meat", "viande", "fleisch", "prosciutto", "salumi"],
-    "fish": ["pesce", "fish", "pescado", "poisson", "fisch"],
-    
+    "meat & fish": [
+      "carne e pesce",
+      "carne",
+      "pesce",
+      "meat",
+      "fish",
+      "carne y pescado",
+      "viande et poisson",
+      "fleisch und fisch",
+    ],
+    meat: ["carne", "meat", "viande", "fleisch", "prosciutto", "salumi"],
+    fish: ["pesce", "fish", "pescado", "poisson", "fisch"],
+
     // Beverages
-    "beverages": ["bevande", "drinks", "bebidas", "boissons", "getränke", "vino", "wine", "birra", "beer"],
-    "wine": ["vino", "wine", "vin", "wein"],
-    "beer": ["birra", "beer", "cerveza", "bière", "bier"],
-    
+    beverages: [
+      "bevande",
+      "drinks",
+      "bebidas",
+      "boissons",
+      "getränke",
+      "vino",
+      "wine",
+      "birra",
+      "beer",
+    ],
+    wine: ["vino", "wine", "vin", "wein"],
+    beer: ["birra", "beer", "cerveza", "bière", "bier"],
+
     // Oils & Vinegars
-    "oils & vinegars": ["oli e aceti", "olio", "aceto", "oil", "vinegar", "aceite", "vinagre", "huile", "vinaigre", "öl", "essig"],
-    "oil": ["olio", "oil", "aceite", "huile", "öl", "extravergine", "extra virgin"],
-    "vinegar": ["aceto", "vinegar", "vinagre", "vinaigre", "essig"],
-    
+    "oils & vinegars": [
+      "oli e aceti",
+      "olio",
+      "aceto",
+      "oil",
+      "vinegar",
+      "aceite",
+      "vinagre",
+      "huile",
+      "vinaigre",
+      "öl",
+      "essig",
+    ],
+    oil: [
+      "olio",
+      "oil",
+      "aceite",
+      "huile",
+      "öl",
+      "extravergine",
+      "extra virgin",
+    ],
+    vinegar: ["aceto", "vinegar", "vinagre", "vinaigre", "essig"],
+
     // Sweets & Desserts
-    "sweets & desserts": ["dolci e dessert", "dolci", "dessert", "sweets", "dulces", "postres", "desserts", "süßigkeiten"],
-    "sweets": ["dolci", "sweets", "dulces", "bonbons", "süßigkeiten"],
-    "desserts": ["dessert", "desserts", "postres", "süßspeisen"],
+    "sweets & desserts": [
+      "dolci e dessert",
+      "dolci",
+      "dessert",
+      "sweets",
+      "dulces",
+      "postres",
+      "desserts",
+      "süßigkeiten",
+    ],
+    sweets: ["dolci", "sweets", "dulces", "bonbons", "süßigkeiten"],
+    desserts: ["dessert", "desserts", "postres", "süßspeisen"],
   }
 
   /**
@@ -779,14 +890,16 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
    */
   private getCategoryTranslations(categoryName: string): string[] {
     const category = categoryName.toLowerCase().trim()
-    
+
     // Find matching category in our translation map
-    for (const [key, translations] of Object.entries(this.CATEGORY_TRANSLATIONS)) {
+    for (const [key, translations] of Object.entries(
+      this.CATEGORY_TRANSLATIONS
+    )) {
       if (key === category || translations.includes(category)) {
         return [key, ...translations]
       }
     }
-    
+
     // If no match found, return the original category
     return [category]
   }

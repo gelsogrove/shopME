@@ -230,7 +230,10 @@ export class FunctionHandlerService {
     )
 
     try {
-      console.log("🔧 [DEBUG] Entering switch statement for functionName:", functionName)
+      console.log(
+        "🔧 [DEBUG] Entering switch statement for functionName:",
+        functionName
+      )
       switch (functionName) {
         // 🛒 CART OPERATIONS - REMOVED (now handled via web link)
 
@@ -322,7 +325,11 @@ export class FunctionHandlerService {
         //  CONTACT OPERATOR
         case "ContactOperator":
           return {
-            data: await this.handleContactOperator(params, customer, workspaceId),
+            data: await this.handleContactOperator(
+              params,
+              customer,
+              workspaceId
+            ),
             functionName,
           }
 
@@ -724,7 +731,11 @@ export class FunctionHandlerService {
   /**
    * Handle contact operator request
    */
-  async handleContactOperator(params: any, customer: any, workspaceId: string): Promise<any> {
+  async handleContactOperator(
+    params: any,
+    customer: any,
+    workspaceId: string
+  ): Promise<any> {
     try {
       console.log("🔧 FunctionHandlerService: handleContactOperator called")
 

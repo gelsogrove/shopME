@@ -6,7 +6,7 @@ import logger from "../../utils/logger"
  *
  * This function handles operator intervention requests from users.
  * It sets the 'activeChatbot' field to false for the customer and returns a confirmation message.
- * 
+ *
  * KISS Principle: Keep It Simple
  * - Just disable chatbot
  * - Return confirmation message
@@ -28,7 +28,9 @@ export async function ContactOperator({
   try {
     // Find customer
     const customer = await prisma.customers.findFirst({
-      where: customerId ? { id: customerId } : { phone: phoneNumber, workspaceId },
+      where: customerId
+        ? { id: customerId }
+        : { phone: phoneNumber, workspaceId },
     })
 
     if (!customer) {
@@ -43,19 +45,21 @@ export async function ContactOperator({
 
     return {
       success: true,
-      message: "Certo, verrai contattato il prima possibile da un nostro operatore.",
+      message:
+        "Certo, verrai contattato il prima possibile da un nostro operatore.",
       data: {
         customerName: customer.name,
         customerPhone: customer.phone,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     }
   } catch (error) {
     logger.error("❌ Error in ContactOperator:", error)
     return {
       success: false,
       error: error.message || "Error contacting operator",
-      message: "Mi dispiace, si è verificato un errore tecnico. Riprova tra qualche minuto."
+      message:
+        "Mi dispiace, si è verificato un errore tecnico. Riprova tra qualche minuto.",
     }
   }
 }
@@ -63,16 +67,20 @@ export async function ContactOperator({
 // Export per LangChain function calling
 export const contactOperatorFunction = {
   name: "ContactOperator",
-  description: "Contatta un operatore per assistenza diretta quando il cliente lo richiede esplicitamente",
+  description:
+    "Contatta un operatore per assistenza diretta quando il cliente lo richiede esplicitamente",
   parameters: {
     type: "object",
     properties: {
       phoneNumber: { type: "string", description: "Numero telefono utente" },
       workspaceId: { type: "string", description: "ID workspace" },
       customerId: { type: "string", description: "ID cliente (opzionale)" },
-      message: { type: "string", description: "Messaggio utente che richiede operatore" }
+      message: {
+        type: "string",
+        description: "Messaggio utente che richiede operatore",
+      },
     },
-    required: ["phoneNumber", "workspaceId", "message"]
+    required: ["phoneNumber", "workspaceId", "message"],
   },
-  handler: ContactOperator
-};
+  handler: ContactOperator,
+}

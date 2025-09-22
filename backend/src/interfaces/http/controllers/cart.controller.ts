@@ -15,31 +15,33 @@ export class CartController {
       const orphanedItems = await prisma.cartItems.findMany({
         where: {
           cart: {
-            workspaceId: workspaceId
+            workspaceId: workspaceId,
           },
-          product: null
+          product: null,
         },
         include: {
-          cart: true
-        }
+          cart: true,
+        },
       })
 
       if (orphanedItems.length > 0) {
-        console.warn(`🧹 Found ${orphanedItems.length} orphaned cart items in workspace ${workspaceId}`)
-        
+        console.warn(
+          `🧹 Found ${orphanedItems.length} orphaned cart items in workspace ${workspaceId}`
+        )
+
         // Delete orphaned items
         await prisma.cartItems.deleteMany({
           where: {
             id: {
-              in: orphanedItems.map(item => item.id)
-            }
-          }
+              in: orphanedItems.map((item) => item.id),
+            },
+          },
         })
 
         console.log(`🧹 Cleaned up ${orphanedItems.length} orphaned cart items`)
       }
     } catch (error) {
-      console.error('❌ Error cleaning up orphaned cart items:', error)
+      console.error("❌ Error cleaning up orphaned cart items:", error)
     }
   }
 
@@ -53,7 +55,7 @@ export class CartController {
       if (!customerId || !workspaceId) {
         res.status(400).json({
           success: false,
-          error: "customerId and workspaceId are required"
+          error: "customerId and workspaceId are required",
         })
         return
       }
@@ -63,14 +65,14 @@ export class CartController {
         where: {
           id: customerId,
           workspaceId: workspaceId,
-          isActive: true
-        }
+          isActive: true,
+        },
       })
 
       if (!customer) {
         res.status(400).json({
           success: false,
-          error: "Customer not found"
+          error: "Customer not found",
         })
         return
       }
@@ -79,36 +81,36 @@ export class CartController {
       let cart = await prisma.carts.findFirst({
         where: {
           customerId: customerId,
-          workspaceId: workspaceId
+          workspaceId: workspaceId,
         },
         include: {
           items: {
             include: {
-              product: true
-            }
-          }
-        }
+              product: true,
+            },
+          },
+        },
       })
 
       if (!cart) {
         cart = await prisma.carts.create({
           data: {
             customerId: customerId,
-            workspaceId: workspaceId
+            workspaceId: workspaceId,
           },
           include: {
             items: {
               include: {
-                product: true
-              }
-            }
-          }
+                product: true,
+              },
+            },
+          },
         })
       }
 
       // Calculate total amount
       const totalAmount = cart.items.reduce((sum, item) => {
-        return sum + (item.product.price * item.quantity)
+        return sum + item.product.price * item.quantity
       }, 0)
 
       // Generate token
@@ -117,14 +119,14 @@ export class CartController {
         cartId: cart.id,
         items: cart.items,
         totalAmount: totalAmount,
-        currency: customer.currency || 'EUR',
-        createdAt: new Date().toISOString()
+        currency: customer.currency || "EUR",
+        createdAt: new Date().toISOString(),
       }
 
       const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000)
-      
+
       const token = await this.secureTokenService.createToken(
-        'cart',
+        "cart",
         workspaceId,
         tokenData,
         `${expiresInMinutes}m`,
@@ -134,7 +136,9 @@ export class CartController {
         customer.id
       )
 
-      logger.info(`[CART] Token generated for customer ${customer.id}, cart ${cart.id}`)
+      logger.info(
+        `[CART] Token generated for customer ${customer.id}, cart ${cart.id}`
+      )
 
       res.json({
         success: true,
@@ -144,15 +148,14 @@ export class CartController {
         customer: {
           id: customer.id,
           name: customer.name,
-          email: customer.email
-        }
+          email: customer.email,
+        },
       })
-
     } catch (error) {
       logger.error("[CART] Error generating token:", error)
       res.status(500).json({
         success: false,
-        error: "Internal server error"
+        error: "Internal server error",
       })
     }
   }
@@ -165,11 +168,11 @@ export class CartController {
       const token = req.params.token
 
       const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
-      
+
       if (!validation.valid || !validation.payload) {
         res.status(400).json({
           success: false,
-          error: "Invalid or expired token"
+          error: "Invalid or expired token",
         })
         return
       }
@@ -177,63 +180,65 @@ export class CartController {
       const payload = validation.payload as any
       const customerId = payload.customerId || validation.data.customerId
       const workspaceId = validation.data.workspaceId
-      
+
       // 🎯 TASK: Clean up orphaned cart items before retrieving cart
       await this.cleanupOrphanedCartItems(workspaceId)
-      
+
       // Try to get existing cart by cartId (if available) or find/create cart for customer
       let cart = null
-      
+
       if (payload.cartId) {
         // Token has specific cartId
         cart = await prisma.carts.findFirst({
           where: {
             id: payload.cartId,
             customerId: customerId,
-            workspaceId: workspaceId
+            workspaceId: workspaceId,
           },
           include: {
             items: {
               include: {
-                product: true
-              }
+                product: true,
+              },
             },
-            customer: true
-          }
+            customer: true,
+          },
         })
       } else {
         // Token doesn't have cartId (e.g., checkout token), find or create cart for customer
         cart = await prisma.carts.findFirst({
           where: {
             customerId: customerId,
-            workspaceId: workspaceId
+            workspaceId: workspaceId,
           },
           include: {
             items: {
               include: {
-                product: true
-              }
+                product: true,
+              },
             },
-            customer: true
-          }
+            customer: true,
+          },
         })
-        
+
         // If no cart exists, create one
         if (!cart) {
-          console.log(`🛒 Creating new cart for customer ${customerId} in workspace ${workspaceId}`)
+          console.log(
+            `🛒 Creating new cart for customer ${customerId} in workspace ${workspaceId}`
+          )
           cart = await prisma.carts.create({
             data: {
               customerId: customerId,
-              workspaceId: workspaceId
+              workspaceId: workspaceId,
             },
             include: {
               items: {
                 include: {
-                  product: true
-                }
+                  product: true,
+                },
               },
-              customer: true
-            }
+              customer: true,
+            },
           })
         }
       }
@@ -241,38 +246,42 @@ export class CartController {
       if (!cart) {
         res.status(400).json({
           success: false,
-          error: "Cart not found"
+          error: "Cart not found",
         })
         return
       }
 
       // 🚀 KISS: Apply same price calculation logic as viewCart (Cloud Function)
-      const { PriceCalculationService } = await import('../../../application/services/price-calculation.service')
+      const { PriceCalculationService } = await import(
+        "../../../application/services/price-calculation.service"
+      )
       const priceService = new PriceCalculationService(prisma)
-      
+
       // Get customer discount
       const customerDiscount = cart.customer?.discount || 0
-      
+
       // Calculate updated totals with discounts
       let totalAmount = 0
       const items = []
-      
+
       for (const item of cart.items) {
         // 🎯 TASK: Handle missing product gracefully
         if (!item.product) {
-          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          console.warn(
+            `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
+          )
           items.push({
             id: item.id,
-            type: 'product',
+            type: "product",
             productId: item.productId,
-            productCode: 'N/A',
+            productCode: "N/A",
             name: `Product ${item.productId} (Not Found)`,
             originalPrice: 0,
             finalPrice: 0,
             discountAmount: 0,
             appliedDiscount: 0,
             quantity: item.quantity,
-            total: 0
+            total: 0,
           })
           continue
         }
@@ -283,18 +292,19 @@ export class CartController {
           [item.productId],
           customerDiscount
         )
-        
+
         const originalPrice = item.product.price || 0
         const finalPrice = itemPrices.products[0]?.finalPrice || originalPrice
         const discountInfo = itemPrices.products[0]
         const appliedDiscount = discountInfo?.appliedDiscount || 0
-        const discountAmount = appliedDiscount > 0 ? (originalPrice * appliedDiscount / 100) : 0
+        const discountAmount =
+          appliedDiscount > 0 ? (originalPrice * appliedDiscount) / 100 : 0
         const itemTotal = finalPrice * item.quantity
         totalAmount += itemTotal
 
         items.push({
           id: item.id,
-          type: 'product',
+          type: "product",
           productId: item.productId,
           productCode: item.product.ProductCode || item.productId,
           name: item.product.name || `Product ${item.productId}`,
@@ -304,7 +314,7 @@ export class CartController {
           discountAmount: discountAmount,
           appliedDiscount: appliedDiscount,
           quantity: item.quantity,
-          total: itemTotal
+          total: itemTotal,
         })
       }
 
@@ -321,7 +331,7 @@ export class CartController {
           totalDiscount: 0, // TODO: Calculate if needed
           finalTotal: totalAmount,
           lastUpdated: cart.updatedAt,
-          createdAt: cart.createdAt
+          createdAt: cart.createdAt,
         },
         // 🎯 Frontend expects these fields for CheckoutPage compatibility
         customer: {
@@ -330,9 +340,9 @@ export class CartController {
           email: cart.customer.email,
           phone: cart.customer.phone,
           address: cart.customer.address, // Include address for frontend
-          language: cart.customer.language // 🌐 Include language for translations
+          language: cart.customer.language, // 🌐 Include language for translations
         },
-        prodotti: items.map(item => ({
+        prodotti: items.map((item) => ({
           codice: item.productCode, // 🎯 Use product code, not ID
           descrizione: item.name,
           formato: item.formato, // 🧀 Include formato field
@@ -340,15 +350,14 @@ export class CartController {
           prezzo: item.originalPrice,
           prezzoScontato: item.finalPrice,
           sconto: item.appliedDiscount,
-          totale: item.total
-        }))
+          totale: item.total,
+        })),
       })
-
     } catch (error) {
       logger.error("[CART] Error getting cart by token:", error)
       res.status(500).json({
         success: false,
-        error: "Internal server error"
+        error: "Internal server error",
       })
     }
   }
@@ -364,36 +373,36 @@ export class CartController {
       if (!productId) {
         res.status(400).json({
           success: false,
-          error: "productId is required"
+          error: "productId is required",
         })
         return
       }
 
       const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
-      
+
       if (!validation.valid || !validation.payload) {
         res.status(400).json({
           success: false,
-          error: "Invalid or expired token"
+          error: "Invalid or expired token",
         })
         return
       }
 
       const payload = validation.payload as any
-      
+
       // Get cart
       const cart = await prisma.carts.findFirst({
         where: {
           id: payload.cartId,
           customerId: payload.customerId,
-          workspaceId: validation.data.workspaceId
-        }
+          workspaceId: validation.data.workspaceId,
+        },
       })
 
       if (!cart) {
         res.status(400).json({
           success: false,
-          error: "Cart not found"
+          error: "Cart not found",
         })
         return
       }
@@ -403,14 +412,14 @@ export class CartController {
         where: {
           id: productId,
           workspaceId: validation.data.workspaceId,
-          isActive: true
-        }
+          isActive: true,
+        },
       })
 
       if (!product) {
         res.status(400).json({
           success: false,
-          error: "Product not found"
+          error: "Product not found",
         })
         return
       }
@@ -419,8 +428,8 @@ export class CartController {
       const existingCartItem = await prisma.cartItems.findFirst({
         where: {
           cartId: cart.id,
-          productId: productId
-        }
+          productId: productId,
+        },
       })
 
       let cartItem
@@ -429,11 +438,11 @@ export class CartController {
         cartItem = await prisma.cartItems.update({
           where: { id: existingCartItem.id },
           data: {
-            quantity: existingCartItem.quantity + quantity
+            quantity: existingCartItem.quantity + quantity,
           },
           include: {
-            product: true
-          }
+            product: true,
+          },
         })
       } else {
         // Create new cart item
@@ -441,11 +450,11 @@ export class CartController {
           data: {
             cartId: cart.id,
             productId: productId,
-            quantity
+            quantity,
           },
           include: {
-            product: true
-          }
+            product: true,
+          },
         })
       }
 
@@ -455,19 +464,21 @@ export class CartController {
         include: {
           items: {
             include: {
-              product: true
-            }
-          }
-        }
+              product: true,
+            },
+          },
+        },
       })
 
       const totalAmount = cartWithItems!.items.reduce((sum, item) => {
         // 🎯 TASK: Handle missing product gracefully
         if (!item.product) {
-          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          console.warn(
+            `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
+          )
           return sum
         }
-        return sum + ((item.product.price || 0) * item.quantity)
+        return sum + (item.product.price || 0) * item.quantity
       }, 0)
 
       logger.info(`[CART] Item added to cart ${cart.id} via token`)
@@ -476,24 +487,23 @@ export class CartController {
         success: true,
         cartItem: {
           id: cartItem.id,
-          type: 'product',
+          type: "product",
           name: cartItem.product?.name || `Product ${cartItem.productId}`,
           formato: cartItem.product?.formato || null,
           price: cartItem.product?.price || 0,
           quantity: cartItem.quantity,
-          total: (cartItem.product?.price || 0) * cartItem.quantity
+          total: (cartItem.product?.price || 0) * cartItem.quantity,
         },
         cart: {
           totalAmount: totalAmount,
-          itemCount: cartWithItems!.items.length
-        }
+          itemCount: cartWithItems!.items.length,
+        },
       })
-
     } catch (error) {
       logger.error("[CART] Error adding item to cart:", error)
       res.status(500).json({
         success: false,
-        error: "Internal server error"
+        error: "Internal server error",
       })
     }
   }
@@ -510,17 +520,17 @@ export class CartController {
       if (quantity === undefined) {
         res.status(400).json({
           success: false,
-          error: "quantity is required"
+          error: "quantity is required",
         })
         return
       }
 
       const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
-      
+
       if (!validation.valid || !validation.payload) {
         res.status(400).json({
           success: false,
-          error: "Invalid or expired token"
+          error: "Invalid or expired token",
         })
         return
       }
@@ -533,14 +543,14 @@ export class CartController {
       let cart = await prisma.carts.findFirst({
         where: {
           customerId: customerId,
-          workspaceId: workspaceId
-        }
+          workspaceId: workspaceId,
+        },
       })
 
       if (!cart) {
         res.status(400).json({
           success: false,
-          error: "Cart not found"
+          error: "Cart not found",
         })
         return
       }
@@ -549,17 +559,17 @@ export class CartController {
       const cartItem = await prisma.cartItems.findFirst({
         where: {
           productId: productId,
-          cartId: cart.id
+          cartId: cart.id,
         },
         include: {
-          product: true
-        }
+          product: true,
+        },
       })
 
       if (!cartItem) {
         res.status(400).json({
           success: false,
-          error: "Cart item not found"
+          error: "Cart item not found",
         })
         return
       }
@@ -569,8 +579,8 @@ export class CartController {
         where: { id: cartItem.id },
         data: { quantity },
         include: {
-          product: true
-        }
+          product: true,
+        },
       })
 
       // Calculate cart totals
@@ -579,45 +589,51 @@ export class CartController {
         include: {
           items: {
             include: {
-              product: true
-            }
-          }
-        }
+              product: true,
+            },
+          },
+        },
       })
 
       const totalAmount = cartWithItems!.items.reduce((sum, item) => {
         // 🎯 TASK: Handle missing product gracefully
         if (!item.product) {
-          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          console.warn(
+            `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
+          )
           return sum
         }
-        return sum + ((item.product.price || 0) * item.quantity)
+        return sum + (item.product.price || 0) * item.quantity
       }, 0)
 
-      logger.info(`[CART] Item ${cartItem.id} updated in cart ${cart.id} via token`)
+      logger.info(
+        `[CART] Item ${cartItem.id} updated in cart ${cart.id} via token`
+      )
 
       res.json({
         success: true,
         cartItem: {
           id: updatedCartItem.id,
-          type: 'product',
-          name: updatedCartItem.product?.name || `Product ${updatedCartItem.productId}`,
+          type: "product",
+          name:
+            updatedCartItem.product?.name ||
+            `Product ${updatedCartItem.productId}`,
           formato: updatedCartItem.product?.formato || null,
           price: updatedCartItem.product?.price || 0,
           quantity: updatedCartItem.quantity,
-          total: (updatedCartItem.product?.price || 0) * updatedCartItem.quantity
+          total:
+            (updatedCartItem.product?.price || 0) * updatedCartItem.quantity,
         },
         cart: {
           totalAmount: totalAmount,
-          itemCount: cartWithItems!.items.length
-        }
+          itemCount: cartWithItems!.items.length,
+        },
       })
-
     } catch (error) {
       logger.error("[CART] Error updating cart item:", error)
       res.status(500).json({
         success: false,
-        error: "Internal server error"
+        error: "Internal server error",
       })
     }
   }
@@ -631,11 +647,11 @@ export class CartController {
       const productId = req.params.productId
 
       const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
-      
+
       if (!validation.valid || !validation.payload) {
         res.status(400).json({
           success: false,
-          error: "Invalid or expired token"
+          error: "Invalid or expired token",
         })
         return
       }
@@ -648,14 +664,14 @@ export class CartController {
       let cart = await prisma.carts.findFirst({
         where: {
           customerId: customerId,
-          workspaceId: workspaceId
-        }
+          workspaceId: workspaceId,
+        },
       })
 
       if (!cart) {
         res.status(400).json({
           success: false,
-          error: "Cart not found"
+          error: "Cart not found",
         })
         return
       }
@@ -664,21 +680,21 @@ export class CartController {
       const cartItem = await prisma.cartItems.findFirst({
         where: {
           productId: productId,
-          cartId: cart.id
-        }
+          cartId: cart.id,
+        },
       })
 
       if (!cartItem) {
         res.status(400).json({
           success: false,
-          error: "Cart item not found"
+          error: "Cart item not found",
         })
         return
       }
 
       // Remove cart item
       await prisma.cartItems.delete({
-        where: { id: cartItem.id }
+        where: { id: cartItem.id },
       })
 
       // Calculate cart totals
@@ -687,37 +703,40 @@ export class CartController {
         include: {
           items: {
             include: {
-              product: true
-            }
-          }
-        }
+              product: true,
+            },
+          },
+        },
       })
 
       const totalAmount = cartWithItems!.items.reduce((sum, item) => {
         // 🎯 TASK: Handle missing product gracefully
         if (!item.product) {
-          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          console.warn(
+            `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
+          )
           return sum
         }
-        return sum + ((item.product.price || 0) * item.quantity)
+        return sum + (item.product.price || 0) * item.quantity
       }, 0)
 
-      logger.info(`[CART] Item with productId ${productId} removed from cart ${cart.id} via token`)
+      logger.info(
+        `[CART] Item with productId ${productId} removed from cart ${cart.id} via token`
+      )
 
       res.json({
         success: true,
         message: "Item removed from cart",
         cart: {
           totalAmount: totalAmount,
-          itemCount: cartWithItems!.items.length
-        }
+          itemCount: cartWithItems!.items.length,
+        },
       })
-
     } catch (error) {
       logger.error("[CART] Error removing cart item:", error)
       res.status(500).json({
         success: false,
-        error: "Internal server error"
+        error: "Internal server error",
       })
     }
   }
@@ -728,14 +747,14 @@ export class CartController {
   async checkoutByToken(req: Request, res: Response): Promise<void> {
     try {
       const token = req.params.token
-      const { shippingAddress, paymentMethod = 'CASH' } = req.body
+      const { shippingAddress, paymentMethod = "CASH" } = req.body
 
       const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
-      
+
       if (!validation.valid || !validation.payload) {
         res.status(400).json({
           success: false,
-          error: "Invalid or expired token"
+          error: "Invalid or expired token",
         })
         return
       }
@@ -747,22 +766,22 @@ export class CartController {
         where: {
           id: payload.cartId,
           customerId: payload.customerId,
-          workspaceId: validation.data.workspaceId
+          workspaceId: validation.data.workspaceId,
         },
         include: {
           items: {
             include: {
-              product: true
-            }
+              product: true,
+            },
           },
-          customer: true
-        }
+          customer: true,
+        },
       })
 
       if (!cart || cart.items.length === 0) {
         res.status(400).json({
           success: false,
-          error: "Cart is empty or not found"
+          error: "Cart is empty or not found",
         })
         return
       }
@@ -770,15 +789,17 @@ export class CartController {
       const totalAmount = cart.items.reduce((sum, item) => {
         // 🎯 TASK: Handle missing product gracefully
         if (!item.product) {
-          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          console.warn(
+            `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
+          )
           return sum
         }
-        return sum + ((item.product.price || 0) * item.quantity)
+        return sum + (item.product.price || 0) * item.quantity
       }, 0)
 
       // Generate unique order code - 5 uppercase letters
-      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-      let orderCode = ''
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      let orderCode = ""
       for (let i = 0; i < 5; i++) {
         orderCode += letters.charAt(Math.floor(Math.random() * letters.length))
       }
@@ -790,44 +811,47 @@ export class CartController {
           customerId: cart.customerId,
           workspaceId: validation.data.workspaceId,
           totalAmount: totalAmount,
-          status: 'PENDING',
+          status: "PENDING",
           paymentMethod: paymentMethod as any,
           shippingAddress: shippingAddress || cart.customer.address,
           items: {
-            create: cart.items.map(item => {
+            create: cart.items.map((item) => {
               // 🎯 TASK: Handle missing product gracefully
               if (!item.product) {
-                console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+                console.warn(
+                  `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
+                )
                 return {
                   productId: item.productId,
                   quantity: item.quantity,
                   unitPrice: 0,
-                  totalPrice: 0
+                  totalPrice: 0,
                 }
               }
               return {
                 productId: item.productId,
                 quantity: item.quantity,
                 unitPrice: item.product.price || 0,
-                totalPrice: (item.product.price || 0) * item.quantity
+                totalPrice: (item.product.price || 0) * item.quantity,
               }
-            })
-          }
+            }),
+          },
         },
         include: {
-          items: true
-        }
+          items: true,
+        },
       })
 
       // 🎯 TASK: Auto-update customer address in database
       try {
         // Validate shipping address fields if provided
-        const hasValidShippingAddress = shippingAddress && 
-          shippingAddress.firstName && 
-          shippingAddress.lastName && 
-          shippingAddress.address && 
-          shippingAddress.city && 
-          shippingAddress.postalCode;
+        const hasValidShippingAddress =
+          shippingAddress &&
+          shippingAddress.firstName &&
+          shippingAddress.lastName &&
+          shippingAddress.address &&
+          shippingAddress.city &&
+          shippingAddress.postalCode
 
         if (hasValidShippingAddress) {
           // Create structured address object for customer
@@ -838,39 +862,49 @@ export class CartController {
             postalCode: shippingAddress.postalCode,
             province: shippingAddress.province || "",
             country: shippingAddress.country || "Italy",
-            phone: shippingAddress.phone || cart.customer.phone || ""
-          };
+            phone: shippingAddress.phone || cart.customer.phone || "",
+          }
 
           // Update customer address in database
           await prisma.customers.update({
             where: {
               id: cart.customerId,
-              workspaceId: validation.data.workspaceId
+              workspaceId: validation.data.workspaceId,
             },
             data: {
               address: JSON.stringify(customerAddress),
-              updatedAt: new Date()
-            }
-          });
+              updatedAt: new Date(),
+            },
+          })
 
-          logger.info(`[CART] Auto-updated customer address for ${cart.customerId}:`, customerAddress);
+          logger.info(
+            `[CART] Auto-updated customer address for ${cart.customerId}:`,
+            customerAddress
+          )
         } else {
-          logger.info(`[CART] No valid shipping address provided for customer ${cart.customerId}, using existing address`);
+          logger.info(
+            `[CART] No valid shipping address provided for customer ${cart.customerId}, using existing address`
+          )
         }
       } catch (addressUpdateError) {
         // Don't fail the order if address update fails
-        logger.error(`[CART] Failed to auto-update customer address for ${cart.customerId}:`, addressUpdateError);
+        logger.error(
+          `[CART] Failed to auto-update customer address for ${cart.customerId}:`,
+          addressUpdateError
+        )
       }
 
       // Clear cart
       await prisma.cartItems.deleteMany({
-        where: { cartId: cart.id }
+        where: { cartId: cart.id },
       })
 
       // Invalidate token (optional since user might want to create new orders)
       // await this.secureTokenService.invalidateToken(token)
 
-      logger.info(`[CART] Checkout completed for cart ${cart.id}, order ${order.id} created via token`)
+      logger.info(
+        `[CART] Checkout completed for cart ${cart.id}, order ${order.id} created via token`
+      )
 
       res.json({
         success: true,
@@ -880,16 +914,15 @@ export class CartController {
           totalAmount: order.totalAmount,
           status: order.status,
           createdAt: order.createdAt,
-          itemCount: order.items.length
+          itemCount: order.items.length,
         },
-        message: "Checkout completed successfully"
+        message: "Checkout completed successfully",
       })
-
     } catch (error) {
       logger.error("[CART] Error during checkout:", error)
       res.status(500).json({
         success: false,
-        error: "Internal server error"
+        error: "Internal server error",
       })
     }
   }
@@ -907,7 +940,7 @@ export class CartController {
       }
 
       const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
-      
+
       if (!validation.valid) {
         res.status(400).json({
           valid: false,
@@ -918,7 +951,7 @@ export class CartController {
       }
 
       const secureToken = validation.data
-      
+
       if (!validation.payload) {
         res.status(400).json({
           valid: false,
@@ -954,26 +987,39 @@ export class CartController {
           workspaceId: secureToken.workspaceId,
           items: (payload.items || []).map((item: any) => ({
             id: item.id,
-            productId: item.productId || '',
+            productId: item.productId || "",
             productCode: item.code,
             productName: item.name,
             quantity: item.quantity,
             unitPrice: item.finalPrice,
             totalPrice: item.total,
-            discountAmount: item.appliedDiscount ? (item.originalPrice - item.finalPrice) * item.quantity : 0,
+            discountAmount: item.appliedDiscount
+              ? (item.originalPrice - item.finalPrice) * item.quantity
+              : 0,
             finalPrice: item.finalPrice,
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
           })),
-          totalItems: (payload.items || []).reduce((sum: number, item: any) => sum + item.quantity, 0),
+          totalItems: (payload.items || []).reduce(
+            (sum: number, item: any) => sum + item.quantity,
+            0
+          ),
           subtotal: payload.totalAmount,
-          totalDiscount: (payload.items || []).reduce((sum: number, item: any) => {
-            return sum + (item.appliedDiscount ? (item.originalPrice - item.finalPrice) * item.quantity : 0)
-          }, 0),
+          totalDiscount: (payload.items || []).reduce(
+            (sum: number, item: any) => {
+              return (
+                sum +
+                (item.appliedDiscount
+                  ? (item.originalPrice - item.finalPrice) * item.quantity
+                  : 0)
+              )
+            },
+            0
+          ),
           finalTotal: payload.totalAmount,
           lastUpdated: new Date().toISOString(),
-          createdAt: payload.createdAt || new Date().toISOString()
-        }
+          createdAt: payload.createdAt || new Date().toISOString(),
+        },
       })
     } catch (error) {
       logger.error("[CART] Error validating token:", error)
