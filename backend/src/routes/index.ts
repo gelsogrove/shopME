@@ -539,7 +539,7 @@ const router = Router()
 router.use(loggingMiddleware)
 
 // WhatsApp webhook routes (must be FIRST, before any authentication middleware)
-import { DualLLMService } from "../services/dual-llm.service"
+import { LLMService } from "../services/llm.service"
 import { LLMRequest } from "../types/whatsapp.types"
 
 // 🔧 FIX: /api/chat endpoint for WhatsApp compatibility (NO AUTHENTICATION)
@@ -551,7 +551,7 @@ router.post("/chat", async (req, res) => {
   // Forward to the same webhook logic
   try {
     // Initialize services
-    const dualLLMService = new DualLLMService()
+    const llmService = new LLMService()
     const messageRepository = new MessageRepository()
 
     // Check if this is a verification request
@@ -691,7 +691,7 @@ router.post("/chat", async (req, res) => {
           `🔧 /api/chat: LLM Request workspaceId: "${body.workspaceId}"`
         )
 
-        const response = await dualLLMService.handleMessage(
+        const response = await llmService.handleMessage(
           llmRequest,
           variables
         )
@@ -762,11 +762,11 @@ router.post("/whatsapp/webhook", async (req, res) => {
   )
 
   try {
-    console.log("🚨🚨🚨 WEBHOOK: INITIALIZING DUAL LLM SERVICE")
+    console.log("🚨🚨🚨 WEBHOOK: INITIALIZING LLM SERVICE")
     // Initialize services
-    const dualLLMService = new DualLLMService()
+    const llmService = new LLMService()
     const messageRepository = new MessageRepository()
-    console.log("🚨🚨🚨 WEBHOOK: DUAL LLM SERVICE INITIALIZED")
+    console.log("🚨🚨🚨 WEBHOOK: LLM SERVICE INITIALIZED")
 
     // For GET requests (verification)
     if (req.method === "GET") {
@@ -1092,7 +1092,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
           "Un operatore ti contatterà al più presto. Nel frattempo, il chatbot è temporaneamente disabilitato per questa conversazione. Grazie per la tua pazienza! 🤝",
       }
     } else {
-      // Session active - setup dual LLM system
+      // Session active - setup LLM system
 
       // Initialize variables with defaults
       let variables = {
@@ -1296,13 +1296,13 @@ router.post("/whatsapp/webhook", async (req, res) => {
         `🔧 WEBHOOK: LLM Request customerid: "${customerId}" workspaceId: "${workspaceId}"`
       )
 
-      // Process with dual LLM service
+      // Process with LLM service
       console.log(
-        "🚀 WEBHOOK: About to call dual LLM service with input:",
+        "🚀 WEBHOOK: About to call LLM service with input:",
         messageContent
       )
-      result = await dualLLMService.handleMessage(llmRequest, variables)
-      console.log("🚀 WEBHOOK: Dual LLM result received:", {
+      result = await llmService.handleMessage(llmRequest, variables)
+      console.log("🚀 WEBHOOK: LLM result received:", {
         success: result.success,
         hasOutput: !!result.output,
         translatedQuery: result.translatedQuery,
@@ -1330,7 +1330,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
           message: messageContent,
           response: result.output,
           direction: "INBOUND",
-          agentSelected: "CHATBOT_DUAL_LLM",
+          agentSelected: "CHATBOT_LLM",
           // 🔧 Debug data persistence
           translatedQuery: result.translatedQuery,
           processedPrompt: result.processedPrompt,

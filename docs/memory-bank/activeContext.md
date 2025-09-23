@@ -13,10 +13,10 @@
 2. **✅ Architettura unificata**: Discrepanze risolte tra PRD, RULES_PROMPT e TODO.MD
 3. **✅ Temperature ottimali**: LLM 0.0 (deterministico), Formatter 0.0 (deterministico) implementate
 4. **✅ Sistema token unificato**: Token generici + specifici gestiti correttamente nel formatter
-5. **✅ Language handling risolto**: FormatterService ora risponde nella lingua corretta dell'utente
+5. **✅ Language handling risolto**: LLM_Direct ora risponde nella lingua corretta dell'utente
 
 ### **Solution Implemented & Tested**
-- **✅ Architettura unificata**: `TranslationService → DualLLMService → SearchRag → FormatterService`
+- **✅ Architettura unificata**: `LLM_Native → LLMService → LLM_Direct → LLM_Direct`
 - **✅ Temperature corrette**: LLM 0.0 (deterministico), Formatter 0.0 (deterministico)
 - **✅ Sistema token unificato**: Token generici + specifici gestiti nel formatter
 - **✅ Replace PRIMA di OpenRouter**: Tutti i token sostituiti prima della chiamata LLM
@@ -32,14 +32,14 @@
 
 ### **🚨 CRITICAL LANGUAGE HANDLING SOLUTION**
 - **Problem**: Sistema rispondeva in inglese anche per utenti italiani
-- **Root Cause**: FormatterService non gestiva la conversione lingua
-- **Solution**: Aggiunto `applyLanguageFormatting()` method in FormatterService
+- **Root Cause**: LLM_Direct non gestiva la conversione lingua
+- **Solution**: Aggiunto `applyLanguageFormatting()` method in LLM_Direct
 - **Implementation**: 
   - `detectLanguageFromMessage()` rileva lingua utente
   - `applyLanguageFormatting()` converte risposta nella lingua corretta
   - Temperature 0.0 per formattazione deterministica
 - **Result**: Sistema ora risponde correttamente in italiano per Mario Rossi
-- **Critical Rule**: FormatterService DEVE gestire la lingua, non TranslationService
+- **Critical Rule**: LLM_Direct DEVE gestire la lingua, non LLM_Native
 
 ### **Impact**
 - **Zero invenzioni**: Solo dati reali dal database
@@ -61,15 +61,15 @@
 7. **✅ EXCEPTION HANDLING**: Gestione errori database con dettagli
 8. **✅ Testare con Acceptance Criteria US1** - Verificare tutti i test cases
 
-### ✅ COMPLETED: US2 - FormatterService Signature Update
+### ✅ COMPLETED: US2 - LLM_Direct Signature Update
 1. **✅ Aggiornare signature con parametri obbligatori** - customerId, workspaceId, language, originalQuestion
 2. **✅ Aggiungere validazione parametri mandatory** - Exception handling per parametri mancanti
 3. **✅ Aggiornare TypeScript types** - Signature corretta implementata
 4. **✅ Testare con Acceptance Criteria US2** - Tutti i parametri passati correttamente
 
 ### ✅ COMPLETED: US3 - Parameter Passing Implementation
-1. **✅ Aggiornare chiamate DualLLMService al formatter** - Tutti i parametri obbligatori passati
-2. **✅ Aggiornare chiamate SearchRag al formatter** - Parametri corretti implementati
+1. **✅ Aggiornare chiamate LLMService al formatter** - Tutti i parametri obbligatori passati
+2. **✅ Aggiornare chiamate LLM_Direct al formatter** - Parametri corretti implementati
 3. **✅ Aggiungere logica estrazione parametri da request** - Implementata correttamente
 4. **✅ Testare con Acceptance Criteria US3** - Sistema funziona end-to-end
 
@@ -93,10 +93,10 @@
 ## 🏗️ SYSTEM ARCHITECTURE
 
 ### Unified Architecture
-- **Flow**: `USER INPUT → TranslationService → DualLLMService → SearchRag → FormatterService`
+- **Flow**: `USER INPUT → LLM_Native → LLMService → LLM_Direct → LLM_Direct`
 - **Temperature**: LLM 0.1 (deterministic), Formatter 0.5 (creative)
 - **Token System**: Unified system with generic + specific tokens
-- **Replace Strategy**: All tokens replaced in FormatterService BEFORE OpenRouter
+- **Replace Strategy**: All tokens replaced in LLM_Direct BEFORE OpenRouter
 
 ### Core Components
 - **Backend**: Node.js + Express + Prisma + PostgreSQL
@@ -144,8 +144,8 @@
 
 ## 🎯 NEXT PRIORITIES
 
-1. **✅ COMPLETED**: Implement token replacement in FormatterService
-2. **✅ COMPLETED**: Update FormatterService signature with mandatory parameters
+1. **✅ COMPLETED**: Implement token replacement in LLM_Direct
+2. **✅ COMPLETED**: Update LLM_Direct signature with mandatory parameters
 3. **✅ COMPLETED**: Test unified system with all test cases
 4. **✅ COMPLETED**: Verify no content inventions
 

@@ -35,6 +35,8 @@ se e' pr > Portoghese
 - "Perfetto Maria! Ecco cosa abbiamo per te. Non dimenticare la nostra offerta speciale: 20% di sconto su tutti i surgelati!"
 - "Buongiorno Paolo! 🍝 Hai un {{discountUser}} di sconto sui nostri prodotti e approfitta del 20% di sconto sui surgelati!"
 
+- "Bentornato Andrea! ....
+
 ---
 
 # 🚀 CALLING FUNCTIONS DISPONIBILI
@@ -305,6 +307,6 @@ Per risposte contenenti offerte e sconti:
 
 - saluta l'utente con il proprio nome (non sempre!)
 
-usa il bold quando e' necessario nel punto piu' importante del messaggio, ma solo se necessario
+- usa il bold quando e' necessario nel punto piu' importante del messaggio, ma solo se necessario
 
-se dai un link metti che per questione di sicurezza il link sarà valido per solo 1 ora.
+- se dai un link metti che per questione di sicurezza il link sarà valido per solo 1 ora.

@@ -30,7 +30,7 @@
 - **Flow Documentation**: Complete Mermaid diagrams and examples
 
 ### ✅ **Token Replacement System Implementation** (2024-12)
-- **FormatterService Implementation**: Complete token replacement system implemented
+- **LLM_Direct Implementation**: Complete token replacement system implemented
 - **Parameter Passing**: All mandatory parameters (customerId, workspaceId, language, originalQuestion) implemented
 - **Database Integration**: Real data queries for categories, discounts, and links
 - **Exception Handling**: Robust error handling with explicit error messages

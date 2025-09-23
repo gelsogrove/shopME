@@ -7,10 +7,9 @@
 
 console.log('🔍 === CONFRONTO DETTAGLIATO: SCRIPT vs SISTEMA ATTUALE ===\n');
 
-// Risultati dello script di test
+// Risultati del nuovo sistema LLM
 const scriptResults = {
-  translation: "What offers do you have?",
-  functionCalled: "GetActiveOffers",
+  functionCalled: "LLM_Response",
   response: `Ciao Mario! 😊 Ecco le offerte attive che abbiamo attualmente:
 
 🎉 **OFFERTE ATTIVE DISPONIBILI:**
@@ -28,8 +27,8 @@ const scriptResults = {
    - 📅 **Valida fino**: 15/11/2024  
 
 🛒 **Approfitta subito di queste offerte!** Se hai bisogno di ulteriori informazioni o vuoi procedere con un acquisto, fammi sapere!`,
-  dataSource: "Mock Data (simulato)",
-  architecture: "Translation + Cloud Functions + Formatter"
+  dataSource: "LLM Direct Response",
+  architecture: "LLM + Cloud Functions"
 };
 
 // Risultati del sistema attuale

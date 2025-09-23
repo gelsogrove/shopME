@@ -492,7 +492,7 @@ export function WhatsAppChatModal({
     setIsLoading(true)
 
     try {
-      // Call the API to process the message - DUAL LLM SYSTEM
+      // Call the API to process the message - LLM SYSTEM
       const apiUrl = `${
         import.meta.env.VITE_API_URL || "http://localhost:3001"
       }/api/whatsapp/webhook`
@@ -500,7 +500,7 @@ export function WhatsAppChatModal({
       // Use provided workspaceId or get from config
       const currentWorkspaceId = getWorkspaceId(workspaceId)
 
-      logger.info("🔄 FRONTEND DEBUG: Making API call to DUAL LLM SYSTEM:", apiUrl)
+      logger.info("🔄 FRONTEND DEBUG: Making API call to LLM SYSTEM:", apiUrl)
       const response = await axios.post(apiUrl, {
         entry: [{
           changes: [{

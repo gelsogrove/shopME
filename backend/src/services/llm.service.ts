@@ -1,18 +1,12 @@
 import { MessageRepository } from "../repositories/message.repository"
 import { LLMRequest } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
-// import { FormatterService } from "./formatter.service" // 🚫 FORMATTER DISABILITATO
-// import { TranslationService } from "./translation.service" // 🚫 TRANSLATION DISABILITATO
 import { ReplaceLinkWithToken } from "../chatbot/calling-functions/ReplaceLinkWithToken"
 
-export class DualLLMService {
-  // private translationService: TranslationService // 🚫 TRANSLATION DISABILITATO
-  // private formatterService: FormatterService // 🚫 FORMATTER DISABILITATO
+export class LLMService {
   private callingFunctionsService: CallingFunctionsService
 
   constructor() {
-    // this.translationService = new TranslationService() // 🚫 TRANSLATION DISABILITATO
-    // this.formatterService = new FormatterService() // 🚫 FORMATTER DISABILITATO
     this.callingFunctionsService = new CallingFunctionsService()
   }
 
@@ -21,7 +15,7 @@ export class DualLLMService {
     customerData?: any
   ): Promise<any> {
     try {
-      console.log(`🔄 DualLLM: Processing message: ${llmRequest.chatInput}`)
+      console.log(`🔄 LLM: Processing message: ${llmRequest.chatInput}`)
 
       // Step 1: LLM decides what to do - calls CF if needed (usa query originale)
       // 🚫 TRANSLATION DISABILITATO - usa query originale
@@ -37,90 +31,37 @@ export class DualLLMService {
 
       // Step 2: If CF was called, use CF result
       if (cfResult?.success === true) {
-        console.log(`🎯 DualLLM: CF was called (success=true), using CF result`)
+        console.log(`🎯 LLM: CF was called (success=true), using CF result`)
         console.log(
-          `🎯 DualLLM: CF functionCalls:`,
+          `🎯 LLM: CF functionCalls:`,
           JSON.stringify(cfResult.functionCalls, null, 2)
         )
         finalResult = cfResult
         functionCalls = cfResult.functionCalls
       } else {
         console.log(
-          `🔍 DualLLM: No CF called - FLUSSO CORRETTO: Salvare genericReply e poi SearchRag`
+          `🔍 LLM: No CF called. Generating direct LLM response.`
         )
 
-        // REGOLA 1: Salvare genericReply quando LLM non chiama CF
-        console.log("💾 DualLLM: Generando e salvando genericReply...")
-        const genericReply = await this.generateLLMResponse(
+        const llmResponse = await this.generateLLMResponse(
           translatedQuery,
           llmRequest.workspaceId,
-          llmRequest.language || "it"
+          llmRequest.phone
         )
-        console.log(
-          "✅ DualLLM: genericReply salvata:",
-          genericReply.substring(0, 100) + "..."
-        )
-
-        // REGOLA 2: Eseguire SearchRag - COMMENTATO PER DISABILITARE
-        /* let searchRagResult = await this.executeSearchRagFallback(
-          llmRequest,
-          translatedQuery,
-          { response: genericReply } // Passare la genericReply salvata
-        ) */
-
-        // 🚫 SearchRag DISABILITATO - ritorna direttamente la genericReply
-        let searchRagResult = {
-          success: false,
-          response: genericReply,
+        finalResult = {
+          success: true,
+          response: llmResponse,
+          functionCalls: [],
         }
-
-        // Se SearchRag non trova nulla nemmeno in traduzione, genera LLM response
-        const isEmptyResponse = (r: any) => {
-          if (r == null) return true
-          if (typeof r === "string") return r.trim() === ""
-          // If it's an object (e.g. searchRagResult returned the whole object),
-          // consider it non-empty (we will let the formatter decide how to render)
-          return false
-        }
-
-        if (
-          !searchRagResult.success ||
-          isEmptyResponse(searchRagResult.response)
-        ) {
-          console.log(
-            `🤖 DualLLM: SearchRag vuoto anche in traduzione, generating LLM fallback`
-          )
-          const llmResponse = await this.generateLLMResponse(
-            translatedQuery,
-            llmRequest.workspaceId,
-            llmRequest.phone
-          )
-          finalResult = {
-            success: true,
-            response: llmResponse,
-            functionCalls: [],
-          }
-        } else {
-          finalResult = searchRagResult
-        }
-
         functionCalls = finalResult.functionCalls || []
       }
 
-      // Step 4: Formatter receives: language, discount, question, workspaceId, customerId
       // REGOLA 28, 56: Ottenere lingua dal database cliente
       const language = await this.detectLanguageFromMessage(
         llmRequest.chatInput,
         llmRequest.phone,
         llmRequest.workspaceId
       )
-
-      // 🚫 FORMATTER DISABILITATO - ritorna direttamente la risposta
-      /* const formattedResponse = await this.executeFormatter(
-        llmRequest,
-        finalResult,
-        finalResult === cfResult ? "CF" : "SearchRag"
-      ) */
 
       // Estrai direttamente la risposta senza formatter
       let directResponse = finalResult.response
@@ -278,7 +219,7 @@ export class DualLLMService {
         }
       } else {
         console.log(
-          `🚨 DualLLM: No specific CF selected - REGOLA 2: Salvare risposta LLM e procedere con SearchRag`
+          `🚨 DualLLM: No specific CF selected - Returning LLM response directly`
         )
 
         // REGOLA 2: Salvare risposta LLM quando non chiama funzioni
@@ -286,16 +227,6 @@ export class DualLLMService {
           translatedQuery,
           request.workspaceId
         )
-
-        console.log(
-          `🔍 DualLLM: SearchRag DISABILITATO - ritorna solo LLM response`
-        )
-
-        // Procedi automaticamente con SearchRag secondo ricordati.md - COMMENTATO PER DISABILITARE
-        /* const searchRagResult = await this.executeSearchRagFallback(
-          request,
-          translatedQuery
-        ) */
 
         // 🚫 SearchRag DISABILITATO - ritorna solo la risposta LLM
         return {
@@ -321,169 +252,6 @@ export class DualLLMService {
       }
     }
   }
-
-  private async executeSearchRagFallback(
-    request: LLMRequest,
-    translatedQuery: string,
-    cfResult?: any
-  ): Promise<any> {
-    try {
-      console.log(`🔍 DualLLM: Executing SearchRag for: ${translatedQuery}`)
-
-      // Adaptive tuning for short queries: increase top_k and lower similarity threshold
-      // Use the translatedQuery for RAG search (reverted to previous behavior)
-      const isShortQuery = (str: string) => {
-        if (!str) return false
-        const wordCount = str.trim().split(/\s+/).length
-        return wordCount <= 2 || str.trim().length <= 20
-      }
-
-      // Increase default top_k to allow more results to flow through (no hard 10 limit)
-      const defaultTopK = 100
-      const defaultThreshold = 0.35
-
-      const shortQueryTopK = 200
-      const shortQueryThreshold = 0.25
-
-      const top_k = isShortQuery(translatedQuery) ? shortQueryTopK : defaultTopK
-      const similarityThreshold = isShortQuery(translatedQuery)
-        ? shortQueryThreshold
-        : defaultThreshold
-
-      const searchRagResult = await this.callingFunctionsService.SearchRag({
-        customerId: request.customerid || "",
-        workspaceId: request.workspaceId,
-        // Use original query to find FAQs in customer's language
-        query: request.chatInput,
-        messages: [],
-        top_k,
-        similarityThreshold,
-      })
-
-      console.log(`🔍 DualLLM: SearchRag result:`, searchRagResult)
-
-      // Check what SearchRag found
-      const hasFAQs =
-        searchRagResult.success &&
-        searchRagResult.results &&
-        searchRagResult.results.faqs &&
-        searchRagResult.results.faqs.length > 0
-
-      const hasProducts =
-        searchRagResult.success &&
-        searchRagResult.results &&
-        searchRagResult.results.products &&
-        searchRagResult.results.products.length > 0
-
-      if (!hasFAQs && !hasProducts) {
-        console.log(`🔍 DualLLM: SearchRag empty, using saved response from CF`)
-        return {
-          success: true,
-          response: cfResult?.response || "Ciao! Come posso aiutarti oggi?",
-          functionCalls: cfResult?.functionCalls || [],
-        }
-      }
-
-      // Per le regole architetturali: se SearchRag produce risultati (FAQ o
-      // prodotti), non effettuiamo qui logica di selezione; passiamo invece
-      // l'intero `searchRagResult` al Formatter, che deciderà come presentare
-      // i risultati nella lingua dell'utente. Questo mantiene il Formatter
-      // come unica fonte di presentazione (no branching server-side).
-      return {
-        success: true,
-        response: searchRagResult,
-        functionCalls: [
-          {
-            name: "SearchRag",
-            functionName: "SearchRag",
-            success: searchRagResult.success,
-            result: searchRagResult,
-            source: "SearchRag",
-          },
-        ],
-      }
-    } catch (error) {
-      console.error("❌ SearchRag error:", error)
-      return {
-        success: true,
-        response: "Ciao! Come posso aiutarti oggi?",
-        functionCalls: [],
-      }
-    }
-  }
-
-  // 🚫 FORMATTER DISABILITATO - Metodo executeFormatter commentato
-  /* private async executeFormatter(
-    request: LLMRequest,
-    result: any,
-    functionName: string
-  ): Promise<string> {
-    try {
-      console.log(`🎨 DualLLM: Executing formatter for ${functionName}`)
-
-      // REGOLA 28, 56: Ottenere lingua dal database cliente
-      const language = await this.detectLanguageFromMessage(
-        request.chatInput,
-        request.phone,
-        request.workspaceId
-      )
-
-      // REGOLA 9: Ottenere sconto cliente e nome per il formatter
-      let customerDiscount = 0
-      let customerName = "Utente"
-      if (request.customerid) {
-        try {
-          const messageRepository = new MessageRepository()
-          const customer = await messageRepository.findCustomerByPhone(
-            request.phone,
-            request.workspaceId
-          )
-          customerDiscount = customer?.discount || 0
-          customerName = customer?.name || "Utente"
-          console.log(
-            `💰 DualLLM: Customer found: ${customerName} with ${customerDiscount}% discount`
-          )
-        } catch (error) {
-          console.error("❌ Error getting customer info:", error)
-          customerDiscount = 0
-          customerName = "Utente"
-        }
-      }
-
-      // Formatter receives: language, discount, question, workspaceId, customerId
-      // Fix: Ensure response is a string for formatter
-      let responseForFormatter = result.response
-      if (typeof responseForFormatter !== "string") {
-        responseForFormatter =
-          typeof responseForFormatter === "object"
-            ? JSON.stringify(responseForFormatter)
-            : String(responseForFormatter || "")
-      }
-
-      const formattedResponse = await FormatterService.formatToMarkdown(
-        responseForFormatter,
-        request.chatInput || "", // question
-        customerName || "Utente", // nameUser
-        customerDiscount || 0, // discount
-        request.customerid || "", // customerId
-        request.workspaceId, // workspaceId
-        language // language
-      )
-
-      console.log(`🌍 DualLLM: Language passed to formatter: ${language}`)
-      console.log(
-        `🔤 DualLLM: Input for formatter - question: "${request.chatInput}"`
-      )
-      console.log(
-        `📄 DualLLM: Input for formatter - response: "${responseForFormatter?.substring(0, 200)}..."`
-      )
-      console.log(`✅ DualLLM: Formatter completed for ${functionName}`)
-      return formattedResponse
-    } catch (error) {
-      console.error(`❌ Formatter error for ${functionName}:`, error)
-      return result.response || "Errore nella formattazione della risposta."
-    }
-  } */
 
   private async detectLanguageFromMessage(
     message: string,

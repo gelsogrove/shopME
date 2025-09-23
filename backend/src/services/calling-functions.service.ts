@@ -258,7 +258,7 @@ export class CallingFunctionsService {
       console.log("🔧 Calling SearchRag with:", request)
 
       // Use the query directly without translation to preserve Italian product names
-      // The TranslationService in DualLLMService already handles translation correctly
+      // The TranslationService in LLMService already handles translation correctly
       const translatedQuery = request.query
       console.log("🌐 Using original query (no translation):", translatedQuery)
 

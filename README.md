@@ -1,22 +1,30 @@
 # ShopMe - AI-Powered WhatsApp E-commerce Platform
 
-A comprehensive WhatsApp e-commerce platform with AI-powered chatbot, order management, and multi-language support.
+A comprehensive WhatsApp e-commerce platform with AI-powered chatbot, simplified LLM architecture, and multi-language support.
 
 ## 🚀 Features
 
-- **🤖 AI Chatbot**: Intelligent WhatsApp integration with natural language processing
+- **🤖 AI Chatbot**: Direct LLM integration with intelligent responses
 - **🛍️ E-commerce**: Complete product catalog, cart, and order management
 - **📊 Analytics**: Usage tracking and business insights
-- **🌍 Multi-language**: Support for Italian, English, Spanish, and Portuguese
+- **🌍 Multi-language**: Native LLM support for Italian, English, Spanish, and Portuguese
 - **🔐 Security**: Token-based authentication and workspace isolation
-- **📱 Public Links**: Secure customer access to orders and profiles
+- **📱 Secure Links**: Temporary authenticated access to orders and profiles
+- **⚡ Simplified Architecture**: Direct LLM processing without intermediate layers
 
 ## 🏗️ Architecture
 
+### Simplified LLM System
+- **LLMService**: Direct processing and response generation
+- **Cloud Functions**: Specific actions (tracking, orders, operator contact)
+- **Variable Replacement**: Dynamic content personalization
+- **Link Generation**: Secure temporary access tokens
+
+### Technology Stack
 - **Frontend**: React + TypeScript + Tailwind CSS
 - **Backend**: Node.js + Express + Prisma ORM
 - **Database**: PostgreSQL
-- **AI**: OpenRouter integration for LLM processing
+- **AI**: OpenRouter integration with GPT-4-mini
 - **Authentication**: JWT-based token system
 
 ## 🚀 Quick Start
