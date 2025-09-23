@@ -922,17 +922,21 @@ export class MessageRepository {
       }
 
       // Raggruppa i prodotti per categoria
-      const productsByCategory = products.reduce((acc, product) => {
-        const categoryName = product.category?.name || "Senza Categoria"
-        if (!acc[categoryName]) {
-          acc[categoryName] = []
-        }
-        acc[categoryName].push(product)
-        return acc
-      }, {} as Record<string, typeof products>)
+      const productsByCategory = products.reduce(
+        (acc, product) => {
+          const categoryName = product.category?.name || "Senza Categoria"
+          if (!acc[categoryName]) {
+            acc[categoryName] = []
+          }
+          acc[categoryName].push(product)
+          return acc
+        },
+        {} as Record<string, typeof products>
+      )
 
       // Formatta l'output
-      let formattedProducts = "## PRODOTTI\n\nLISTA COMPLETA DEI PRODOTTI - L'ALTRA ITALIA\n"
+      let formattedProducts =
+        "## PRODOTTI\n\nLISTA COMPLETA DEI PRODOTTI - L'ALTRA ITALIA\n"
       for (const categoryName in productsByCategory) {
         const productList = productsByCategory[categoryName]
         formattedProducts += `🧀 ${categoryName.toUpperCase()} (${productList.length} prodotti)\n`

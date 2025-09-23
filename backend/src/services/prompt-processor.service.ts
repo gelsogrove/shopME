@@ -1,6 +1,6 @@
+import fs from "fs"
+import path from "path"
 import { MessageRepository } from "../repositories/message.repository"
-import fs from 'fs'
-import path from 'path'
 
 export class PromptProcessorService {
   private messageRepository: MessageRepository
@@ -29,16 +29,21 @@ export class PromptProcessorService {
     if (processedPrompt.includes("{{FAQ}}")) {
       console.log("🔧 DEBUG: Cerco FAQ per workspaceId:", workspaceId)
       const faqs = await this.messageRepository.getActiveFaqs(workspaceId)
-      console.log("🔧 DEBUG: FAQ trovate:", faqs ? `${faqs.length} chars` : "VUOTO")
+      console.log(
+        "🔧 DEBUG: FAQ trovate:",
+        faqs ? `${faqs.length} chars` : "VUOTO"
+      )
       processedPrompt = processedPrompt.replace("{{FAQ}}", faqs)
     }
 
     if (processedPrompt.includes("{{PRODUCTS}}")) {
       console.log("🔧 DEBUG: Cerco PRODUCTS per workspaceId:", workspaceId)
-      const products = await this.messageRepository.getActiveProducts(
-        workspaceId
+      const products =
+        await this.messageRepository.getActiveProducts(workspaceId)
+      console.log(
+        "🔧 DEBUG: PRODUCTS trovati:",
+        products ? `${products.length} chars` : "VUOTO"
       )
-      console.log("🔧 DEBUG: PRODUCTS trovati:", products ? `${products.length} chars` : "VUOTO")
       processedPrompt = processedPrompt.replace("{{PRODUCTS}}", products)
     }
 
@@ -110,14 +115,17 @@ export class PromptProcessorService {
    * @param prompt Il prompt processato.
    * @param workspaceId L'ID del workspace.
    */
-  private async saveDebugPrompt(prompt: string, workspaceId: string): Promise<void> {
+  private async saveDebugPrompt(
+    prompt: string,
+    workspaceId: string
+  ): Promise<void> {
     try {
-      const logsDir = path.join(process.cwd(), 'logs')
+      const logsDir = path.join(process.cwd(), "logs")
       if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir, { recursive: true })
       }
 
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
       const filename = `prompt-debug-${workspaceId}-${timestamp}.txt`
       const filepath = path.join(logsDir, filename)
 
@@ -132,10 +140,10 @@ ${prompt}
 ================== END PROMPT ==================
 `
 
-      fs.writeFileSync(filepath, debugContent, 'utf8')
+      fs.writeFileSync(filepath, debugContent, "utf8")
       console.log(`[DEBUG] Prompt salvato in: ${filepath}`)
     } catch (error) {
-      console.error('[DEBUG] Errore nel salvare il prompt:', error)
+      console.error("[DEBUG] Errore nel salvare il prompt:", error)
     }
   }
 }

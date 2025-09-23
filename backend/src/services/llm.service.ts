@@ -261,14 +261,23 @@ export class LLMService {
       let promptContent = prompt?.content || ""
       if (!promptContent) {
         console.log("🔧 DEBUG: Prompt non trovato nel DB, carico da file...")
-        const fs = require('fs')
-        const path = require('path')
-        const promptPath = path.join(process.cwd(), '..', 'docs', 'other', 'prompt_agent.md')
+        const fs = require("fs")
+        const path = require("path")
+        const promptPath = path.join(
+          process.cwd(),
+          "..",
+          "docs",
+          "other",
+          "prompt_agent.md"
+        )
         try {
-          promptContent = fs.readFileSync(promptPath, 'utf8')
+          promptContent = fs.readFileSync(promptPath, "utf8")
           console.log("🔧 DEBUG: Prompt caricato da file con successo")
         } catch (error) {
-          console.error("🔧 DEBUG: Errore nel caricare il prompt da file:", error.message)
+          console.error(
+            "🔧 DEBUG: Errore nel caricare il prompt da file:",
+            error.message
+          )
         }
       }
 
