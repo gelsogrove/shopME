@@ -18,6 +18,7 @@ ShopMe is a comprehensive e-commerce platform with WhatsApp chatbot integration,
 ## 🏗️ Architecture
 
 ### Core Components
+
 - **Backend**: Node.js + TypeScript + Prisma + PostgreSQL
 - **Frontend**: React + TypeScript + Vite + TailwindCSS
 - **Chatbot**: OpenRouter + AI function calling
@@ -25,6 +26,7 @@ ShopMe is a comprehensive e-commerce platform with WhatsApp chatbot integration,
 - **Authentication**: JWT tokens with workspace isolation
 
 ### Business Focus
+
 - **ECOMMERCE**: Product catalog, cart management, checkout
 - **Focus**: Single business type for optimal performance
 
@@ -35,7 +37,7 @@ ShopMe is a comprehensive e-commerce platform with WhatsApp chatbot integration,
 **🎯 ARCHITETTURA SEMPLIFICATA - STRUTTURA FINALE:**
 
 ```
-USER INPUT (IT/EN/ES/PT) 
+USER INPUT (IT/EN/ES/PT)
 → LLMService (Direct LLM processing with multilingua support)
 → Cloud Functions (Specific actions: tracking, orders, operators)
 → Variable & Link Replacement ({{nameUser}}, [LINK_*_WITH_TOKEN])
@@ -43,6 +45,7 @@ USER INPUT (IT/EN/ES/PT)
 ```
 
 ### ✅ CORE PRINCIPLES:
+
 - **Direct Processing**: LLM handles language detection and response natively
 - **Cloud Functions**: Specific actions only when explicitly triggered
 - **Variable Replacement**: {{nameUser}}, {{discountUser}}, etc.
@@ -51,6 +54,7 @@ USER INPUT (IT/EN/ES/PT)
 - **Simplified Flow**: Input → Processing → Output (no intermediate steps)
 
 ### Function Flow
+
 1. **Direct Processing**: LLM analyzes user input in original language
 2. **Intent Recognition**: Cloud Functions triggered for specific actions
 3. **LLM Fallback**: If no CF triggered, direct LLM response generation
@@ -59,6 +63,7 @@ USER INPUT (IT/EN/ES/PT)
 6. **Output**: Natural response in user's original language
 
 ### Token Management System
+
 ```typescript
 // UNIFIED TOKEN SYSTEM - Two types of tokens:
 
@@ -83,10 +88,12 @@ USER INPUT (IT/EN/ES/PT)
 ## 🛒 Cart Management System
 
 ### Web-Based Cart Management
+
 - **Strategy**: All cart operations handled via web interface
 - **Link Generation**: Via LLM_Direct + FAQ with `[LINK_WITH_TOKEN]`
 - **Token System**: Universal tokens valid for 1 hour across all pages
 - **User Experience**: Direct links to cart management page with full functionality
+
 ```
 
 ### Supported Operations
@@ -257,3 +264,4 @@ USER INPUT (IT/EN/ES/PT)
 ---
 
 *This PRD is maintained as the single source of truth for the ShopMe project requirements and architecture.*
+```

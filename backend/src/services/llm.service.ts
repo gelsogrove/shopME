@@ -1,7 +1,7 @@
+import { ReplaceLinkWithToken } from "../chatbot/calling-functions/ReplaceLinkWithToken"
 import { MessageRepository } from "../repositories/message.repository"
 import { LLMRequest } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
-import { ReplaceLinkWithToken } from "../chatbot/calling-functions/ReplaceLinkWithToken"
 
 export class LLMService {
   private callingFunctionsService: CallingFunctionsService
@@ -39,9 +39,7 @@ export class LLMService {
         finalResult = cfResult
         functionCalls = cfResult.functionCalls
       } else {
-        console.log(
-          `🔍 LLM: No CF called. Generating direct LLM response.`
-        )
+        console.log(`🔍 LLM: No CF called. Generating direct LLM response.`)
 
         const llmResponse = await this.generateLLMResponse(
           translatedQuery,

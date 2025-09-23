@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -233,23 +233,34 @@ export function WhatsAppChatModal({
           // Map MessageDirection.INBOUND to 'customer' and MessageDirection.OUTBOUND to 'bot'
           sender: message.direction === "INBOUND" ? "customer" : "bot",
           timestamp: new Date(message.createdAt),
-          agentName: message.agentName || (message.direction === "OUTBOUND" ? "AI Assistant" : undefined),
+          agentName:
+            message.agentName ||
+            (message.direction === "OUTBOUND" ? "AI Assistant" : undefined),
           // Debug fields
           translatedQuery: message.translatedQuery,
           processedPrompt: message.processedPrompt,
-          functionCalls: message.functionCallsDebug ? (() => {
-            console.log('🔧 Raw functionCallsDebug:', message.functionCallsDebug);
-            const parsed = JSON.parse(message.functionCallsDebug);
-            console.log('🔧 Parsed functionCalls:', parsed);
-            return parsed;
-          })() : [],
+          functionCalls: message.functionCallsDebug
+            ? (() => {
+                console.log(
+                  "🔧 Raw functionCallsDebug:",
+                  message.functionCallsDebug
+                )
+                const parsed = JSON.parse(message.functionCallsDebug)
+                console.log("🔧 Parsed functionCalls:", parsed)
+                return parsed
+              })()
+            : [],
           metadata: {
             isOperatorMessage: message.metadata?.isOperatorMessage || false,
             isOperatorControl: message.metadata?.isOperatorControl || false,
-            agentSelected: message.metadata?.agentSelected || (message.direction === "OUTBOUND" ? "CHATBOT" : "CUSTOMER"),
-            sentBy: message.metadata?.sentBy || (message.direction === "OUTBOUND" ? "AI" : "CUSTOMER"),
-            operatorId: message.metadata?.operatorId
-          }
+            agentSelected:
+              message.metadata?.agentSelected ||
+              (message.direction === "OUTBOUND" ? "CHATBOT" : "CUSTOMER"),
+            sentBy:
+              message.metadata?.sentBy ||
+              (message.direction === "OUTBOUND" ? "AI" : "CUSTOMER"),
+            operatorId: message.metadata?.operatorId,
+          },
         }))
 
         logger.info(
@@ -321,8 +332,8 @@ export function WhatsAppChatModal({
         isOperatorMessage: false,
         isOperatorControl: false,
         agentSelected: "CUSTOMER",
-        sentBy: "CUSTOMER"
-      }
+        sentBy: "CUSTOMER",
+      },
     }
 
     setMessages([userMessage])
@@ -384,8 +395,8 @@ export function WhatsAppChatModal({
             isOperatorMessage: false,
             isOperatorControl: false,
             agentSelected: "CHATBOT",
-            sentBy: "AI"
-          }
+            sentBy: "AI",
+          },
         }
 
         // Add ONLY the bot response to chat history, not the user's message again
@@ -407,8 +418,8 @@ export function WhatsAppChatModal({
             isOperatorMessage: false,
             isOperatorControl: false,
             agentSelected: "SYSTEM_ERROR",
-            sentBy: "SYSTEM"
-          }
+            sentBy: "SYSTEM",
+          },
         }
 
         setMessages((prev) => [...prev, errorMessage])
@@ -428,8 +439,8 @@ export function WhatsAppChatModal({
           isOperatorMessage: false,
           isOperatorControl: false,
           agentSelected: "SYSTEM_ERROR",
-          sentBy: "SYSTEM"
-        }
+          sentBy: "SYSTEM",
+        },
       }
 
       setMessages((prev) => [...prev, errorMessage])
@@ -482,8 +493,8 @@ export function WhatsAppChatModal({
         isOperatorMessage: false,
         isOperatorControl: false,
         agentSelected: "CUSTOMER",
-        sentBy: "CUSTOMER"
-      }
+        sentBy: "CUSTOMER",
+      },
     }
 
     // Save the message to display immediately
@@ -502,33 +513,42 @@ export function WhatsAppChatModal({
 
       logger.info("🔄 FRONTEND DEBUG: Making API call to LLM SYSTEM:", apiUrl)
       const response = await axios.post(apiUrl, {
-        entry: [{
-          changes: [{
-            value: {
-              messages: [{
-                from: userPhoneNumber,
-                text: {
-                  body: userMessage.content
-                }
-              }]
-            }
-          }]
-        }]
+        entry: [
+          {
+            changes: [
+              {
+                value: {
+                  messages: [
+                    {
+                      from: userPhoneNumber,
+                      text: {
+                        body: userMessage.content,
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        ],
       })
       logger.info("📥 FRONTEND DEBUG: API response received:", response.data)
       logger.info("📥 FRONTEND DEBUG: Response status:", response.status)
-      logger.info("📥 FRONTEND DEBUG: Response success field:", response.data.success)
+      logger.info(
+        "📥 FRONTEND DEBUG: Response success field:",
+        response.data.success
+      )
 
       if (response.data.success) {
         // DUAL LLM SYSTEM response format
         const botResponse = response.data.data.message
-        
+
         // Handle blacklisted customer - don't show any response
         if (botResponse === "EVENT_RECEIVED_CUSTOMER_BLACKLISTED") {
           logger.info("🚫 Customer is blacklisted - ignoring message")
           return
         }
-        
+
         if (botResponse && botResponse.trim() !== "") {
           // Create the bot message from the API response
           const botMessage: Message = {
@@ -542,24 +562,34 @@ export function WhatsAppChatModal({
             processedPrompt: response.data.debug?.processedPrompt,
             functionCalls: response.data.debug?.functionCalls || [],
             // 💰 Cost tracking info
-            debugInfo: response.data.debug?.costInfo ? JSON.stringify({
-              currentCallCost: response.data.debug.costInfo.currentCallCost,
-              previousTotalUsage: response.data.debug.costInfo.previousTotalUsage,
-              newTotalUsage: response.data.debug.costInfo.newTotalUsage,
-              costTimestamp: response.data.debug.costInfo.costTimestamp
-            }, null, 2) : undefined,
+            debugInfo: response.data.debug?.costInfo
+              ? JSON.stringify(
+                  {
+                    currentCallCost:
+                      response.data.debug.costInfo.currentCallCost,
+                    previousTotalUsage:
+                      response.data.debug.costInfo.previousTotalUsage,
+                    newTotalUsage: response.data.debug.costInfo.newTotalUsage,
+                    costTimestamp: response.data.debug.costInfo.costTimestamp,
+                  },
+                  null,
+                  2
+                )
+              : undefined,
             metadata: {
               isOperatorMessage: false,
               isOperatorControl: false,
               agentSelected: "CHATBOT",
-              sentBy: "AI"
-            }
+              sentBy: "AI",
+            },
           }
 
           // Add bot response to chat history
           setMessages((prev) => [...prev, botMessage])
         } else {
-          logger.info("Empty response from DUAL LLM SYSTEM, not adding bot message")
+          logger.info(
+            "Empty response from DUAL LLM SYSTEM, not adding bot message"
+          )
         }
       } else {
         // Handle API error response
@@ -577,8 +607,8 @@ export function WhatsAppChatModal({
             isOperatorMessage: false,
             isOperatorControl: false,
             agentSelected: "SYSTEM_ERROR",
-            sentBy: "SYSTEM"
-          }
+            sentBy: "SYSTEM",
+          },
         }
 
         setMessages((prev) => [...prev, errorMessage])
@@ -598,8 +628,8 @@ export function WhatsAppChatModal({
           isOperatorMessage: false,
           isOperatorControl: false,
           agentSelected: "SYSTEM_ERROR",
-          sentBy: "SYSTEM"
-        }
+          sentBy: "SYSTEM",
+        },
       }
 
       setMessages((prev) => [...prev, errorMessage])
@@ -638,7 +668,7 @@ export function WhatsAppChatModal({
         }
       }}
     >
-            <DialogContent
+      <DialogContent
         className="w-[600px] max-w-[90vw] p-0 overflow-hidden [&>button]:hidden h-[850px] flex flex-col"
         data-state={isOpen ? "open" : "closed"}
         style={{
@@ -668,7 +698,9 @@ export function WhatsAppChatModal({
           <div className="flex gap-2 items-center">
             <button
               onClick={() => setShowFunctionCalls(!showFunctionCalls)}
-              className={`text-white hover:bg-green-600 rounded-full p-2 transition ${showFunctionCalls ? 'bg-green-600' : ''}`}
+              className={`text-white hover:bg-green-600 rounded-full p-2 transition ${
+                showFunctionCalls ? "bg-green-600" : ""
+              }`}
               aria-label="Toggle Function Calls Debug"
               title="Show/Hide Function Calls Debug"
             >
@@ -676,7 +708,9 @@ export function WhatsAppChatModal({
             </button>
             <button
               onClick={() => setShowProcessedPrompt(!showProcessedPrompt)}
-              className={`text-white hover:bg-green-600 rounded-full p-2 transition ${showProcessedPrompt ? 'bg-green-600' : ''} hidden`}
+              className={`text-white hover:bg-green-600 rounded-full p-2 transition ${
+                showProcessedPrompt ? "bg-green-600" : ""
+              } hidden`}
               aria-label="Toggle Processed Prompt Debug"
               title="Show/Hide Processed Prompt Debug"
             >
@@ -772,9 +806,7 @@ export function WhatsAppChatModal({
                   // Correct logic:
                   const isChatbotMessage =
                     isAgentMessage &&
-                    (message.metadata?.agentSelected?.startsWith(
-                      "CHATBOT_"
-                    ) ||
+                    (message.metadata?.agentSelected?.startsWith("CHATBOT_") ||
                       message.metadata?.agentSelected === "LLM" ||
                       message.metadata?.agentSelected === "AI" ||
                       message.metadata?.agentSelected === "AI_AGENT")
@@ -804,9 +836,7 @@ export function WhatsAppChatModal({
                     // SE C'È IL BADGE CHATBOT → VERDE (controllo anche agentName)
                     if (
                       message.metadata?.agentSelected === "CHATBOT" ||
-                      message.metadata?.agentSelected?.startsWith(
-                        "CHATBOT_"
-                      ) ||
+                      message.metadata?.agentSelected?.startsWith("CHATBOT_") ||
                       message.metadata?.agentSelected === "AI" ||
                       message.metadata?.agentSelected === "LLM" ||
                       message.agentName
@@ -815,9 +845,7 @@ export function WhatsAppChatModal({
                       return "bg-green-100 text-green-900 border-l-4 border-green-500" // CHATBOT → VERDE
                     }
 
-                    if (
-                      message.metadata?.agentSelected === "MANUAL_OPERATOR"
-                    ) {
+                    if (message.metadata?.agentSelected === "MANUAL_OPERATOR") {
                       return "bg-blue-100 text-blue-900 border-l-4 border-blue-500" // MANUAL_OPERATOR → BLU
                     }
 
@@ -852,7 +880,7 @@ export function WhatsAppChatModal({
                           </div>
                         )}
 
-                        <MessageRenderer 
+                        <MessageRenderer
                           content={message.content}
                           variant="modal"
                         />
@@ -870,7 +898,7 @@ export function WhatsAppChatModal({
                                 </div>
                               </div>
                             )}
-                            
+
                             {showProcessedPrompt && message.processedPrompt && (
                               <div className="bg-blue-50 border border-blue-200 rounded p-2">
                                 <div className="text-xs font-semibold text-blue-800 mb-1">
@@ -888,57 +916,99 @@ export function WhatsAppChatModal({
                                   🔧 Debug Flow:
                                 </div>
                                 <div className="text-xs text-green-700 font-mono whitespace-pre-wrap max-h-32 overflow-y-auto">
-                                  {typeof message.debugInfo === 'string' ? message.debugInfo : JSON.stringify(message.debugInfo, null, 2)}
+                                  {typeof message.debugInfo === "string"
+                                    ? message.debugInfo
+                                    : JSON.stringify(
+                                        message.debugInfo,
+                                        null,
+                                        2
+                                      )}
                                 </div>
                               </div>
                             )}
 
-                            {showFunctionCalls && message.functionCalls && message.functionCalls.length > 0 && (
-                              <div className="bg-purple-50 border border-purple-200 rounded p-2">
-                                <div className="text-xs font-semibold text-purple-800 mb-1">
-                                  {message.functionCalls.some(call => call.type === 'searchrag_result') 
-                                    ? `🔍 SearchRag Results (${message.functionCalls.length}):`
-                                    : `⚡ Function Calls (${message.functionCalls.length}):`
-                                  }
-                                </div>
-                                
-                                {/* Show translation if available */}
-                                {message.translatedQuery && (
-                                  <div className="bg-pink-50 border border-pink-200 rounded p-2 mb-2">
-                                    <div className="text-xs font-medium text-pink-700">
-                                      🌐 Translated: {message.translatedQuery}
-                                    </div>
+                            {showFunctionCalls &&
+                              message.functionCalls &&
+                              message.functionCalls.length > 0 && (
+                                <div className="bg-purple-50 border border-purple-200 rounded p-2">
+                                  <div className="text-xs font-semibold text-purple-800 mb-1">
+                                    {message.functionCalls.some(
+                                      (call) => call.type === "searchrag_result"
+                                    )
+                                      ? `🔍 SearchRag Results (${message.functionCalls.length}):`
+                                      : `⚡ Function Calls (${message.functionCalls.length}):`}
                                   </div>
-                                )}
-                                <div className="space-y-2 max-h-40 overflow-y-auto">
-                                  {message.functionCalls.map((call, index) => (
-                                    <div key={index} className="bg-white border border-purple-100 rounded p-2">
-                                      <div className="text-xs font-medium text-purple-700 mb-1">
-                                        {call.type === 'searchrag_result' ? '🔍' : '🔧'} {call.functionName || call.name || call.type || 'Unknown'}
+
+                                  {/* Show translation if available */}
+                                  {message.translatedQuery && (
+                                    <div className="bg-pink-50 border border-pink-200 rounded p-2 mb-2">
+                                      <div className="text-xs font-medium text-pink-700">
+                                        🌐 Translated: {message.translatedQuery}
                                       </div>
-                                      {call.type === 'searchrag_result' && call.data && (
-                                        <div className="text-xs text-green-600">
-                                          <strong>Source:</strong> {call.data.sourceName || 'Unknown'}<br/>
-                                          <strong>Type:</strong> {call.data.sourceType || 'Unknown'}<br/>
-                                          <strong>Similarity:</strong> {(call.data.similarity * 100).toFixed(1)}%<br/>
-                                          <strong>Content:</strong> {call.data.content?.substring(0, 200)}...
-                                        </div>
-                                      )}
-                                      {call.result && call.type !== 'searchrag_result' && (
-                                        <div className="text-xs text-green-600 mt-1">
-                                          <strong>Result:</strong> {JSON.stringify(call.result)}
-                                        </div>
-                                      )}
-                                      {call.arguments && (
-                                        <div className="text-xs text-blue-600 mt-1">
-                                          <strong>Arguments:</strong> {JSON.stringify(call.arguments)}
-                                        </div>
-                                      )}
                                     </div>
-                                  ))}
+                                  )}
+                                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                                    {message.functionCalls.map(
+                                      (call, index) => (
+                                        <div
+                                          key={index}
+                                          className="bg-white border border-purple-100 rounded p-2"
+                                        >
+                                          <div className="text-xs font-medium text-purple-700 mb-1">
+                                            {call.type === "searchrag_result"
+                                              ? "🔍"
+                                              : "🔧"}{" "}
+                                            {call.functionName ||
+                                              call.name ||
+                                              call.type ||
+                                              "Unknown"}
+                                          </div>
+                                          {call.type === "searchrag_result" &&
+                                            call.data && (
+                                              <div className="text-xs text-green-600">
+                                                <strong>Source:</strong>{" "}
+                                                {call.data.sourceName ||
+                                                  "Unknown"}
+                                                <br />
+                                                <strong>Type:</strong>{" "}
+                                                {call.data.sourceType ||
+                                                  "Unknown"}
+                                                <br />
+                                                <strong>
+                                                  Similarity:
+                                                </strong>{" "}
+                                                {(
+                                                  call.data.similarity * 100
+                                                ).toFixed(1)}
+                                                %<br />
+                                                <strong>Content:</strong>{" "}
+                                                {call.data.content?.substring(
+                                                  0,
+                                                  200
+                                                )}
+                                                ...
+                                              </div>
+                                            )}
+                                          {call.result &&
+                                            call.type !==
+                                              "searchrag_result" && (
+                                              <div className="text-xs text-green-600 mt-1">
+                                                <strong>Result:</strong>{" "}
+                                                {JSON.stringify(call.result)}
+                                              </div>
+                                            )}
+                                          {call.arguments && (
+                                            <div className="text-xs text-blue-600 mt-1">
+                                              <strong>Arguments:</strong>{" "}
+                                              {JSON.stringify(call.arguments)}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
                           </div>
                         )}
 

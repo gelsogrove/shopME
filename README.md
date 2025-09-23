@@ -15,12 +15,14 @@ A comprehensive WhatsApp e-commerce platform with AI-powered chatbot, simplified
 ## 🏗️ Architecture
 
 ### Simplified LLM System
+
 - **LLMService**: Direct processing and response generation
 - **Cloud Functions**: Specific actions (tracking, orders, operator contact)
 - **Variable Replacement**: Dynamic content personalization
 - **Link Generation**: Secure temporary access tokens
 
 ### Technology Stack
+
 - **Frontend**: React + TypeScript + Tailwind CSS
 - **Backend**: Node.js + Express + Prisma ORM
 - **Database**: PostgreSQL
@@ -38,25 +40,28 @@ A comprehensive WhatsApp e-commerce platform with AI-powered chatbot, simplified
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd shop
    ```
 
 2. **Install dependencies**
+
    ```bash
    # Backend dependencies
    cd backend && npm install
-   
+
    # Frontend dependencies
    cd ../frontend && npm install
    ```
 
 3. **Environment setup**
+
    ```bash
    # Copy environment files
    cp backend/.env.example backend/.env
-   
+
    # Configure your environment variables
    # See backend/.env.example for required variables
    ```
@@ -160,6 +165,7 @@ The platform uses OpenRouter for AI processing:
 ## 🌍 Multi-language Support
 
 Supported languages:
+
 - **Italian (IT)**: Primary language
 - **English (EN)**: International support
 - **Spanish (ES)**: Latin American market
@@ -168,6 +174,7 @@ Supported languages:
 ## 📱 Public Access
 
 Customers can access their data via secure links:
+
 - **Orders**: `/orders-public?token=...`
 - **Profile**: `/customer-profile?token=...`
 - **Checkout**: `/checkout-public?token=...`
@@ -204,6 +211,7 @@ This project is proprietary software. All rights reserved.
 ## 🆘 Support
 
 For support and questions:
+
 - Check the documentation in `docs/`
 - Review the PRD for feature specifications
-- Contact the development team 
+- Contact the development team
