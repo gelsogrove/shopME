@@ -1,13 +1,15 @@
-import { ReplaceLinkWithToken } from "../chatbot/calling-functions/ReplaceLinkWithToken"
 import { MessageRepository } from "../repositories/message.repository"
 import { LLMRequest } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
+import { PromptProcessorService } from "./prompt-processor.service"
 
 export class LLMService {
   private callingFunctionsService: CallingFunctionsService
+  private promptProcessorService: PromptProcessorService
 
   constructor() {
     this.callingFunctionsService = new CallingFunctionsService()
+    this.promptProcessorService = new PromptProcessorService()
   }
 
   async handleMessage(
@@ -17,9 +19,7 @@ export class LLMService {
     try {
       console.log(`🔄 LLM: Processing message: ${llmRequest.chatInput}`)
 
-      // Step 1: LLM decides what to do - calls CF if needed (usa query originale)
-      // 🚫 TRANSLATION DISABILITATO - usa query originale
-      const translatedQuery = llmRequest.chatInput // Era: await this.translationService.translateToEnglish(request.chatInput)
+      const translatedQuery = llmRequest.chatInput
 
       const cfResult = await this.executeCallingFunctions(
         llmRequest,
@@ -29,18 +29,12 @@ export class LLMService {
       let finalResult
       let functionCalls = []
 
-      // Step 2: If CF was called, use CF result
       if (cfResult?.success === true) {
         console.log(`🎯 LLM: CF was called (success=true), using CF result`)
-        console.log(
-          `🎯 LLM: CF functionCalls:`,
-          JSON.stringify(cfResult.functionCalls, null, 2)
-        )
         finalResult = cfResult
         functionCalls = cfResult.functionCalls
       } else {
         console.log(`🔍 LLM: No CF called. Generating direct LLM response.`)
-
         const llmResponse = await this.generateLLMResponse(
           translatedQuery,
           llmRequest.workspaceId,
@@ -54,14 +48,6 @@ export class LLMService {
         functionCalls = finalResult.functionCalls || []
       }
 
-      // REGOLA 28, 56: Ottenere lingua dal database cliente
-      const language = await this.detectLanguageFromMessage(
-        llmRequest.chatInput,
-        llmRequest.phone,
-        llmRequest.workspaceId
-      )
-
-      // Estrai direttamente la risposta senza formatter
       let directResponse = finalResult.response
       if (typeof directResponse !== "string") {
         directResponse =
@@ -70,38 +56,29 @@ export class LLMService {
             : String(directResponse)
       }
 
-      // 🔧 SOSTITUZIONE VARIABILI - Prima del return per evitare {{nameUser}} non sostituiti
-      if (customerData) {
-        directResponse = this.replaceVariables(directResponse, customerData)
-      }
-
-      // 🔗 SOSTITUZIONE LINK TOKEN
-      if (llmRequest.customerid && llmRequest.workspaceId) {
-        const linkResult = await ReplaceLinkWithToken(
-          { response: directResponse },
+      // Post-processing della risposta
+      const processedOutput =
+        await this.promptProcessorService.postProcessResponse(
+          directResponse,
           llmRequest.customerid,
           llmRequest.workspaceId
         )
-        if (linkResult.success && linkResult.response) {
-          directResponse = linkResult.response
-        }
-      }
 
       return {
         success: true,
-        output: directResponse, // Era formattedResponse
+        output: processedOutput,
         translatedQuery,
         functionCalls: functionCalls,
         debugInfo: {
-          stage: finalResult === cfResult ? "CF" : "LLM_Only", // Era SearchRag
+          stage: finalResult === cfResult ? "CF" : "LLM_Only",
           success: true,
-          functionCalled: finalResult === cfResult ? "CF" : "LLM_Only", // Era SearchRag
+          functionCalled: finalResult === cfResult ? "CF" : "LLM_Only",
           cfResult: cfResult,
           finalResult: finalResult,
         },
       }
     } catch (error) {
-      console.error("❌ DualLLMService error:", error)
+      console.error("❌ LLMService error:", error)
       return {
         success: false,
         output: "Mi dispiace, si è verificato un errore. Riprova più tardi.",
@@ -251,115 +228,24 @@ export class LLMService {
     }
   }
 
-  private async detectLanguageFromMessage(
-    message: string,
-    phoneNumber?: string,
-    workspaceId?: string
-  ): Promise<string> {
-    try {
-      if (!phoneNumber || !workspaceId) {
-        return "it" // Default fallback
-      }
-
-      // REGOLA 28, 56: Ottenere lingua dal database cliente
-      const messageRepository = new MessageRepository()
-      const customer = await messageRepository.findCustomerByPhone(
-        phoneNumber,
-        workspaceId
-      )
-
-      if (customer?.language) {
-        console.log(
-          `🌍 DualLLM: Customer language from DB: ${customer.language}`
-        )
-        return customer.language
-      }
-
-      // Fallback: rilevamento automatico dal messaggio
-      const detectedLanguage = this.detectLanguageFromText(message)
-      console.log(`🌍 DualLLM: Auto-detected language: ${detectedLanguage}`)
-      return detectedLanguage
-    } catch (error) {
-      console.error("❌ Error detecting language:", error)
-      return "it" // Default fallback
-    }
-  }
-
-  private detectLanguageFromText(text: string): string {
-    const lowerText = text.toLowerCase()
-
-    // Rilevamento italiano - parole più comuni
-    if (
-      lowerText.includes("ciao") ||
-      lowerText.includes("grazie") ||
-      lowerText.includes("per favore") ||
-      lowerText.includes("prego") ||
-      lowerText.includes("voglio") ||
-      lowerText.includes("fare") ||
-      lowerText.includes("ordine") ||
-      lowerText.includes("prodotti") ||
-      lowerText.includes("cosa") ||
-      lowerText.includes("come") ||
-      lowerText.includes("quanto") ||
-      lowerText.includes("quando") ||
-      lowerText.includes("dove") ||
-      lowerText.includes("che") ||
-      lowerText.includes("della") ||
-      lowerText.includes("del") ||
-      lowerText.includes("con") ||
-      lowerText.includes("sono") ||
-      lowerText.includes("ho") ||
-      lowerText.includes("hai") ||
-      lowerText.includes("può") ||
-      lowerText.includes("puoi")
-    ) {
-      return "it"
-    }
-
-    // Rilevamento inglese
-    if (
-      lowerText.includes("hello") ||
-      lowerText.includes("thank you") ||
-      lowerText.includes("please") ||
-      lowerText.includes("hi")
-    ) {
-      return "en"
-    }
-
-    // Rilevamento spagnolo
-    if (
-      lowerText.includes("hola") ||
-      lowerText.includes("gracias") ||
-      lowerText.includes("por favor") ||
-      lowerText.includes("adiós")
-    ) {
-      return "es"
-    }
-
-    // Rilevamento portoghese
-    if (
-      lowerText.includes("olá") ||
-      lowerText.includes("obrigado") ||
-      lowerText.includes("por favor") ||
-      lowerText.includes("tchau")
-    ) {
-      return "pt"
-    }
-
-    return "it" // Default italiano
-  }
-
   private async generateLLMResponse(
     query: string,
     workspaceId: string,
     phoneNumber?: string
   ): Promise<string> {
     try {
-      console.log(`🤖 DualLLM: Generating LLM response for: ${query}`)
+      console.log(`🤖 LLM: Generating LLM response for: ${query}`)
 
-      // Get agent prompt from database
       const { PrismaClient } = require("@prisma/client")
       const prisma = new PrismaClient()
+
+      // Recupera i dati del cliente per il pre-processing
+      let customer = null
+      if (phoneNumber) {
+        customer = await prisma.customers.findFirst({
+          where: { phone: phoneNumber, workspaceId: workspaceId },
+        })
+      }
 
       const prompt = await prisma.prompts.findFirst({
         where: {
@@ -371,45 +257,58 @@ export class LLMService {
         },
       })
 
-      // REGOLA 19: LLM ha lo storico - get conversation history
-      let conversationHistory = []
-      if (phoneNumber) {
-        const customer = await prisma.customers.findFirst({
-          where: { phone: phoneNumber, workspaceId: workspaceId },
-        })
-
-        if (customer) {
-          const recentMessages = await prisma.message.findMany({
-            where: {
-              chatSession: {
-                customerId: customer.id,
-                workspaceId: workspaceId, // Using parameter workspaceId instead of request.workspaceId
-              },
-            },
-            orderBy: { createdAt: "desc" },
-            take: 5, // Last 5 messages for optimized performance
-            include: {
-              chatSession: true,
-            },
-          })
-
-          // Convert to conversation format (reverse to chronological order)
-          conversationHistory = recentMessages.reverse().map((msg) => ({
-            role: msg.direction === "INBOUND" ? "user" : "assistant",
-            content: msg.content,
-          }))
+      // DEBUG: Se il prompt non viene trovato nel DB, carica dal file
+      let promptContent = prompt?.content || ""
+      if (!promptContent) {
+        console.log("🔧 DEBUG: Prompt non trovato nel DB, carico da file...")
+        const fs = require('fs')
+        const path = require('path')
+        const promptPath = path.join(process.cwd(), '..', 'docs', 'other', 'prompt_agent.md')
+        try {
+          promptContent = fs.readFileSync(promptPath, 'utf8')
+          console.log("🔧 DEBUG: Prompt caricato da file con successo")
+        } catch (error) {
+          console.error("🔧 DEBUG: Errore nel caricare il prompt da file:", error.message)
         }
       }
 
-      await prisma.$disconnect()
-      const agentPrompt = prompt?.content
+      // Pre-processa il prompt
+      const processedPromptContent =
+        await this.promptProcessorService.preProcessPrompt(
+          promptContent,
+          workspaceId,
+          customer // Passa i dati del cliente per il pre-processing
+        )
 
-      // Build messages with history
+      let conversationHistory = []
+      if (customer) {
+        const recentMessages = await prisma.message.findMany({
+          where: {
+            chatSession: {
+              customerId: customer.id,
+              workspaceId: workspaceId,
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          include: {
+            chatSession: true,
+          },
+        })
+
+        conversationHistory = recentMessages.reverse().map((msg) => ({
+          role: msg.direction === "INBOUND" ? "user" : "assistant",
+          content: msg.content,
+        }))
+      }
+
+      await prisma.$disconnect()
+
       const messages = [
         {
           role: "system",
           content:
-            agentPrompt ||
+            processedPromptContent ||
             "You are SofIA, an Italian e-commerce assistant. Respond naturally and helpfully in Italian. Use emoji 😊 and *bold text* when appropriate.",
         },
         ...conversationHistory,
@@ -420,7 +319,7 @@ export class LLMService {
       ]
 
       console.log(
-        `🧠 DualLLM: Using ${conversationHistory.length} messages from conversation history`
+        `🧠 LLM: Using ${conversationHistory.length} messages from conversation history`
       )
 
       const response = await fetch(
@@ -446,28 +345,11 @@ export class LLMService {
       const llmResponse =
         data.choices?.[0]?.message?.content || "Ciao! Come posso aiutarti oggi?"
 
-      console.log(`✅ DualLLM: LLM response generated: ${llmResponse}`)
+      console.log(`✅ LLM: LLM response generated: ${llmResponse}`)
       return llmResponse
     } catch (error) {
       console.error("❌ Error generating LLM response:", error)
       return "Ciao! Come posso aiutarti oggi?"
     }
-  }
-
-  private replaceVariables(response: string, customerData: any): string {
-    if (!response || !customerData) return response
-
-    return response
-      .replace(/\{\{nameUser\}\}/g, customerData.nameUser || "Cliente")
-      .replace(
-        /\{\{discountUser\}\}/g,
-        customerData.discountUser || "Nessuno sconto attivo"
-      )
-      .replace(
-        /\{\{companyName\}\}/g,
-        customerData.companyName || "L'Altra Italia"
-      )
-      .replace(/\{\{lastordercode\}\}/g, customerData.lastordercode || "N/A")
-      .replace(/\{\{languageUser\}\}/g, customerData.languageUser || "it")
   }
 }

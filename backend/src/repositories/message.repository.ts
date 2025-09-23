@@ -856,6 +856,100 @@ export class MessageRepository {
   }
 
   /**
+   * Recupera le FAQ attive dal database.
+   * @param workspaceId L'ID del workspace.
+   * @returns Una stringa con le FAQ formattate.
+   */
+  async getActiveFaqs(workspaceId: string): Promise<string> {
+    try {
+      const faqs = await this.prisma.fAQ.findMany({
+        where: {
+          workspaceId: workspaceId,
+          isActive: true,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      })
+
+      if (faqs.length === 0) {
+        return "" // Nessuna FAQ attiva
+      }
+
+      // Formatta le FAQ come stringa per il prompt
+      const formattedFaqs = faqs
+        .map((faq) => `D: ${faq.question}\nR: ${faq.answer}`)
+        .join("\n\n")
+
+      return `### FAQ\n\n${formattedFaqs}`
+    } catch (error) {
+      logger.error("Error fetching active FAQs:", error)
+      return "" // In caso di errore, restituisce una stringa vuota
+    }
+  }
+
+  /**
+   * Recupera i prodotti attivi dal database e li formatta per il prompt.
+   * @param workspaceId L'ID del workspace.
+   * @returns Una stringa con i prodotti formattati.
+   */
+  async getActiveProducts(workspaceId: string): Promise<string> {
+    try {
+      const products = await this.prisma.products.findMany({
+        where: {
+          workspaceId: workspaceId,
+          isActive: true,
+        },
+        select: {
+          name: true,
+          ProductCode: true,
+          price: true,
+          category: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          category: {
+            name: "asc",
+          },
+        },
+      })
+
+      if (products.length === 0) {
+        return ""
+      }
+
+      // Raggruppa i prodotti per categoria
+      const productsByCategory = products.reduce((acc, product) => {
+        const categoryName = product.category?.name || "Senza Categoria"
+        if (!acc[categoryName]) {
+          acc[categoryName] = []
+        }
+        acc[categoryName].push(product)
+        return acc
+      }, {} as Record<string, typeof products>)
+
+      // Formatta l'output
+      let formattedProducts = "## PRODOTTI\n\nLISTA COMPLETA DEI PRODOTTI - L'ALTRA ITALIA\n"
+      for (const categoryName in productsByCategory) {
+        const productList = productsByCategory[categoryName]
+        formattedProducts += `🧀 ${categoryName.toUpperCase()} (${productList.length} prodotti)\n`
+        productList.forEach((p) => {
+          formattedProducts += `• ${p.name} | ${categoryName} | €${p.price} | ${p.ProductCode}\n`
+        })
+        formattedProducts += "\n"
+      }
+
+      return formattedProducts
+    } catch (error) {
+      logger.error("Error fetching active products:", error)
+      return ""
+    }
+  }
+
+  /**
    * Get all chat sessions with their most recent message, ordered by latest message
    *
    * @param limit Number of chat sessions to return
@@ -2455,44 +2549,6 @@ INSTRUCTIONS FOR LLM FORMATTER:
       })
     } catch (error) {
       logger.error("Error finding services:", error)
-      return []
-    }
-  }
-
-  /**
-   * Find products with filtering (public method for LangChain)
-   */
-  public async findProducts(
-    workspaceId: string,
-    options?: {
-      category?: string
-      productIds?: string[]
-      limit?: number
-      isActive?: boolean
-    }
-  ) {
-    try {
-      const whereClause: any = {
-        workspaceId,
-        isActive: options?.isActive ?? true,
-      }
-
-      if (options?.category) {
-        whereClause.category = { name: options.category }
-      }
-
-      if (options?.productIds && options.productIds.length > 0) {
-        whereClause.id = { in: options.productIds }
-      }
-
-      return await this.prisma.products.findMany({
-        where: whereClause,
-        include: { category: true },
-        take: options?.limit || 10,
-        orderBy: { name: "asc" },
-      })
-    } catch (error) {
-      logger.error("Error finding products:", error)
       return []
     }
   }
