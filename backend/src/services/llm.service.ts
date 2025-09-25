@@ -27,8 +27,11 @@ export class LLMService {
     llmRequest: LLMRequest,
     customerData?: any
   ): Promise<any> {
-    console.log("🚀 LLM: handleMessage chiamato per telefono:", llmRequest.phone)
-    
+    console.log(
+      "🚀 LLM: handleMessage chiamato per telefono:",
+      llmRequest.phone
+    )
+
     const messageRepo =
       new (require("../repositories/message.repository").MessageRepository)()
     const { replaceAllVariables } = require("../services/formatter")
@@ -39,7 +42,7 @@ export class LLMService {
     console.log("📞 LLM: Cerco customer per telefono:", llmRequest.phone)
     let customer = await messageRepo.findCustomerByPhone(llmRequest.phone)
     console.log("👤 LLM: Customer trovato:", customer ? customer.id : "NESSUNO")
-    
+
     const workspaceId = customer ? customer.workspaceId : llmRequest.workspaceId
     console.log("🏢 LLM: WorkspaceId utilizzato:", workspaceId)
     const workspace = await workspaceService.getById(workspaceId)
@@ -78,7 +81,7 @@ export class LLMService {
     if (prompt) {
       console.log("📝 LLM: Prompt preview:", prompt.substring(0, 100) + "...")
     }
-    
+
     if (!prompt) {
       console.log("❌ LLM: PROMPT VUOTO - ESCO")
       return {
@@ -257,7 +260,7 @@ export class LLMService {
             "X-Title": "ShopMe LLM Response",
           },
           body: JSON.stringify({
-            model: "openai/gpt-4-mini",
+            model: "openai/gpt-4o-mini",
             messages: messages,
             tools: this.getAvailableFunctions(),
             temperature: workspace.temperature || 0.3,
@@ -266,7 +269,9 @@ export class LLMService {
         }
       )
 
+      console.log("🌐 OpenRouter status:", response.status)
       const data = await response.json()
+      console.log("🌐 OpenRouter response:", JSON.stringify(data, null, 2))
 
       // Gestione tool calls (CF chiamate da OpenRouter)
       if (data.choices?.[0]?.message?.tool_calls) {
@@ -293,6 +298,7 @@ export class LLMService {
       const llmResponse =
         data.choices?.[0]?.message?.content || "Ciao! Come posso aiutarti oggi?"
 
+      console.log("🎯 LLM Final Response:", llmResponse)
       return llmResponse
     } catch (error) {
       console.error("❌ Error generating LLM response:", error)

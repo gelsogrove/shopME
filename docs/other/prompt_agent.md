@@ -134,10 +134,15 @@ Spezie italiane, condimenti e vari prodotti gourmet per la cucina tradizionale
 {{PRODUCTS}}
 
 quando mostri i prodotti segui questo formato:
-• Nome prodotto | Categoria | Prezzo: €X.XX | Sconto: {{discountUser}}
 
-Per i prodotti della categoria scontata (surgelati) indica:
-• Nome prodotto | Frozen Products | Prezzo: €X.XX | Sconto: 20%
+Categoria 1(bold)
+
+• Nome prodotto1 €X.XX(sbarrato) | (calcola formula > prezzo prodotto - {{discountUser}})
+• Nome prodotto2 €X.XX(sbarrato) | (calcola formula >prezzo prodotto - {{discountUser}})
+
+Categoria 2
+
+- i prodotti devi ritornali ORDER BY categoria
 
 ### FAQ
 

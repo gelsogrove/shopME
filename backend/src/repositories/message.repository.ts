@@ -877,7 +877,7 @@ export class MessageRepository {
         .map((faq) => `D: ${faq.question}\nR: ${faq.answer}`)
         .join("\n\n")
 
-      return `### FAQ\n\n${formattedFaqs}`
+      return `\n\n${formattedFaqs}`
     } catch (error) {
       logger.error("Error fetching active FAQs:", error)
       return "" // In caso di errore, restituisce una stringa vuota
@@ -932,7 +932,7 @@ export class MessageRepository {
 
       // Formatta l'output
       let formattedProducts =
-        "## PRODOTTI\n\nLISTA COMPLETA DEI PRODOTTI - L'ALTRA ITALIA\n"
+        "\n\nLISTA COMPLETA DEI PRODOTTI - L'ALTRA ITALIA\n"
       for (const categoryName in productsByCategory) {
         const productList = productsByCategory[categoryName]
         formattedProducts += `🧀 ${categoryName.toUpperCase()} (${productList.length} prodotti)\n`
