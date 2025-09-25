@@ -125,7 +125,9 @@ export const workspaceService = {
 
   async update(id: string, data: UpdateWorkspaceData) {
     // Separate adminEmail from the rest of the data
-    const { adminEmail, ...workspaceData } = data as UpdateWorkspaceData & { adminEmail?: string }
+    const { adminEmail, ...workspaceData } = data as UpdateWorkspaceData & {
+      adminEmail?: string
+    }
 
     // Update workspace data
     const updatedWorkspace = await prisma.workspace.update({
@@ -192,5 +194,20 @@ export const workspaceService = {
       where: { id },
       data: { isDelete: true },
     })
+  },
+
+  /**
+   * Recupera il prompt attivo per un workspace
+   * @param workspaceId string
+   * @returns string | null
+   */
+  async getActivePromptByWorkspaceId(
+    workspaceId: string
+  ): Promise<string | null> {
+    const promptRow = await prisma.prompts.findFirst({
+      where: { workspaceId, isActive: true },
+      orderBy: { createdAt: "desc" },
+    })
+    return promptRow?.content || null
   },
 }

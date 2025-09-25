@@ -1,8 +1,19 @@
-import { MessageRepository } from "../repositories/message.repository"
+import * as fs from "fs"
+import * as path from "path"
 import { LLMRequest } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
 import { PromptProcessorService } from "./prompt-processor.service"
 
+/**
+Get Data - Trova customer
+Get Workspace - Una sola chiamata (smart)
+New User Check - Se customer non esiste
+Block Check - Se customer è bloccato
+Get Prompt - Recupera prompt attivo
+Pre-processing - Replace variabili
+Generate LLM - Chiamata OpenRouter
+Post-processing - Format finale
+ */
 export class LLMService {
   private callingFunctionsService: CallingFunctionsService
   private promptProcessorService: PromptProcessorService
@@ -16,320 +27,224 @@ export class LLMService {
     llmRequest: LLMRequest,
     customerData?: any
   ): Promise<any> {
-    try {
-      console.log(`🔄 LLM: Processing message: ${llmRequest.chatInput}`)
+    console.log("🚀 LLM: handleMessage chiamato per telefono:", llmRequest.phone)
+    
+    const messageRepo =
+      new (require("../repositories/message.repository").MessageRepository)()
+    const { replaceAllVariables } = require("../services/formatter")
+    const { workspaceService } = require("../services/workspace.service")
+    const { FormatterService } = require("../services/formatter.service")
 
-      const translatedQuery = llmRequest.chatInput
+    // 1. Get Data
+    console.log("📞 LLM: Cerco customer per telefono:", llmRequest.phone)
+    let customer = await messageRepo.findCustomerByPhone(llmRequest.phone)
+    console.log("👤 LLM: Customer trovato:", customer ? customer.id : "NESSUNO")
+    
+    const workspaceId = customer ? customer.workspaceId : llmRequest.workspaceId
+    console.log("🏢 LLM: WorkspaceId utilizzato:", workspaceId)
+    const workspace = await workspaceService.getById(workspaceId)
 
-      const cfResult = await this.executeCallingFunctions(
-        llmRequest,
-        translatedQuery
+    if (!customer) {
+      // 2. Se è un nuovo utente (non registrato)
+      const welcomeMessage = await messageRepo.getWelcomeMessage(
+        workspace.id,
+        workspace.language || "it"
       )
-
-      let finalResult
-      let functionCalls = []
-
-      if (cfResult?.success === true) {
-        console.log(`🎯 LLM: CF was called (success=true), using CF result`)
-        finalResult = cfResult
-        functionCalls = cfResult.functionCalls
-      } else {
-        console.log(`🔍 LLM: No CF called. Generating direct LLM response.`)
-        const llmResponse = await this.generateLLMResponse(
-          translatedQuery,
-          llmRequest.workspaceId,
-          llmRequest.phone
-        )
-        finalResult = {
-          success: true,
-          response: llmResponse,
-          functionCalls: [],
-        }
-        functionCalls = finalResult.functionCalls || []
-      }
-
-      let directResponse = finalResult.response
-      if (typeof directResponse !== "string") {
-        directResponse =
-          typeof directResponse === "object"
-            ? JSON.stringify(directResponse)
-            : String(directResponse)
-      }
-
-      // Post-processing della risposta
-      const processedOutput =
-        await this.promptProcessorService.postProcessResponse(
-          directResponse,
-          llmRequest.customerid,
-          llmRequest.workspaceId
-        )
-
-      return {
-        success: true,
-        output: processedOutput,
-        translatedQuery,
-        functionCalls: functionCalls,
-        debugInfo: {
-          stage: finalResult === cfResult ? "CF" : "LLM_Only",
-          success: true,
-          functionCalled: finalResult === cfResult ? "CF" : "LLM_Only",
-          cfResult: cfResult,
-          finalResult: finalResult,
-        },
-      }
-    } catch (error) {
-      console.error("❌ LLMService error:", error)
       return {
         success: false,
-        output: "Mi dispiace, si è verificato un errore. Riprova più tardi.",
-        translatedQuery: llmRequest.chatInput,
-        functionCalls: [],
-        debugInfo: {
-          stage: "error",
-          success: false,
-          error: error instanceof Error ? error.message : "Unknown error",
-        },
+        output:
+          welcomeMessage ||
+          "👋 Benvenuto! Devi prima registrarti per utilizzare i nostri servizi.",
+        debugInfo: { stage: "new_user" },
       }
+    }
+
+    // 3. Blocca se blacklisted - non salvare nulla nello storico
+    const isBlocked = await messageRepo.isCustomerBlacklisted(
+      customer.phone,
+      workspace.id
+    )
+    if (isBlocked || customer.isBlacklisted) {
+      // Restituisci null per ignorare completamente questa interazione
+      return null
+    }
+
+    // 4. Get prompt
+    console.log("📝 LLM: Cerco prompt per workspace:", workspace.id)
+    const prompt = await workspaceService.getActivePromptByWorkspaceId(
+      workspace.id
+    )
+    console.log("📝 LLM: Prompt trovato:", prompt ? "SÌ" : "NO")
+    if (prompt) {
+      console.log("📝 LLM: Prompt preview:", prompt.substring(0, 100) + "...")
+    }
+    
+    if (!prompt) {
+      console.log("❌ LLM: PROMPT VUOTO - ESCO")
+      return {
+        success: false,
+        output: "❌ Servizio temporaneamente non disponibile.",
+        debugInfo: { stage: "no_prompt" },
+      }
+    }
+
+    // 5. Pre-processing:
+    const faqs = await messageRepo.getActiveFaqs(workspace.id)
+    const products = (await messageRepo.getActiveProducts(workspace.id)) || ""
+    const languageMap = {
+      en: "Inglese",
+      es: "Spagnolo",
+      it: "Italiano",
+      pt: "Portoghese",
+    }
+    const userLanguage = customer.language || workspace.language || "it"
+    const translatedLanguage = languageMap[userLanguage] || "Italiano"
+
+    const userInfo = {
+      nameUser: customer.name || "",
+      discountUser: customer.discount || "",
+      companyName: customer.company || "",
+      lastordercode: customer.lastOrderCode || "",
+      languageUser: translatedLanguage,
+    }
+
+    if (!faqs && !products) {
+      return {
+        success: false,
+        output: "❌ Non ci sono FAQ o Prodotti disponibili.",
+        debugInfo: { stage: "no_faq_or_product" },
+      }
+    }
+
+    let promptWithVars = prompt
+      .replace("{{FAQ}}", faqs)
+      .replace("{{PRODUCTS}}", products)
+    promptWithVars = replaceAllVariables(promptWithVars, userInfo)
+
+    // 6. generateLLMResponse
+    console.log("PROMPT LLM:", promptWithVars)
+
+    // 🔧 SALVA IL PROMPT FINALE PER DEBUG
+    try {
+      const promptPath = path.join(process.cwd(), "prompt.txt")
+      fs.writeFileSync(
+        promptPath,
+        `=== PROMPT GENERATO ${new Date().toISOString()} ===\n\n${promptWithVars}\n\n=== FINE PROMPT ===\n`
+      )
+      console.log("✅ Prompt salvato in prompt.txt")
+    } catch (error) {
+      console.log("❌ Errore salvando prompt:", error.message)
+    }
+
+    const rawLLMResponse = await this.generateLLMResponse(
+      promptWithVars,
+      llmRequest.chatInput,
+      workspace,
+      customer
+    )
+
+    // 7. Post-processing: Replace link tokens
+    let finalResponse = rawLLMResponse
+
+    // Replace dei link con token
+    if (finalResponse.includes("[LINK_CHECKOUT_WITH_TOKEN]")) {
+      // TODO: Implementare generazione link carrello con token
+      finalResponse = finalResponse.replace(
+        "[LINK_CHECKOUT_WITH_TOKEN]",
+        `https://shop.example.com/checkout?token=${customer.id}`
+      )
+    }
+
+    if (finalResponse.includes("[LINK_PROFILE_WITH_TOKEN]")) {
+      // TODO: Implementare generazione link profilo con token
+      finalResponse = finalResponse.replace(
+        "[LINK_PROFILE_WITH_TOKEN]",
+        `https://shop.example.com/profile?token=${customer.id}`
+      )
+    }
+
+    if (finalResponse.includes("[LINK_ORDERS_WITH_TOKEN]")) {
+      // TODO: Implementare generazione link ordini con token
+      finalResponse = finalResponse.replace(
+        "[LINK_ORDERS_WITH_TOKEN]",
+        `https://shop.example.com/orders?token=${customer.id}`
+      )
+    }
+
+    return {
+      success: true,
+      output: finalResponse,
+      debugInfo: { stage: "completed" },
     }
   }
 
-  private async executeCallingFunctions(
-    request: LLMRequest,
-    translatedQuery: string
-  ): Promise<any> {
-    try {
-      console.log(
-        `🚨🚨🚨 DualLLM: executeCallingFunctions STARTED for: ${translatedQuery}`
-      )
-      console.error(
-        `🚨🚨🚨 ERROR LOG: executeCallingFunctions STARTED - SHOULD BE VISIBLE`
-      )
-
-      // Step 1: Use function router to decide which CF to call
-      const messageRepository = new MessageRepository()
-      const functionResult =
-        await messageRepository.callFunctionRouter(translatedQuery)
-
-      console.log(
-        `🚨 DualLLM: Function router result:`,
-        JSON.stringify(functionResult, null, 2)
-      )
-      console.log(
-        `🚨 DualLLM: Function name detected: "${functionResult?.function_call?.name}"`
-      )
-
-      // Step 2: If a function was selected, execute it
-      if (
-        functionResult?.function_call?.name &&
-        functionResult.function_call.name !== "get_generic_response"
-      ) {
-        console.log(
-          `🚨 DualLLM: Executing CF: ${functionResult.function_call.name}`
-        )
-
-        // Get customer info
-        const customer = await messageRepository.findCustomerByPhone(
-          request.phone,
-          request.workspaceId
-        )
-
-        let cfExecutionResult
-
-        // Execute the specific CF based on function name
-        console.log(
-          `🔍 DEBUG: Function name received: "${functionResult.function_call.name}"`
-        )
-        console.log(
-          `🔍 DEBUG: Function name length: ${functionResult.function_call.name.length}`
-        )
-        console.log(
-          `🔍 DEBUG: Function name charCodes: ${Array.from(String(functionResult.function_call.name)).map((c) => c.charCodeAt(0))}`
-        )
-
-        // Execute the specific CF based on function name
-        if (false) {
-          // SearchSpecificProduct removed - all functions use FunctionHandlerService
-        } else {
-          console.log(
-            `🔧 DualLLM: Using FunctionHandlerService for function: ${functionResult.function_call.name}`
-          )
-          // For other functions, use FunctionHandlerService
-          const { FunctionHandlerService } = await import(
-            "../application/services/function-handler.service"
-          )
-          const functionHandler = new FunctionHandlerService()
-          cfExecutionResult = await functionHandler.handleFunctionCall(
-            functionResult.function_call.name,
-            functionResult.function_call.arguments,
-            customer,
-            request.workspaceId,
-            request.phone
-          )
-        }
-
-        console.log(
-          `🚨 DualLLM: CF execution result:`,
-          JSON.stringify(cfExecutionResult, null, 2)
-        )
-
-        // CF può essere restituito in due forme:
-        // 1) direttamente come oggetto/primitive (es. SearchSpecificProduct)
-        // 2) incapsulato in { data: ... } quando passato tramite FunctionHandlerService
-        const data = cfExecutionResult.data || cfExecutionResult
-
-        // attach cfExecutionResult to functionResult for better debugging downstream
-        const enrichedFunctionCall = {
-          ...functionResult,
-          result: cfExecutionResult,
-        }
-
-        // DO NOT build human-readable text here. Instead return the structured
-        // data object as the `response` so the Formatter can generate the final
-        // natural-language output (single source of presentation logic).
-        return {
-          success: true,
-          response: data,
-          functionCalls: [enrichedFunctionCall],
-          cfExecutionResult: cfExecutionResult,
-        }
-      } else {
-        console.log(
-          `🚨 DualLLM: No specific CF selected - Returning LLM response directly`
-        )
-
-        // REGOLA 2: Salvare risposta LLM quando non chiama funzioni
-        const llmResponse = await this.generateLLMResponse(
-          translatedQuery,
-          request.workspaceId
-        )
-
-        // 🚫 SearchRag DISABILITATO - ritorna solo la risposta LLM
-        return {
-          success: true,
-          response: llmResponse,
-          functionCalls: [
-            {
-              name: "LLM_Only", // Era SearchRag
-              arguments: { query: translatedQuery },
-              result: { success: true, response: llmResponse },
+  private getAvailableFunctions() {
+    return [
+      {
+        type: "function",
+        function: {
+          name: "ContactOperator",
+          description:
+            "Connette l'utente con un operatore umano per assistenza specializzata. Usare quando l'utente richiede esplicitamente di parlare con un operatore o assistenza umana.",
+          parameters: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "GetShipmentTrackingLink",
+          description:
+            "Fornisce il link per tracciare la spedizione dell'ordine dell'utente. Usare quando l'utente vuole sapere dove si trova fisicamente il pacco o quando arriva, senza specificare un numero d'ordine.",
+          parameters: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "GetLinkOrderByCode",
+          description:
+            "Fornisce il link per visualizzare un ordine specifico tramite codice ordine. Usare quando l'utente vuole vedere un ordine specifico, la fattura, o dice 'ultimo ordine'.",
+          parameters: {
+            type: "object",
+            properties: {
+              orderCode: {
+                type: "string",
+                description:
+                  "Il codice dell'ordine da visualizzare. Se l'utente dice 'ultimo ordine' usa il lastordercode.",
+              },
             },
-          ],
-          llmGeneratedResponse: llmResponse,
-          // searchRagResult: null, // DISABILITATO
-        }
-      }
-    } catch (error) {
-      console.error("❌ Calling Functions error:", error)
-      return {
-        success: false,
-        response: "Ciao! Come posso aiutarti oggi?",
-        functionCalls: [],
-      }
-    }
+            required: ["orderCode"],
+          },
+        },
+      },
+    ]
   }
 
   private async generateLLMResponse(
-    query: string,
-    workspaceId: string,
-    phoneNumber?: string
+    processedPrompt: string,
+    userQuery: string,
+    workspace: any,
+    customer: any
   ): Promise<string> {
     try {
-      console.log(`🤖 LLM: Generating LLM response for: ${query}`)
-
-      const { PrismaClient } = require("@prisma/client")
-      const prisma = new PrismaClient()
-
-      // Recupera i dati del cliente per il pre-processing
-      let customer = null
-      if (phoneNumber) {
-        customer = await prisma.customers.findFirst({
-          where: { phone: phoneNumber, workspaceId: workspaceId },
-        })
-      }
-
-      const prompt = await prisma.prompts.findFirst({
-        where: {
-          workspaceId: workspaceId,
-          name: "SofIA - Gusto Italiano Assistant",
-        },
-        select: {
-          content: true,
-        },
-      })
-
-      // DEBUG: Se il prompt non viene trovato nel DB, carica dal file
-      let promptContent = prompt?.content || ""
-      if (!promptContent) {
-        console.log("🔧 DEBUG: Prompt non trovato nel DB, carico da file...")
-        const fs = require("fs")
-        const path = require("path")
-        const promptPath = path.join(
-          process.cwd(),
-          "..",
-          "docs",
-          "other",
-          "prompt_agent.md"
-        )
-        try {
-          promptContent = fs.readFileSync(promptPath, "utf8")
-          console.log("🔧 DEBUG: Prompt caricato da file con successo")
-        } catch (error) {
-          console.error(
-            "🔧 DEBUG: Errore nel caricare il prompt da file:",
-            error.message
-          )
-        }
-      }
-
-      // Pre-processa il prompt
-      const processedPromptContent =
-        await this.promptProcessorService.preProcessPrompt(
-          promptContent,
-          workspaceId,
-          customer // Passa i dati del cliente per il pre-processing
-        )
-
-      let conversationHistory = []
-      if (customer) {
-        const recentMessages = await prisma.message.findMany({
-          where: {
-            chatSession: {
-              customerId: customer.id,
-              workspaceId: workspaceId,
-            },
-          },
-          orderBy: { createdAt: "desc" },
-          take: 5,
-          include: {
-            chatSession: true,
-          },
-        })
-
-        conversationHistory = recentMessages.reverse().map((msg) => ({
-          role: msg.direction === "INBOUND" ? "user" : "assistant",
-          content: msg.content,
-        }))
-      }
-
-      await prisma.$disconnect()
-
       const messages = [
         {
           role: "system",
-          content:
-            processedPromptContent ||
-            "You are SofIA, an Italian e-commerce assistant. Respond naturally and helpfully in Italian. Use emoji 😊 and *bold text* when appropriate.",
+          content: processedPrompt,
         },
-        ...conversationHistory,
         {
           role: "user",
-          content: query,
+          content: userQuery,
         },
       ]
-
-      console.log(
-        `🧠 LLM: Using ${conversationHistory.length} messages from conversation history`
-      )
 
       const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -344,21 +259,82 @@ export class LLMService {
           body: JSON.stringify({
             model: "openai/gpt-4-mini",
             messages: messages,
-            temperature: 0.3,
-            max_tokens: 1500,
+            tools: this.getAvailableFunctions(),
+            temperature: workspace.temperature || 0.3,
+            max_tokens: workspace.maxTokens || 1500,
           }),
         }
       )
 
       const data = await response.json()
+
+      // Gestione tool calls (CF chiamate da OpenRouter)
+      if (data.choices?.[0]?.message?.tool_calls) {
+        const toolCall = data.choices[0].message.tool_calls[0]
+        const functionName = toolCall.function.name
+        const functionArgs = JSON.parse(toolCall.function.arguments || "{}")
+
+        // Esegui la CF e restituisci direttamente il risultato finale
+        const functionResult = await this.executeFunctionCall(
+          functionName,
+          functionArgs,
+          customer,
+          workspace
+        )
+
+        // Le CF restituiscono già una risposta finale formattata, non serve seconda chiamata LLM
+        return (
+          functionResult.message ||
+          functionResult.output ||
+          "Operazione completata con successo."
+        )
+      }
+
       const llmResponse =
         data.choices?.[0]?.message?.content || "Ciao! Come posso aiutarti oggi?"
 
-      console.log(`✅ LLM: LLM response generated: ${llmResponse}`)
       return llmResponse
     } catch (error) {
       console.error("❌ Error generating LLM response:", error)
-      return "Ciao! Come posso aiutarti oggi?"
+      return "❌ Mi dispiace, si è verificato un errore. Riprova più tardi."
+    }
+  }
+
+  private async executeFunctionCall(
+    functionName: string,
+    args: any,
+    customer: any,
+    workspace: any
+  ): Promise<any> {
+    try {
+      switch (functionName) {
+        case "ContactOperator":
+          return await this.callingFunctionsService.contactOperator({
+            customerId: customer.id,
+            workspaceId: workspace.id,
+            phoneNumber: customer.phone,
+          })
+
+        case "GetShipmentTrackingLink":
+          return await this.callingFunctionsService.getShipmentTrackingLink({
+            customerId: customer.id,
+            workspaceId: workspace.id,
+            orderCode: args.orderCode || customer.lastOrderCode,
+          })
+
+        case "GetLinkOrderByCode":
+          return await this.callingFunctionsService.getOrdersListLink({
+            customerId: customer.id,
+            workspaceId: workspace.id,
+            orderCode: args.orderCode || customer.lastOrderCode,
+          })
+
+        default:
+          return { error: "Funzione non riconosciuta" }
+      }
+    } catch (error) {
+      console.error(`❌ Error executing function ${functionName}:`, error)
+      return { error: `Errore nell'esecuzione della funzione ${functionName}` }
     }
   }
 }

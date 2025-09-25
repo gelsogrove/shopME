@@ -201,12 +201,11 @@ export class MessageRepository {
    * @param phoneNumber The customer's phone number
    * @returns The customer
    */
-  async findCustomerByPhone(phoneNumber: string, workspaceId: string) {
+  async findCustomerByPhone(phoneNumber: string) {
     try {
       const customer = await this.prisma.customers.findFirst({
         where: {
           phone: phoneNumber,
-          workspaceId,
         },
       })
       return customer
@@ -455,10 +454,7 @@ export class MessageRepository {
       }
 
       // Find or create customer
-      let customer = await this.findCustomerByPhone(
-        data.phoneNumber,
-        workspaceId
-      )
+      let customer = await this.findCustomerByPhone(data.phoneNumber)
 
       // If no customer exists, create a temporary "Unknown User-XXX" for new users
       // This allows us to save messages in chat history even before registration
@@ -1731,10 +1727,7 @@ export class MessageRepository {
   ) {
     try {
       // Find customer by phone - use workspaceId if provided, otherwise use empty string
-      const customer = await this.findCustomerByPhone(
-        phoneNumber,
-        workspaceId || ""
-      )
+      const customer = await this.findCustomerByPhone(phoneNumber)
 
       if (!customer) return []
 
