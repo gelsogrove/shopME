@@ -70,6 +70,7 @@ export class LLMService {
     // 5. Pre-processing:
     const faqs = await messageRepo.getActiveFaqs(workspace.id)
     const services = await messageRepo.getActiveServices(workspace.id)
+    const categories = await messageRepo.getActiveCategories(workspace.id)
     const customerDiscount = customer.discount || 0
     const products =
       (await messageRepo.getActiveProducts(workspace.id, customerDiscount)) ||
@@ -92,11 +93,12 @@ export class LLMService {
       languageUser: translatedLanguage,
     }
 
-    if (!faqs && !products && !services) {
+    if (!faqs && !products && !services && !categories) {
       return {
         success: false,
-        output: "❌ Non ci sono FAQ, Prodotti o Servizi disponibili.",
-        debugInfo: { stage: "no_faq_or_product_or_services" },
+        output:
+          "❌ Non ci sono FAQ, Prodotti, Servizi o Categorie disponibili.",
+        debugInfo: { stage: "no_faq_or_product_or_services_or_categories" },
       }
     }
 
@@ -104,6 +106,7 @@ export class LLMService {
       .replace("{{FAQ}}", faqs)
       .replace("{{SERVICES}}", services)
       .replace("{{PRODUCTS}}", products)
+      .replace("{{CATEGORIES}}", categories)
     promptWithVars = replaceAllVariables(promptWithVars, userInfo)
 
     // 🔧 SALVA IL PROMPT FINALE PER DEBUG
@@ -127,23 +130,43 @@ export class LLMService {
     )
 
     // 7. Post-processing: Replace link tokens
-    let finalResponse = rawLLMResponse
+    const finalResponse = await this.replaceLinkTokens(
+      rawLLMResponse,
+      customer,
+      workspace
+    )
 
-    // Replace dei link con token
+    return {
+      success: true,
+      output: finalResponse,
+      debugInfo: { stage: "completed" },
+    }
+  }
+
+  /**
+   * Replace all link tokens in the response with actual URLs
+   */
+  private async replaceLinkTokens(
+    response: string,
+    customer: any,
+    workspace: any
+  ): Promise<string> {
+    let finalResponse = response
+
+    // Replace checkout link token
     if (finalResponse.includes("[LINK_CHECKOUT_WITH_TOKEN]")) {
-      // Usa la funzione appropriata per generare il link checkout (carrello)
       const checkoutLink = await this.callingFunctionsService.getCartLink({
         customerId: customer.id,
         workspaceId: workspace.id,
       })
       finalResponse = finalResponse.replace(
         "[LINK_CHECKOUT_WITH_TOKEN]",
-        checkoutLink?.linkUrl
+        checkoutLink?.linkUrl || ""
       )
     }
 
+    // Replace profile link token
     if (finalResponse.includes("[LINK_PROFILE_WITH_TOKEN]")) {
-      // Usa la funzione generica per generare il link profilo
       const profileResult =
         await this.callingFunctionsService.replaceLinkWithToken(
           finalResponse,
@@ -151,30 +174,33 @@ export class LLMService {
           customer.id,
           workspace.id
         )
-      // Sostituisci solo il token profilo
       finalResponse = finalResponse.replace(
         "[LINK_PROFILE_WITH_TOKEN]",
-        profileResult?.message?.match(/https?:\/\/[^\s)]+/)?.[0]
+        profileResult?.message?.match(/https?:\/\/[^\s)]+/)?.[0] || ""
       )
     }
 
+    // Replace orders link token
     if (finalResponse.includes("[LINK_ORDERS_WITH_TOKEN]")) {
-      // Usa la funzione appropriata per generare il link ordini
       const ordersLink = await this.callingFunctionsService.getOrdersListLink({
         customerId: customer.id,
         workspaceId: workspace.id,
       })
       finalResponse = finalResponse.replace(
         "[LINK_ORDERS_WITH_TOKEN]",
-        ordersLink?.linkUrl
+        ordersLink?.linkUrl || ""
       )
     }
 
-    return {
-      success: true,
-      output: finalResponse,
-      debugInfo: { stage: "completed" },
+    // Replace catalog link token (static link)
+    if (finalResponse.includes("[LINK_CATALOG]")) {
+      finalResponse = finalResponse.replace(
+        "[LINK_CATALOG]",
+        "https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf"
+      )
     }
+
+    return finalResponse
   }
 
   private getAvailableFunctions() {
@@ -267,7 +293,7 @@ export class LLMService {
             messages: messages,
             tools: this.getAvailableFunctions(),
             temperature: workspace.temperature || 0.3,
-            max_tokens: workspace.maxTokens || 3500,
+            max_tokens: workspace.maxTokens || 5000,
           }),
         }
       )

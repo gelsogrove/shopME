@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm"
 interface MessageRendererProps {
   content: string
   className?: string
-  variant?: "chat" | "compact" // RIMOSSO "modal" - ora tutto usa "chat"
+  variant?: "chat" | "compact"
 }
 
 export function MessageRenderer({
@@ -15,13 +15,34 @@ export function MessageRenderer({
   // Base classes for consistent formatting
   const baseClasses = "break-words text-sm text-left"
 
-  // Variant-specific classes - UNIFORMATO tutto su chat compatto
+  // Variant-specific classes
   const variantClasses = {
-    chat: "leading-tight compact-message", // 🎯 SEMPRE compatto
-    compact: "leading-normal", // Versione ancora più compatta se serve
-  } // 🎯 COMPACT SPACING FOR CHAT (seguendo il prompt: NO spazi extra)
-  const isCompactChat = variant === "chat"
+    chat: "leading-tight",
+    compact: "leading-normal",
+  }
 
+  // 🚀 SOLUZIONE SEMPLICE: Converti \n in <br> per rispettare gli a capo
+  const formatContent = (text: string): string => {
+    return text
+      .replace(/\n/g, '<br />') // Converti tutti i \n in <br />
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Converti **text** in <strong>
+      .replace(/\*(.*?)\*/g, '<em>$1</em>') // Converti *text* in <em>
+      .replace(/~~(.*?)~~/g, '<s style="text-decoration: line-through;">$1</s>') // Converti ~~text~~ in testo barrato
+      .replace(/→\s*(€[\d.,]+)/g, '→ <strong>$1</strong>') // Converti prezzo finale dopo → in grassetto
+      .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>') // Converti URL in link
+  }
+
+  // Se è chat, usa HTML diretto invece di markdown per rispettare gli a capo
+  if (variant === "chat") {
+    return (
+      <div 
+        className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+        dangerouslySetInnerHTML={{ __html: formatContent(content) }}
+      />
+    )
+  }
+
+  // Per altre varianti, usa ReactMarkdown
   return (
     <div className={`${baseClasses} ${variantClasses[variant]} ${className}`}>
       <ReactMarkdown
@@ -37,65 +58,21 @@ export function MessageRenderer({
               className="text-blue-600 hover:underline"
             />
           ),
-          // Clean paragraph rendering - ULTRA COMPATTO per chat
+          // Clean paragraph rendering
           p: ({ children }) => (
-            <p className={isCompactChat ? "mb-0 last:mb-0" : "mb-2 last:mb-0"}>
+            <p className="mb-2 last:mb-0">
               {children}
             </p>
-          ),
-          // Proper list rendering - ULTRA COMPATTO per chat
-          ul: ({ children }) => (
-            <ul
-              className={`list-none ${
-                isCompactChat ? "space-y-0 my-0" : "space-y-1 my-2"
-              }`}
-            >
-              {children}
-            </ul>
-          ),
-          ol: ({ children }) => (
-            <ol
-              className={`list-decimal ${
-                isCompactChat ? "space-y-0 my-0 pl-4" : "space-y-1 my-2 pl-6"
-              }`}
-            >
-              {children}
-            </ol>
-          ),
-          li: ({ children }) => <li className="text-left">{children}</li>,
-          // Headers - ULTRA COMPATTI per chat
-          h1: ({ children }) => (
-            <h1
-              className={`text-lg font-bold ${
-                isCompactChat ? "mb-0 mt-1" : "mb-2"
-              }`}
-            >
-              {children}
-            </h1>
-          ),
-          h2: ({ children }) => (
-            <h2
-              className={`text-base font-bold ${
-                isCompactChat ? "mb-0 mt-1" : "mb-2"
-              }`}
-            >
-              {children}
-            </h2>
-          ),
-          h3: ({ children }) => (
-            <h3
-              className={`text-sm font-bold ${
-                isCompactChat ? "mb-0 mt-0.5" : "mb-1"
-              }`}
-            >
-              {children}
-            </h3>
           ),
           // Text formatting
           strong: ({ children }) => (
             <strong className="font-bold">{children}</strong>
           ),
           em: ({ children }) => <em className="italic">{children}</em>,
+          // Strikethrough support for ~~text~~
+          del: ({ children }) => (
+            <s style={{ textDecoration: "line-through" }}>{children}</s>
+          ),
         }}
       >
         {content}

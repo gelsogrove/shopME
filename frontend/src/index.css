@@ -245,6 +245,10 @@
   padding: 0 !important;
 }
 
+.compact-message {
+  white-space: pre-line !important; /* 🎯 RISPETTA GLI A CAPO \n */
+}
+
 .compact-message h1,
 .compact-message h2,
 .compact-message h3,

@@ -1000,17 +1000,25 @@ export class MessageRepository {
         {} as Record<string, any[]>
       )
 
-      // Formatta l'output con prezzi scontati
-      let formattedProducts =
-        "\n\nLISTA COMPLETA DEI PRODOTTI - L'ALTRA ITALIA\n"
+      // Formatta l'output con prezzi scontati - versione compatta per evitare troncamento
+      let formattedProducts = ""
+
       for (const categoryName in productsByCategory) {
         const productList = productsByCategory[categoryName]
-        formattedProducts += `🧀 ${categoryName.toUpperCase()} (${productList.length} prodotti)\n`
-        productList.forEach((p) => {
+        formattedProducts += `\n**${categoryName.toUpperCase()}** (${productList.length} prodotti)\n`
+
+        // Mostra tutti i prodotti della categoria
+        const productsToShow = productList
+        
+        // Formato: ogni prodotto su una riga separata
+        productsToShow.forEach((p) => {
+          const originalPrice = Number(p.originalPrice).toFixed(2)
+          const finalPrice = Number(p.finalPrice).toFixed(2)
+
           if (p.hasDiscount) {
-            formattedProducts += `• ${p.name} | ${categoryName} | ~~€${p.originalPrice}~~ → €${p.finalPrice} | ${p.ProductCode}\n`
+            formattedProducts += `• ${p.name} ~~€${originalPrice}~~ → €${finalPrice}\n`
           } else {
-            formattedProducts += `• ${p.name} | ${categoryName} | €${p.finalPrice} | ${p.ProductCode}\n`
+            formattedProducts += `• ${p.name} €${finalPrice}\n`
           }
         })
         formattedProducts += "\n"
@@ -2256,7 +2264,7 @@ export class MessageRepository {
         prompt: agentConfig.prompt || "",
         model: agentConfig.model || "openai/gpt-4o-mini",
         temperature: agentConfig.temperature || 0.0, // Default to 0 temperature
-        maxTokens: agentConfig.maxTokens || 3500,
+        maxTokens: agentConfig.maxTokens || 5000,
       }
     } catch (error) {
       logger.error(
@@ -2333,7 +2341,7 @@ export class MessageRepository {
         content: prompt.content,
         model: prompt.model || "openai/gpt-4o-mini",
         temperature: prompt.temperature || 0.0, // Default to 0 temperature
-        maxTokens: prompt.max_tokens || 3500,
+        maxTokens: prompt.max_tokens || 5000,
       }
     } catch (error) {
       logger.error(`Error getting prompt "${promptName}":`, error)
@@ -2724,6 +2732,73 @@ INSTRUCTIONS FOR LLM FORMATTER:
     } catch (error) {
       logger.error("Error creating order:", error)
       throw new Error("Failed to create order")
+    }
+  }
+
+  /**
+   * Recupera le categorie attive dal database e le formatta per il prompt.
+   * @param workspaceId L'ID del workspace.
+   * @returns Una stringa con le categorie formattate.
+   */
+  async getActiveCategories(workspaceId: string): Promise<string> {
+    try {
+      console.log("🔧 DEBUG getActiveCategories: workspaceId:", workspaceId)
+      const categories = await this.prisma.categories.findMany({
+        where: {
+          workspaceId: workspaceId,
+          isActive: true,
+        },
+        orderBy: {
+          name: "asc",
+        },
+      })
+
+      console.log(
+        "🔧 DEBUG getActiveCategories: trovate",
+        categories.length,
+        "categorie"
+      )
+      console.log(
+        "🔧 DEBUG getActiveCategories: categorie raw:",
+        categories.map((c) => `${c.name}: ${c.description}`)
+      )
+
+      if (categories.length === 0) {
+        return "" // Nessuna categoria attiva
+      }
+
+      // Formatta le categorie come lista verticale per il prompt
+      // Estrae solo l'emoji e una descrizione breve dalla description
+      const formattedCategories = categories
+        .map((category) => {
+          // Estrae l'emoji e la prima parte della descrizione
+          const description = category.description || ""
+          const emoji = description.match(/^[^\w\s]+/)?.[0] || "📦" // Prende l'emoji all'inizio o usa default
+
+          // Estrae la parte descrittiva dopo l'emoji (primi 50 caratteri)
+          const shortDesc = description
+            .replace(/^[^\w\s]+\s*/, "") // Rimuove emoji iniziale
+            .split(",")[0] // Prende solo la prima parte prima della virgola
+            .substring(0, 50)
+            .trim()
+
+          // Formatta come elemento di lista con descrizione
+          return `${emoji} **${category.name}** - ${shortDesc}`
+        })
+        .join("\n")
+
+      console.log("🔧 DEBUG getActiveCategories: risultato finale:")
+      console.log(formattedCategories)
+
+      const result = `\n${formattedCategories}\n`
+      console.log(
+        "🔧 DEBUG getActiveCategories: return string length:",
+        result.length
+      )
+      return result
+    } catch (error) {
+      logger.error("Error fetching active categories:", error)
+      return "" // In caso di errore, restituisce una stringa vuota
     }
   }
 }

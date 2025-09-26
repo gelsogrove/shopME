@@ -678,7 +678,7 @@ router.post("/chat", async (req, res) => {
           language: variables.languageUser, // Use customer's language
           sessionId: "chat-session",
           temperature: 0.0, // Zero temperature for deterministic responses
-          maxTokens: 3500,
+          maxTokens: 5000,
           model: "gpt-4o",
           messages: chatHistory, // 🔧 NOW INCLUDES REAL CHAT HISTORY like webhook
           prompt: agentPrompt, // 🔧 Now includes processed prompt with variables
@@ -1282,7 +1282,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
         language: variables.languageUser,
         sessionId: "webhook-session",
         temperature: 0.0, // Zero temperature for webhook responses - no variations
-        maxTokens: 3500,
+        maxTokens: 5000,
         model: "gpt-4o",
         messages: chatHistory, // 🔥 NOW INCLUDES REAL CHAT HISTORY
         prompt: agentPrompt,

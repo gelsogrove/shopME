@@ -41,12 +41,23 @@ export class PromptProcessorService {
       const products = await this.messageRepository.getActiveProducts(
         workspaceId,
         0
-      ) // Default discount: 0
+      ) // Default discount: 0 - lo sconto vero viene gestito dall'LLM service
       console.log(
         "🔧 DEBUG: PRODUCTS trovati:",
         products ? `${products.length} chars` : "VUOTO"
       )
       processedPrompt = processedPrompt.replace("{{PRODUCTS}}", products)
+    }
+
+    if (processedPrompt.includes("{{CATEGORIES}}")) {
+      console.log("🔧 DEBUG: Cerco CATEGORIES per workspaceId:", workspaceId)
+      const categories =
+        await this.messageRepository.getActiveCategories(workspaceId)
+      console.log(
+        "🔧 DEBUG: CATEGORIES trovate:",
+        categories ? `${categories.length} chars` : "VUOTO"
+      )
+      processedPrompt = processedPrompt.replace("{{CATEGORIES}}", categories)
     }
 
     if (processedPrompt.includes("{{SERVICES}}")) {
@@ -58,6 +69,17 @@ export class PromptProcessorService {
         services ? `${services.length} chars` : "VUOTO"
       )
       processedPrompt = processedPrompt.replace("{{SERVICES}}", services)
+    }
+
+    if (processedPrompt.includes("{{CATEGORIES}}")) {
+      console.log("🔧 DEBUG: Cerco CATEGORIES per workspaceId:", workspaceId)
+      const categories =
+        await this.messageRepository.getActiveCategories(workspaceId)
+      console.log(
+        "🔧 DEBUG: CATEGORIES trovate:",
+        categories ? `${categories.length} chars` : "VUOTO"
+      )
+      processedPrompt = processedPrompt.replace("{{CATEGORIES}}", categories)
     }
 
     // DEBUG: Salva il prompt finale per debugging
