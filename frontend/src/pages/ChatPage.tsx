@@ -12,26 +12,26 @@ import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
 import { useQuery } from "@tanstack/react-query"
 import {
-    Ban,
-    Bot,
-    Loader2,
-    Lock,
-    Pencil,
-    Send,
-    ShoppingBag,
-    Trash2
+  Ban,
+  Bot,
+  Loader2,
+  Lock,
+  Pencil,
+  Send,
+  ShoppingBag,
+  Trash2,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "../components/ui/alert-dialog"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
@@ -121,16 +121,16 @@ const formatDate = (dateString: string | null | undefined): string => {
 // Helper function to get language flag emoji
 const getLanguageFlag = (language?: string): string => {
   switch (language?.toLowerCase()) {
-    case 'it':
-      return '🇮🇹'
-    case 'en':
-      return '🇬🇧'
-    case 'es':
-      return '🇪🇸'
-    case 'pt':
-      return '🇵🇹'
+    case "it":
+      return "🇮🇹"
+    case "en":
+      return "🇬🇧"
+    case "es":
+      return "🇪🇸"
+    case "pt":
+      return "🇵🇹"
     default:
-      return '🌐'
+      return "🌐"
   }
 }
 
@@ -443,10 +443,7 @@ export function ChatPage() {
     // Validate that we have a valid sessionId
     const sessionIdToDelete = selectedChat.sessionId || selectedChat.id
     if (!sessionIdToDelete) {
-      logger.error(
-        "No valid session ID found for chat deletion:",
-        selectedChat
-      )
+      logger.error("No valid session ID found for chat deletion:", selectedChat)
       toast.error("Cannot delete chat: Invalid session ID", { duration: 1000 })
       setShowDeleteDialog(false)
       return
@@ -551,7 +548,9 @@ export function ChatPage() {
   // Show orders dialog
   const handleViewOrders = () => {
     if (!selectedChat?.customerName) return
-                navigate(`/admin/orders?search=${encodeURIComponent(selectedChat.customerName)}`)
+    navigate(
+      `/admin/orders?search=${encodeURIComponent(selectedChat.customerName)}`
+    )
   }
 
   // Format date for display
@@ -568,7 +567,7 @@ export function ChatPage() {
       }
 
       return date.toLocaleString("it-IT", {
-        year: "2-digit", // 🔧 2-digit for consistency 
+        year: "2-digit", // 🔧 2-digit for consistency
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",
@@ -777,7 +776,9 @@ export function ChatPage() {
         )
 
         toast.success(
-          `${selectedChat.customerName} has been ${isCurrentlyBlocked ? "unblocked" : "blocked"}`,
+          `${selectedChat.customerName} has been ${
+            isCurrentlyBlocked ? "unblocked" : "blocked"
+          }`,
           {
             duration: 1000,
           }
@@ -820,7 +821,14 @@ export function ChatPage() {
             />
           </div>
 
-          <div className="chat-scrollbar" style={{height: '600px', overflow: 'auto', backgroundColor: 'white'}}>
+          <div
+            className="chat-scrollbar"
+            style={{
+              height: "600px",
+              overflow: "auto",
+              backgroundColor: "white",
+            }}
+          >
             {chats.length > 0 ? (
               chats.map((chat: Chat) => {
                 // Compare sessionId instead of id
@@ -847,7 +855,10 @@ export function ChatPage() {
                       <div className="flex-1 min-w-0">
                         {/* Prima riga: bandiera + nome + icone stato */}
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm flex-shrink-0" title={`Language: ${chat.language || 'Unknown'}`}>
+                          <span
+                            className="text-sm flex-shrink-0"
+                            title={`Language: ${chat.language || "Unknown"}`}
+                          >
                             {getLanguageFlag(chat.language)}
                           </span>
                           <div className="font-semibold text-green-700 text-sm truncate">
@@ -868,22 +879,29 @@ export function ChatPage() {
                             )}
                           </div>
                         </div>
-                        
+
                         {/* Seconda riga: azienda */}
                         {chat.companyName && (
                           <div className="text-xs text-gray-600 truncate mb-1">
                             {chat.companyName}
                           </div>
                         )}
-                        
+
                         {/* Terza riga: telefono */}
                         <div className="text-xs text-green-600 mb-1">
                           {chat.customerPhone}
                         </div>
-                        
+
                         {/* Quarta riga: ultimo messaggio + timestamp */}
                         <div className="flex justify-between items-center">
-                          <div className="text-xs text-gray-600 truncate flex-1 mr-2" style={{ display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>
+                          <div
+                            className="text-xs text-gray-600 truncate flex-1 mr-2"
+                            style={{
+                              display: "-webkit-box",
+                              WebkitLineClamp: 1,
+                              WebkitBoxOrient: "vertical",
+                            }}
+                          >
                             {chat.lastMessage}
                           </div>
                           <div className="flex items-center gap-1 flex-shrink-0">
@@ -1047,7 +1065,14 @@ export function ChatPage() {
               </div>
 
               {/* Chat Messages */}
-              <div className="chat-scrollbar px-4 py-2" style={{height: '600px', overflow: 'auto', backgroundColor: 'white'}}>
+              <div
+                className="chat-scrollbar px-4 py-2"
+                style={{
+                  height: "600px",
+                  overflow: "auto",
+                  backgroundColor: "white",
+                }}
+              >
                 {messages.length > 0 ? (
                   messages.map((message) => {
                     // Using the sender field which is properly mapped from direction
@@ -1177,7 +1202,10 @@ export function ChatPage() {
                             </div>
                           )}
 
-                          <div className="break-words" style={{ lineHeight: '1.7', fontSize: '0.95rem' }}>
+                          <div
+                            className="break-words"
+                            style={{ lineHeight: "1.7", fontSize: "0.95rem" }}
+                          >
                             <MessageRenderer
                               content={message.content}
                               variant="chat"
@@ -1185,7 +1213,6 @@ export function ChatPage() {
                           </div>
 
                           <div className="flex justify-end items-center mt-1">
-
                             <div className="flex items-center gap-1">
                               {/* 🤖 AI Agent Badge */}
                               {isAgentMessage &&

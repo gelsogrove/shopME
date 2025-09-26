@@ -883,7 +883,7 @@ export function WhatsAppChatModal({
                           </div>
                         )}
 
-                        <div style={{ lineHeight: '1.7', fontSize: '0.95rem' }}>
+                        <div style={{ lineHeight: "1.7", fontSize: "0.95rem" }}>
                           <MessageRenderer
                             content={message.content}
                             variant="chat"
@@ -941,37 +941,72 @@ export function WhatsAppChatModal({
                                 <div className="text-xs text-yellow-700">
                                   {(() => {
                                     // Determine source based on available data
-                                    if (message.functionCalls && message.functionCalls.length > 0) {
-                                      const functionNames = message.functionCalls
-                                        .map(call => call.functionName || call.type || "Unknown")
-                                        .filter((name, index, arr) => arr.indexOf(name) === index) // Remove duplicates
-                                        .slice(0, 3) // Show max 3 function names
-                                        .join(", ");
-                                      
+                                    if (
+                                      message.functionCalls &&
+                                      message.functionCalls.length > 0
+                                    ) {
+                                      const functionNames =
+                                        message.functionCalls
+                                          .map(
+                                            (call) =>
+                                              call.functionName ||
+                                              call.type ||
+                                              "Unknown"
+                                          )
+                                          .filter(
+                                            (name, index, arr) =>
+                                              arr.indexOf(name) === index
+                                          ) // Remove duplicates
+                                          .slice(0, 3) // Show max 3 function names
+                                          .join(", ")
+
                                       return (
                                         <span className="font-mono">
-                                          <span className="font-semibold text-purple-600">🔧 FUNCTION:</span> {functionNames}
-                                          {message.functionCalls.length > 3 && ` (+${message.functionCalls.length - 3} more)`}
+                                          <span className="font-semibold text-purple-600">
+                                            🔧 FUNCTION:
+                                          </span>{" "}
+                                          {functionNames}
+                                          {message.functionCalls.length > 3 &&
+                                            ` (+${
+                                              message.functionCalls.length - 3
+                                            } more)`}
                                         </span>
-                                      );
-                                    } else if (message.processingSource && message.processingSource !== "unknown") {
+                                      )
+                                    } else if (
+                                      message.processingSource &&
+                                      message.processingSource !== "unknown"
+                                    ) {
                                       return (
                                         <span className="font-mono">
-                                          <span className="font-semibold text-blue-600">🔧 SOURCE:</span> {message.processingSource}
+                                          <span className="font-semibold text-blue-600">
+                                            🔧 SOURCE:
+                                          </span>{" "}
+                                          {message.processingSource}
                                         </span>
-                                      );
-                                    } else if (message.metadata?.agentSelected?.includes("CHATBOT")) {
+                                      )
+                                    } else if (
+                                      message.metadata?.agentSelected?.includes(
+                                        "CHATBOT"
+                                      )
+                                    ) {
                                       return (
                                         <span className="font-mono">
-                                          <span className="font-semibold text-green-600">🤖 LLM:</span> AI Generated Response
+                                          <span className="font-semibold text-green-600">
+                                            🤖 LLM:
+                                          </span>{" "}
+                                          AI Generated Response
                                         </span>
-                                      );
+                                      )
                                     } else {
                                       return (
                                         <span className="font-mono">
-                                          <span className="font-semibold text-gray-600">❓ UNKNOWN:</span> {message.metadata?.agentSelected || "No source info"}
+                                          <span className="font-semibold text-gray-600">
+                                            ❓ UNKNOWN:
+                                          </span>{" "}
+                                          {message.metadata?.agentSelected ||
+                                            "No source info"}
                                         </span>
-                                      );
+                                      )
                                     }
                                   })()}
                                 </div>
@@ -985,14 +1020,17 @@ export function WhatsAppChatModal({
                                   🕒 Timestamp:
                                 </div>
                                 <div className="text-xs text-gray-700 font-mono">
-                                  {new Date(message.timestamp).toLocaleString('it-IT', {
-                                    day: '2-digit',
-                                    month: '2-digit', 
-                                    year: '2-digit',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    second: '2-digit'
-                                  })}
+                                  {new Date(message.timestamp).toLocaleString(
+                                    "it-IT",
+                                    {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "2-digit",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      second: "2-digit",
+                                    }
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -1066,7 +1104,8 @@ export function WhatsAppChatModal({
                                                 {JSON.stringify(call.result)}
                                               </div>
                                             )}
-                                          {call.toolCall?.function?.arguments && (
+                                          {call.toolCall?.function
+                                            ?.arguments && (
                                             <div className="text-xs text-blue-600 mt-1">
                                               <strong>Arguments:</strong>{" "}
                                               {call.toolCall.function.arguments}
