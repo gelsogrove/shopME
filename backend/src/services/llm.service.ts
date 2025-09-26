@@ -69,8 +69,11 @@ export class LLMService {
 
     // 5. Pre-processing:
     const faqs = await messageRepo.getActiveFaqs(workspace.id)
+    const services = await messageRepo.getActiveServices(workspace.id)
     const customerDiscount = customer.discount || 0
-    const products = (await messageRepo.getActiveProducts(workspace.id, customerDiscount)) || ""
+    const products =
+      (await messageRepo.getActiveProducts(workspace.id, customerDiscount)) ||
+      ""
     const languageMap = {
       en: "Inglese",
       es: "Spagnolo",
@@ -88,16 +91,17 @@ export class LLMService {
       languageUser: translatedLanguage,
     }
 
-    if (!faqs && !products) {
+    if (!faqs && !products && !services) {
       return {
         success: false,
-        output: "❌ Non ci sono FAQ o Prodotti disponibili.",
-        debugInfo: { stage: "no_faq_or_product" },
+        output: "❌ Non ci sono FAQ, Prodotti o Servizi disponibili.",
+        debugInfo: { stage: "no_faq_or_product_or_services" },
       }
     }
 
     let promptWithVars = prompt
       .replace("{{FAQ}}", faqs)
+      .replace("{{SERVICES}}", services)
       .replace("{{PRODUCTS}}", products)
     promptWithVars = replaceAllVariables(promptWithVars, userInfo)
 

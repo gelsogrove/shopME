@@ -38,8 +38,10 @@ export class PromptProcessorService {
 
     if (processedPrompt.includes("{{PRODUCTS}}")) {
       console.log("🔧 DEBUG: Cerco PRODUCTS per workspaceId:", workspaceId)
-      const products =
-        await this.messageRepository.getActiveProducts(workspaceId, 0) // Default discount: 0
+      const products = await this.messageRepository.getActiveProducts(
+        workspaceId,
+        0
+      ) // Default discount: 0
       console.log(
         "🔧 DEBUG: PRODUCTS trovati:",
         products ? `${products.length} chars` : "VUOTO"
@@ -47,7 +49,16 @@ export class PromptProcessorService {
       processedPrompt = processedPrompt.replace("{{PRODUCTS}}", products)
     }
 
-    // Aggiungere qui altri placeholder di pre-processing se necessario
+    if (processedPrompt.includes("{{SERVICES}}")) {
+      console.log("🔧 DEBUG: Cerco SERVICES per workspaceId:", workspaceId)
+      const services =
+        await this.messageRepository.getActiveServices(workspaceId)
+      console.log(
+        "🔧 DEBUG: SERVICES trovati:",
+        services ? `${services.length} chars` : "VUOTO"
+      )
+      processedPrompt = processedPrompt.replace("{{SERVICES}}", services)
+    }
 
     // DEBUG: Salva il prompt finale per debugging
     await this.saveDebugPrompt(processedPrompt, workspaceId)

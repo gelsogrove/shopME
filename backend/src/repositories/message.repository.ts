@@ -885,12 +885,48 @@ export class MessageRepository {
   }
 
   /**
+   * Recupera i servizi attivi dal database e li formatta per il prompt.
+   * @param workspaceId L'ID del workspace.
+   * @returns Una stringa con i servizi formattati.
+   */
+  async getActiveServices(workspaceId: string): Promise<string> {
+    try {
+      const services = await this.prisma.services.findMany({
+        where: {
+          workspaceId: workspaceId,
+          isActive: true,
+        },
+        orderBy: {
+          name: "asc",
+        },
+      })
+
+      if (services.length === 0) {
+        return "" // Nessun servizio attivo
+      }
+
+      // Formatta i servizi come stringa per il prompt
+      const formattedServices = services
+        .map((service) => `🔧 ${service.name}: ${service.description || 'Servizio disponibile'}`)
+        .join("\n")
+
+      return `\n\n${formattedServices}`
+    } catch (error) {
+      logger.error("Error fetching active services:", error)
+      return "" // In caso di errore, restituisce una stringa vuota
+    }
+  }
+
+  /**
    * Recupera i prodotti attivi dal database e li formatta per il prompt.
    * @param workspaceId L'ID del workspace.
    * @param customerDiscount Sconto del customer (opzionale)
    * @returns Una stringa con i prodotti formattati.
    */
-  async getActiveProducts(workspaceId: string, customerDiscount: number = 0): Promise<string> {
+  async getActiveProducts(
+    workspaceId: string,
+    customerDiscount: number = 0
+  ): Promise<string> {
     try {
       const products = await this.prisma.products.findMany({
         where: {
@@ -920,17 +956,26 @@ export class MessageRepository {
       }
 
       // Calcola i prezzi con sconti
-      const { PriceCalculationService } = await import("../application/services/price-calculation.service")
+      const { PriceCalculationService } = await import(
+        "../application/services/price-calculation.service"
+      )
       const priceService = new PriceCalculationService(this.prisma)
-      const productIds = products.map(p => p.id)
-      const priceResult = await priceService.calculatePricesWithDiscounts(workspaceId, productIds, customerDiscount)
-      const priceMap = new Map(priceResult.products.map(p => [p.id, p]))
-      
+      const productIds = products.map((p) => p.id)
+      const priceResult = await priceService.calculatePricesWithDiscounts(
+        workspaceId,
+        productIds,
+        customerDiscount
+      )
+      const priceMap = new Map(priceResult.products.map((p) => [p.id, p]))
+
       // 🔧 DEBUG: Controlla risultati pricing
       console.log("🔧 DEBUG getActiveProducts:")
       console.log("  - customerDiscount:", customerDiscount)
       console.log("  - productIds count:", productIds.length)
-      console.log("  - priceResult.products count:", priceResult.products.length)
+      console.log(
+        "  - priceResult.products count:",
+        priceResult.products.length
+      )
       console.log("  - Sample price data:", priceResult.products.slice(0, 2))
 
       // Raggruppa i prodotti per categoria con prezzi scontati
@@ -945,7 +990,7 @@ export class MessageRepository {
             ...product,
             originalPrice: priceData?.originalPrice || product.price,
             finalPrice: priceData?.finalPrice || product.price,
-            hasDiscount: (priceData?.appliedDiscount || 0) > 0
+            hasDiscount: (priceData?.appliedDiscount || 0) > 0,
           })
           return acc
         },

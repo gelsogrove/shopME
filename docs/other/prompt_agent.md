@@ -135,12 +135,14 @@ Spezie italiane, condimenti e vari prodotti gourmet per la cucina tradizionale
 
 {{PRODUCTS}}
 
-quando mostri i prodotti segui questo formato:
+### Esempio1:
 
 Categoria 1(bold)
 
 • Burrata di Vacca Senza Testa 125gr ~~€5,50~~ → €4.40
 • Burrata di Vacca Con Testa 125gr ~~€6.2~~ → €4.96
+
+### Esempio2:
 
 oppure utente chiede: "prezzo della mozzarella di Bufala"
 
@@ -158,7 +160,9 @@ Scarica qui catalogo completo: https://laltrait.com/wp-content/uploads/LAltra-It
 
 {{FAQ}}
 
-- se l'utente
+### SERVICES
+
+{{SERVICES}}
 
 ### FORMATTER
 
