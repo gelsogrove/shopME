@@ -1,8 +1,13 @@
 - chi sei?
+- che servizi offrite ?
+- Che prodotti vendete
+- dammi la lista dei prodotti
 - posso vedere il catalogo ?
-- dammi la lista degli ordini
 - Avete la mozzarella?
 - Che sconto ho sui prodotti?
+- dammi la lista degli ordini
+- dove'e' il mio ordine ORD-001-2024
+- dove'e' il mio ultimo ordine
 - qual'e' la vostra politica di reso ?
 - come viene gestita la catena del freddo ?
 - che categorie avete?
@@ -17,30 +22,21 @@
 - Che sconto ho sui prodotti?
 - Voglio fare un ordine
 - Voglio modificare la mia mail
-- Che prodotti vendete? dammi la lista dei prodotti
-- voglio parlare con un operatore
-- che servizi offrite ?
-- dove'e' il mio ordine ORD-001-2024
-- dove'e' il mio ultimo ordine'
+- Voglio parlare con un operatore
 - dammi il mio ultimo ordine
 
 NON VA
 
 - {{CATEGORIES}}
 - nuovo untente
-- Frontentd
 - non va MCP
 - non ca il DEBUG DI FE > la data nei messaggi
-- DOCUMENTAZIONE SPORCA
-
-- i link scadono ? e che messaggio facciamo vedere?
-  -- non traduce perfettametne prova con dammi ordine BLABLABLA in spagnolo
+- non traduce perfettametne prova con dammi ordine BLABLABLA in spagnolo
 - link corti
-- manca visualizza ordini
-  http://localhost:3000/orders-public/ORD-001-2024?token=3e0b5f6c81a0553ac8a2ed1a53f51187c498b5dd8041c97bd39fdb6be8dc8bc0
-- dettagli di compagnia www. social..
+- arriviamo fino all'ordine?
 - siamo sicuri che passiamo sempre il workspceID
-- frase iniziale da cambiare
-  Ciao Mario! Benvenuto da L'Altra Italia! 🇮🇹 Sono qui per aiutarti a scoprire i nostri prodotti italiani di qualità. Come posso esserti utile oggi?
-
+- DOCUMENTAZIONE SPORCA > MEMORY BANK
+- dettagli di compagnia www. social..
 - un help ci vorrebbe da mettere nel prompt
+- FE con le lingue come va?
+- Alle CATEGORIE METTI DELLE ICONE NEL SEED.PLEASE

@@ -2909,7 +2909,7 @@ async function main() {
       chatSessionId: chatSession1.id,
       direction: "OUTBOUND",
       content:
-        "Ciao Mario! Benvenuto da L'Altra Italia! 🇮🇹 Sono qui per aiutarti a scoprire i nostri prodotti italiani di qualità. Come posso esserti utile oggi?",
+        "Ciao, piacere di conoscerti! Come posso aiutarti?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
@@ -2948,7 +2948,7 @@ async function main() {
       chatSessionId: chatSession2.id,
       direction: "OUTBOUND",
       content:
-        "Hello John! Welcome to L'Altra Italia! 🇮🇹 I'm here to help you discover our quality Italian products. How can I assist you today?",
+        "Hi, nice to meet you! How can I help you?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
@@ -2987,7 +2987,7 @@ async function main() {
       chatSessionId: chatSession3.id,
       direction: "OUTBOUND",
       content:
-        "¡Hola Maria! ¡Bienvenida a L'Altra Italia! 🇮🇹 Estoy aquí para ayudarte a descubrir nuestros productos italianos de calidad. ¿Cómo puedo ayudarte hoy?",
+        "¡Hola, mucho gusto conocerte! ¿Cómo puedo ayudarte?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
@@ -3026,7 +3026,7 @@ async function main() {
       chatSessionId: chatSession4.id,
       direction: "OUTBOUND",
       content:
-        "Olá João! Bem-vindo à L'Altra Italia! 🇮🇹 Estou aqui para ajudá-lo a descobrir nossos produtos italianos de qualidade. Como posso ajudá-lo hoje?",
+        "Olá, prazer em conhecê-lo! Como posso ajudá-lo?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
