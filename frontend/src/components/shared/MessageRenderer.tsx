@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm"
 interface MessageRendererProps {
   content: string
   className?: string
-  variant?: "modal" | "chat" | "compact"
+  variant?: "chat" | "compact" // RIMOSSO "modal" - ora tutto usa "chat"
 }
 
 export function MessageRenderer({
@@ -15,14 +15,11 @@ export function MessageRenderer({
   // Base classes for consistent formatting
   const baseClasses = "break-words text-sm text-left"
 
-  // Variant-specific classes
+  // Variant-specific classes - UNIFORMATO tutto su chat compatto
   const variantClasses = {
-    modal: "whitespace-pre-line block leading-relaxed",
-    chat: "leading-tight compact-message", // 🎯 AGGIUNTA classe per debug
-    compact: "whitespace-pre-line leading-normal",
-  }
-
-  // 🎯 COMPACT SPACING FOR CHAT (seguendo il prompt: NO spazi extra)
+    chat: "leading-tight compact-message", // 🎯 SEMPRE compatto
+    compact: "leading-normal", // Versione ancora più compatta se serve
+  } // 🎯 COMPACT SPACING FOR CHAT (seguendo il prompt: NO spazi extra)
   const isCompactChat = variant === "chat"
 
   return (

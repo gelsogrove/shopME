@@ -882,7 +882,7 @@ export function WhatsAppChatModal({
 
                         <MessageRenderer
                           content={message.content}
-                          variant="modal"
+                          variant="chat"
                         />
 
                         {/* Debug Information */}
