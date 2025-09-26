@@ -106,9 +106,10 @@ const formatDate = (dateString: string | null | undefined): string => {
     const options: Intl.DateTimeFormatOptions = {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric",
+      year: "2-digit", // Show 2-digit year for consistency with WhatsApp modal
       hour: "2-digit",
       minute: "2-digit",
+      second: "2-digit", // 🔧 NEW: Add seconds for more precision
     }
 
     return date.toLocaleDateString("it-IT", options)
@@ -567,11 +568,12 @@ export function ChatPage() {
       }
 
       return date.toLocaleString("it-IT", {
-        year: "numeric",
+        year: "2-digit", // 🔧 2-digit for consistency 
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
+        second: "2-digit", // 🔧 NEW: Add seconds
       })
     } catch (e) {
       return "Errore nella formattazione data"
@@ -1175,17 +1177,14 @@ export function ChatPage() {
                             </div>
                           )}
 
-                          <div className="text-sm break-words">
+                          <div className="break-words" style={{ lineHeight: '1.7', fontSize: '0.95rem' }}>
                             <MessageRenderer
                               content={message.content}
                               variant="chat"
                             />
                           </div>
 
-                          <div className="flex justify-between items-center mt-1">
-                            <span className="text-[10px] opacity-70">
-                              {formatDate(message.timestamp)}
-                            </span>
+                          <div className="flex justify-end items-center mt-1">
 
                             <div className="flex items-center gap-1">
                               {/* 🤖 AI Agent Badge */}

@@ -30,6 +30,7 @@ interface Message {
   translatedQuery?: string
   processedPrompt?: string
   debugInfo?: string | any // 🔧 NEW: Debug information
+  processingSource?: string // 🔧 NEW: Source of the response (LLM/function name)
   functionCalls?: Array<{
     functionName: string
     toolCall?: {
@@ -239,6 +240,7 @@ export function WhatsAppChatModal({
           // Debug fields
           translatedQuery: message.translatedQuery,
           processedPrompt: message.processedPrompt,
+          processingSource: message.processingSource, // 🔧 NEW: Source information
           functionCalls: message.functionCallsDebug
             ? (() => {
                 console.log(
@@ -560,6 +562,7 @@ export function WhatsAppChatModal({
             // Debug fields from API response
             translatedQuery: response.data.debug?.translatedQuery,
             processedPrompt: response.data.debug?.processedPrompt,
+            processingSource: response.data.debug?.processingSource || "LLM", // 🔧 NEW: Source info
             functionCalls: response.data.debug?.functionCalls || [],
             // 💰 Cost tracking info
             debugInfo: response.data.debug?.costInfo
@@ -880,10 +883,12 @@ export function WhatsAppChatModal({
                           </div>
                         )}
 
-                        <MessageRenderer
-                          content={message.content}
-                          variant="chat"
-                        />
+                        <div style={{ lineHeight: '1.7', fontSize: '0.95rem' }}>
+                          <MessageRenderer
+                            content={message.content}
+                            variant="chat"
+                          />
+                        </div>
 
                         {/* Debug Information */}
                         {(showFunctionCalls || showProcessedPrompt) && (
@@ -927,6 +932,71 @@ export function WhatsAppChatModal({
                               </div>
                             )}
 
+                            {/* 🔧 NEW: Task 1 - Source Information */}
+                            {showFunctionCalls && message.sender === "bot" && (
+                              <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                                <div className="text-xs font-semibold text-yellow-800 mb-1">
+                                  🎯 Response Source:
+                                </div>
+                                <div className="text-xs text-yellow-700">
+                                  {(() => {
+                                    // Determine source based on available data
+                                    if (message.functionCalls && message.functionCalls.length > 0) {
+                                      const functionNames = message.functionCalls
+                                        .map(call => call.functionName || call.type || "Unknown")
+                                        .filter((name, index, arr) => arr.indexOf(name) === index) // Remove duplicates
+                                        .slice(0, 3) // Show max 3 function names
+                                        .join(", ");
+                                      
+                                      return (
+                                        <span className="font-mono">
+                                          <span className="font-semibold text-purple-600">🔧 FUNCTION:</span> {functionNames}
+                                          {message.functionCalls.length > 3 && ` (+${message.functionCalls.length - 3} more)`}
+                                        </span>
+                                      );
+                                    } else if (message.processingSource && message.processingSource !== "unknown") {
+                                      return (
+                                        <span className="font-mono">
+                                          <span className="font-semibold text-blue-600">🔧 SOURCE:</span> {message.processingSource}
+                                        </span>
+                                      );
+                                    } else if (message.metadata?.agentSelected?.includes("CHATBOT")) {
+                                      return (
+                                        <span className="font-mono">
+                                          <span className="font-semibold text-green-600">🤖 LLM:</span> AI Generated Response
+                                        </span>
+                                      );
+                                    } else {
+                                      return (
+                                        <span className="font-mono">
+                                          <span className="font-semibold text-gray-600">❓ UNKNOWN:</span> {message.metadata?.agentSelected || "No source info"}
+                                        </span>
+                                      );
+                                    }
+                                  })()}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* 🔧 NEW: Task 2 - Timestamp in DEBUG only */}
+                            {showFunctionCalls && (
+                              <div className="bg-gray-50 border border-gray-200 rounded p-2">
+                                <div className="text-xs font-semibold text-gray-800 mb-1">
+                                  🕒 Timestamp:
+                                </div>
+                                <div className="text-xs text-gray-700 font-mono">
+                                  {new Date(message.timestamp).toLocaleString('it-IT', {
+                                    day: '2-digit',
+                                    month: '2-digit', 
+                                    year: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit'
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
                             {showFunctionCalls &&
                               message.functionCalls &&
                               message.functionCalls.length > 0 && (
@@ -959,7 +1029,6 @@ export function WhatsAppChatModal({
                                               ? "🔍"
                                               : "🔧"}{" "}
                                             {call.functionName ||
-                                              call.name ||
                                               call.type ||
                                               "Unknown"}
                                           </div>
@@ -997,10 +1066,10 @@ export function WhatsAppChatModal({
                                                 {JSON.stringify(call.result)}
                                               </div>
                                             )}
-                                          {call.arguments && (
+                                          {call.toolCall?.function?.arguments && (
                                             <div className="text-xs text-blue-600 mt-1">
                                               <strong>Arguments:</strong>{" "}
-                                              {JSON.stringify(call.arguments)}
+                                              {call.toolCall.function.arguments}
                                             </div>
                                           )}
                                         </div>

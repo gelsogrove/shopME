@@ -28,24 +28,13 @@
 
 NON VA
 
-- non va MCP
-- non ca il DEBUG DI FE > la data nei messaggi
-- non traduce perfettametne prova con dammi ordine BLABLABLA in spagnolo
 - link corti
-- arriviamo fino all'ordine?
-- siamo sicuri che passiamo sempre il workspceID
-- DOCUMENTAZIONE SPORCA > MEMORY BANK
-- dettagli di compagnia www. social..
-- un help ci vorrebbe da mettere nel prompt
 - FE con le lingue come va?
+- cateogie non vanno in spagnolo inglese e portoghese
+- non va MCP
+- non traduce perfettametne prova con dammi ordine BLABLABLA in spagnolo
+- arriviamo fino all'ordine?
+- DOCUMENTAZIONE SPORCA > MEMORY BANK
+- - icone sulle categorie
 - nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
-
-DEBUG
-TASK 1
-NELLA POPUP DI DEBUG quando l'utente clicca l bottone <> vorrei vedere
-per ogni mossaggio chi ha generato la risposta
-LLM o LA fn di CF (nome funzione)
-
-TASK 2
-poi vorrei come secondo task la data e l'ora di ogni messaggio (Anche fuori dal debug)
-solo nella chat
+- siamo sicuri che passiamo sempre il workspceID
