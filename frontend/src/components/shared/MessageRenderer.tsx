@@ -18,7 +18,7 @@ export function MessageRenderer({
   // Variant-specific classes
   const variantClasses = {
     modal: "whitespace-pre-line block leading-relaxed",
-    chat: "leading-tight compact-message", // 🎯 AGGIUNTA classe per debug 
+    chat: "leading-tight compact-message", // 🎯 AGGIUNTA classe per debug
     compact: "whitespace-pre-line leading-normal",
   }
 
@@ -41,24 +41,58 @@ export function MessageRenderer({
             />
           ),
           // Clean paragraph rendering - ULTRA COMPATTO per chat
-          p: ({ children }) => <p className={isCompactChat ? "mb-0 last:mb-0" : "mb-2 last:mb-0"}>{children}</p>,
-          // Proper list rendering - ULTRA COMPATTO per chat  
+          p: ({ children }) => (
+            <p className={isCompactChat ? "mb-0 last:mb-0" : "mb-2 last:mb-0"}>
+              {children}
+            </p>
+          ),
+          // Proper list rendering - ULTRA COMPATTO per chat
           ul: ({ children }) => (
-            <ul className={`list-none ${isCompactChat ? "space-y-0 my-0" : "space-y-1 my-2"}`}>{children}</ul>
+            <ul
+              className={`list-none ${
+                isCompactChat ? "space-y-0 my-0" : "space-y-1 my-2"
+              }`}
+            >
+              {children}
+            </ul>
           ),
           ol: ({ children }) => (
-            <ol className={`list-decimal ${isCompactChat ? "space-y-0 my-0 pl-4" : "space-y-1 my-2 pl-6"}`}>{children}</ol>
+            <ol
+              className={`list-decimal ${
+                isCompactChat ? "space-y-0 my-0 pl-4" : "space-y-1 my-2 pl-6"
+              }`}
+            >
+              {children}
+            </ol>
           ),
           li: ({ children }) => <li className="text-left">{children}</li>,
           // Headers - ULTRA COMPATTI per chat
           h1: ({ children }) => (
-            <h1 className={`text-lg font-bold ${isCompactChat ? "mb-0 mt-1" : "mb-2"}`}>{children}</h1>
+            <h1
+              className={`text-lg font-bold ${
+                isCompactChat ? "mb-0 mt-1" : "mb-2"
+              }`}
+            >
+              {children}
+            </h1>
           ),
           h2: ({ children }) => (
-            <h2 className={`text-base font-bold ${isCompactChat ? "mb-0 mt-1" : "mb-2"}`}>{children}</h2>
+            <h2
+              className={`text-base font-bold ${
+                isCompactChat ? "mb-0 mt-1" : "mb-2"
+              }`}
+            >
+              {children}
+            </h2>
           ),
           h3: ({ children }) => (
-            <h3 className={`text-sm font-bold ${isCompactChat ? "mb-0 mt-0.5" : "mb-1"}`}>{children}</h3>
+            <h3
+              className={`text-sm font-bold ${
+                isCompactChat ? "mb-0 mt-0.5" : "mb-1"
+              }`}
+            >
+              {children}
+            </h3>
           ),
           // Text formatting
           strong: ({ children }) => (
