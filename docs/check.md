@@ -27,3 +27,7 @@ NON VA
 - dove'e' il mio ordine' ERROR CF
 - dove e' il mio ultimo ordine?
 - nuovo untente
+- Frontentd
+- non va MCP
+- non ca il DEBUG DI FE
+- DOCUMENTAZIONE SPORCA
