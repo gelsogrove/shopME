@@ -197,10 +197,16 @@ export class LLMService {
         function: {
           name: "GetShipmentTrackingLink",
           description:
-            "Fornisce il link per tracciare la spedizione dell'ordine dell'utente. Usare quando l'utente vuole sapere dove si trova fisicamente il pacco o quando arriva, senza specificare un numero d'ordine.",
+            "Fornisce il link per tracciare la spedizione dell'ordine dell'utente. Usare quando l'utente vuole sapere dove si trova fisicamente il pacco o lo stato di spedizione. Se specificato un numero d'ordine, usa quello; altrimenti usa l'ultimo ordine.",
           parameters: {
             type: "object",
-            properties: {},
+            properties: {
+              orderCode: {
+                type: "string",
+                description:
+                  "Il codice dell'ordine da tracciare. Se l'utente specifica un numero d'ordine (es. 'dove ordine ORD-123'), usa quello. Se dice 'ultimo ordine' usa lastordercode. Opzionale.",
+              },
+            },
             required: [],
           },
         },
@@ -291,6 +297,9 @@ export class LLMService {
           if (functionName === "GetLinkOrderByCode") {
             return "Mi spiace non abbiamo trovato il tuo ordine. Di seguito la lista dei tuoi ordini: [LINK_ORDERS_WITH_TOKEN]"
           }
+          if (functionName === "GetShipmentTrackingLink") {
+            return "Mi spiace, al momento non riesco a trovare informazioni di tracking per il tuo ordine. Per assistenza contatta il nostro servizio clienti."
+          }
           return (
             functionResult.message ||
             functionResult.error ||
@@ -301,6 +310,10 @@ export class LLMService {
         // Gestione successo CF specifici per funzione
         if (functionName === "GetLinkOrderByCode") {
           return `Ciao! Di seguito puoi trovare il link dell'ordine che stai cercando dove puoi scaricare la fattura e la bolla di trasporto: ${functionResult.linkUrl || functionResult.output || functionResult.message} - per motivi di sicurezza sarà valido per 1 ora.`
+        }
+
+        if (functionName === "GetShipmentTrackingLink") {
+          return `Ciao! Il tuo ordine ${functionResult.orderCode || "ultimo"} è in viaggio 📦 Clicca qui per seguire il tuo pacco in tempo reale: ${functionResult.linkUrl}`
         }
 
         return (
