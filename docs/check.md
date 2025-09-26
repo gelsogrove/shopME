@@ -28,7 +28,7 @@
 NON VA
 
 - {{CATEGORIES}}
-- nuovo untente
+- nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
 - non va MCP
 - non ca il DEBUG DI FE > la data nei messaggi
 - non traduce perfettametne prova con dammi ordine BLABLABLA in spagnolo
@@ -39,4 +39,3 @@ NON VA
 - dettagli di compagnia www. social..
 - un help ci vorrebbe da mettere nel prompt
 - FE con le lingue come va?
-- Alle CATEGORIE METTI DELLE ICONE NEL SEED.PLEASE

@@ -900,61 +900,61 @@ async function main() {
       name: "Cheeses & Dairy",
       slug: "cheeses-dairy",
       description:
-        "Formaggi e latticini italiani premium, mozzarella, burrata e prodotti caseari di alta qualità.",
+        "🧀 Formaggi e latticini italiani premium, mozzarella, burrata e prodotti caseari di alta qualità.",
     },
     {
       name: "Cured Meats",
       slug: "cured-meats",
       description:
-        "Salumi tradizionali italiani e insaccati artigianali di alta qualità.",
+        "🥓 Salumi tradizionali italiani e insaccati artigianali di alta qualità.",
     },
     {
       name: "Salami & Cold Cuts",
       slug: "salami-cold-cuts",
       description:
-        "Salami artigianali, prosciutto e affettati italiani della migliore tradizione.",
+        "🍖 Salami artigianali, prosciutto e affettati italiani della migliore tradizione.",
     },
     {
       name: "Pasta & Rice",
       slug: "pasta-rice",
       description:
-        "Pasta e riso italiani premium, varietà tradizionali e artigianali di alta qualità.",
+        "🍝 Pasta e riso italiani premium, varietà tradizionali e artigianali di alta qualità.",
     },
     {
       name: "Tomato Products",
       slug: "tomato-products",
       description:
-        "Salse di pomodoro italiane, passata e prodotti a base di pomodoro di qualità superiore.",
+        "🍅 Salse di pomodoro italiane, passata e prodotti a base di pomodoro di qualità superiore.",
     },
     {
       name: "Flour & Baking",
       slug: "flour-baking",
       description:
-        "Farine italiane e ingredienti per panificazione e pasticceria artigianale.",
+        "🌾 Farine italiane e ingredienti per panificazione e pasticceria artigianale.",
     },
     {
       name: "Sauces & Preserves",
       slug: "sauces-preserves",
       description:
-        "Salse gourmet, conserve e condimenti italiani di alta qualità per arricchire ogni piatto.",
+        "🫙 Salse gourmet, conserve e condimenti italiani di alta qualità per arricchire ogni piatto.",
     },
     {
       name: "Water & Beverages",
       slug: "water-beverages",
       description:
-        "Acque minerali italiane premium e bevande tradizionali di alta qualità.",
+        "💧 Acque minerali italiane premium e bevande tradizionali di alta qualità.",
     },
     {
       name: "Frozen Products",
       slug: "frozen-products",
       description:
-        "Dolci surgelati italiani, pasticceria e specialità congelate di alta qualità.",
+        "🧊 Dolci surgelati italiani, pasticceria e specialità congelate di alta qualità.",
     },
     {
       name: "Various & Spices",
       slug: "various-spices",
       description:
-        "Spezie italiane, condimenti e vari prodotti gourmet per la cucina tradizionale.",
+        "🌶️ Spezie italiane, condimenti e vari prodotti gourmet per la cucina tradizionale.",
     },
   ]
 
@@ -2908,8 +2908,7 @@ async function main() {
     data: {
       chatSessionId: chatSession1.id,
       direction: "OUTBOUND",
-      content:
-        "Ciao, piacere di conoscerti! Come posso aiutarti?",
+      content: "Ciao, piacere di conoscerti! Come posso aiutarti?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
@@ -2947,8 +2946,7 @@ async function main() {
     data: {
       chatSessionId: chatSession2.id,
       direction: "OUTBOUND",
-      content:
-        "Hi, nice to meet you! How can I help you?",
+      content: "Hi, nice to meet you! How can I help you?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
@@ -2986,8 +2984,7 @@ async function main() {
     data: {
       chatSessionId: chatSession3.id,
       direction: "OUTBOUND",
-      content:
-        "¡Hola, mucho gusto conocerte! ¿Cómo puedo ayudarte?",
+      content: "¡Hola, mucho gusto conocerte! ¿Cómo puedo ayudarte?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
@@ -3025,8 +3022,7 @@ async function main() {
     data: {
       chatSessionId: chatSession4.id,
       direction: "OUTBOUND",
-      content:
-        "Olá, prazer em conhecê-lo! Como posso ajudá-lo?",
+      content: "Olá, prazer em conhecê-lo! Como posso ajudá-lo?",
       type: "TEXT",
       aiGenerated: true,
       metadata: {
