@@ -308,26 +308,30 @@ Restituisci testo formattato in Markdown arricchiendo le risposte e saludando l'
       }
     }
 
-    // Handle [LIST_ALL_PRODUCTS] token
+    // Handle [LIST_ALL_PRODUCTS] token - UPDATED: Use prompt data instead of CF
     if (result.includes("[LIST_ALL_PRODUCTS]")) {
       try {
-        const {
-          GetAllProducts,
-        } = require("../chatbot/calling-functions/GetAllProducts")
+        const { MessageRepository } = require("../repositories/message.repository")
+        const { PrismaClient } = require("@prisma/client")
+        const prisma = new PrismaClient()
+        const messageRepo = new MessageRepository(prisma)
+        
+        // Get customer discount for price calculation
+        const customerDiscount = customerId ? 
+          (await prisma.customers.findUnique({ 
+            where: { id: customerId }, 
+            select: { discount: true } 
+          }))?.discount || 0 : 0
+        
+        const productsData = await messageRepo.getActiveProducts(workspaceId, customerDiscount)
 
-        const productsResult = await GetAllProducts({
-          phoneNumber: "unknown",
-          workspaceId: workspaceId,
-          customerId: customerId,
-          message: "Get all products",
-          language: language,
-        })
-
-        if (productsResult.response) {
-          result = result.replace(
-            /\[LIST_ALL_PRODUCTS\]/g,
-            productsResult.response
-          )
+        if (productsData) {
+          result = result.replace(/\[LIST_ALL_PRODUCTS\]/g, productsData)
+        } else {
+          const fallback = language === "it" ? 
+            "Nessun prodotto disponibile al momento" : 
+            "No products available at the moment"
+          result = result.replace(/\[LIST_ALL_PRODUCTS\]/g, fallback)
         }
       } catch (error) {
         console.error("❌ Error replacing [LIST_ALL_PRODUCTS]:", error.message)

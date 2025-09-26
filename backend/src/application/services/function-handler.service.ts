@@ -237,17 +237,7 @@ export class FunctionHandlerService {
       switch (functionName) {
         // 🛒 CART OPERATIONS - REMOVED (now handled via web link)
 
-        // 📦 PRODUCT OPERATIONS
-        case "get_all_products":
-          return {
-            data: await this.handleGetAllProducts(
-              phoneNumber,
-              workspaceId,
-              customer?.id,
-              ""
-            ),
-            functionName,
-          }
+        // 📦 PRODUCT OPERATIONS - GetAllProducts REMOVED (redundant with {{PRODUCTS}} in prompt)
 
         // 🚚 SHIPMENT TRACKING
         case "getShipmentTrackingLink":
@@ -558,39 +548,6 @@ export class FunctionHandlerService {
       }
     } catch (error) {
       logger.error("❌ Errore in searchProducts:", error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Errore interno",
-      }
-    }
-  }
-
-  /**
-   * Ottiene tutti i prodotti
-   */
-  async handleGetAllProducts(
-    phoneNumber: string,
-    workspaceId: string,
-    customerId: string,
-    message: string
-  ): Promise<any> {
-    try {
-      // TODO: Implement getAllProducts functionality
-      // const result = await getAllProducts({
-      //   phoneNumber,
-      //   workspaceId,
-      //   customerId,
-      //   message
-      // })
-
-      return {
-        success: true,
-        response: "Prodotti ottenuti con successo",
-        products: [],
-        totalProducts: 0,
-      }
-    } catch (error) {
-      logger.error("❌ Errore in handleGetAllProducts:", error)
       return {
         success: false,
         error: error instanceof Error ? error.message : "Errore interno",

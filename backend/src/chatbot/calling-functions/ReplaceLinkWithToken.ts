@@ -116,38 +116,27 @@ export async function ReplaceLinkWithToken(
     // Handle profile token
     if (hasProfileToken) {
       try {
-        const { PrismaClient } = require("@prisma/client")
-        const prisma = new PrismaClient()
+        const {
+          SecureTokenService,
+        } = require("../../application/services/secure-token.service")
+        const secureTokenService = new SecureTokenService()
 
-        const customer = await prisma.customers.findFirst({
-          where: {
-            id: customerId,
-            workspaceId: workspaceId,
-          },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        })
+        const profileToken = await secureTokenService.createToken(
+          "profile",
+          workspaceId,
+          { customerId, workspaceId },
+          "1h",
+          undefined,
+          undefined,
+          undefined,
+          customerId
+        )
 
-        if (customer) {
-          const profileToken = Buffer.from(
-            `${customerId}:${workspaceId}:${Date.now()}`
-          ).toString("base64")
-          const profileLink = `http://localhost:3000/customer-profile?token=${profileToken}`
-          replacedResponse = replacedResponse.replace(
-            /\[LINK_PROFILE_WITH_TOKEN\]/g,
-            profileLink
-          )
-        } else {
-          replacedResponse = replacedResponse.replace(
-            /\[LINK_PROFILE_WITH_TOKEN\]/g,
-            "Link del profilo non disponibile"
-          )
-        }
-
-        await prisma.$disconnect()
+        const profileLink = `http://localhost:3000/customer-profile?token=${profileToken}`
+        replacedResponse = replacedResponse.replace(
+          /\[LINK_PROFILE_WITH_TOKEN\]/g,
+          profileLink
+        )
       } catch (error) {
         console.error("❌ Error generating profile link:", error)
         replacedResponse = replacedResponse.replace(

@@ -39,7 +39,7 @@ export class PromptProcessorService {
     if (processedPrompt.includes("{{PRODUCTS}}")) {
       console.log("🔧 DEBUG: Cerco PRODUCTS per workspaceId:", workspaceId)
       const products =
-        await this.messageRepository.getActiveProducts(workspaceId)
+        await this.messageRepository.getActiveProducts(workspaceId, 0) // Default discount: 0
       console.log(
         "🔧 DEBUG: PRODUCTS trovati:",
         products ? `${products.length} chars` : "VUOTO"

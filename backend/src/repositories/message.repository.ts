@@ -887,9 +887,10 @@ export class MessageRepository {
   /**
    * Recupera i prodotti attivi dal database e li formatta per il prompt.
    * @param workspaceId L'ID del workspace.
+   * @param customerDiscount Sconto del customer (opzionale)
    * @returns Una stringa con i prodotti formattati.
    */
-  async getActiveProducts(workspaceId: string): Promise<string> {
+  async getActiveProducts(workspaceId: string, customerDiscount: number = 0): Promise<string> {
     try {
       const products = await this.prisma.products.findMany({
         where: {
@@ -897,6 +898,7 @@ export class MessageRepository {
           isActive: true,
         },
         select: {
+          id: true,
           name: true,
           ProductCode: true,
           price: true,
@@ -917,27 +919,51 @@ export class MessageRepository {
         return ""
       }
 
-      // Raggruppa i prodotti per categoria
+      // Calcola i prezzi con sconti
+      const { PriceCalculationService } = await import("../application/services/price-calculation.service")
+      const priceService = new PriceCalculationService(this.prisma)
+      const productIds = products.map(p => p.id)
+      const priceResult = await priceService.calculatePricesWithDiscounts(workspaceId, productIds, customerDiscount)
+      const priceMap = new Map(priceResult.products.map(p => [p.id, p]))
+      
+      // 🔧 DEBUG: Controlla risultati pricing
+      console.log("🔧 DEBUG getActiveProducts:")
+      console.log("  - customerDiscount:", customerDiscount)
+      console.log("  - productIds count:", productIds.length)
+      console.log("  - priceResult.products count:", priceResult.products.length)
+      console.log("  - Sample price data:", priceResult.products.slice(0, 2))
+
+      // Raggruppa i prodotti per categoria con prezzi scontati
       const productsByCategory = products.reduce(
         (acc, product) => {
           const categoryName = product.category?.name || "Senza Categoria"
+          const priceData = priceMap.get(product.id)
           if (!acc[categoryName]) {
             acc[categoryName] = []
           }
-          acc[categoryName].push(product)
+          acc[categoryName].push({
+            ...product,
+            originalPrice: priceData?.originalPrice || product.price,
+            finalPrice: priceData?.finalPrice || product.price,
+            hasDiscount: (priceData?.appliedDiscount || 0) > 0
+          })
           return acc
         },
-        {} as Record<string, typeof products>
+        {} as Record<string, any[]>
       )
 
-      // Formatta l'output
+      // Formatta l'output con prezzi scontati
       let formattedProducts =
         "\n\nLISTA COMPLETA DEI PRODOTTI - L'ALTRA ITALIA\n"
       for (const categoryName in productsByCategory) {
         const productList = productsByCategory[categoryName]
         formattedProducts += `🧀 ${categoryName.toUpperCase()} (${productList.length} prodotti)\n`
         productList.forEach((p) => {
-          formattedProducts += `• ${p.name} | ${categoryName} | €${p.price} | ${p.ProductCode}\n`
+          if (p.hasDiscount) {
+            formattedProducts += `• ${p.name} | ${categoryName} | ~~€${p.originalPrice}~~ → €${p.finalPrice} | ${p.ProductCode}\n`
+          } else {
+            formattedProducts += `• ${p.name} | ${categoryName} | €${p.finalPrice} | ${p.ProductCode}\n`
+          }
         })
         formattedProducts += "\n"
       }
@@ -2182,7 +2208,7 @@ export class MessageRepository {
         prompt: agentConfig.prompt || "",
         model: agentConfig.model || "openai/gpt-4o-mini",
         temperature: agentConfig.temperature || 0.0, // Default to 0 temperature
-        maxTokens: agentConfig.maxTokens || 1000,
+        maxTokens: agentConfig.maxTokens || 3500,
       }
     } catch (error) {
       logger.error(
@@ -2259,7 +2285,7 @@ export class MessageRepository {
         content: prompt.content,
         model: prompt.model || "openai/gpt-4o-mini",
         temperature: prompt.temperature || 0.0, // Default to 0 temperature
-        maxTokens: prompt.max_tokens || 1000,
+        maxTokens: prompt.max_tokens || 3500,
       }
     } catch (error) {
       logger.error(`Error getting prompt "${promptName}":`, error)

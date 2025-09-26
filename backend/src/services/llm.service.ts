@@ -69,7 +69,8 @@ export class LLMService {
 
     // 5. Pre-processing:
     const faqs = await messageRepo.getActiveFaqs(workspace.id)
-    const products = (await messageRepo.getActiveProducts(workspace.id)) || ""
+    const customerDiscount = customer.discount || 0
+    const products = (await messageRepo.getActiveProducts(workspace.id, customerDiscount)) || ""
     const languageMap = {
       en: "Inglese",
       es: "Spagnolo",
@@ -253,7 +254,7 @@ export class LLMService {
             messages: messages,
             tools: this.getAvailableFunctions(),
             temperature: workspace.temperature || 0.3,
-            max_tokens: workspace.maxTokens || 1500,
+            max_tokens: workspace.maxTokens || 3500,
           }),
         }
       )
