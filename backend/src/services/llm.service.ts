@@ -87,7 +87,8 @@ export class LLMService {
       nameUser: customer.name || "",
       discountUser: customer.discount || "",
       companyName: customer.company || "",
-      lastordercode: customerData?.lastordercode || customer.lastOrderCode || "",
+      lastordercode:
+        customerData?.lastordercode || customer.lastOrderCode || "",
       languageUser: translatedLanguage,
     }
 
@@ -287,18 +288,27 @@ export class LLMService {
         // Le CF restituiscono già una risposta finale formattata, non serve seconda chiamata LLM
         if (functionResult.success === false) {
           // Gestione errori CF specifici per funzione
-          if (functionName === 'GetLinkOrderByCode') {
+          if (functionName === "GetLinkOrderByCode") {
             return "Mi spiace non abbiamo trovato il tuo ordine. Di seguito la lista dei tuoi ordini: [LINK_ORDERS_WITH_TOKEN]"
           }
-          return functionResult.message || functionResult.error || "Si è verificato un errore."
+          return (
+            functionResult.message ||
+            functionResult.error ||
+            "Si è verificato un errore."
+          )
         }
-        
+
         // Gestione successo CF specifici per funzione
-        if (functionName === 'GetLinkOrderByCode') {
+        if (functionName === "GetLinkOrderByCode") {
           return `Ciao! Di seguito puoi trovare il link dell'ordine che stai cercando dove puoi scaricare la fattura e la bolla di trasporto: ${functionResult.linkUrl || functionResult.output || functionResult.message} - per motivi di sicurezza sarà valido per 1 ora.`
         }
-        
-        return functionResult.message || functionResult.output || functionResult.linkUrl || `Ciao! 😊 Di seguito puoi vedere il tuo ordine: per motivi di sicurezza sarà valido per 1 ora - ${functionResult.linkUrl}`
+
+        return (
+          functionResult.message ||
+          functionResult.output ||
+          functionResult.linkUrl ||
+          `Ciao! 😊 Di seguito puoi vedere il tuo ordine: per motivi di sicurezza sarà valido per 1 ora - ${functionResult.linkUrl}`
+        )
       }
 
       const llmResponse =
@@ -332,14 +342,20 @@ export class LLMService {
           return await this.callingFunctionsService.getShipmentTrackingLink({
             customerId: customer.id,
             workspaceId: workspace.id,
-            orderCode: args.orderCode || customerData?.lastordercode || customer.lastOrderCode,
+            orderCode:
+              args.orderCode ||
+              customerData?.lastordercode ||
+              customer.lastOrderCode,
           })
 
         case "GetLinkOrderByCode":
           return await this.callingFunctionsService.getOrdersListLink({
             customerId: customer.id,
             workspaceId: workspace.id,
-            orderCode: args.orderCode || customerData?.lastordercode || customer.lastOrderCode,
+            orderCode:
+              args.orderCode ||
+              customerData?.lastordercode ||
+              customer.lastOrderCode,
           })
 
         default:

@@ -26,7 +26,6 @@
 NON VA
 
 - Quando arriva il mio ordine DHL
--
 - {{CATEGORIES}}
 - nuovo untente
 - Frontentd
