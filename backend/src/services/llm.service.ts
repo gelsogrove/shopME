@@ -87,7 +87,7 @@ export class LLMService {
       nameUser: customer.name || "",
       discountUser: customer.discount || "",
       companyName: customer.company || "",
-      lastordercode: customer.lastOrderCode || "",
+      lastordercode: customerData?.lastordercode || customer.lastOrderCode || "",
       languageUser: translatedLanguage,
     }
 
@@ -121,7 +121,8 @@ export class LLMService {
       promptWithVars,
       llmRequest.chatInput,
       workspace,
-      customer
+      customer,
+      customerData
     )
 
     // 7. Post-processing: Replace link tokens
@@ -229,7 +230,8 @@ export class LLMService {
     processedPrompt: string,
     userQuery: string,
     workspace: any,
-    customer: any
+    customer: any,
+    customerData?: any
   ): Promise<string> {
     try {
       const messages = [
@@ -278,11 +280,25 @@ export class LLMService {
           functionName,
           functionArgs,
           customer,
-          workspace
+          workspace,
+          customerData
         )
 
         // Le CF restituiscono già una risposta finale formattata, non serve seconda chiamata LLM
-        return functionResult.message || functionResult.output || "error CF"
+        if (functionResult.success === false) {
+          // Gestione errori CF specifici per funzione
+          if (functionName === 'GetLinkOrderByCode') {
+            return "Mi spiace non abbiamo trovato il tuo ordine. Di seguito la lista dei tuoi ordini: [LINK_ORDERS_WITH_TOKEN]"
+          }
+          return functionResult.message || functionResult.error || "Si è verificato un errore."
+        }
+        
+        // Gestione successo CF specifici per funzione
+        if (functionName === 'GetLinkOrderByCode') {
+          return `Ciao! Di seguito puoi trovare il link dell'ordine che stai cercando dove puoi scaricare la fattura e la bolla di trasporto: ${functionResult.linkUrl || functionResult.output || functionResult.message} - per motivi di sicurezza sarà valido per 1 ora.`
+        }
+        
+        return functionResult.message || functionResult.output || functionResult.linkUrl || `Ciao! 😊 Di seguito puoi vedere il tuo ordine: per motivi di sicurezza sarà valido per 1 ora - ${functionResult.linkUrl}`
       }
 
       const llmResponse =
@@ -300,7 +316,8 @@ export class LLMService {
     functionName: string,
     args: any,
     customer: any,
-    workspace: any
+    workspace: any,
+    customerData?: any
   ): Promise<any> {
     try {
       switch (functionName) {
@@ -315,14 +332,14 @@ export class LLMService {
           return await this.callingFunctionsService.getShipmentTrackingLink({
             customerId: customer.id,
             workspaceId: workspace.id,
-            orderCode: args.orderCode || customer.lastOrderCode,
+            orderCode: args.orderCode || customerData?.lastordercode || customer.lastOrderCode,
           })
 
         case "GetLinkOrderByCode":
           return await this.callingFunctionsService.getOrdersListLink({
             customerId: customer.id,
             workspaceId: workspace.id,
-            orderCode: args.orderCode || customer.lastOrderCode,
+            orderCode: args.orderCode || customerData?.lastordercode || customer.lastOrderCode,
           })
 
         default:

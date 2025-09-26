@@ -330,8 +330,9 @@ export class CallingFunctionsService {
       } = require("../chatbot/calling-functions/ContactOperator")
 
       const result = await ContactOperator({
-        phone: request.phoneNumber,
+        phoneNumber: request.phoneNumber, // 🎯 CORRETTO: phoneNumber invece di phone
         workspaceId: request.workspaceId,
+        customerId: request.customerId, // 🎯 AGGIUNTO: customerId se disponibile
       })
 
       console.log("✅ ContactOperator result:", result)

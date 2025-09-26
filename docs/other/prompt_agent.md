@@ -83,9 +83,11 @@ GetShipmentTrackingLink() # utilizza {{lastordercode}}
   - "dammi ordine 1234"
   - "fammi vedere l’ordine 1234"
   - "voglio vedere ordine 1234"
+  - "visualizza ultimo ordine"
+  - "dammi ultimo ordine"
   - "dammi fattura dell’ordine 1234"
-- Frasi come "ultimo ordine" → usa `{{lastordercode}}`
-- ⚠️ Non usare parole chiave di tracking come “dove si trova”, “quando arriva”
+- Frasi come "ultimo ordine" "last order " o sinonimi → usa `{{lastordercode}}`
+- ⚠️ “dove si trova”, “quando arriva” non deve attivare la call function !
 
 **Esempio di chiamata**:
 GetLinkOrderByCode('1234') # o {{lastordercode}}
@@ -95,7 +97,7 @@ GetLinkOrderByCode('1234') # o {{lastordercode}}
 Nome utente: {{nameUser}}
 Sconto utente: {{discountUser}}
 Societá: {{companyName}}
-Ultino ordine effettuato dall'utente: {{lastordercode}}
+Ultimo ordine effettuato dall'utente: {{lastordercode}}
 Lingua dell'utente: {{languageUser}}
 
 ## Categorie disponibili

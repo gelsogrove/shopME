@@ -2580,21 +2580,6 @@ async function main() {
         "Hello! You can change your shipping address through this secure link: [LINK_PROFILE_WITH_TOKEN]",
     },
     {
-      question: "Where is my last order?",
-      answer:
-        "Hello! To view your orders, click this link: [LINK_ORDERS_WITH_TOKEN]",
-    },
-    {
-      question: "dammi fattura ultimo ordine",
-      answer:
-        "Ciao! Per visualizzare la fattura del tuo ultimo ordine, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
-    },
-    {
-      question: "dammi DDT ultimo ordine",
-      answer:
-        "Ciao! Per visualizzare il DDT del tuo ultimo ordine, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
-    },
-    {
       question: "dammi lista ordini",
       answer:
         "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
@@ -2608,11 +2593,6 @@ async function main() {
       question: "voglio modificare il mio profilo",
       answer:
         "Ciao! Puoi modificare il tuo profilo attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
-    },
-    {
-      question: "dove è il mio ultimo ordine?",
-      answer:
-        "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "mostra i miei ordini",
