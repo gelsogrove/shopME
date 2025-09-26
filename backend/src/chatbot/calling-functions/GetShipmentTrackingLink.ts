@@ -1,6 +1,6 @@
-import { OrderStatus, PrismaClient } from '@prisma/client'
-import { SecureTokenService } from '../../application/services/secure-token.service'
-import logger from '../../utils/logger'
+import { OrderStatus, PrismaClient } from "@prisma/client"
+import { SecureTokenService } from "../../application/services/secure-token.service"
+import logger from "../../utils/logger"
 
 export interface GetShipmentTrackingLinkParams {
   workspaceId: string
@@ -15,61 +15,71 @@ export interface GetShipmentTrackingLinkResult {
   trackingUrl: string | null
 }
 
-export async function GetShipmentTrackingLink(params: GetShipmentTrackingLinkParams): Promise<GetShipmentTrackingLinkResult | null> {
-  logger.info(`[TRACKING-LINK] Starting GetShipmentTrackingLink for customer ${params.customerId} in workspace ${params.workspaceId}`)
-  
+export async function GetShipmentTrackingLink(
+  params: GetShipmentTrackingLinkParams
+): Promise<GetShipmentTrackingLinkResult | null> {
+  logger.info(
+    `[TRACKING-LINK] Starting GetShipmentTrackingLink for customer ${params.customerId} in workspace ${params.workspaceId}`
+  )
+
   // Find latest order regardless of status
   const prisma = new PrismaClient()
   const latestOrder = await prisma.orders.findFirst({
     where: {
       customerId: params.customerId,
-      workspaceId: params.workspaceId
+      workspaceId: params.workspaceId,
     },
     orderBy: {
-      createdAt: 'desc'
+      createdAt: "desc",
     },
     select: {
       id: true,
       orderCode: true,
       status: true,
-      trackingNumber: true
-    }
+      trackingNumber: true,
+    },
   })
-  
+
   if (!latestOrder) {
-    logger.warn(`[TRACKING-LINK] No orders found for customer ${params.customerId}`)
+    logger.warn(
+      `[TRACKING-LINK] No orders found for customer ${params.customerId}`
+    )
     return null
   }
-  
+
   const result = {
     orderId: latestOrder.id,
     orderCode: latestOrder.orderCode,
     status: latestOrder.status,
     trackingNumber: latestOrder.trackingNumber,
-    trackingUrl: null
+    trackingUrl: null,
   }
 
-  logger.info(`[TRACKING-LINK] Found order ${result.orderCode} with status ${result.status}`)
+  logger.info(
+    `[TRACKING-LINK] Found order ${result.orderCode} with status ${result.status}`
+  )
 
   try {
     // Get customer phone number for URL construction (reuse existing prisma instance)
     const customer = await prisma.customers.findFirst({
-      where: { 
+      where: {
         id: params.customerId,
-        workspaceId: params.workspaceId 
+        workspaceId: params.workspaceId,
       },
       select: {
         phone: true,
         workspace: {
           select: {
-            url: true
-          }
-        }
-      }
+            url: true,
+          },
+        },
+      },
     })
 
     if (!customer) {
-      logger.warn(`[TRACKING-LINK] Customer not found for ID ${params.customerId}, falling back to DHL URL`)
+      logger.warn(
+        `[TRACKING-LINK] Customer not found for ID ${params.customerId}, falling back to DHL URL`
+      )
       // Fallback to original DHL URL if customer not found
       return result
     }
@@ -82,40 +92,54 @@ export async function GetShipmentTrackingLink(params: GetShipmentTrackingLinkPar
       customerId: params.customerId,
       workspaceId: params.workspaceId,
       orderCode: result.orderCode,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     }
 
     logger.info(`[TRACKING-LINK] Generating token with payload:`, tokenPayload)
 
     const token = await secureTokenService.createToken(
-      'orders',
+      "orders",
       params.workspaceId,
       tokenPayload,
-      '24h',
+      "24h",
       params.customerId,
       customer.phone,
       undefined,
       params.customerId
     )
 
-    logger.info(`[TRACKING-LINK] Token generated successfully: ${token.substring(0, 12)}...`)
+    logger.info(
+      `[TRACKING-LINK] Token generated successfully: ${token.substring(0, 12)}...`
+    )
 
-    // Build ShopMe URL with token
-    const baseUrl = customer.workspace?.url || process.env.FRONTEND_URL || 'http://localhost:3000'
-    const shopMeUrl = `${baseUrl}/orders-public/${result.orderCode}?token=${token}`
+    // Use centralized link generator for consistent URL shortening
+    const {
+      linkGeneratorService,
+    } = require("../../application/services/link-generator.service")
 
-    logger.info(`[TRACKING-LINK] Generated ShopMe URL: ${shopMeUrl}`)
+    // Generate short tracking URL using centralized service
+    const baseUrl =
+      customer.workspace?.url ||
+      process.env.FRONTEND_URL ||
+      "http://localhost:3000"
+    const shopMeUrl = await linkGeneratorService.generateShipmentTrackingLink(
+      baseUrl,
+      result.orderCode,
+      token,
+      params.workspaceId
+    )
+
+    logger.info(`[TRACKING-LINK] Generated ShopMe short URL: ${shopMeUrl}`)
 
     await prisma.$disconnect()
-    
-    // Return result with ShopMe URL instead of DHL URL
+
+    // Return result with short URL
     return {
       ...result,
-      trackingUrl: shopMeUrl
+      trackingUrl: shopMeUrl,
     }
-
   } catch (error) {
-    logger.error('[TRACKING-LINK] Error generating ShopMe tracking URL:', error)
+    logger.error("[TRACKING-LINK] Error generating ShopMe tracking URL:", error)
     await prisma.$disconnect()
     // Fallback to original DHL URL if token generation fails
     return result
@@ -123,14 +147,15 @@ export async function GetShipmentTrackingLink(params: GetShipmentTrackingLinkPar
 }
 
 export const GetShipmentTrackingLinkFunction = {
-  name: 'GetShipmentTrackingLink',
-  description: 'Return trackingNumber and ShopMe tracking URL for latest processing order of a customer in a workspace',
+  name: "GetShipmentTrackingLink",
+  description:
+    "Return trackingNumber and ShopMe tracking URL for latest processing order of a customer in a workspace",
   parameters: {
-    type: 'object',
+    type: "object",
     properties: {
-      workspaceId: { type: 'string' },
-      customerId: { type: 'string' }
+      workspaceId: { type: "string" },
+      customerId: { type: "string" },
     },
-    required: ['workspaceId', 'customerId']
-  }
+    required: ["workspaceId", "customerId"],
+  },
 }

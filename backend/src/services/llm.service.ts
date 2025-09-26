@@ -1,6 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import { TokenService } from "../application/services/token.service"
+import { urlShortenerService } from "../application/services/url-shortener.service"
 import { LLMRequest } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
 import { PromptProcessorService } from "./prompt-processor.service"
@@ -159,9 +160,28 @@ export class LLMService {
         customerId: customer.id,
         workspaceId: workspace.id,
       })
+      let linkUrl = checkoutLink?.linkUrl || ""
+
+      // Create short URL if we have a valid long URL
+      if (linkUrl) {
+        try {
+          const shortResult = await urlShortenerService.createShortUrl(
+            linkUrl,
+            workspace.id
+          )
+          linkUrl = `http://localhost:3001${shortResult.shortUrl}`
+          console.log(`📎 LLMService: Created short checkout link: ${linkUrl}`)
+        } catch (error) {
+          console.warn(
+            "⚠️ LLMService: Failed to create short URL, using long URL:",
+            error
+          )
+        }
+      }
+
       finalResponse = finalResponse.replace(
         "[LINK_CHECKOUT_WITH_TOKEN]",
-        checkoutLink?.linkUrl || ""
+        linkUrl
       )
     }
 
@@ -186,18 +206,40 @@ export class LLMService {
         customerId: customer.id,
         workspaceId: workspace.id,
       })
-      finalResponse = finalResponse.replace(
-        "[LINK_ORDERS_WITH_TOKEN]",
-        ordersLink?.linkUrl || ""
-      )
+      let linkUrl = ordersLink?.linkUrl || ""
+
+      // Create short URL if we have a valid long URL
+      if (linkUrl) {
+        try {
+          const shortResult = await urlShortenerService.createShortUrl(
+            linkUrl,
+            workspace.id
+          )
+          linkUrl = `http://localhost:3001${shortResult.shortUrl}`
+          console.log(`📎 LLMService: Created short orders link: ${linkUrl}`)
+        } catch (error) {
+          console.warn(
+            "⚠️ LLMService: Failed to create short URL for orders, using long URL:",
+            error
+          )
+        }
+      }
+
+      finalResponse = finalResponse.replace("[LINK_ORDERS_WITH_TOKEN]", linkUrl)
     }
 
-    // Replace catalog link token (static link)
+    // Replace catalog link token
     if (finalResponse.includes("[LINK_CATALOG]")) {
-      finalResponse = finalResponse.replace(
-        "[LINK_CATALOG]",
-        "https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf"
-      )
+      const catalogResult =
+        await this.callingFunctionsService.replaceLinkWithToken(
+          finalResponse,
+          "catalog",
+          customer.id,
+          workspace.id
+        )
+      if (catalogResult?.success && catalogResult?.message) {
+        finalResponse = catalogResult.message
+      }
     }
 
     return finalResponse
@@ -437,7 +479,32 @@ export class LLMService {
       new (require("../repositories/message.repository").MessageRepository)()
     const token = await tokenService.createRegistrationToken(phone, workspaceId)
     const workspaceUrl = await messageRepo.getWorkspaceUrl(workspaceId)
-    return `${workspaceUrl.replace(/\/$/, "")}/register?token=${token}`
+    const registrationLink = `${workspaceUrl.replace(/\/$/, "")}/register?token=${token}`
+
+    // Create short URL for registration link
+    try {
+      const {
+        URLShortenerService,
+      } = require("../application/services/url-shortener.service")
+      const urlShortenerService = new URLShortenerService()
+
+      const shortResult = await urlShortenerService.createShortUrl(
+        registrationLink,
+        workspaceId
+      )
+      const finalRegistrationLink = `${workspaceUrl.replace(/\/$/, "")}${shortResult.shortUrl}`
+
+      console.log(
+        `📎 Created short registration link: ${finalRegistrationLink} → ${registrationLink}`
+      )
+      return finalRegistrationLink
+    } catch (shortError) {
+      console.warn(
+        "⚠️ Failed to create short URL for registration, using long URL:",
+        shortError
+      )
+      return registrationLink
+    }
   }
 
   // Funzione che gestisce il flusso per un nuovo utente e ritorna direttamente l'oggetto di risposta

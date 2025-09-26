@@ -47,6 +47,7 @@ model Workspace {
   products                  Products[]
   secureTokens              SecureToken[]
   services                  Services[]
+  shortUrls                 ShortUrls[]
   usage                     Usage[]
   whatsappSettings          WhatsappSettings?
 }
@@ -676,6 +677,24 @@ enum UserRole {
   ADMIN
   OWNER
   MEMBER
+}
+
+model ShortUrls {
+  id             String    @id @default(cuid())
+  shortCode      String    @unique @db.VarChar(10)
+  originalUrl    String    @db.Text
+  workspaceId    String
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  clicks         Int       @default(0)
+  isActive       Boolean   @default(true)
+  expiresAt      DateTime?
+  lastAccessedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([shortCode])
+  @@index([workspaceId])
+  @@index([expiresAt])
 }
 
 enum BusinessType {

@@ -126,7 +126,7 @@ app.use(
   swaggerUi.setup(swaggerSpec, {
     explorer: true,
     customCss: ".swagger-ui .topbar { display: none }",
-    customSiteTitle: "ShopMe API Documentation"
+    customSiteTitle: "ShopMe API Documentation",
   })
 )
 
@@ -169,6 +169,10 @@ if (process.env.NODE_ENV !== "test") {
       })
   })
 }
+
+// Short URL routes (must be before API routes to handle /s/:shortCode)
+import { shortUrlRoutes } from "./interfaces/http/routes/short-url.routes"
+app.use("/", shortUrlRoutes)
 
 // Versioned routes
 app.use("/api/v1", apiRouter)

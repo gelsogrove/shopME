@@ -79,6 +79,36 @@ Prompt → Pre-process → OpenRouter+CF → Post-process → Response
 **Sicurezza**: Block invisibile con `null` return  
 **Accuratezza**: CF integrate con OpenRouter tools
 
+## 🔗 **URL SHORTENER - AUTO-CLEANUP IMPLEMENTATO**
+
+### **Rimozione Cron Job ✅**
+
+- ❌ **Eliminato** `background-jobs.service.ts` (con cron job)
+- ❌ **Rimosso** `node-cron` dal package.json
+- ❌ **Rimossa** inizializzazione da `app.ts`
+
+### **Pulizia Automatica ad Accesso ✅**
+
+- 🔄 **Auto-cleanup** ogni volta che viene acceduta una URL corta (`/s/:shortCode`)
+- 🧹 **Rimuove automaticamente**:
+  - Link scaduti (`expiresAt < now`)
+  - Link vecchi > 1 ora (`createdAt < 1 ora fa`)
+- ⚡ **Esecuzione asincrona** (non blocca il redirect)
+
+### **Funzioni Implementate**
+
+- `urlShortenerService.cleanupOldUrls()` → pulizia automatica (nuova)
+- `urlShortenerService.cleanupExpiredUrls()` → solo scaduti (esistente)
+- Integrata in `ShortUrlController.redirect()` per auto-trigger
+- Test endpoint `/api/test/short-urls/cleanup` aggiornato
+
+### **Vantaggi**
+
+- 🚀 **Performance**: Nessun processo background
+- 🔄 **Efficienza**: Database sempre pulito ad ogni accesso
+- 📦 **Leggerezza**: Meno dipendenze e complessità
+- 🎯 **Precisione**: Pulizia basata su utilizzo reale
+
 MCP
 
 # Formato generale:

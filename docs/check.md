@@ -28,13 +28,15 @@
 
 NON VA
 
+- fammi scaricar eil catalogo LINK
+- TEST LINK
+
 - non traduce perfettametne prova con dammi ordine BLABLABLA in spagnolo
 - non traduce le categorie
-
-- link corti
 - arriviamo fino all'ordine?
 - nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
 
 - DOCUMENTAZIONE SPORCA > MEMORY BANK
 - siamo sicuri che passiamo sempre il workspceID
 - FE con le lingue come va?
+- grazie per averci contattato....

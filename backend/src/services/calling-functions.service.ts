@@ -194,12 +194,16 @@ export class CallingFunctionsService {
       )
       console.log("🔧 Token created successfully:", token)
 
-      let linkUrl: string
-      if (request.orderCode) {
-        linkUrl = `http://localhost:3000/orders-public/${request.orderCode}?token=${token}`
-      } else {
-        linkUrl = `http://localhost:3000/orders-public?token=${token}`
-      }
+      // Use centralized link generator for consistent URL shortening
+      const {
+        linkGeneratorService,
+      } = require("../application/services/link-generator.service")
+
+      let linkUrl: string = await linkGeneratorService.generateOrdersLink(
+        token,
+        request.workspaceId,
+        request.orderCode
+      )
 
       return {
         success: true,
@@ -433,12 +437,38 @@ export class CallingFunctionsService {
         } as TokenResponse
       }
 
-      // Generate DHL tracking link
-      const dhlTrackingUrl = `https://www.dhl.com/it-en/home/tracking.html?locale=true&tracking-id=${order.trackingNumber}`
+      // Generate internal tracking link with token
+      const {
+        SecureTokenService,
+      } = require("../application/services/secure-token.service")
+      const secureTokenService = new SecureTokenService()
+
+      const token = await secureTokenService.createToken(
+        "tracking",
+        request.workspaceId,
+        { customerId: request.customerId, workspaceId: request.workspaceId },
+        "1h",
+        undefined,
+        undefined,
+        undefined,
+        request.customerId
+      )
+
+      // Use centralized link generator for consistent URL shortening
+      const {
+        linkGeneratorService,
+      } = require("../application/services/link-generator.service")
+
+      // Generate tracking link for specific order (not generic orders list)
+      const trackingUrl = await linkGeneratorService.generateOrdersLink(
+        token,
+        request.workspaceId,
+        order.orderCode // Pass the specific order code
+      )
 
       return {
         success: true,
-        linkUrl: dhlTrackingUrl,
+        linkUrl: trackingUrl, // Now uses short URL instead of DHL direct link
         trackingNumber: order.trackingNumber,
         orderCode: order.orderCode,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),

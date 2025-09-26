@@ -2450,7 +2450,7 @@ async function main() {
     {
       question: "How can I see the product catalog?",
       answer:
-        "You can download our complete product catalog here: https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf",
+        "You can download our complete product catalog here: [LINK_CATALOG]",
     },
     {
       question: "What discount do I have on products?",

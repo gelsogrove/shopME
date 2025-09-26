@@ -2,8 +2,13 @@
  * ReplaceLinkWithToken Calling Function
  *
  * Handles replacement of [LINK_WITH_TOKEN] placeholders with actual generated links
- * Supports cart, profile, orders, tracking, and checkout links
+ * Supports cart, profile, orders, tracking, and checkout links with URL shortening
  */
+
+// Import URL shortener service for consistent link generation
+const {
+  linkGeneratorService,
+} = require("../../application/services/link-generator.service")
 
 interface ReplaceLinkWithTokenParams {
   response: string
@@ -45,6 +50,7 @@ export async function ReplaceLinkWithToken(
     const hasLastOrderInvoiceToken = response.includes(
       "[LINK_LAST_ORDER_INVOICE_WITH_TOKEN]"
     )
+    const hasCatalogToken = response.includes("[LINK_CATALOG]")
     const hasUserDiscountToken = response.includes("[USER_DISCOUNT]")
     const hasListOffersToken = response.includes("[LIST_OFFERS]")
     const hasListActiveOffersToken = response.includes("[LIST_ACTIVE_OFFERS]")
@@ -59,6 +65,7 @@ export async function ReplaceLinkWithToken(
       !hasTrackingToken &&
       !hasCheckoutToken &&
       !hasLastOrderInvoiceToken &&
+      !hasCatalogToken &&
       !hasUserDiscountToken &&
       !hasListOffersToken &&
       !hasListActiveOffersToken &&
@@ -99,10 +106,15 @@ export async function ReplaceLinkWithToken(
           customerId
         )
 
-        const cartLink = `http://localhost:3000/checkout?token=${cartToken}`
+        // Use centralized link generator for cart (which is actually checkout)
+        const finalCartLink = await linkGeneratorService.generateCheckoutLink(
+          cartToken,
+          workspaceId
+        )
+
         replacedResponse = replacedResponse.replace(
           /\[LINK_CHECKOUT_WITH_TOKEN\]/g,
-          cartLink
+          finalCartLink
         )
       } catch (error) {
         console.error("❌ Error generating cart link:", error)
@@ -132,10 +144,15 @@ export async function ReplaceLinkWithToken(
           customerId
         )
 
-        const profileLink = `http://localhost:3000/customer-profile?token=${profileToken}`
+        // Use centralized link generator
+        const finalProfileLink = await linkGeneratorService.generateProfileLink(
+          profileToken,
+          workspaceId
+        )
+
         replacedResponse = replacedResponse.replace(
           /\[LINK_PROFILE_WITH_TOKEN\]/g,
-          profileLink
+          finalProfileLink
         )
       } catch (error) {
         console.error("❌ Error generating profile link:", error)
@@ -179,9 +196,16 @@ export async function ReplaceLinkWithToken(
           ordersLink = `http://localhost:3000/orders-public?token=${ordersToken}`
         }
 
+        // Use centralized link generator
+        const finalOrdersLink = await linkGeneratorService.generateOrdersLink(
+          ordersToken,
+          workspaceId,
+          orderCodeParam
+        )
+
         replacedResponse = replacedResponse.replace(
           /\[LINK_ORDERS_WITH_TOKEN\]/g,
-          ordersLink
+          finalOrdersLink
         )
       } catch (error) {
         console.error("❌ Error generating orders link:", error)
@@ -211,10 +235,16 @@ export async function ReplaceLinkWithToken(
           customerId
         )
 
-        const trackingLink = `http://localhost:3000/tracking-public?token=${trackingToken}`
+        // Use centralized link generator
+        const finalTrackingLink =
+          await linkGeneratorService.generateTrackingLink(
+            trackingToken,
+            workspaceId
+          )
+
         replacedResponse = replacedResponse.replace(
           /\[LINK_TRACKING_WITH_TOKEN\]/g,
-          trackingLink
+          finalTrackingLink
         )
       } catch (error) {
         console.error("❌ Error generating tracking link:", error)
@@ -244,10 +274,16 @@ export async function ReplaceLinkWithToken(
           customerId
         )
 
-        const checkoutLink = `http://localhost:3000/checkout?token=${checkoutToken}`
+        // Use centralized link generator
+        const finalCheckoutLink =
+          await linkGeneratorService.generateCheckoutLink(
+            checkoutToken,
+            workspaceId
+          )
+
         replacedResponse = replacedResponse.replace(
           /\[LINK_CHECKOUT_WITH_TOKEN\]/g,
-          checkoutLink
+          finalCheckoutLink
         )
       } catch (error) {
         console.error("❌ Error generating checkout link:", error)
@@ -277,16 +313,46 @@ export async function ReplaceLinkWithToken(
           customerId
         )
 
-        const invoiceLink = `http://localhost:3000/invoice-public?token=${invoiceToken}`
+        // Use centralized link generator
+        const finalInvoiceLink = await linkGeneratorService.generateInvoiceLink(
+          invoiceToken,
+          workspaceId
+        )
+
         replacedResponse = replacedResponse.replace(
           /\[LINK_LAST_ORDER_INVOICE_WITH_TOKEN\]/g,
-          invoiceLink
+          finalInvoiceLink
         )
       } catch (error) {
         console.error("❌ Error generating invoice link:", error)
         replacedResponse = replacedResponse.replace(
           /\[LINK_LAST_ORDER_INVOICE_WITH_TOKEN\]/g,
           "Link della fattura non disponibile"
+        )
+      }
+    }
+
+    // Handle catalog token (static PDF link with URL shortening)
+    if (hasCatalogToken) {
+      try {
+        const catalogUrl =
+          "https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf"
+
+        // Use centralized link generator to create short URL for catalog
+        const finalCatalogLink = await linkGeneratorService.generateShortLink(
+          catalogUrl,
+          workspaceId
+        )
+
+        replacedResponse = replacedResponse.replace(
+          /\[LINK_CATALOG\]/g,
+          finalCatalogLink
+        )
+      } catch (error) {
+        console.error("❌ Error generating catalog link:", error)
+        replacedResponse = replacedResponse.replace(
+          /\[LINK_CATALOG\]/g,
+          "https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf"
         )
       }
     }
