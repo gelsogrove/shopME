@@ -907,7 +907,10 @@ export class MessageRepository {
 
       // Formatta i servizi come stringa per il prompt
       const formattedServices = services
-        .map((service) => `🔧 ${service.name}: ${service.description || 'Servizio disponibile'}`)
+        .map(
+          (service) =>
+            `🔧 ${service.name}: ${service.description || "Servizio disponibile"}`
+        )
         .join("\n")
 
       return `\n\n${formattedServices}`
