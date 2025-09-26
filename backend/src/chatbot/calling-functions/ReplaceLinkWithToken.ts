@@ -37,7 +37,7 @@ export async function ReplaceLinkWithToken(
       return { success: false, response }
     }
 
-    const hasCartToken = response.includes("[LINK_CART_WITH_TOKEN]")
+    const hasCartToken = response.includes("[LINK_CHECKOUT_WITH_TOKEN]")
     const hasProfileToken = response.includes("[LINK_PROFILE_WITH_TOKEN]")
     const hasOrdersToken = response.includes("[LINK_ORDERS_WITH_TOKEN]")
     const hasTrackingToken = response.includes("[LINK_TRACKING_WITH_TOKEN]")
@@ -101,13 +101,13 @@ export async function ReplaceLinkWithToken(
 
         const cartLink = `http://localhost:3000/checkout?token=${cartToken}`
         replacedResponse = replacedResponse.replace(
-          /\[LINK_CART_WITH_TOKEN\]/g,
+          /\[LINK_CHECKOUT_WITH_TOKEN\]/g,
           cartLink
         )
       } catch (error) {
         console.error("❌ Error generating cart link:", error)
         replacedResponse = replacedResponse.replace(
-          /\[LINK_CART_WITH_TOKEN\]/g,
+          /\[LINK_CHECKOUT_WITH_TOKEN\]/g,
           "Link del carrello non disponibile"
         )
       }

@@ -236,7 +236,7 @@ export class CallingFunctionsService {
       )
       console.log("🔧 Token created successfully:", token)
 
-      const linkUrl = `http://localhost:3000/cart?token=${token}`
+      const linkUrl = `http://localhost:3000/checkout?token=${token}`
 
       return {
         success: true,

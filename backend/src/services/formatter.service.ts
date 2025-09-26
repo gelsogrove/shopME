@@ -345,7 +345,7 @@ Restituisci testo formattato in Markdown arricchiendo le risposte e saludando l'
       "[LIST_OFFERS]",
       "[LIST_ACTIVE_OFFERS]",
       "[LINK_PROFILE_WITH_TOKEN]",
-      "[LINK_CART_WITH_TOKEN]",
+      "[LINK_CHECKOUT_WITH_TOKEN]",
       "[LINK_TRACKING_WITH_TOKEN]",
       "[LINK_CHECKOUT_WITH_TOKEN]",
       "[LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",

@@ -2631,32 +2631,32 @@ async function main() {
     },
     {
       question: "mostra carrello",
-      answer: "Ecco il tuo carrello! 🛒 [LINK_CART_WITH_TOKEN]",
+      answer: "Ecco il tuo carrello! 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
       question: "mosrami cararello",
-      answer: "Ecco il tuo carrello! 🛒 [LINK_CART_WITH_TOKEN]",
+      answer: "Ecco il tuo carrello! 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
       question: "show cart",
-      answer: "Here is your cart! 🛒 [LINK_CART_WITH_TOKEN]",
+      answer: "Here is your cart! 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
       question: "show my cart",
-      answer: "Here is your cart! 🛒 [LINK_CART_WITH_TOKEN]",
+      answer: "Here is your cart! 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
     },
     // New FAQ: activate cart / new order
     {
       question: "new order",
-      answer: "Click here to activate your cart 🛒 [LINK_CART_WITH_TOKEN]",
+      answer: "Click here to activate your cart 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
       question: "show cart",
-      answer: "Here is your cart! 🛒 [LINK_CART_WITH_TOKEN]",
+      answer: "Here is your cart! 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
       question: "show my cart",
-      answer: "Here is your cart! 🛒 [LINK_CART_WITH_TOKEN]",
+      answer: "Here is your cart! 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
       question: "che offerte avete?",
