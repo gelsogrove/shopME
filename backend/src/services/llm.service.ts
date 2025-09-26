@@ -90,7 +90,7 @@ export class LLMService {
       companyName: customer.company || "",
       lastordercode:
         customerData?.lastordercode || customer.lastOrderCode || "",
-      languageUser: translatedLanguage,
+      languageUser: userLanguage, // 🔧 FIX: Use language code (en, es, it, pt) not translated name
     }
 
     if (!faqs && !products && !services && !categories) {

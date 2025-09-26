@@ -28,13 +28,13 @@
 
 NON VA
 
-- link corti
-- FE con le lingue come va?
-- cateogie non vanno in spagnolo inglese e portoghese
-- non va MCP
 - non traduce perfettametne prova con dammi ordine BLABLABLA in spagnolo
+- non traduce le categorie
+
+- link corti
 - arriviamo fino all'ordine?
-- DOCUMENTAZIONE SPORCA > MEMORY BANK
-- - icone sulle categorie
 - nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
+
+- DOCUMENTAZIONE SPORCA > MEMORY BANK
 - siamo sicuri che passiamo sempre il workspceID
+- FE con le lingue come va?

@@ -78,3 +78,14 @@ Prompt → Pre-process → OpenRouter+CF → Post-process → Response
 **Performance**: 50% meno chiamate DB, 50% meno chiamate LLM per CF
 **Sicurezza**: Block invisibile con `null` return  
 **Accuratezza**: CF integrate con OpenRouter tools
+
+MCP
+
+# Formato generale:
+
+node mcp-test-client.js "Nome Utente" "messaggio" exit-first-message=true log=true
+
+# Altri esempi:
+
+node mcp-test-client.js "Mario Rossi" "che prodotti avete?" exit-first-message=true log=true
+node mcp-test-client.js "John Smith" "show me products" exit-first-message=true log=true

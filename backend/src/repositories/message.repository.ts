@@ -2736,11 +2736,68 @@ INSTRUCTIONS FOR LLM FORMATTER:
   }
 
   /**
+   * Mapping delle traduzioni per le categorie
+   */
+  private getCategoryTranslations() {
+    return {
+      "Formaggi e Latticini": {
+        es: "Quesos y Lácteos",
+        pt: "Queijos e Laticínios", 
+        en: "Cheese and Dairy",
+        it: "Formaggi e Latticini"
+      },
+      "Salumi": {
+        es: "Embutidos",
+        pt: "Charcutaria",
+        en: "Cured Meats", 
+        it: "Salumi"
+      },
+      "Farine e Panificazione": {
+        es: "Harinas y Panadería",
+        pt: "Farinhas e Panificação",
+        en: "Flour and Bakery",
+        it: "Farine e Panificazione"
+      },
+      "Prodotti Surgelati": {
+        es: "Productos Congelados", 
+        pt: "Produtos Congelados",
+        en: "Frozen Products",
+        it: "Prodotti Surgelati"
+      },
+      "Pasta e Riso": {
+        es: "Pasta y Arroz",
+        pt: "Massa e Arroz", 
+        en: "Pasta and Rice",
+        it: "Pasta e Riso"
+      },
+      "Salse e Conserve": {
+        es: "Salsas y Conservas",
+        pt: "Molhos e Conservas",
+        en: "Sauces and Preserves", 
+        it: "Salse e Conserve"
+      },
+      "Varie e Spezie": {
+        es: "Varios y Especias",
+        pt: "Vários e Especiarias",
+        en: "Various and Spices",
+        it: "Varie e Spezie"
+      },
+      "Acqua e Bevande": {
+        es: "Agua y Bebidas",
+        pt: "Água e Bebidas", 
+        en: "Water and Beverages",
+        it: "Acqua e Bevande"
+      }
+    }
+  }
+
+  /**
    * Recupera le categorie attive dal database e le formatta per il prompt.
    * @param workspaceId L'ID del workspace.
+   * @param language Lingua per la traduzione (default: 'it')
    * @returns Una stringa con le categorie formattate.
    */
-  async getActiveCategories(workspaceId: string): Promise<string> {
+  async getActiveCategories(workspaceId: string, language: string = 'it'): Promise<string> {
     try {
       console.log("🔧 DEBUG getActiveCategories: workspaceId:", workspaceId)
       const categories = await this.prisma.categories.findMany({
