@@ -1,19 +1,11 @@
 import * as fs from "fs"
 import * as path from "path"
+import { TokenService } from "../application/services/token.service"
 import { LLMRequest } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
 import { PromptProcessorService } from "./prompt-processor.service"
 
-/**
-Get Data - Trova customer
-Get Workspace - Una sola chiamata (smart)
-New User Check - Se customer non esiste
-Block Check - Se customer è bloccato
-Get Prompt - Recupera prompt attivo
-Pre-processing - Replace variabili
-Generate LLM - Chiamata OpenRouter
-Post-processing - Format finale
- */
+//todo non va il singoloo ordine
 export class LLMService {
   private callingFunctionsService: CallingFunctionsService
   private promptProcessorService: PromptProcessorService
@@ -39,27 +31,13 @@ export class LLMService {
     const { FormatterService } = require("../services/formatter.service")
 
     // 1. Get Data
-    console.log("📞 LLM: Cerco customer per telefono:", llmRequest.phone)
     let customer = await messageRepo.findCustomerByPhone(llmRequest.phone)
-    console.log("👤 LLM: Customer trovato:", customer ? customer.id : "NESSUNO")
-
     const workspaceId = customer ? customer.workspaceId : llmRequest.workspaceId
-    console.log("🏢 LLM: WorkspaceId utilizzato:", workspaceId)
     const workspace = await workspaceService.getById(workspaceId)
 
+    // 2. New User Check
     if (!customer) {
-      // 2. Se è un nuovo utente (non registrato)
-      const welcomeMessage = await messageRepo.getWelcomeMessage(
-        workspace.id,
-        workspace.language || "it"
-      )
-      return {
-        success: false,
-        output:
-          welcomeMessage ||
-          "👋 Benvenuto! Devi prima registrarti per utilizzare i nostri servizi.",
-        debugInfo: { stage: "new_user" },
-      }
+      return await this.NewUser(llmRequest, workspace, messageRepo)
     }
 
     // 3. Blocca se blacklisted - non salvare nulla nello storico
@@ -69,21 +47,19 @@ export class LLMService {
     )
     if (isBlocked || customer.isBlacklisted) {
       // Restituisci null per ignorare completamente questa interazione
-      return null
+      return {
+        success: false,
+        output: "❌ User blocked",
+        debugInfo: { stage: "no_prompt" },
+      }
     }
 
     // 4. Get prompt
-    console.log("📝 LLM: Cerco prompt per workspace:", workspace.id)
     const prompt = await workspaceService.getActivePromptByWorkspaceId(
       workspace.id
     )
-    console.log("📝 LLM: Prompt trovato:", prompt ? "SÌ" : "NO")
-    if (prompt) {
-      console.log("📝 LLM: Prompt preview:", prompt.substring(0, 100) + "...")
-    }
 
     if (!prompt) {
-      console.log("❌ LLM: PROMPT VUOTO - ESCO")
       return {
         success: false,
         output: "❌ Servizio temporaneamente non disponibile.",
@@ -124,9 +100,6 @@ export class LLMService {
       .replace("{{PRODUCTS}}", products)
     promptWithVars = replaceAllVariables(promptWithVars, userInfo)
 
-    // 6. generateLLMResponse
-    console.log("PROMPT LLM:", promptWithVars)
-
     // 🔧 SALVA IL PROMPT FINALE PER DEBUG
     try {
       const promptPath = path.join(process.cwd(), "prompt.txt")
@@ -134,11 +107,11 @@ export class LLMService {
         promptPath,
         `=== PROMPT GENERATO ${new Date().toISOString()} ===\n\n${promptWithVars}\n\n=== FINE PROMPT ===\n`
       )
-      console.log("✅ Prompt salvato in prompt.txt")
     } catch (error) {
       console.log("❌ Errore salvando prompt:", error.message)
     }
 
+    // resoonse
     const rawLLMResponse = await this.generateLLMResponse(
       promptWithVars,
       llmRequest.chatInput,
@@ -151,26 +124,42 @@ export class LLMService {
 
     // Replace dei link con token
     if (finalResponse.includes("[LINK_CHECKOUT_WITH_TOKEN]")) {
-      // TODO: Implementare generazione link carrello con token
+      // Usa la funzione appropriata per generare il link checkout (carrello)
+      const checkoutLink = await this.callingFunctionsService.getCartLink({
+        customerId: customer.id,
+        workspaceId: workspace.id,
+      })
       finalResponse = finalResponse.replace(
         "[LINK_CHECKOUT_WITH_TOKEN]",
-        `https://shop.example.com/checkout?token=${customer.id}`
+        checkoutLink?.linkUrl
       )
     }
 
     if (finalResponse.includes("[LINK_PROFILE_WITH_TOKEN]")) {
-      // TODO: Implementare generazione link profilo con token
+      // Usa la funzione generica per generare il link profilo
+      const profileResult =
+        await this.callingFunctionsService.replaceLinkWithToken(
+          finalResponse,
+          "profile",
+          customer.id,
+          workspace.id
+        )
+      // Sostituisci solo il token profilo
       finalResponse = finalResponse.replace(
         "[LINK_PROFILE_WITH_TOKEN]",
-        `https://shop.example.com/profile?token=${customer.id}`
+        profileResult?.message?.match(/https?:\/\/[^\s)]+/)?.[0]
       )
     }
 
     if (finalResponse.includes("[LINK_ORDERS_WITH_TOKEN]")) {
-      // TODO: Implementare generazione link ordini con token
+      // Usa la funzione appropriata per generare il link ordini
+      const ordersLink = await this.callingFunctionsService.getOrdersListLink({
+        customerId: customer.id,
+        workspaceId: workspace.id,
+      })
       finalResponse = finalResponse.replace(
         "[LINK_ORDERS_WITH_TOKEN]",
-        `https://shop.example.com/orders?token=${customer.id}`
+        ordersLink?.linkUrl
       )
     }
 
@@ -288,11 +277,7 @@ export class LLMService {
         )
 
         // Le CF restituiscono già una risposta finale formattata, non serve seconda chiamata LLM
-        return (
-          functionResult.message ||
-          functionResult.output ||
-          "Operazione completata con successo."
-        )
+        return functionResult.message || functionResult.output || "error CF"
       }
 
       const llmResponse =
@@ -341,6 +326,66 @@ export class LLMService {
     } catch (error) {
       console.error(`❌ Error executing function ${functionName}:`, error)
       return { error: `Errore nell'esecuzione della funzione ${functionName}` }
+    }
+  }
+
+  // Funzione helper per generare il messaggio di benvenuto con link di registrazione
+  private async newUserLink(
+    phone: string,
+    workspaceId: string,
+    welcomeMessage: string
+  ): Promise<string> {
+    const registrationLink = await this.generateRegistrationLink(
+      phone,
+      workspaceId
+    )
+    if (welcomeMessage.includes("[LINK_REGISTRATION_WITH_TOKEN]")) {
+      return welcomeMessage.replace(
+        "[LINK_REGISTRATION_WITH_TOKEN]",
+        registrationLink
+      )
+    } else {
+      return (
+        welcomeMessage + `\nPer registrarti clicca qui: ${registrationLink}`
+      )
+    }
+  }
+  private async generateRegistrationLink(
+    phone: string,
+    workspaceId: string
+  ): Promise<string> {
+    // Crea un token di registrazione e restituisci il link completo
+    const tokenService = new TokenService()
+    const messageRepo =
+      new (require("../repositories/message.repository").MessageRepository)()
+    const token = await tokenService.createRegistrationToken(phone, workspaceId)
+    const workspaceUrl = await messageRepo.getWorkspaceUrl(workspaceId)
+    return `${workspaceUrl.replace(/\/$/, "")}/register?token=${token}`
+  }
+
+  // Funzione che gestisce il flusso per un nuovo utente e ritorna direttamente l'oggetto di risposta
+  private async NewUser(
+    llmRequest: LLMRequest,
+    workspace: any,
+    messageRepo: any
+  ): Promise<any> {
+    let welcomeMessage = await messageRepo.getWelcomeMessage(
+      workspace.id,
+      workspace.language || "it"
+    )
+    welcomeMessage =
+      welcomeMessage ||
+      "👋 Benvenuto! Devi prima registrarti per utilizzare i nostri servizi."
+
+    const output = await this.newUserLink(
+      llmRequest.phone,
+      workspace.id,
+      welcomeMessage
+    )
+    return {
+      success: false,
+      output,
+      debugInfo: { stage: "new_user" },
     }
   }
 }

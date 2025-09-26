@@ -33,6 +33,8 @@ Rispondi SEMPRE in: **{{languageUser}}**
 
 - "Bentornato Andrea! ....
 
+- "Che piacere riveerti ....
+
 ---
 
 # 🚀 CALLING FUNCTIONS DISPONIBILI
