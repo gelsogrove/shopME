@@ -24,18 +24,21 @@ export function MessageRenderer({
   // 🚀 SOLUZIONE SEMPLICE: Converti \n in <br> per rispettare gli a capo
   const formatContent = (text: string): string => {
     return text
-      .replace(/\n/g, '<br />') // Converti tutti i \n in <br />
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Converti **text** in <strong>
-      .replace(/\*(.*?)\*/g, '<em>$1</em>') // Converti *text* in <em>
+      .replace(/\n/g, "<br />") // Converti tutti i \n in <br />
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Converti **text** in <strong>
+      .replace(/\*(.*?)\*/g, "<em>$1</em>") // Converti *text* in <em>
       .replace(/~~(.*?)~~/g, '<s style="text-decoration: line-through;">$1</s>') // Converti ~~text~~ in testo barrato
-      .replace(/→\s*(€[\d.,]+)/g, '→ <strong>$1</strong>') // Converti prezzo finale dopo → in grassetto
-      .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>') // Converti URL in link
+      .replace(/→\s*(€[\d.,]+)/g, "→ <strong>$1</strong>") // Converti prezzo finale dopo → in grassetto
+      .replace(
+        /(https?:\/\/[^\s]+)/g,
+        '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>'
+      ) // Converti URL in link
   }
 
   // Se è chat, usa HTML diretto invece di markdown per rispettare gli a capo
   if (variant === "chat") {
     return (
-      <div 
+      <div
         className={`${baseClasses} ${variantClasses[variant]} ${className}`}
         dangerouslySetInnerHTML={{ __html: formatContent(content) }}
       />
@@ -59,11 +62,7 @@ export function MessageRenderer({
             />
           ),
           // Clean paragraph rendering
-          p: ({ children }) => (
-            <p className="mb-2 last:mb-0">
-              {children}
-            </p>
-          ),
+          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
           // Text formatting
           strong: ({ children }) => (
             <strong className="font-bold">{children}</strong>

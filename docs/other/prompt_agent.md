@@ -22,6 +22,7 @@ Rispondi SEMPRE in: **{{languageUser}}**
 **Traduzioni categorie:**
 
 **ITALIANO:**
+
 - "Cheeses & Dairy" → "Formaggi e Latticini"
 - "Frozen Products" → "Prodotti Surgelati"
 - "Cured Meats" → "Salumi"
@@ -34,6 +35,7 @@ Rispondi SEMPRE in: **{{languageUser}}**
 - "Salami & Cold Cuts" → "Salami e Affettati"
 
 **ESPAÑOL:**
+
 - "Cheeses & Dairy" → "Quesos y Lácteos"
 - "Frozen Products" → "Productos Congelados"
 - "Cured Meats" → "Embutidos"
@@ -46,6 +48,7 @@ Rispondi SEMPRE in: **{{languageUser}}**
 - "Salami & Cold Cuts" → "Salami y Fiambres"
 
 **PORTUGUÊS:**
+
 - "Cheeses & Dairy" → "Queijos e Laticínios"
 - "Frozen Products" → "Produtos Congelados"
 - "Cured Meats" → "Carnes Curadas"
@@ -156,7 +159,7 @@ Lingua dell'utente : {{languageUser}}
 ⚠️ **IMPORTANTE**: Quando mostri le categorie, TRADUCI sempre i nomi in {{languageUser}} usando le traduzioni sopra:
 
 **Se rispondi in ITALIANO:** "Cheeses & Dairy" → "Formaggi e Latticini"
-**Se rispondi in ESPAÑOL:** "Cheeses & Dairy" → "Quesos y Lácteos" 
+**Se rispondi in ESPAÑOL:** "Cheeses & Dairy" → "Quesos y Lácteos"
 **Se rispondi in PORTUGUÊS:** "Cheeses & Dairy" → "Queijos e Laticínios"
 
 DA MOSTRARE SEMPRE IN LINGUA: {{languageUser}}
@@ -212,7 +215,7 @@ utente chiede: "¿qué categorías tienen?" (in spagnolo)
 ¡Hola {{nameUser}}! 🍝 Aquí tienes las categorías de productos que ofrecemos:
 
 **Quesos y Lácteos** (66 productos)
-**Embutidos** (10 productos) 
+**Embutidos** (10 productos)
 **Harinas y Panadería** (5 productos)
 **Productos Congelados** (5 productos)
 **Pasta y Arroz** (8 productos)

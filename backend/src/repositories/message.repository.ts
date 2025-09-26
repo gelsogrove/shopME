@@ -1009,7 +1009,7 @@ export class MessageRepository {
 
         // Mostra tutti i prodotti della categoria
         const productsToShow = productList
-        
+
         // Formato: ogni prodotto su una riga separata
         productsToShow.forEach((p) => {
           const originalPrice = Number(p.originalPrice).toFixed(2)
