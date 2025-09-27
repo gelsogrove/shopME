@@ -2824,23 +2824,12 @@ INSTRUCTIONS FOR LLM FORMATTER:
         return "" // Nessuna categoria attiva
       }
 
-      // Formatta le categorie come lista verticale per il prompt
-      // Estrae solo l'emoji e una descrizione breve dalla description
+      // Formatta le categorie senza icone/emoji, solo nome e descrizione breve
       const formattedCategories = categories
         .map((category) => {
-          // Estrae l'emoji e la prima parte della descrizione
           const description = category.description || ""
-          const emoji = description.match(/^[^\w\s]+/)?.[0] || "📦" // Prende l'emoji all'inizio o usa default
-
-          // Estrae la parte descrittiva dopo l'emoji (primi 50 caratteri)
-          const shortDesc = description
-            .replace(/^[^\w\s]+\s*/, "") // Rimuove emoji iniziale
-            .split(",")[0] // Prende solo la prima parte prima della virgola
-            .substring(0, 50)
-            .trim()
-
-          // Formatta come elemento di lista con descrizione
-          return `${emoji} **${category.name}** - ${shortDesc}`
+          const shortDesc = description.split(",")[0].substring(0, 50).trim()
+          return `**${category.name}** - ${shortDesc}`
         })
         .join("\n")
 

@@ -50,30 +50,20 @@ async function updatePrompt() {
         updatedAt: new Date(),
       },
     })
-
     console.log(`✅ Updated ${updatedAgentConfig.count} agent config(s)`)
 
-    // Also update prompts table if it exists
+    // Update the Prompts table (field: content)
     try {
       const updatedPrompts = await prisma.prompts.updateMany({
-        where: {
-          workspaceId: workspace.id,
-          name: { contains: "SofIA" },
-        },
+        where: { workspaceId: workspace.id },
         data: {
           content: promptContent,
           updatedAt: new Date(),
         },
       })
-
-      console.log(
-        `✅ Updated ${updatedPrompts.count} prompt(s) in prompts table`
-      )
-    } catch (error) {
-      console.log(
-        "⚠️ Could not update prompts table (might not exist):",
-        error.message
-      )
+      console.log(`✅ Updated ${updatedPrompts.count} prompts(s)`)
+    } catch (err) {
+      console.error("❌ Error updating Prompts table:", err)
     }
 
     console.log("🎉 Prompt update completed successfully!")

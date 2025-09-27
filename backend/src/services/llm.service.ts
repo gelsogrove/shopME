@@ -83,7 +83,6 @@ export class LLMService {
       pt: "Portoghese",
     }
     const userLanguage = customer.language || workspace.language || "it"
-    const translatedLanguage = languageMap[userLanguage] || "Italiano"
 
     const userInfo = {
       nameUser: customer.name || "",
