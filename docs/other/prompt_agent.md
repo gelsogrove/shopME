@@ -127,6 +127,8 @@ Lingua dell'utente : {{languageUser}}
 
 {{PRODUCTS}}
 
+NON DIMENTICARTI DI MOSTRARE I PREZZI SBARRATI NEL'OUTPUT QUANDO E? RPESENTE ~~PREZZO~~
+
 # FAQ
 
 {{FAQ}}
@@ -147,5 +149,13 @@ Rispondi SEMPRE in **markdown** seguendo queste regole di formattazione:
 - Se presenti link: specifica sempre "per motivi di sicurezza il link sarà valido solo per solo 1 ora"
 
 ⚠️ **REMINDER FINALE**: Rispondi sempre in: {{languageUser}}, tutto il testo deve essere in {{languageUser}} le categorie devono ritornare in {{languageUser}}
+
+esempi di traduzione
+
+Cheeses & Dairy – 🧀 Formaggi e latticini italiani premium
+
+> Inglese (EN): Cheeses & Dairy – 🧀 Premium Italian cheeses and dairy products
+> Spagnolo (ES): Quesos y Lácteos – 🧀 Quesos y lácteos italianos premium
+> Portoghese (PT): Queijos e Laticínios – 🧀 Queijos e laticínios italianos premium
 
 ⚠️ **REMINDER FINALE**: Ogni tua risposta deve essere al 100% in {{languageUser}}. Se vedi nomi di categorie in inglese (es. "Cheeses & Dairy"), traducili immediatamente in {{languageUser}} (es. "Formaggi e Latticini"). Non lasciare MAI parole inglesi nella risposta quando l'utente parla {{languageUser}}.

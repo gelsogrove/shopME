@@ -333,7 +333,7 @@ export class LLMService {
             model: "openai/gpt-4o-mini",
             messages: messages,
             tools: this.getAvailableFunctions(),
-            temperature: workspace.temperature || 0.3,
+            temperature: 0,
             max_tokens: workspace.maxTokens || 5000,
           }),
         }
