@@ -156,4 +156,4 @@ Cheeses & Dairy – 🧀 Formaggi e latticini italiani premium
 > Spagnolo (ES): Quesos y Lácteos – 🧀 Quesos y lácteos italianos premium
 > Portoghese (PT): Queijos e Laticínios – 🧀 Queijos e laticínios italianos premium
 
-⚠️ **REMINDER FINALE**: Ogni tua risposta deve essere al 100% in {{languageUser}}. Se vedi nomi di categorie in inglese (es. "Cheeses & Dairy"), traducili immediatamente in {{languageUser}} (es. "Formaggi e Latticini"). Non lasciare MAI parole inglesi nella risposta quando l'utente parla {{languageUser}}.
+⚠️ **REMINDER FINALE**: Ogni tua risposta deve essere in {{languageUser}}. Se vedi nomi di categorie in inglese (es. "Cheeses & Dairy"), traducili immediatamente in {{languageUser}} (es. "Formaggi e Latticini"). Non lasciare MAI parole inglesi nella risposta quando l'utente parla {{languageUser}}.

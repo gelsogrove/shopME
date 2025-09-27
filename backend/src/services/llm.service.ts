@@ -134,7 +134,8 @@ export class LLMService {
       llmRequest.chatInput,
       workspace,
       customer,
-      customerData
+      customerData,
+      userLanguage
     )
 
     // 7. Post-processing: Replace link tokens
@@ -313,7 +314,8 @@ export class LLMService {
     userQuery: string,
     workspace: any,
     customer: any,
-    customerData?: any
+    customerData?: any,
+    language: "it" | "es" | "pt" | "en" = "it" // default italiano
   ): Promise<string> {
     try {
       const messages = [
@@ -346,18 +348,67 @@ export class LLMService {
           }),
         }
       )
-
+      console.log("***language", language)
       console.log("🌐 OpenRouter status:", response.status)
       const data = await response.json()
       console.log("🌐 OpenRouter response:", JSON.stringify(data, null, 2))
 
-      // Gestione tool calls (CF chiamate da OpenRouter)
+      // Dizionario messaggi multilingua
+      const i18n = {
+        errors: {
+          orderNotFound: {
+            it: "Mi spiace non abbiamo trovato il tuo ordine. Di seguito la lista dei tuoi ordini: [LINK_ORDERS_WITH_TOKEN]",
+            es: "Lo siento, no hemos encontrado tu pedido. Aquí tienes la lista de tus pedidos: [LINK_ORDERS_WITH_TOKEN]",
+            pt: "Desculpe, não encontramos o seu pedido. Aqui está a lista dos seus pedidos: [LINK_ORDERS_WITH_TOKEN]",
+            en: "Sorry, we couldn't find your order. Here is the list of your orders: [LINK_ORDERS_WITH_TOKEN]",
+          },
+          trackingNotFound: {
+            it: "Mi spiace, al momento non riesco a trovare informazioni di tracking per il tuo ordine. Per assistenza contatta il nostro servizio clienti.",
+            es: "Lo siento, en este momento no puedo encontrar información de seguimiento de tu pedido. Para asistencia contacta nuestro servicio de atención al cliente.",
+            pt: "Desculpe, no momento não consigo encontrar informações de rastreamento do seu pedido. Para assistência, entre em contato com nosso atendimento ao cliente.",
+            en: "Sorry, I can't find tracking information for your order right now. Please contact our customer service for assistance.",
+          },
+          generic: {
+            it: "Si è verificato un errore.",
+            es: "Se ha producido un error.",
+            pt: "Ocorreu um erro.",
+            en: "An error has occurred.",
+          },
+        },
+        success: {
+          orderLink: {
+            it: "Ciao! Di seguito puoi trovare il link dell'ordine che stai cercando dove puoi scaricare la fattura e la bolla di trasporto:",
+            es: "¡Hola! Aquí tienes el enlace de tu pedido donde puedes descargar la factura y la nota de envío:",
+            pt: "Olá! Aqui está o link do seu pedido onde você pode baixar a fatura e a guia de transporte:",
+            en: "Hello! Here is the link to your order where you can download the invoice and delivery note:",
+          },
+          trackingLink: {
+            it: "Ciao! Il tuo ordine è in viaggio 📦 Segui il pacco in tempo reale:",
+            es: "¡Hola! Tu pedido está en camino 📦 Sigue tu paquete en tiempo real:",
+            pt: "Olá! Seu pedido está a caminho 📦 Acompanhe seu pacote em tempo real:",
+            en: "Hello! Your order is on the way 📦 Track your package in real time:",
+          },
+          default: {
+            it: "Ciao! 😊 Di seguito puoi vedere il tuo ordine: per motivi di sicurezza sarà valido per 1 ora -",
+            es: "¡Hola! 😊 Aquí puedes ver tu pedido: por motivos de seguridad será válido durante 1 hora -",
+            pt: "Olá! 😊 Aqui você pode ver seu pedido: por motivos de segurança será válido por 1 hora -",
+            en: "Hello! 😊 Here you can see your order: for security reasons it will be valid for 1 hour -",
+          },
+        },
+        fallback: {
+          it: "Ciao! Come posso aiutarti oggi?",
+          es: "¡Hola! ¿Cómo puedo ayudarte hoy?",
+          pt: "Olá! Como posso te ajudar hoje?",
+          en: "Hello! How can I help you today?",
+        },
+      }
+
+      // Gestione tool calls (chiamate funzioni)
       if (data.choices?.[0]?.message?.tool_calls) {
         const toolCall = data.choices[0].message.tool_calls[0]
         const functionName = toolCall.function.name
         const functionArgs = JSON.parse(toolCall.function.arguments || "{}")
 
-        // Esegui la CF e restituisci direttamente il risultato finale
         const functionResult = await this.executeFunctionCall(
           functionName,
           functionArgs,
@@ -366,47 +417,58 @@ export class LLMService {
           customerData
         )
 
-        // Le CF restituiscono già una risposta finale formattata, non serve seconda chiamata LLM
         if (functionResult.success === false) {
-          // Gestione errori CF specifici per funzione
           if (functionName === "GetLinkOrderByCode") {
-            return "Mi spiace non abbiamo trovato il tuo ordine. Di seguito la lista dei tuoi ordini: [LINK_ORDERS_WITH_TOKEN]"
+            return i18n.errors.orderNotFound[language]
           }
           if (functionName === "GetShipmentTrackingLink") {
-            return "Mi spiace, al momento non riesco a trovare informazioni di tracking per il tuo ordine. Per assistenza contatta il nostro servizio clienti."
+            return i18n.errors.trackingNotFound[language]
           }
           return (
             functionResult.message ||
             functionResult.error ||
-            "Si è verificato un errore."
+            i18n.errors.generic[language]
           )
         }
 
-        // Gestione successo CF specifici per funzione
         if (functionName === "GetLinkOrderByCode") {
-          return `Ciao! Di seguito puoi trovare il link dell'ordine che stai cercando dove puoi scaricare la fattura e la bolla di trasporto: ${functionResult.linkUrl || functionResult.output || functionResult.message} - per motivi di sicurezza sarà valido per 1 ora.`
+          return `${i18n.success.orderLink[language]} ${functionResult.linkUrl || functionResult.output || functionResult.message} - ${
+            language === "it"
+              ? "valido per 1 ora"
+              : language === "es"
+                ? "válido por 1 hora"
+                : language === "pt"
+                  ? "válido por 1 hora"
+                  : "valid for 1 hour"
+          }`
         }
 
         if (functionName === "GetShipmentTrackingLink") {
-          return `Ciao! Il tuo ordine ${functionResult.orderCode || "ultimo"} è in viaggio 📦 Clicca qui per seguire il tuo pacco in tempo reale: ${functionResult.linkUrl}`
+          return `${i18n.success.trackingLink[language]} ${functionResult.linkUrl}`
         }
 
         return (
           functionResult.message ||
           functionResult.output ||
           functionResult.linkUrl ||
-          `Ciao! 😊 Di seguito puoi vedere il tuo ordine: per motivi di sicurezza sarà valido per 1 ora - ${functionResult.linkUrl}`
+          `${i18n.success.default[language]} ${functionResult.linkUrl}`
         )
       }
 
       const llmResponse =
-        data.choices?.[0]?.message?.content || "Ciao! Come posso aiutarti oggi?"
+        data.choices?.[0]?.message?.content || i18n.fallback[language]
 
       console.log("🎯 LLM Final Response:", llmResponse)
       return llmResponse
     } catch (error) {
       console.error("❌ Error generating LLM response:", error)
-      return "❌ Mi dispiace, si è verificato un errore. Riprova più tardi."
+      const errorMessages = {
+        it: "❌ Mi dispiace, si è verificato un errore. Riprova più tardi.",
+        es: "❌ Lo siento, se ha producido un error. Inténtalo más tarde.",
+        pt: "❌ Desculpe, ocorreu um erro. Tente novamente mais tarde.",
+        en: "❌ Sorry, an error occurred. Please try again later.",
+      }
+      return errorMessages[language]
     }
   }
 
