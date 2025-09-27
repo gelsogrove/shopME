@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
-import { config } from "../../config"
 import { SecureTokenService } from "../../application/services/secure-token.service"
+import { config } from "../../config"
 
 const prisma = new PrismaClient()
 

@@ -1,5 +1,5 @@
-import logger from "../../utils/logger"
 import { config } from "../../config"
+import logger from "../../utils/logger"
 import { UrlShortenerService } from "./url-shortener.service"
 
 /**

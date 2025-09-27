@@ -35,7 +35,10 @@ export const config: Config = {
   cors: {
     origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   },
-  frontendUrl: process.env.FRONTEND_URL || process.env.CORS_ORIGIN || "http://localhost:3000",
+  frontendUrl:
+    process.env.FRONTEND_URL ||
+    process.env.CORS_ORIGIN ||
+    "http://localhost:3000",
   dhlTrackingBaseUrl:
     process.env.DHL_TRACKING_BASE_URL ||
     "https://www.dhl.com/global-en/home/tracking/tracking-express.html",
@@ -44,7 +47,9 @@ export const config: Config = {
   },
 }
 
-export const buildDhlTrackingUrl = (trackingNumber?: string | null): string | null => {
+export const buildDhlTrackingUrl = (
+  trackingNumber?: string | null
+): string | null => {
   if (!trackingNumber) return null
   const base = config.dhlTrackingBaseUrl
   const sep = base.includes("?") ? "&" : "?"

@@ -1,7 +1,7 @@
 import axios from "axios"
-import { config } from "../config"
 import { SecureTokenService } from "../application/services/secure-token.service"
 import { ReplaceLinkWithToken } from "../chatbot/calling-functions/ReplaceLinkWithToken"
+import { config } from "../config"
 import {
   ErrorResponse,
   GetCartLinkRequest,
