@@ -40,4 +40,4 @@ FASE 2
 - nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
 - QUANDO SI APPLUCA UNO SCONTO MADNARE MESSAGGIO
 - prompt e e modello dinamoco
-- cateogorie nel DB ?
+- cateogorie nel DB ? cpso da togliere la parte harcodeata

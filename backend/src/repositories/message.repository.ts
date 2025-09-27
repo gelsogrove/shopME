@@ -3031,4 +3031,137 @@ INSTRUCTIONS FOR LLM FORMATTER:
       return ""
     }
   }
+
+  /**
+   * Recupera le offerte attive dal database e le formatta per il prompt.
+   * @param workspaceId L'ID del workspace.
+   * @param language Lingua per la traduzione (default: 'it')
+   * @returns Una stringa con le offerte formattate.
+   */
+  async getActiveOffers(
+    workspaceId: string,
+    language: string = "it"
+  ): Promise<string> {
+    try {
+      console.log("🔧 DEBUG getActiveOffers: workspaceId:", workspaceId)
+      const now = new Date()
+
+      const offers = await this.prisma.offers.findMany({
+        where: {
+          workspaceId: workspaceId,
+          isActive: true,
+          startDate: { lte: now },
+          endDate: { gte: now },
+        },
+        include: {
+          category: true,
+        },
+        orderBy: {
+          discountPercent: "desc",
+        },
+      })
+
+      console.log("🔧 DEBUG getActiveOffers: trovate", offers.length, "offerte")
+
+      if (offers.length === 0) {
+        return "" // Nessuna offerta attiva
+      }
+
+      // Mappatura traduzioni categorie per offerte
+      const categoryTranslations: Record<string, Record<string, string>> = {
+        "Cheeses & Dairy": {
+          it: "Formaggi e Latticini",
+          es: "Quesos y Lácteos",
+          pt: "Queijos e Laticínios",
+          en: "Cheeses & Dairy",
+        },
+        "Cured Meats": {
+          it: "Salumi",
+          es: "Embutidos",
+          pt: "Embutidos",
+          en: "Cured Meats",
+        },
+        "Flour & Baking": {
+          it: "Farine e Panificazione",
+          es: "Harinas y Repostería",
+          pt: "Farinha e Panificação",
+          en: "Flour & Baking",
+        },
+        "Frozen Products": {
+          it: "Prodotti Surgelati",
+          es: "Productos Congelados",
+          pt: "Produtos Congelados",
+          en: "Frozen Products",
+        },
+        "Pasta & Rice": {
+          it: "Pasta e Riso",
+          es: "Pasta y Arroz",
+          pt: "Massa e Arroz",
+          en: "Pasta & Rice",
+        },
+        "Sauces & Preserves": {
+          it: "Salse e Conserve",
+          es: "Salsas y Conservas",
+          pt: "Molhos e Conservas",
+          en: "Sauces & Preserves",
+        },
+        "Various & Spices": {
+          it: "Varie e Spezie",
+          es: "Varios y Especias",
+          pt: "Diversos e Especiarias",
+          en: "Various & Spices",
+        },
+      }
+
+      // Traduzioni per il testo dell'offerta
+      const offerTextTranslations: Record<string, string> = {
+        it: "Sconto di questo mese:",
+        es: "Descuento de este mes:",
+        pt: "Desconto deste mês:",
+        en: "This month's discount:",
+      }
+
+      const categoryWordTranslations: Record<string, string> = {
+        it: "sulla categoria",
+        es: "en la categoría",
+        pt: "na categoria",
+        en: "on category",
+      }
+
+      // Formatta le offerte con traduzione
+      const formattedOffers = offers
+        .map((offer) => {
+          const categoryName = offer.category?.name || "Generale"
+
+          // Traduci il nome della categoria
+          let translatedCategoryName = categoryName
+          if (categoryTranslations[categoryName]?.[language]) {
+            translatedCategoryName =
+              categoryTranslations[categoryName][language]
+          }
+
+          // Traduci il testo dell'offerta
+          const offerText =
+            offerTextTranslations[language] || offerTextTranslations["it"]
+          const categoryWord =
+            categoryWordTranslations[language] || categoryWordTranslations["it"]
+
+          return `${offerText} ${offer.discountPercent}% ${categoryWord} ${translatedCategoryName}`
+        })
+        .join(" • ")
+
+      console.log("🔧 DEBUG getActiveOffers: risultato finale:")
+      console.log(formattedOffers)
+
+      const result = `\n${formattedOffers}\n`
+      console.log(
+        "🔧 DEBUG getActiveOffers: return string length:",
+        result.length
+      )
+      return result
+    } catch (error) {
+      logger.error("Error fetching active offers:", error)
+      return "" // In caso di errore, restituisce una stringa vuota
+    }
+  }
 }

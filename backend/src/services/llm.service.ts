@@ -68,20 +68,15 @@ export class LLMService {
     }
 
     // 5. Pre-processing:
+    const userLanguage = customer.language || workspace.language || "it"
     const faqs = await messageRepo.getActiveFaqs(workspace.id)
     const services = await messageRepo.getActiveServices(workspace.id)
     const categories = await messageRepo.getActiveCategories(workspace.id)
+    const offers = await messageRepo.getActiveOffers(workspace.id, userLanguage)
     const customerDiscount = customer.discount || 0
     const products =
       (await messageRepo.getActiveProducts(workspace.id, customerDiscount)) ||
       ""
-    const languageMap = {
-      en: "Inglese",
-      es: "Spagnolo",
-      it: "Italiano",
-      pt: "Portoghese",
-    }
-    const userLanguage = customer.language || workspace.language || "it"
 
     const userInfo = {
       nameUser: customer.name || "",
@@ -89,16 +84,7 @@ export class LLMService {
       companyName: customer.company || "",
       lastordercode:
         customerData?.lastordercode || customer.lastOrderCode || "",
-      languageUser:
-        userLanguage === "it"
-          ? "ITALIANO"
-          : userLanguage === "en"
-            ? "ENGLISH"
-            : userLanguage === "es"
-              ? "ESPAÑOL"
-              : userLanguage === "pt"
-                ? "Português"
-                : userLanguage,
+      languageUser: this.getLanguageDisplayName(userLanguage),
     }
 
     if (!faqs && !products && !services && !categories) {
@@ -115,6 +101,7 @@ export class LLMService {
       .replace("{{SERVICES}}", services)
       .replace("{{PRODUCTS}}", products)
       .replace("{{CATEGORIES}}", categories)
+      .replace("{{OFFERS}}", offers)
     promptWithVars = replaceAllVariables(promptWithVars, userInfo)
 
     // 🔧 SALVA IL PROMPT FINALE PER DEBUG
@@ -150,6 +137,21 @@ export class LLMService {
       output: finalResponse,
       debugInfo: { stage: "completed" },
     }
+  }
+
+  /**
+   * Converte il codice lingua nel nome visualizzato corretto per il prompt
+   * @param languageCode Codice lingua (it, en, es, pt)
+   * @returns Nome lingua per il prompt
+   */
+  private getLanguageDisplayName(languageCode: string): string {
+    const languageMap: Record<string, string> = {
+      it: "ITALIANO",
+      en: "ENGLISH",
+      es: "ESPAÑOL",
+      pt: "Português",
+    }
+    return languageMap[languageCode] || languageCode.toUpperCase()
   }
 
   /**
