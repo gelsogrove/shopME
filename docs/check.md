@@ -29,7 +29,6 @@
 NON VA
 
 - debug piu interessante (ha canellato ?)
-- fn devono ritornare valorein lingua generateLLM response
 - arriviamo fino all'ordine?
 
 FASE 2
@@ -40,3 +39,5 @@ FASE 2
 - FE con le lingue come va?
 - nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
 - QUANDO SI APPLUCA UNO SCONTO MADNARE MESSAGGIO
+- prompt e e modello dinamoco
+- cateogorie nel DB ?

@@ -2796,10 +2796,11 @@ INSTRUCTIONS FOR LLM FORMATTER:
    */
   async getActiveCategories(
     workspaceId: string,
-    language: string = "it"
+    language: string = "en"
   ): Promise<string> {
     try {
       console.log("🔧 DEBUG getActiveCategories: workspaceId:", workspaceId)
+
       const categories = await this.prisma.categories.findMany({
         where: {
           workspaceId: workspaceId,
@@ -2815,36 +2816,219 @@ INSTRUCTIONS FOR LLM FORMATTER:
         categories.length,
         "categorie"
       )
-      console.log(
-        "🔧 DEBUG getActiveCategories: categorie raw:",
-        categories.map((c) => `${c.name}: ${c.description}`)
-      )
 
-      if (categories.length === 0) {
-        return "" // Nessuna categoria attiva
+      if (categories.length === 0) return ""
+
+      // Mappa delle traduzioni con icona, nome e descrizione
+      const translations: Record<
+        string,
+        {
+          it: { name: string; description: string }
+          es: { name: string; description: string }
+          pt: { name: string; description: string }
+        }
+      > = {
+        "Cheeses & Dairy": {
+          it: {
+            name: "🧀 Formaggi e Latticini",
+            description:
+              "Formaggi e latticini italiani premium, mozzarella, burrata e prodotti caseari di alta qualità.",
+          },
+          es: {
+            name: "🧀 Quesos y Lácteos",
+            description:
+              "Quesos y lácteos italianos premium, mozzarella, burrata y productos lácteos de alta calidad.",
+          },
+          pt: {
+            name: "🧀 Queijos e Laticínios",
+            description:
+              "Queijos e laticínios italianos premium, mozzarella, burrata e produtos lácteos de alta qualidade.",
+          },
+        },
+        "Cured Meats": {
+          it: {
+            name: "🥓 Salumi",
+            description:
+              "Salumi tradizionali italiani e insaccati artigianali di alta qualità.",
+          },
+          es: {
+            name: "🥓 Embutidos",
+            description:
+              "Embutidos italianos tradicionales y productos artesanales de alta calidad.",
+          },
+          pt: {
+            name: "🥓 Embutidos",
+            description:
+              "Embutidos tradicionais italianos e produtos artesanais de alta qualidade.",
+          },
+        },
+        "Flour & Baking": {
+          it: {
+            name: "🌾 Farine e Ingredienti per Panificazione",
+            description:
+              "Farine italiane e ingredienti per panificazione e pasticceria artigianale.",
+          },
+          es: {
+            name: "🌾 Harinas y Repostería",
+            description:
+              "Harinas italianas e ingredientes para panadería y repostería artesanal.",
+          },
+          pt: {
+            name: "🌾 Farinha e Panificação",
+            description:
+              "Farinhas italianas e ingredientes para panificação e confeitaria artesanal.",
+          },
+        },
+        "Frozen Products": {
+          it: {
+            name: "🧊 Prodotti Surgelati",
+            description:
+              "Dolci surgelati italiani, pasticceria e specialità congelate di alta qualità.",
+          },
+          es: {
+            name: "🧊 Productos Congelados",
+            description:
+              "Postres congelados italianos, repostería y especialidades congeladas de alta calidad.",
+          },
+          pt: {
+            name: "🧊 Produtos Congelados",
+            description:
+              "Sobremesas congeladas italianas, confeitaria e especialidades congeladas de alta qualidade.",
+          },
+        },
+        "Pasta & Rice": {
+          it: {
+            name: "🍝 Pasta e Riso",
+            description:
+              "Pasta e riso italiani premium, varietà tradizionali e artigianali di alta qualità.",
+          },
+          es: {
+            name: "🍝 Pasta y Arroz",
+            description:
+              "Pasta y arroz italianos premium, variedades tradicionales y artesanales de alta calidad.",
+          },
+          pt: {
+            name: "🍝 Massa e Arroz",
+            description:
+              "Massas e arroz italianos premium, variedades tradicionais e artesanais de alta qualidade.",
+          },
+        },
+        "Salami & Cold Cuts": {
+          it: {
+            name: "🍖 Salami e Affettati",
+            description:
+              "Salami artigianali, prosciutto e affettati italiani della migliore tradizione.",
+          },
+          es: {
+            name: "🍖 Salami y Fiambres",
+            description:
+              "Salami artesanales, jamón y fiambres italianos de la mejor tradición.",
+          },
+          pt: {
+            name: "🍖 Salames e Frios",
+            description:
+              "Salames artesanais, presunto e frios italianos da melhor tradição.",
+          },
+        },
+        "Sauces & Preserves": {
+          it: {
+            name: "🫙 Salse e Conserve",
+            description:
+              "Salse gourmet, conserve e condimenti italiani di alta qualità per arricchire ogni piatto.",
+          },
+          es: {
+            name: "🫙 Salsas y Conservas",
+            description:
+              "Salsas gourmet, conservas y condimentos italianos de alta calidad para enriquecer cada plato.",
+          },
+          pt: {
+            name: "🫙 Molhos e Conservas",
+            description:
+              "Molhos gourmet, conservas e condimentos italianos de alta qualidade para enriquecer cada prato.",
+          },
+        },
+        "Tomato Products": {
+          it: {
+            name: "🍅 Prodotti a Base di Pomodoro",
+            description:
+              "Salse di pomodoro italiane, passata e prodotti a base di pomodoro di qualità superiore.",
+          },
+          es: {
+            name: "🍅 Productos de Tomate",
+            description:
+              "Salsas de tomate italianas, puré y productos a base de tomate de alta calidad.",
+          },
+          pt: {
+            name: "🍅 Produtos de Tomate",
+            description:
+              "Molhos de tomate italianos, polpa e produtos à base de tomate de alta qualidade.",
+          },
+        },
+        "Various & Spices": {
+          it: {
+            name: "🌶️ Varie e Spezie",
+            description:
+              "Spezie italiane, condimenti e vari prodotti gourmet per la cucina tradizionale.",
+          },
+          es: {
+            name: "🌶️ Varios y Especias",
+            description:
+              "Especias italianas, condimentos y varios productos gourmet para la cocina tradicional.",
+          },
+          pt: {
+            name: "🌶️ Diversos e Especiarias",
+            description:
+              "Especiarias italianas, condimentos e diversos produtos gourmet para a cozinha tradicional.",
+          },
+        },
+        "Water & Beverages": {
+          it: {
+            name: "💧 Acque e Bevande",
+            description:
+              "Acque minerali italiane premium e bevande tradizionali di alta qualità.",
+          },
+          es: {
+            name: "💧 Aguas y Bebidas",
+            description:
+              "Aguas minerales italianas premium y bebidas tradicionales de alta calidad.",
+          },
+          pt: {
+            name: "💧 Águas e Bebidas",
+            description:
+              "Águas minerais italianas premium e bebidas tradicionais de alta qualidade.",
+          },
+        },
       }
 
-      // Formatta le categorie senza icone/emoji, solo nome e descrizione breve
+      // Formattazione
       const formattedCategories = categories
         .map((category) => {
-          const description = category.description || ""
+          let name = category.name
+          let description = category.description || ""
+
+          if (
+            language !== "en" &&
+            translations[category.name]?.[language as "it"]
+          ) {
+            const t = translations[category.name][language as "it"]
+            name = t.name
+            description = t.description
+          }
+
+          // Prendi solo la prima parte della descrizione come breve
           const shortDesc = description.split(",")[0].substring(0, 50).trim()
-          return `**${category.name}** - ${shortDesc}`
+          return `**${name}** - ${shortDesc}`
         })
         .join("\n")
 
-      console.log("🔧 DEBUG getActiveCategories: risultato finale:")
-      console.log(formattedCategories)
-
-      const result = `\n${formattedCategories}\n`
       console.log(
-        "🔧 DEBUG getActiveCategories: return string length:",
-        result.length
+        "🔧 DEBUG getActiveCategories: risultato finale:",
+        formattedCategories
       )
-      return result
+      return `\n${formattedCategories}\n`
     } catch (error) {
       logger.error("Error fetching active categories:", error)
-      return "" // In caso di errore, restituisce una stringa vuota
+      return ""
     }
   }
 }
