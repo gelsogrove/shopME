@@ -28,8 +28,26 @@
 
 NON VA
 
-- fammi scaricar eil catalogo LINK
-- TEST LINK
+- PRD NON ESISTE
+- il PROMTO NON SI AGGIORNA
+  "update:prompt": "node scripts/update-prompt.js",
+
+  devi capire cosa e' cambiato....prima andava...questo script prende
+
+  /Users/gelso/workspace/AI/shop/docs/other/owasp.md
+
+  e lo mette nel DB
+
+01:56
+Ciao Mario Rossi! 🥓 Ecco i prodotti della categoria Salumi:
+
+• Salame Milano | €12.80 → €10.24
+• Coppa di Parma | €14.50 → €11.60
+• Speck Alto Adige I.G.P. | €16.50 → €13.20
+• Salame Toscano | €11.90 → €9.52
+• Prosciutto Crudo di Parma D.O.P. | €18.90 → €15.12
+
+Abbiamo applicato il 0% di sconto sui prodotti!
 
 - non traduce perfettametne prova con dammi ordine BLABLABLA in spagnolo
 - non traduce le categorie
@@ -39,4 +57,3 @@ NON VA
 - DOCUMENTAZIONE SPORCA > MEMORY BANK
 - siamo sicuri che passiamo sempre il workspceID
 - FE con le lingue come va?
-- grazie per averci contattato....

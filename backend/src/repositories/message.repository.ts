@@ -1015,11 +1015,8 @@ export class MessageRepository {
           const originalPrice = Number(p.originalPrice).toFixed(2)
           const finalPrice = Number(p.finalPrice).toFixed(2)
 
-          if (p.hasDiscount) {
+            // Mostra SEMPRE il formato scontato, anche se lo sconto è 0%
             formattedProducts += `• ${p.name} ~~€${originalPrice}~~ → €${finalPrice}\n`
-          } else {
-            formattedProducts += `• ${p.name} €${finalPrice}\n`
-          }
         })
         formattedProducts += "\n"
       }

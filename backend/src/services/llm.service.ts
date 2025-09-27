@@ -87,7 +87,7 @@ export class LLMService {
 
     const userInfo = {
       nameUser: customer.name || "",
-      discountUser: customer.discount || "",
+      discountUser: customer.discount || 0,
       companyName: customer.company || "",
       lastordercode:
         customerData?.lastordercode || customer.lastOrderCode || "",
