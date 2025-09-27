@@ -1015,8 +1015,8 @@ export class MessageRepository {
           const originalPrice = Number(p.originalPrice).toFixed(2)
           const finalPrice = Number(p.finalPrice).toFixed(2)
 
-            // Mostra SEMPRE il formato scontato, anche se lo sconto è 0%
-            formattedProducts += `• ${p.name} ~~€${originalPrice}~~ → €${finalPrice}\n`
+          // Mostra SEMPRE il formato scontato, anche se lo sconto è 0%
+          formattedProducts += `• ${p.name} ~~€${originalPrice}~~ → €${finalPrice}\n`
         })
         formattedProducts += "\n"
       }
@@ -2739,52 +2739,52 @@ INSTRUCTIONS FOR LLM FORMATTER:
     return {
       "Formaggi e Latticini": {
         es: "Quesos y Lácteos",
-        pt: "Queijos e Laticínios", 
+        pt: "Queijos e Laticínios",
         en: "Cheese and Dairy",
-        it: "Formaggi e Latticini"
+        it: "Formaggi e Latticini",
       },
-      "Salumi": {
+      Salumi: {
         es: "Embutidos",
         pt: "Charcutaria",
-        en: "Cured Meats", 
-        it: "Salumi"
+        en: "Cured Meats",
+        it: "Salumi",
       },
       "Farine e Panificazione": {
         es: "Harinas y Panadería",
         pt: "Farinhas e Panificação",
         en: "Flour and Bakery",
-        it: "Farine e Panificazione"
+        it: "Farine e Panificazione",
       },
       "Prodotti Surgelati": {
-        es: "Productos Congelados", 
+        es: "Productos Congelados",
         pt: "Produtos Congelados",
         en: "Frozen Products",
-        it: "Prodotti Surgelati"
+        it: "Prodotti Surgelati",
       },
       "Pasta e Riso": {
         es: "Pasta y Arroz",
-        pt: "Massa e Arroz", 
+        pt: "Massa e Arroz",
         en: "Pasta and Rice",
-        it: "Pasta e Riso"
+        it: "Pasta e Riso",
       },
       "Salse e Conserve": {
         es: "Salsas y Conservas",
         pt: "Molhos e Conservas",
-        en: "Sauces and Preserves", 
-        it: "Salse e Conserve"
+        en: "Sauces and Preserves",
+        it: "Salse e Conserve",
       },
       "Varie e Spezie": {
         es: "Varios y Especias",
         pt: "Vários e Especiarias",
         en: "Various and Spices",
-        it: "Varie e Spezie"
+        it: "Varie e Spezie",
       },
       "Acqua e Bevande": {
         es: "Agua y Bebidas",
-        pt: "Água e Bebidas", 
+        pt: "Água e Bebidas",
         en: "Water and Beverages",
-        it: "Acqua e Bevande"
-      }
+        it: "Acqua e Bevande",
+      },
     }
   }
 
@@ -2794,7 +2794,10 @@ INSTRUCTIONS FOR LLM FORMATTER:
    * @param language Lingua per la traduzione (default: 'it')
    * @returns Una stringa con le categorie formattate.
    */
-  async getActiveCategories(workspaceId: string, language: string = 'it'): Promise<string> {
+  async getActiveCategories(
+    workspaceId: string,
+    language: string = "it"
+  ): Promise<string> {
     try {
       console.log("🔧 DEBUG getActiveCategories: workspaceId:", workspaceId)
       const categories = await this.prisma.categories.findMany({
