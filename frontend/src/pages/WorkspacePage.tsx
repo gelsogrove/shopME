@@ -23,7 +23,7 @@ export function WorkspacePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-6">Enter Workspace</h1>
+        <h1 className="text-lg font-bold text-center mb-6">Enter Workspace</h1>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="phone" className="block text-sm font-medium mb-1">

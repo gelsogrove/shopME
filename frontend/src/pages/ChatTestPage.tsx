@@ -12,51 +12,54 @@ export function ChatTestPage() {
   const runTest = async () => {
     setIsLoading(true)
     setTestResult("")
-    
+
     try {
       logger.info("🧪 TEST: Starting chat send test")
-      
+
       // Test 1: Check workspace
       logger.info("🧪 TEST 1: Workspace check", {
         workspace: workspace,
         workspaceId: workspace?.id,
-        sessionStorage: sessionStorage.getItem("currentWorkspace")
+        sessionStorage: sessionStorage.getItem("currentWorkspace"),
       })
-      
+
       if (!workspace?.id) {
         setTestResult("❌ FAIL: No workspace ID found")
         return
       }
-      
+
       // Test 2: Check sessionStorage
       const storedWorkspace = sessionStorage.getItem("currentWorkspace")
       logger.info("🧪 TEST 2: SessionStorage check", storedWorkspace)
-      
+
       // Test 3: Manual API call with detailed logging
       const sessionId = "test-session-123"
       const headers = {
-        'Content-Type': 'application/json',
-        'x-workspace-id': workspace.id
+        "Content-Type": "application/json",
+        "x-workspace-id": workspace.id,
       }
-      
+
       logger.info("🧪 TEST 3: Making API call", {
         url: `/chat/${sessionId}/send`,
-        method: 'POST',
+        method: "POST",
         headers,
         data: {
           content: testMessage || "Test message from debug page",
-          sender: "user"
-        }
+          sender: "user",
+        },
       })
-      
-      const response = await api.post(`/chat/${sessionId}/send`, {
-        content: testMessage || "Test message from debug page",
-        sender: "user"
-      }, { headers })
-      
+
+      const response = await api.post(
+        `/chat/${sessionId}/send`,
+        {
+          content: testMessage || "Test message from debug page",
+          sender: "user",
+        },
+        { headers }
+      )
+
       logger.info("🧪 TEST 3: Success!", response)
       setTestResult(`✅ SUCCESS: ${JSON.stringify(response.data, null, 2)}`)
-      
     } catch (error: any) {
       logger.error("🧪 TEST: Error", error)
       const errorDetails = {
@@ -66,8 +69,8 @@ export function ChatTestPage() {
         config: {
           url: error.config?.url,
           method: error.config?.method,
-          headers: error.config?.headers
-        }
+          headers: error.config?.headers,
+        },
       }
       setTestResult(`❌ ERROR: ${JSON.stringify(errorDetails, null, 2)}`)
     } finally {
@@ -77,11 +80,13 @@ export function ChatTestPage() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Chat API Test Page</h1>
-      
+      <h1 className="text-lg font-bold mb-6">Chat API Test Page</h1>
+
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Test Message:</label>
+          <label className="block text-sm font-medium mb-2">
+            Test Message:
+          </label>
           <input
             type="text"
             value={testMessage}
@@ -90,7 +95,7 @@ export function ChatTestPage() {
             className="w-full border rounded px-3 py-2"
           />
         </div>
-        
+
         <div>
           <button
             onClick={runTest}
@@ -100,17 +105,21 @@ export function ChatTestPage() {
             {isLoading ? "Testing..." : "Run API Test"}
           </button>
         </div>
-        
+
         <div>
           <h3 className="font-medium mb-2">Current Workspace Info:</h3>
           <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto">
-            {JSON.stringify({
-              workspace: workspace,
-              sessionStorage: sessionStorage.getItem("currentWorkspace")
-            }, null, 2)}
+            {JSON.stringify(
+              {
+                workspace: workspace,
+                sessionStorage: sessionStorage.getItem("currentWorkspace"),
+              },
+              null,
+              2
+            )}
           </pre>
         </div>
-        
+
         {testResult && (
           <div>
             <h3 className="font-medium mb-2">Test Result:</h3>

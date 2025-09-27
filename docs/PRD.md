@@ -427,14 +427,17 @@ Sistema checkout completo token-based con validazione sicura, supporto multi-lin
 #### **🏠 4. Address Management & Auto-Update System**
 
 - **Customer Data Integration**: Auto-caricamento indirizzi da `customer.address` e `customer.invoiceAddress`
-- **Form Pre-Fill**: Pre-compilazione automatica campi spedizione e fatturazione
+- **Form Pre-Fill**: Pre-compilazione automatica campi spedizione e fatturazione incluso nome, telefono e azienda
+- **Company Support**: Aggiunto campo azienda sia per spedizione che fatturazione (opzionale)
+- **Smart Defaults**: Paese predefinito "Italia", logica intelligente per pre-compilazione dati
 - **Same Address Option**: Checkbox "Uguale a spedizione" per user experience ottimizzata
 - **🆕 Auto-Update Database**: Sistema automatico di salvataggio indirizzi durante checkout
-  - **Validation**: Controllo campi obbligatori (firstName, lastName, address, city, postalCode)
-  - **Auto-Save**: Salvataggio automatico indirizzo spedizione nel database cliente
+  - **Enhanced Validation**: Controllo campi obbligatori con messaggi specifici per ogni campo mancante
+  - **Step 2 Validation**: Validazione completa prima del passaggio allo step 3 con toast notifications
+  - **Auto-Save**: Salvataggio automatico indirizzo spedizione e company nel database cliente
   - **Billing Address**: Gestione separata indirizzo fatturazione se diverso da spedizione
-  - **Error Handling**: Fallback graceful se salvataggio indirizzo fallisce
-  - **Implementation**: Integrato in `CheckoutController.submitOrder` e `CartController.checkoutByToken`
+  - **Error Handling**: Fallback graceful se salvatamento indirizzo fallisce
+  - **Implementation**: Integrato in `CheckoutController.submitOrder` con struttura dati corretta
 
 #### **🎨 5. UI Consistency & Color Scheme**
 
@@ -532,10 +535,11 @@ export const getTranslation = (
 ### 📋 **User Experience Flow**
 
 1. **Step 1 - Products**: Lista prodotti con pulsante "Aggiungi Prodotto" e gestione quantità
-2. **Step 2 - Addresses**: Indirizzi pre-compilati con validazione campi
-3. **Step 3 - Confirmation**: Riepilogo ordine e conferma finale
+2. **Step 2 - Addresses**: Indirizzi pre-compilati con dati cliente (nome, telefono, azienda), validazione completa dei campi obbligatori prima del passaggio allo step 3
+3. **Step 3 - Confirmation**: Riepilogo ordine e conferma finale con validazione finale prima del submit
 4. **Multi-Language**: Interface automaticamente nella lingua del cliente
-5. **Error Handling**: Gestione errori user-friendly con messaggi localizzati
+5. **Error Handling**: Gestione errori user-friendly con messaggi localizzati e toast notifications specifiche
+6. **Auto-Save**: Aggiornamento automatico database cliente con indirizzi inseriti nel checkout
 
 ### 🔗 **API Endpoints**
 
@@ -571,8 +575,10 @@ Il sistema checkout è ora **completamente funzionale e production-ready**. Tutt
 ✅ **Token validation fix**: Risolto "Link Error" con validazione centralizzata  
 ✅ **Multi-language support**: Checkout si adatta automaticamente alla lingua del cliente (IT/EN/ES/PT)  
 ✅ **Add products functionality**: Modal completo per ricerca e aggiunta prodotti durante checkout  
-✅ **Address pre-population**: Indirizzi caricati automaticamente dai dati cliente  
-✅ **🆕 Address auto-update**: Sistema automatico di salvataggio indirizzi durante checkout  
+✅ **Address pre-population**: Indirizzi caricati automaticamente dai dati cliente incluso supporto per azienda  
+✅ **🆕 Enhanced Step 2**: Validazione completa step 2 con controllo campi obbligatori e toast notifications  
+✅ **🆕 Address auto-update**: Sistema automatico di salvataggio indirizzi e azienda durante checkout  
+✅ **🆕 Cart reset**: Svuotamento automatico carrello al completamento ordine  
 ✅ **UI consistency**: Schema colori standardizzato blu/verde in tutto il sistema  
 ✅ **Code optimization**: Codice pulito, TypeScript strict, build ottimizzati
 

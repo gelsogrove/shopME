@@ -108,7 +108,7 @@ export default function SignupPage() {
       <div className="container mx-auto px-4 flex items-center justify-center min-h-screen">
         <Card className="w-full max-w-md font-system bg-white/95 backdrop-blur-sm shadow-xl">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">
+            <CardTitle className="text-lg font-bold text-center">
               Welcome to ShopMe
             </CardTitle>
             <CardDescription className="text-center">

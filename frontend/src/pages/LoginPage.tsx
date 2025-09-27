@@ -58,10 +58,10 @@ export function LoginPage() {
 
       if (response.data && response.data.user) {
         localStorage.setItem("user", JSON.stringify(response.data.user))
-        
+
         // JWT token is automatically saved as HTTP-only cookie by backend
         logger.info("Login successful - JWT token saved as HTTP-only cookie")
-        
+
         toast.success("Login successful!")
 
         setTimeout(() => {
@@ -101,9 +101,7 @@ export function LoginPage() {
           <div className="space-y-4 text-center">
             <AuthLogo />
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight">
-                ShopMe
-              </h1>
+              <h1 className="text-xl font-bold tracking-tight">ShopMe</h1>
               <p className="text-balance text-muted-foreground">
                 Enter your credentials to access your workspace
               </p>
@@ -201,7 +199,7 @@ export function LoginPage() {
           </div>
 
           {/* Main Heading */}
-          <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-center mb-6">
+          <h2 className="text-xl lg:text-2xl font-bold tracking-tight text-center mb-6">
             Power your business
             <span className="block text-blue-200">
               with an AI-driven sales agent

@@ -79,7 +79,7 @@ export default function ForgotPasswordPage() {
       <div className="container mx-auto px-4 flex items-center justify-center min-h-screen">
         <Card className="w-full max-w-md font-system bg-white/95 backdrop-blur-sm shadow-xl">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">
+            <CardTitle className="text-lg font-bold text-center">
               Reset Password
             </CardTitle>
             <CardDescription className="text-center">
@@ -91,8 +91,8 @@ export default function ForgotPasswordPage() {
             {success ? (
               <Alert>
                 <AlertDescription className="text-center">
-                  If an account exists with that email, you will receive password
-                  reset instructions shortly.
+                  If an account exists with that email, you will receive
+                  password reset instructions shortly.
                 </AlertDescription>
               </Alert>
             ) : (
@@ -125,9 +125,9 @@ export default function ForgotPasswordPage() {
                     )}
                   />
 
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-green-500 hover:bg-green-600 text-white font-medium" 
+                  <Button
+                    type="submit"
+                    className="w-full bg-green-500 hover:bg-green-600 text-white font-medium"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -146,8 +146,8 @@ export default function ForgotPasswordPage() {
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
               Remember your password?{" "}
-              <Link 
-                to="/auth/login" 
+              <Link
+                to="/auth/login"
                 className="text-green-500 hover:text-green-600 hover:underline"
               >
                 Sign in

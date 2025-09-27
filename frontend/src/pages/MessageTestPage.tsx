@@ -1,54 +1,62 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { logger } from "@/lib/logger"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import axios from "axios";
-import React, { useState } from "react";
+import axios from "axios"
+import React, { useState } from "react"
 
-const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api`;
+const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api`
 
 const MessageTestPage: React.FC = () => {
-  const [message, setMessage] = useState("");
-  const [response, setResponse] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState("")
+  const [response, setResponse] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setResponse("");
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    setResponse("")
 
     try {
-      const { data } = await axios.post(`${API_URL}/messages`, { 
-        message 
-      });
-      
+      const { data } = await axios.post(`${API_URL}/messages`, {
+        message,
+      })
+
       if (data.success) {
-        setResponse(JSON.stringify(data.data, null, 2));
+        setResponse(JSON.stringify(data.data, null, 2))
       } else {
-        setError("Request failed: " + data.error);
+        setError("Request failed: " + data.error)
       }
     } catch (err: any) {
-      setError(`Error: ${err.message}`);
-      logger.error("Error sending message:", err);
+      setError(`Error: ${err.message}`)
+      logger.error("Error sending message:", err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-6">Message Processing API Test</h1>
-      
+      <h1 className="text-lg font-bold mb-6">Message Processing API Test</h1>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Send a Message</CardTitle>
             <CardDescription>
-              This will send your message to the API and return the processed result.
+              This will send your message to the API and return the processed
+              result.
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -56,7 +64,7 @@ const MessageTestPage: React.FC = () => {
               <div className="grid w-full items-center gap-4">
                 <div className="flex flex-col space-y-1.5">
                   <Label htmlFor="message">Message</Label>
-                  <Input 
+                  <Input
                     id="message"
                     placeholder="Type your message here..."
                     value={message}
@@ -67,7 +75,11 @@ const MessageTestPage: React.FC = () => {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" type="button" onClick={() => setMessage("")}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setMessage("")}
+              >
                 Clear
               </Button>
               <Button type="submit" disabled={loading}>
@@ -106,7 +118,7 @@ const MessageTestPage: React.FC = () => {
         </Card>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default MessageTestPage; 
+export default MessageTestPage

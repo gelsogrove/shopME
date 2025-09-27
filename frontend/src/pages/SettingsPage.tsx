@@ -1,30 +1,30 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { logger } from "@/lib/logger"
 import { toast } from "@/lib/toast"
 import {
-    deleteWorkspace,
-    getCurrentWorkspace,
-    updateWorkspace,
+  deleteWorkspace,
+  getCurrentWorkspace,
+  updateWorkspace,
 } from "@/services/workspaceApi"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Loader2, Save, Settings, Trash2 } from "lucide-react"
@@ -301,9 +301,7 @@ export default function SettingsPage() {
     <div className="container mx-auto py-6 px-4">
       <div className="flex items-center gap-2 mb-6">
         <Settings className="h-6 w-6 text-green-600" />
-        <h1 className="text-3xl font-bold text-green-600">
-          Workspace Settings
-        </h1>
+        <h1 className="text-xl font-bold text-green-600">Workspace Settings</h1>
       </div>
 
       <Card>

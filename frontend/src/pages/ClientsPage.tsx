@@ -72,7 +72,7 @@ export interface Client {
   isBlacklisted?: boolean
 }
 
-const availableLanguages = ["Spanish", "English", "Italian"]
+const availableLanguages = ["Español", "English", "Italiano", "Português"]
 
 // Effettua il parsing dell'indirizzo da una stringa
 const parseAddress = (addressStr?: string | null): ShippingAddress => {
@@ -445,7 +445,9 @@ export default function ClientsPage(): JSX.Element {
                   className="h-8 w-8 p-0 flex items-center justify-center"
                   onClick={() =>
                     navigate(
-                      `/admin/orders?search=${encodeURIComponent(row.original.name)}`
+                      `/admin/orders?search=${encodeURIComponent(
+                        row.original.name
+                      )}`
                     )
                   }
                 >

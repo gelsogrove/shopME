@@ -42,6 +42,7 @@ FASE 2
 - cateogorie nel DB ? cosi da togliere la parte harcodeata
 - MESSAGGI PUSH IN BASE ALLE OPERAZIONI
 - MIGLIORARE DEBUG
+- se la pagina e' expired non deve mostrare {"success":false,"error":"Short URL has expired"}
 
 > > TODO <<
 > > DEPLOY

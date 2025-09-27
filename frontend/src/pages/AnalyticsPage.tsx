@@ -1,7 +1,7 @@
 import {
-    DateRangeSelector,
-    PeriodPreset,
-    getDateRangeFromPeriod,
+  DateRangeSelector,
+  PeriodPreset,
+  getDateRangeFromPeriod,
 } from "@/components/analytics/DateRangeSelector"
 import { HistoricalChart } from "@/components/analytics/HistoricalChart"
 import { MetricsOverview } from "@/components/analytics/MetricsOverview"
@@ -13,9 +13,9 @@ import { useWorkspace } from "@/hooks/use-workspace"
 import { useAnalyticsPeriod } from "@/hooks/useAnalyticsPeriod"
 import { logger } from "@/lib/logger"
 import {
-    AnalyticsResponse,
-    DashboardAnalytics,
-    getDashboardAnalytics,
+  AnalyticsResponse,
+  DashboardAnalytics,
+  getDashboardAnalytics,
 } from "@/services/analyticsApi"
 import { Activity, AlertCircle, BarChart3, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -25,7 +25,8 @@ export function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const { selectedPeriod, setSelectedPeriod, isInitialized } = useAnalyticsPeriod()
+  const { selectedPeriod, setSelectedPeriod, isInitialized } =
+    useAnalyticsPeriod()
 
   const loadAnalytics = async (period: PeriodPreset) => {
     if (!currentWorkspace?.id) return
@@ -101,10 +102,12 @@ export function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <BarChart3 className="h-8 w-8 text-green-600" />
-            Dashboard Analytics
-          </h1>
+          <div className="flex items-center gap-2 mb-6">
+            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <BarChart3 className="h-6 w-6 text-blue-600" />
+              Analytics Dashboard
+            </h1>
+          </div>
           <p className="text-gray-600 mt-1">
             Monitora le prestazioni e le metriche di crescita del tuo business
           </p>
@@ -270,7 +273,9 @@ export function AnalyticsPage() {
                 ) : (
                   <div className="text-center py-8">
                     <Activity className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">Nessun dato cliente disponibile</p>
+                    <p className="text-gray-500">
+                      Nessun dato cliente disponibile
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -279,7 +284,6 @@ export function AnalyticsPage() {
 
           {/* Pricing List - Moved to bottom */}
           <PricingList />
-
         </div>
       ) : (
         // No Data State

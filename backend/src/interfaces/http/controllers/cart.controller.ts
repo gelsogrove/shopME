@@ -149,6 +149,7 @@ export class CartController {
           id: customer.id,
           name: customer.name,
           email: customer.email,
+          company: customer.company,
         },
       })
     } catch (error) {
@@ -340,6 +341,7 @@ export class CartController {
           email: cart.customer.email,
           phone: cart.customer.phone,
           address: cart.customer.address, // Include address for frontend
+          company: cart.customer.company, // Include company for frontend
           language: cart.customer.language, // 🌐 Include language for translations
         },
         prodotti: items.map((item) => ({

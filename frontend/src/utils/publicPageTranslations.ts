@@ -82,6 +82,8 @@ export interface PublicPageTexts {
   confirmDelete: string
   confirmDeleteMessage: string
   remove: string
+  addToCart: string
+  thanks: string
   greeting: string
   steps: {
     products: string
@@ -94,6 +96,27 @@ export interface PublicPageTexts {
   orderReceived: string
   contactSoon: string
   closePage: string
+
+  // Form placeholders
+  streetPlaceholder: string
+  cityPlaceholder: string
+  postalCodePlaceholder: string
+  provincePlaceholder: string
+  countryPlaceholder: string
+  namePlaceholder: string
+  phonePlaceholder: string
+  companyPlaceholder: string
+  notesPlaceholder: string
+  searchProductsPlaceholder: string
+
+  // Form labels
+  streetLabel: string
+  cityLabel: string
+  postalCodeLabel: string
+  provinceLabel: string
+  countryLabel: string
+  sameAsShippingLabel: string
+  additionalNotesLabel: string
 }
 
 export const publicPageTranslations: Record<
@@ -180,6 +203,8 @@ export const publicPageTranslations: Record<
     confirmDelete: "Sei sicuro?",
     confirmDeleteMessage: 'Vuoi rimuovere "{name}" dal carrello?',
     remove: "Rimuovi",
+    addToCart: "Aggiungi",
+    thanks: "Grazie",
     greeting: "Ciao {name}, completa il tuo ordine in pochi passaggi",
     steps: {
       products: "Prodotti",
@@ -192,6 +217,27 @@ export const publicPageTranslations: Record<
     orderReceived: "Il tuo ordine è stato ricevuto con successo.",
     contactSoon: "Ti contatteremo il prima possibile per la conferma.",
     closePage: "Puoi chiudere questa pagina e tornare alla chat WhatsApp.",
+
+    // Form placeholders
+    streetPlaceholder: "Via e numero civico",
+    cityPlaceholder: "Città",
+    postalCodePlaceholder: "CAP",
+    provincePlaceholder: "Provincia",
+    countryPlaceholder: "Paese",
+    namePlaceholder: "Nome completo",
+    phonePlaceholder: "Telefono",
+    companyPlaceholder: "Nome azienda",
+    notesPlaceholder: "Eventuali note per la consegna...",
+    searchProductsPlaceholder: "Cerca prodotti...",
+
+    // Form labels
+    streetLabel: "Via e numero civico",
+    cityLabel: "Città",
+    postalCodeLabel: "CAP",
+    provinceLabel: "Provincia",
+    countryLabel: "Paese",
+    sameAsShippingLabel: "Stesso indirizzo di spedizione",
+    additionalNotesLabel: "Note aggiuntive",
   },
 
   EN: {
@@ -274,6 +320,8 @@ export const publicPageTranslations: Record<
     confirmDelete: "Are you sure?",
     confirmDeleteMessage: 'Do you want to remove "{name}" from your cart?',
     remove: "Remove",
+    addToCart: "Add",
+    thanks: "Thanks",
     greeting: "Hello {name}, complete your order in a few steps",
     steps: {
       products: "Products",
@@ -286,6 +334,27 @@ export const publicPageTranslations: Record<
     orderReceived: "Your order has been received successfully.",
     contactSoon: "We will contact you as soon as possible for confirmation.",
     closePage: "You can close this page and return to WhatsApp chat.",
+
+    // Form placeholders
+    streetPlaceholder: "Street and number",
+    cityPlaceholder: "City",
+    postalCodePlaceholder: "ZIP Code",
+    provincePlaceholder: "State/Province",
+    countryPlaceholder: "Country",
+    namePlaceholder: "Full name",
+    phonePlaceholder: "Phone",
+    companyPlaceholder: "Company name",
+    notesPlaceholder: "Additional delivery notes...",
+    searchProductsPlaceholder: "Search products...",
+
+    // Form labels
+    streetLabel: "Street and number",
+    cityLabel: "City",
+    postalCodeLabel: "ZIP Code",
+    provinceLabel: "State/Province",
+    countryLabel: "Country",
+    sameAsShippingLabel: "Same as shipping address",
+    additionalNotesLabel: "Additional notes",
   },
 
   ES: {
@@ -368,6 +437,8 @@ export const publicPageTranslations: Record<
     confirmDelete: "¿Estás seguro?",
     confirmDeleteMessage: '¿Quieres eliminar "{name}" de tu carrito?',
     remove: "Eliminar",
+    addToCart: "Agregar",
+    thanks: "Gracias",
     greeting: "Hola {name}, completa tu pedido en pocos pasos",
     steps: {
       products: "Productos",
@@ -381,6 +452,27 @@ export const publicPageTranslations: Record<
     contactSoon:
       "Nos pondremos en contacto contigo lo antes posible para la confirmación.",
     closePage: "Puedes cerrar esta página y volver al chat de WhatsApp.",
+
+    // Form placeholders
+    streetPlaceholder: "Calle y número",
+    cityPlaceholder: "Ciudad",
+    postalCodePlaceholder: "Código Postal",
+    provincePlaceholder: "Provincia",
+    countryPlaceholder: "País",
+    namePlaceholder: "Nombre completo",
+    phonePlaceholder: "Teléfono",
+    companyPlaceholder: "Nombre de la empresa",
+    notesPlaceholder: "Notas adicionales para la entrega...",
+    searchProductsPlaceholder: "Buscar productos...",
+
+    // Form labels
+    streetLabel: "Calle y número",
+    cityLabel: "Ciudad",
+    postalCodeLabel: "Código Postal",
+    provinceLabel: "Provincia",
+    countryLabel: "País",
+    sameAsShippingLabel: "Misma dirección de envío",
+    additionalNotesLabel: "Notas adicionales",
   },
 
   PT: {
@@ -463,6 +555,8 @@ export const publicPageTranslations: Record<
     confirmDelete: "Tem certeza?",
     confirmDeleteMessage: 'Você quer remover "{name}" do seu carrinho?',
     remove: "Remover",
+    addToCart: "Adicionar",
+    thanks: "Obrigado",
     greeting: "Olá {name}, complete seu pedido em poucos passos",
     steps: {
       products: "Produtos",
@@ -476,6 +570,27 @@ export const publicPageTranslations: Record<
     contactSoon:
       "Entraremos em contato com você o mais breve possível para confirmação.",
     closePage: "Você pode fechar esta página e voltar ao chat do WhatsApp.",
+
+    // Form placeholders
+    streetPlaceholder: "Rua e número",
+    cityPlaceholder: "Cidade",
+    postalCodePlaceholder: "Código Postal",
+    provincePlaceholder: "Estado/Província",
+    countryPlaceholder: "País",
+    namePlaceholder: "Nome completo",
+    phonePlaceholder: "Telefone",
+    companyPlaceholder: "Nome da empresa",
+    notesPlaceholder: "Notas adicionais para entrega...",
+    searchProductsPlaceholder: "Buscar produtos...",
+
+    // Form labels
+    streetLabel: "Rua e número",
+    cityLabel: "Cidade",
+    postalCodeLabel: "Código Postal",
+    provinceLabel: "Estado/Província",
+    countryLabel: "País",
+    sameAsShippingLabel: "Mesmo endereço de envio",
+    additionalNotesLabel: "Notas adicionais",
   },
 }
 

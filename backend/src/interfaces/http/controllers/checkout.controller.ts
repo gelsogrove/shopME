@@ -142,6 +142,7 @@ export class CheckoutController {
           phone: customer.phone,
           address: customer.address,
           invoiceAddress: customer.invoiceAddress,
+          company: customer.company,
           language: customer.language,
         },
         prodotti: cartItems,
@@ -289,24 +290,24 @@ export class CheckoutController {
 
       // 🎯 TASK: Auto-update customer address in database
       try {
-        // Validate shipping address fields
+        // Validate shipping address fields (use correct field names from frontend)
         const hasValidShippingAddress = shippingAddress && 
-          shippingAddress.firstName && 
-          shippingAddress.lastName && 
-          shippingAddress.address && 
+          shippingAddress.name && 
+          shippingAddress.street && 
           shippingAddress.city && 
           shippingAddress.postalCode;
 
         if (hasValidShippingAddress) {
           // Create structured address object for customer
           const customerAddress = {
-            name: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
-            street: shippingAddress.address,
+            name: shippingAddress.name,
+            street: shippingAddress.street,
             city: shippingAddress.city,
             postalCode: shippingAddress.postalCode,
             province: shippingAddress.province || "",
-            country: shippingAddress.country || "Italy",
-            phone: shippingAddress.phone || customer.phone || ""
+            country: shippingAddress.country || "Italia",
+            phone: shippingAddress.phone || customer.phone || "",
+            company: shippingAddress.company || ""
           };
 
           // Update customer address in database
@@ -317,6 +318,8 @@ export class CheckoutController {
             },
             data: {
               address: JSON.stringify(customerAddress),
+              // Also update customer company if provided
+              company: shippingAddress.company || customer.company,
               updatedAt: new Date()
             }
           });
@@ -327,23 +330,22 @@ export class CheckoutController {
         }
 
         // Auto-update billing address if provided and different from shipping
-        if (billingAddress && !billingAddress.sameAsShipping) {
-          const hasValidBillingAddress = billingAddress.firstName && 
-            billingAddress.lastName && 
-            billingAddress.address && 
+        if (billingAddress && billingAddress !== shippingAddress) {
+          const hasValidBillingAddress = billingAddress.name && 
+            billingAddress.street && 
             billingAddress.city && 
             billingAddress.postalCode;
 
           if (hasValidBillingAddress) {
             const customerInvoiceAddress = {
-              firstName: billingAddress.firstName,
-              lastName: billingAddress.lastName,
-              address: billingAddress.address,
+              name: billingAddress.name,
+              address: billingAddress.street,
               city: billingAddress.city,
               postalCode: billingAddress.postalCode,
               province: billingAddress.province || "",
-              country: billingAddress.country || "Italy",
-              phone: billingAddress.phone || customer.phone || ""
+              country: billingAddress.country || "Italia",
+              phone: billingAddress.phone || customer.phone || "",
+              company: billingAddress.company || ""
             };
 
             // Update customer invoice address in database

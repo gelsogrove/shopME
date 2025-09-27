@@ -1,26 +1,26 @@
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { logger } from "@/lib/logger"
 import { AuthLogo } from "@/components/ui/auth-logo"
 import { Button } from "@/components/ui/button"
 import {
-      Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card"
 import {
-      Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { QRCodeDisplay } from "@/components/ui/qr-code"
 import { useToast } from "@/hooks/use-toast"
+import { logger } from "@/lib/logger"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -88,15 +88,15 @@ export default function VerifyOtpPage() {
       try {
         const workspacesResponse = await fetch("/api/workspaces", {
           headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-          credentials: "include"
+          credentials: "include",
         })
 
         if (workspacesResponse.ok) {
           const workspaces = await workspacesResponse.json()
-          
+
           if (workspaces && workspaces.length > 0) {
             // User has workspaces, redirect to chat
             navigate("/chat")
@@ -109,7 +109,10 @@ export default function VerifyOtpPage() {
           navigate("/clients")
         }
       } catch (workspaceError) {
-        logger.warn("Could not fetch workspaces, redirecting to workspace selection:", workspaceError)
+        logger.warn(
+          "Could not fetch workspaces, redirecting to workspace selection:",
+          workspaceError
+        )
         // If there's an error fetching workspaces, redirect to workspace selection
         navigate("/clients")
       }
@@ -125,7 +128,7 @@ export default function VerifyOtpPage() {
       <AuthLogo />
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
+          <CardTitle className="text-lg font-bold text-center">
             ShopMe Security
           </CardTitle>
           <CardDescription className="text-center">
@@ -155,7 +158,7 @@ export default function VerifyOtpPage() {
                         maxLength={6}
                         pattern="\d*"
                         inputMode="numeric"
-                        className="text-center text-2xl tracking-widest"
+                        className="text-center text-lg tracking-widest"
                         {...field}
                       />
                     </FormControl>

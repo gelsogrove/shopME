@@ -7,7 +7,11 @@ import { useWorkspace } from "@/hooks/use-workspace"
 import { PlusCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { createWorkspace, getWorkspaces, updateWorkspace } from "../services/workspaceApi"
+import {
+  createWorkspace,
+  getWorkspaces,
+  updateWorkspace,
+} from "../services/workspaceApi"
 
 // Definizione dei tipi di attività supportati
 type BusinessType = "Shop" | "Hotel" | "Restaurant"
@@ -22,7 +26,7 @@ export function WorkspaceSelectionPage() {
   const [errorMessage, setErrorMessage] = useState("")
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  
+
   // Carica i workspace all'avvio
   useEffect(() => {
     loadWorkspaces()
@@ -45,12 +49,15 @@ export function WorkspaceSelectionPage() {
   const handleSelectWorkspace = (workspace: Workspace) => {
     // Usa la nuova funzione per salvare il workspace
     setCurrentWorkspace(workspace)
-    
+
     // Salva il nome del workspace e il numero di telefono separatamente
     sessionStorage.setItem("currentWorkspaceName", workspace.name)
-    sessionStorage.setItem("currentWorkspacePhone", workspace.whatsappPhoneNumber || "")
+    sessionStorage.setItem(
+      "currentWorkspacePhone",
+      workspace.whatsappPhoneNumber || ""
+    )
     sessionStorage.setItem("currentWorkspaceType", selectedType || "Shop")
-    
+
     // Reindirizza alla chat history dopo la selezione
     navigate("/chat")
   }
@@ -79,7 +86,7 @@ export function WorkspaceSelectionPage() {
       const newWorkspace = await createWorkspace({
         name: newPhoneNumber,
         whatsappPhoneNumber: newPhoneNumber,
-        language: "en"
+        language: "en",
       })
 
       setWorkspaces([...workspaces, newWorkspace])
@@ -110,7 +117,7 @@ export function WorkspaceSelectionPage() {
       if (workspace) {
         const updatedWorkspace = await updateWorkspace(id, {
           id,
-          isActive: !workspace.isActive
+          isActive: !workspace.isActive,
         })
         const updatedWorkspaces = workspaces.map((w) =>
           w.id === id ? updatedWorkspace : w
@@ -127,7 +134,7 @@ export function WorkspaceSelectionPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-2">Your Channels</h1>
+        <h1 className="text-xl font-bold text-center mb-2">Your Channels</h1>
         <p className="text-center text-gray-600 mb-8">
           Select a channel to manage its conversations or create a new one
         </p>
@@ -145,12 +152,19 @@ export function WorkspaceSelectionPage() {
               key={workspace.id}
               className={`transition-all relative ${
                 justCreatedId === workspace.id ? "ring-2 ring-green-500" : ""
-              } ${workspace.isActive ? "bg-white border-gray-200" : "bg-gray-100 border-gray-300 opacity-75"}`}
+              } ${
+                workspace.isActive
+                  ? "bg-white border-gray-200"
+                  : "bg-gray-100 border-gray-300 opacity-75"
+              }`}
             >
-              <CardContent 
+              <CardContent
                 className="p-6 cursor-pointer"
                 onClick={(e) => {
-                  console.log("🟡 Click registrato su workspace:", workspace.name)
+                  console.log(
+                    "🟡 Click registrato su workspace:",
+                    workspace.name
+                  )
                   e.preventDefault()
                   e.stopPropagation()
                   handleSelectWorkspace(workspace)
@@ -158,16 +172,28 @@ export function WorkspaceSelectionPage() {
               >
                 <div className="space-y-2 min-w-0 w-full">
                   <div className="text-lg font-semibold truncate flex items-center justify-between">
-                    <span className={workspace.isActive ? "" : "text-gray-500"}>{workspace.name}</span>
+                    <span className={workspace.isActive ? "" : "text-gray-500"}>
+                      {workspace.name}
+                    </span>
                     {!workspace.isActive && (
                       <span className="text-sm font-normal text-red-500 bg-red-50 px-2 py-1 rounded">
                         Disabled
                       </span>
                     )}
                   </div>
-                  <div className={`text-sm ${workspace.isActive ? "text-gray-500" : "text-gray-400"}`}>Type: Shop</div>
+                  <div
+                    className={`text-sm ${
+                      workspace.isActive ? "text-gray-500" : "text-gray-400"
+                    }`}
+                  >
+                    Type: Shop
+                  </div>
                   {workspace.whatsappPhoneNumber && (
-                    <div className={`text-xl flex items-center gap-2 ${workspace.isActive ? "text-green-600" : "text-gray-400"}`}>
+                    <div
+                      className={`text-xl flex items-center gap-2 ${
+                        workspace.isActive ? "text-green-600" : "text-gray-400"
+                      }`}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="20"

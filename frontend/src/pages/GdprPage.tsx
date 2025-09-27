@@ -13,9 +13,9 @@
  */
 
 import { Button } from "@/components/ui/button"
-import { logger } from "@/lib/logger"
 import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
+import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
 import { Loader2, Save, ShieldCheck } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -71,7 +71,7 @@ export default function GdprPage() {
         <div className="col-span-11 col-start-1">
           <div className="flex items-center gap-2 mb-6">
             <ShieldCheck className="h-6 w-6 text-green-600" />
-            <h1 className="text-3xl font-bold text-green-600">
+            <h1 className="text-xl font-bold text-green-600">
               Privacy & GDPR Policy
             </h1>
           </div>
