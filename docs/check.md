@@ -28,7 +28,6 @@
 
 NON VA
 
-- debug piu interessante (ha canellato ?)
 - arriviamo fino all'ordine?
 
 FASE 2
@@ -40,4 +39,18 @@ FASE 2
 - nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
 - QUANDO SI APPLUCA UNO SCONTO MADNARE MESSAGGIO
 - prompt e e modello dinamoco
-- cateogorie nel DB ? cpso da togliere la parte harcodeata
+- cateogorie nel DB ? cosi da togliere la parte harcodeata
+- MESSAGGI PUSH IN BASE ALLE OPERAZIONI
+- MIGLIORARE DEBUG
+
+> > TODO <<
+> > DEPLOY
+> > WHATSAPP INTEGRATION
+> > SECUIRTY
+> > CRM INTEGRATION
+
+> > COSTI <<
+> > 70 AMAZON
+> > 30 DI AI DEV
+> > COSTO ANDREA DI INTEGRAZIONE
+> > COSTO ANDREA DI USO

@@ -389,22 +389,39 @@ export class CartController {
       }
 
       const payload = validation.payload as any
+      const customerId = payload.customerId || validation.data.customerId
+      const workspaceId = validation.data.workspaceId
 
-      // Get cart
-      const cart = await prisma.carts.findFirst({
+      // Get or create cart (following same logic as getCartByToken)
+      let cart = await prisma.carts.findFirst({
         where: {
           id: payload.cartId,
-          customerId: payload.customerId,
-          workspaceId: validation.data.workspaceId,
+          customerId: customerId,
+          workspaceId: workspaceId,
         },
       })
 
+      // If cart with specific ID not found, try to find or create cart for customer
       if (!cart) {
-        res.status(400).json({
-          success: false,
-          error: "Cart not found",
+        cart = await prisma.carts.findFirst({
+          where: {
+            customerId: customerId,
+            workspaceId: workspaceId,
+          },
         })
-        return
+
+        // If no cart exists for customer, create one
+        if (!cart) {
+          logger.info(
+            `🛒 Creating new cart for customer ${customerId} in workspace ${workspaceId}`
+          )
+          cart = await prisma.carts.create({
+            data: {
+              customerId: customerId,
+              workspaceId: workspaceId,
+            },
+          })
+        }
       }
 
       // Verify product exists
@@ -517,6 +534,8 @@ export class CartController {
       const productId = req.params.productId
       const { quantity } = req.body
 
+      logger.info(`[CART] UPDATE ITEM - Token: ${token?.substring(0, 10)}..., ProductId: ${productId}, Quantity: ${quantity}`)
+
       if (quantity === undefined) {
         res.status(400).json({
           success: false,
@@ -539,21 +558,40 @@ export class CartController {
       const customerId = payload.customerId || validation.data.customerId
       const workspaceId = validation.data.workspaceId
 
-      // Find the cart for this customer/token
-      let cart = await prisma.carts.findFirst({
-        where: {
-          customerId: customerId,
-          workspaceId: workspaceId,
-        },
-      })
+      // Find the cart for this customer/token (same logic as getCartByToken)
+      let cart = null
+
+      if (payload.cartId) {
+        // Token has specific cartId - look for that cart first
+        cart = await prisma.carts.findFirst({
+          where: {
+            id: payload.cartId,
+            customerId: customerId,
+            workspaceId: workspaceId,
+          },
+        })
+      }
+      
+      if (!cart) {
+        // If no specific cart found, look for any cart for this customer
+        cart = await prisma.carts.findFirst({
+          where: {
+            customerId: customerId,
+            workspaceId: workspaceId,
+          },
+        })
+      }
 
       if (!cart) {
+        logger.error("[CART] UPDATE - Cart not found")
         res.status(400).json({
           success: false,
           error: "Cart not found",
         })
         return
       }
+
+      logger.info(`[CART] UPDATE - Cart found: ${cart.id}`)
 
       // Find cart item by productId
       const cartItem = await prisma.cartItems.findFirst({
@@ -566,7 +604,10 @@ export class CartController {
         },
       })
 
+      logger.info(`[CART] UPDATE - Cart item found: ${cartItem ? cartItem.id : 'null'}`)
+
       if (!cartItem) {
+        logger.error(`[CART] UPDATE - Cart item not found for productId: ${productId} in cart: ${cart.id}`)
         res.status(400).json({
           success: false,
           error: "Cart item not found",
@@ -574,14 +615,23 @@ export class CartController {
         return
       }
 
-      // Update cart item
-      const updatedCartItem = await prisma.cartItems.update({
-        where: { id: cartItem.id },
-        data: { quantity },
-        include: {
-          product: true,
-        },
+      logger.info(`[CART] UPDATE - Updating cart item ${cartItem.id} quantity from ${cartItem.quantity} to ${quantity}`)
+
+      // Update cart item with explicit transaction
+      const updatedCartItem = await prisma.$transaction(async (tx) => {
+        const updated = await tx.cartItems.update({
+          where: { id: cartItem.id },
+          data: { quantity },
+          include: {
+            product: true,
+          },
+        })
+        
+        logger.info(`[CART] UPDATE - Transaction completed, updated quantity: ${updated.quantity}`)
+        return updated
       })
+
+      logger.info(`[CART] UPDATE - Cart item updated successfully: ${updatedCartItem.id}, new quantity: ${updatedCartItem.quantity}`)
 
       // Calculate cart totals
       const cartWithItems = await prisma.carts.findFirst({
@@ -660,13 +710,29 @@ export class CartController {
       const customerId = payload.customerId || validation.data.customerId
       const workspaceId = validation.data.workspaceId
 
-      // Find the cart for this customer/token
-      let cart = await prisma.carts.findFirst({
-        where: {
-          customerId: customerId,
-          workspaceId: workspaceId,
-        },
-      })
+      // Find the cart for this customer/token (same logic as getCartByToken)
+      let cart = null
+
+      if (payload.cartId) {
+        // Token has specific cartId - look for that cart first
+        cart = await prisma.carts.findFirst({
+          where: {
+            id: payload.cartId,
+            customerId: customerId,
+            workspaceId: workspaceId,
+          },
+        })
+      }
+      
+      if (!cart) {
+        // If no specific cart found, look for any cart for this customer
+        cart = await prisma.carts.findFirst({
+          where: {
+            customerId: customerId,
+            workspaceId: workspaceId,
+          },
+        })
+      }
 
       if (!cart) {
         res.status(400).json({

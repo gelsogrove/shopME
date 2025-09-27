@@ -120,32 +120,9 @@ const CheckoutPage: React.FC = () => {
       const processData = async () => {
         setCustomer(tokenData.customer)
 
-        // 🔧 Clean up and normalize product data from backend
-        console.log(
-          "🔍 DEBUG: tokenData.prodotti from backend:",
-          tokenData.prodotti
-        )
-        const cleanedProdotti = (tokenData.prodotti || []).map((prodotto) => {
-          console.log("🔍 DEBUG: Processing product:", {
-            name: prodotto.descrizione,
-            formato: prodotto.formato,
-            hasFormato: !!prodotto.formato,
-          })
-          return {
-            ...prodotto,
-            descrizione:
-              prodotto.descrizione === "Unknown Product"
-                ? "Prodotto senza nome"
-                : prodotto.descrizione,
-            formato: prodotto.formato, // 🧀 Preserve formato field
-            qty: prodotto.quantita || 1, // Map quantita to qty for frontend compatibility
-            prezzoOriginale: prodotto.prezzo, // Original price
-            prezzo: prodotto.prezzoScontato || prodotto.prezzo, // Use discounted price as display price
-            scontoApplicato: prodotto.sconto || 0, // Discount percentage
-          }
-        })
-
-        setProdotti(cleanedProdotti)
+        // � Instead of using static data from token, always refresh from backend to get current cart state
+        console.log("🔍 INITIAL: Refreshing cart from backend instead of using token data...")
+        await refreshCartFromBackend()
 
         // 🔧 ALWAYS pre-fill basic customer data (name and phone) from token
         setFormData((prev) => ({
@@ -252,6 +229,14 @@ const CheckoutPage: React.FC = () => {
         return
       }
 
+      // 🎯 OPTIMISTIC UPDATE: Update UI immediately for better UX
+      const oldQuantity = product.qty
+      setProdotti(prevProdotti => 
+        prevProdotti.map((p, i) => 
+          i === index ? { ...p, qty: newQuantity, quantita: newQuantity } : p
+        )
+      )
+
       // 🚀 Call backend API to update quantity
       const response = await fetch(
         `/api/cart/${token}/items/${product.productId}`,
@@ -267,17 +252,30 @@ const CheckoutPage: React.FC = () => {
       )
 
       if (!response.ok) {
+        // 🔄 Revert on error
+        setProdotti(prevProdotti => 
+          prevProdotti.map((p, i) => 
+            i === index ? { ...p, qty: oldQuantity, quantita: oldQuantity } : p
+          )
+        )
         throw new Error("Failed to update quantity")
       }
 
       const result = await response.json()
 
       if (!result.success) {
+        // 🔄 Revert on error
+        setProdotti(prevProdotti => 
+          prevProdotti.map((p, i) => 
+            i === index ? { ...p, qty: oldQuantity, quantita: oldQuantity } : p
+          )
+        )
         throw new Error(result.error || "Failed to update quantity")
       }
 
-      // 🔄 Refresh cart data from backend
-      await refreshCartFromBackend()
+      // ✅ Success - UI is already updated, no need to refresh
+      console.log("✅ Quantity updated successfully in backend")
+
     } catch (error) {
       console.error("❌ Error updating quantity:", error)
       toast.error("Errore nell'aggiornare la quantità")
@@ -352,6 +350,7 @@ const CheckoutPage: React.FC = () => {
     if (!token) return
 
     try {
+      console.log("🔄 Starting cart refresh...")
       const response = await fetch(`/api/cart/${token}`)
 
       if (!response.ok) {
@@ -359,23 +358,30 @@ const CheckoutPage: React.FC = () => {
       }
 
       const result = await response.json()
+      console.log("🔍 Raw cart data from API:", result)
 
       if (result.success && result.data) {
         // Convert backend cart items to frontend format
-        const updatedProdotti = result.data.items.map((item: any) => ({
-          id: item.id,
-          productId: item.productId,
-          codice: item.product?.code || item.product?.sku || "Non disponibile",
-          descrizione: item.product?.name || "Prodotto senza nome",
-          formato: item.product?.formato || null,
-          prezzo: item.product?.price || 0,
-          prezzoOriginale: item.product?.price || 0,
-          scontoApplicato: 0,
-          fonteSconto: null,
-          nomeSconto: null,
-          qty: item.quantity,
-        }))
+        const updatedProdotti = result.data.items.map((item: any) => {
+          console.log("🔍 Processing cart item:", item)
+          return {
+            id: item.id,
+            productId: item.productId,
+            codice: item.productCode || "Non disponibile",
+            descrizione: item.name || "Prodotto senza nome", // Fix: use item.name instead of item.product.name
+            formato: item.formato || null,
+            prezzo: item.originalPrice || 0,
+            prezzoOriginale: item.originalPrice || 0,
+            prezzoScontato: item.finalPrice || item.originalPrice || 0,
+            scontoApplicato: item.appliedDiscount || 0,
+            fonteSconto: null,
+            nomeSconto: null,
+            qty: item.quantity,
+            quantita: item.quantity, // Add both qty and quantita for compatibility
+          }
+        })
 
+        console.log("🔍 About to set prodotti with:", updatedProdotti)
         setProdotti(updatedProdotti)
         console.log("✅ Cart refreshed from backend:", updatedProdotti)
       }
