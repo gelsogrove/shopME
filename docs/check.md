@@ -28,16 +28,13 @@
 
 NON VA
 
-- ⚠️ **REMINDER FINALE**: Rispondi sempre in: pt, tutto il testo deve essere in pt le categorie devono ritornare in pt
 - debug piu interessante (ha canellato ?)
-- PRD NON ESISTE
-- SCONTI ??
-- non traduce perfettametne prova con dammi ordine BLABLABLA in spagnolo
-- non traduce le categorie
+- fn devono ritornare valorein lingua generateLLM response
 - arriviamo fino all'ordine?
 
 FASE 2
 
+- PRD NON ESISTE
 - DOCUMENTAZIONE SPORCA > MEMORY BANK
 - siamo sicuri che passiamo sempre il workspceID
 - FE con le lingue come va?
