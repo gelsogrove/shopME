@@ -29,7 +29,6 @@ export class LLMService {
       new (require("../repositories/message.repository").MessageRepository)()
     const { replaceAllVariables } = require("../services/formatter")
     const { workspaceService } = require("../services/workspace.service")
-    const { FormatterService } = require("../services/formatter.service")
 
     // 1. Get Data
     let customer = await messageRepo.findCustomerByPhone(llmRequest.phone)
@@ -90,7 +89,16 @@ export class LLMService {
       companyName: customer.company || "",
       lastordercode:
         customerData?.lastordercode || customer.lastOrderCode || "",
-      languageUser: userLanguage, // 🔧 FIX: Use language code (en, es, it, pt) not translated name
+      languageUser:
+        userLanguage === "it"
+          ? "ITALIANO"
+          : userLanguage === "en"
+            ? "ENGLISH"
+            : userLanguage === "es"
+              ? "ESPAÑOL"
+              : userLanguage === "pt"
+                ? "Português"
+                : userLanguage,
     }
 
     if (!faqs && !products && !services && !categories) {

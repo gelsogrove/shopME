@@ -148,8 +148,6 @@ Rispondi SEMPRE in **markdown** seguendo queste regole di formattazione:
 - Se presenti offerte/sconti: scrivile tutte sulla stessa riga separate da (•)
 - Se presenti link: specifica sempre "per motivi di sicurezza il link sarà valido solo per solo 1 ora"
 
-⚠️ **REMINDER FINALE**: Rispondi sempre in: {{languageUser}}, tutto il testo deve essere in {{languageUser}} le categorie devono ritornare in {{languageUser}}
-
 esempi di traduzione
 
 Cheeses & Dairy – 🧀 Formaggi e latticini italiani premium
