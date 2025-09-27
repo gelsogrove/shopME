@@ -21,6 +21,7 @@ import { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
 import { LoginPage } from "./pages/LoginPage"
 import MessageTestPage from "./pages/MessageTestPage"
 import NotFoundPage from "./pages/not-found"
+import ExpiredPage from "./pages/expired"
 import NotificationsPage from "./pages/NotificationsPage"
 import { OffersPage } from "./pages/OffersPage"
 import OrdersPage from "./pages/OrdersPage"
@@ -214,6 +215,10 @@ export function App() {
         <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
         <Route path="/order-summary/:token" element={<OrderSummaryPage />} />
         <Route path="/data-protection" element={<DataProtectionPage />} />
+        
+        {/* Error pages */}
+        <Route path="/expired" element={<ExpiredPage />} />
+        <Route path="/not-found" element={<NotFoundPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

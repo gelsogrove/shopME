@@ -1,5 +1,6 @@
 import { Request, Response } from "express"
 import { urlShortenerService } from "../../../application/services/url-shortener.service"
+import { config } from "../../../config"
 import logger from "../../../utils/logger"
 
 /**
@@ -35,15 +36,13 @@ export class ShortUrlController {
 
       if (!result.success) {
         if (result.notFound) {
-          res.status(404).json({
-            success: false,
-            error: "Short URL not found",
-          })
+          // Redirect to not found page instead of returning JSON
+          logger.info(`📎 Short URL not found, redirecting to 404 page`)
+          res.redirect(302, `${config.frontendUrl}/not-found`)
         } else if (result.expired) {
-          res.status(410).json({
-            success: false,
-            error: "Short URL has expired",
-          })
+          // Redirect to expired page instead of returning JSON
+          logger.info(`📎 Short URL expired, redirecting to expired page`)
+          res.redirect(302, `${config.frontendUrl}/expired`)
         } else {
           res.status(500).json({
             success: false,

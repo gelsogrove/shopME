@@ -342,10 +342,10 @@ export class LLMService {
             "X-Title": "ShopMe LLM Response",
           },
           body: JSON.stringify({
-            model: "openai/gpt-4o-mini",
+            model: workspace.llmModel || "openai/gpt-4o-mini",
             messages: messages,
             tools: this.getAvailableFunctions(),
-            temperature: 0,
+            temperature: workspace.temperature || 0.3,
             max_tokens: workspace.maxTokens || 5000,
           }),
         }

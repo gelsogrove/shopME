@@ -28,7 +28,9 @@
 
 NON VA
 
-- arriviamo fino all'ordine?
+- prompt e e modello dinamoco
+- nuovo utente che lingusa ha?
+- nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
 
 FASE 2
 
@@ -36,13 +38,11 @@ FASE 2
 - DOCUMENTAZIONE SPORCA > MEMORY BANK
 - siamo sicuri che passiamo sempre il workspceID
 - FE con le lingue come va?
-- nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
 - QUANDO SI APPLUCA UNO SCONTO MADNARE MESSAGGIO
-- prompt e e modello dinamoco
 - cateogorie nel DB ? cosi da togliere la parte harcodeata
 - MESSAGGI PUSH IN BASE ALLE OPERAZIONI
 - MIGLIORARE DEBUG
-- se la pagina e' expired non deve mostrare {"success":false,"error":"Short URL has expired"}
+- mostrare carrelli ?
 
 > > TODO <<
 > > DEPLOY
