@@ -13,6 +13,7 @@ export interface Config {
   cors: {
     origin: string
   }
+  frontendUrl: string
   dhlTrackingBaseUrl: string
   llm: {
     defaultPrice: number
@@ -34,6 +35,7 @@ export const config: Config = {
   cors: {
     origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   },
+  frontendUrl: process.env.FRONTEND_URL || process.env.CORS_ORIGIN || "http://localhost:3000",
   dhlTrackingBaseUrl:
     process.env.DHL_TRACKING_BASE_URL ||
     "https://www.dhl.com/global-en/home/tracking/tracking-express.html",

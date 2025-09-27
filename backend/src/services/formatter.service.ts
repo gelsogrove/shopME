@@ -4,6 +4,8 @@
  * Simple service with one method that formats responses to Markdown
  */
 
+import { config } from "../config"
+
 export class FormatterService {
   // Cache for translated category names
   private static categoryTranslationCache: Map<string, string> = new Map()
@@ -298,7 +300,7 @@ Restituisci testo formattato in Markdown arricchiendo le risposte e saludando l'
           customerId
         )
 
-        const ordersLink = `http://localhost:3000/orders-public?token=${ordersToken}`
+        const ordersLink = `${config.frontendUrl}/orders-public?token=${ordersToken}`
         result = result.replace("[LINK_ORDERS_WITH_TOKEN]", ordersLink)
       } catch (error) {
         console.error(

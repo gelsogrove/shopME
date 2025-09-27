@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client"
+import { config } from "../../config"
 import { SecureTokenService } from "../../application/services/secure-token.service"
 
 const prisma = new PrismaClient()
@@ -114,7 +115,7 @@ export async function GetLinkOrderByCode(
       )
     } catch (err) {
       // fallback to original behaviour
-      link = `http://localhost:3000/orders-public?token=${token}`
+      link = `${config.frontendUrl}/orders-public?token=${token}`
     }
 
     console.log(

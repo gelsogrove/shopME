@@ -104,9 +104,9 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     pleaseWait: "Attendere prego...",
     
     // Navigation buttons
-    viewCart: "Visualizza Carrello",
-    viewOrders: "Visualizza Ordini",
-    viewProfile: "Visualizza Profilo",
+    viewCart: "Carrello",
+    viewOrders: "Ordini",
+    viewProfile: "Profilo",
     finalizeOrder: "Finalizza Ordine",
     
     // Common actions
@@ -167,7 +167,7 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     
     // Checkout specific
     yourProducts: "I Tuoi Prodotti",
-    addProducts: "+ Aggiungi Prodotti",
+    addProducts: "+ Aggiungi",
     emptyCart: "Il tuo carrello è vuoto",
     addProductsToContinue: "Aggiungi prodotti per continuare",
     confirmOrder: "Conferma Ordine",
@@ -198,9 +198,9 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     pleaseWait: "Please wait...",
     
     // Navigation buttons
-    viewCart: "View Cart",
-    viewOrders: "View Orders",
-    viewProfile: "View Profile",
+    viewCart: "Cart",
+    viewOrders: "Orders",
+    viewProfile: "Profile",
     finalizeOrder: "Finalize Order",
     
     // Common actions
@@ -261,7 +261,7 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     
     // Checkout specific
     yourProducts: "Your Products",
-    addProducts: "+ Add Products",
+    addProducts: "+ Add",
     emptyCart: "Your cart is empty",
     addProductsToContinue: "Add products to continue",
     confirmOrder: "Confirm Order",
@@ -292,9 +292,9 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     pleaseWait: "Por favor espera...",
     
     // Navigation buttons
-    viewCart: "Ver Carrito",
-    viewOrders: "Ver Pedidos",
-    viewProfile: "Ver Perfil",
+    viewCart: "Carrito",
+    viewOrders: "Pedidos", 
+    viewProfile: "Perfil",
     finalizeOrder: "Finalizar Pedido",
     
     // Common actions
@@ -355,7 +355,7 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     
     // Checkout specific
     yourProducts: "Tus Productos",
-    addProducts: "+ Agregar Productos",
+    addProducts: "+ Agregar",
     emptyCart: "Tu carrito está vacío",
     addProductsToContinue: "Agrega productos para continuar",
     confirmOrder: "Confirmar Pedido",
@@ -386,9 +386,9 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     pleaseWait: "Por favor aguarde...",
     
     // Navigation buttons
-    viewCart: "Ver Carrinho",
-    viewOrders: "Ver Pedidos",
-    viewProfile: "Ver Perfil",
+    viewCart: "Carrinho",
+    viewOrders: "Pedidos",
+    viewProfile: "Perfil", 
     finalizeOrder: "Finalizar Pedido",
     
     // Common actions
@@ -449,7 +449,7 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
     
     // Checkout specific
     yourProducts: "Seus Produtos",
-    addProducts: "+ Adicionar Produtos",
+    addProducts: "+ Adicionar",
     emptyCart: "Seu carrinho está vazio",
     addProductsToContinue: "Adicione produtos para continuar",
     confirmOrder: "Confirmar Pedido",

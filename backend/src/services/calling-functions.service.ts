@@ -1,4 +1,5 @@
 import axios from "axios"
+import { config } from "../config"
 import { SecureTokenService } from "../application/services/secure-token.service"
 import { ReplaceLinkWithToken } from "../chatbot/calling-functions/ReplaceLinkWithToken"
 import {
@@ -240,7 +241,7 @@ export class CallingFunctionsService {
       )
       console.log("🔧 Token created successfully:", token)
 
-      const linkUrl = `http://localhost:3000/checkout?token=${token}`
+      const linkUrl = `${config.frontendUrl}/checkout?token=${token}`
 
       return {
         success: true,

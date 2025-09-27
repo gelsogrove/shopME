@@ -121,7 +121,9 @@ const CheckoutPage: React.FC = () => {
         setCustomer(tokenData.customer)
 
         // � Instead of using static data from token, always refresh from backend to get current cart state
-        console.log("🔍 INITIAL: Refreshing cart from backend instead of using token data...")
+        console.log(
+          "🔍 INITIAL: Refreshing cart from backend instead of using token data..."
+        )
         await refreshCartFromBackend()
 
         // 🔧 ALWAYS pre-fill basic customer data (name and phone) from token
@@ -231,8 +233,8 @@ const CheckoutPage: React.FC = () => {
 
       // 🎯 OPTIMISTIC UPDATE: Update UI immediately for better UX
       const oldQuantity = product.qty
-      setProdotti(prevProdotti => 
-        prevProdotti.map((p, i) => 
+      setProdotti((prevProdotti) =>
+        prevProdotti.map((p, i) =>
           i === index ? { ...p, qty: newQuantity, quantita: newQuantity } : p
         )
       )
@@ -253,8 +255,8 @@ const CheckoutPage: React.FC = () => {
 
       if (!response.ok) {
         // 🔄 Revert on error
-        setProdotti(prevProdotti => 
-          prevProdotti.map((p, i) => 
+        setProdotti((prevProdotti) =>
+          prevProdotti.map((p, i) =>
             i === index ? { ...p, qty: oldQuantity, quantita: oldQuantity } : p
           )
         )
@@ -265,8 +267,8 @@ const CheckoutPage: React.FC = () => {
 
       if (!result.success) {
         // 🔄 Revert on error
-        setProdotti(prevProdotti => 
-          prevProdotti.map((p, i) => 
+        setProdotti((prevProdotti) =>
+          prevProdotti.map((p, i) =>
             i === index ? { ...p, qty: oldQuantity, quantita: oldQuantity } : p
           )
         )
@@ -275,7 +277,6 @@ const CheckoutPage: React.FC = () => {
 
       // ✅ Success - UI is already updated, no need to refresh
       console.log("✅ Quantity updated successfully in backend")
-
     } catch (error) {
       console.error("❌ Error updating quantity:", error)
       toast.error("Errore nell'aggiornare la quantità")

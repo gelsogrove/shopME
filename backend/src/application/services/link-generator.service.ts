@@ -1,4 +1,5 @@
 import logger from "../../utils/logger"
+import { config } from "../../config"
 import { UrlShortenerService } from "./url-shortener.service"
 
 /**
@@ -50,7 +51,7 @@ export class LinkGeneratorService {
     token: string,
     workspaceId: string
   ): Promise<string> {
-    const originalUrl = `http://localhost:3000/checkout?token=${token}`
+    const originalUrl = `${config.frontendUrl}/checkout?token=${token}`
     return this.generateShortLink(originalUrl, workspaceId, "checkout")
   }
 
@@ -66,9 +67,9 @@ export class LinkGeneratorService {
 
     if (orderCode && orderCode.trim() !== "") {
       const safeCode = encodeURIComponent(orderCode.trim())
-      originalUrl = `http://localhost:3000/orders-public/${safeCode}?token=${token}`
+      originalUrl = `${config.frontendUrl}/orders-public/${safeCode}?token=${token}`
     } else {
-      originalUrl = `http://localhost:3000/orders-public?token=${token}`
+      originalUrl = `${config.frontendUrl}/orders-public?token=${token}`
     }
 
     return this.generateShortLink(originalUrl, workspaceId, "orders")
@@ -81,7 +82,7 @@ export class LinkGeneratorService {
     token: string,
     workspaceId: string
   ): Promise<string> {
-    const originalUrl = `http://localhost:3000/customer-profile?token=${token}`
+    const originalUrl = `${config.frontendUrl}/customer-profile?token=${token}`
     return this.generateShortLink(originalUrl, workspaceId, "profile")
   }
 
@@ -93,7 +94,7 @@ export class LinkGeneratorService {
     token: string,
     workspaceId: string
   ): Promise<string> {
-    const originalUrl = `http://localhost:3000/orders-public?token=${token}`
+    const originalUrl = `${config.frontendUrl}/orders-public?token=${token}`
     return this.generateShortLink(originalUrl, workspaceId, "tracking")
   }
 
@@ -104,7 +105,7 @@ export class LinkGeneratorService {
     token: string,
     workspaceId: string
   ): Promise<string> {
-    const originalUrl = `http://localhost:3000/invoice-public?token=${token}`
+    const originalUrl = `${config.frontendUrl}/invoice-public?token=${token}`
     return this.generateShortLink(originalUrl, workspaceId, "invoice")
   }
 

@@ -5,6 +5,8 @@
  * Supports cart, profile, orders, tracking, and checkout links with URL shortening
  */
 
+import { config } from "../../config"
+
 // Import URL shortener service for consistent link generation
 const {
   linkGeneratorService,
@@ -191,9 +193,9 @@ export async function ReplaceLinkWithToken(
           orderCodeParam.trim() !== ""
         ) {
           const safeCode = encodeURIComponent(orderCodeParam.trim())
-          ordersLink = `http://localhost:3000/orders-public/${safeCode}?token=${ordersToken}`
+          ordersLink = `${config.frontendUrl}/orders-public/${safeCode}?token=${ordersToken}`
         } else {
-          ordersLink = `http://localhost:3000/orders-public?token=${ordersToken}`
+          ordersLink = `${config.frontendUrl}/orders-public?token=${ordersToken}`
         }
 
         // Use centralized link generator
