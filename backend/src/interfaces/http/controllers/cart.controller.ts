@@ -536,7 +536,9 @@ export class CartController {
       const productId = req.params.productId
       const { quantity } = req.body
 
-      logger.info(`[CART] UPDATE ITEM - Token: ${token?.substring(0, 10)}..., ProductId: ${productId}, Quantity: ${quantity}`)
+      logger.info(
+        `[CART] UPDATE ITEM - Token: ${token?.substring(0, 10)}..., ProductId: ${productId}, Quantity: ${quantity}`
+      )
 
       if (quantity === undefined) {
         res.status(400).json({
@@ -573,7 +575,7 @@ export class CartController {
           },
         })
       }
-      
+
       if (!cart) {
         // If no specific cart found, look for any cart for this customer
         cart = await prisma.carts.findFirst({
@@ -606,10 +608,14 @@ export class CartController {
         },
       })
 
-      logger.info(`[CART] UPDATE - Cart item found: ${cartItem ? cartItem.id : 'null'}`)
+      logger.info(
+        `[CART] UPDATE - Cart item found: ${cartItem ? cartItem.id : "null"}`
+      )
 
       if (!cartItem) {
-        logger.error(`[CART] UPDATE - Cart item not found for productId: ${productId} in cart: ${cart.id}`)
+        logger.error(
+          `[CART] UPDATE - Cart item not found for productId: ${productId} in cart: ${cart.id}`
+        )
         res.status(400).json({
           success: false,
           error: "Cart item not found",
@@ -617,7 +623,9 @@ export class CartController {
         return
       }
 
-      logger.info(`[CART] UPDATE - Updating cart item ${cartItem.id} quantity from ${cartItem.quantity} to ${quantity}`)
+      logger.info(
+        `[CART] UPDATE - Updating cart item ${cartItem.id} quantity from ${cartItem.quantity} to ${quantity}`
+      )
 
       // Update cart item with explicit transaction
       const updatedCartItem = await prisma.$transaction(async (tx) => {
@@ -628,12 +636,16 @@ export class CartController {
             product: true,
           },
         })
-        
-        logger.info(`[CART] UPDATE - Transaction completed, updated quantity: ${updated.quantity}`)
+
+        logger.info(
+          `[CART] UPDATE - Transaction completed, updated quantity: ${updated.quantity}`
+        )
         return updated
       })
 
-      logger.info(`[CART] UPDATE - Cart item updated successfully: ${updatedCartItem.id}, new quantity: ${updatedCartItem.quantity}`)
+      logger.info(
+        `[CART] UPDATE - Cart item updated successfully: ${updatedCartItem.id}, new quantity: ${updatedCartItem.quantity}`
+      )
 
       // Calculate cart totals
       const cartWithItems = await prisma.carts.findFirst({
@@ -725,7 +737,7 @@ export class CartController {
           },
         })
       }
-      
+
       if (!cart) {
         // If no specific cart found, look for any cart for this customer
         cart = await prisma.carts.findFirst({

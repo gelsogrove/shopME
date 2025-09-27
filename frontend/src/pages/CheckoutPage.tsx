@@ -141,7 +141,7 @@ const CheckoutPage: React.FC = () => {
         )
         await refreshCartFromBackend()
 
-        // 🔧 ALWAYS pre-fill basic customer data (name, phone, company) from token        
+        // 🔧 ALWAYS pre-fill basic customer data (name, phone, company) from token
         setFormData((prev) => ({
           ...prev,
           shippingAddress: {
@@ -1000,17 +1000,13 @@ const CheckoutPage: React.FC = () => {
                 <h3 className="text-lg font-semibold mb-4">
                   🚚 {texts.shippingAddress}
                 </h3>
-                
+
                 {/* Hidden fields for Nome completo, Telefono, Azienda */}
                 <input
                   type="hidden"
                   value={formData.shippingAddress.name}
                   onChange={(e) =>
-                    handleInputChange(
-                      "shippingAddress",
-                      "name",
-                      e.target.value
-                    )
+                    handleInputChange("shippingAddress", "name", e.target.value)
                   }
                 />
                 <input
@@ -1035,7 +1031,7 @@ const CheckoutPage: React.FC = () => {
                     )
                   }
                 />
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">

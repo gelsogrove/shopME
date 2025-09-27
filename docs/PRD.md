@@ -1,6 +1,5 @@
 # ShopMe Project - Product Requirements Document (PRD)
 
-
 ## Public Orders (Phone-based External Links)
 
 ### Goal
@@ -60,16 +59,19 @@ Advanced test client for comprehensive multi-language testing of the ShopME chat
 ### Features
 
 #### Multi-User Support
+
 - **Predefined Users**: Mario Rossi (🇮🇹), John Smith (🇬🇧), María García (🇪🇸), João Silva (🇵🇹)
 - **Language-Specific Testing**: Each user has configured language, phone number, and customer ID
 - **Real Backend Integration**: Tests against actual backend endpoints with live database
 
 #### Database Seeding Integration
+
 - **seed=true Parameter**: Automatically runs database seed before testing
 - **Fresh State Testing**: Ensures consistent test environment with clean data
 - **Critical for Development**: Required when prompt templates are modified
 
 #### Usage Examples
+
 ```bash
 # Interactive mode
 node mcp-test-client.js
@@ -85,16 +87,19 @@ node mcp-test-client.js "María García" "mostrar carrito" exit-first-message=tr
 ```
 
 #### Advanced Debugging
+
 - **Function Call Tracking**: Shows which functions are triggered by LLM
 - **Translation Logging**: Displays translated queries for debugging
 - **Real-time Results**: Immediate feedback on cart operations and function execution
 
 #### Production Benefits
+
 - **Quality Assurance**: Validates function calls work correctly across languages
 - **Prompt Testing**: Essential for testing changes to AI behavior prompts
 - **Development Workflow**: Integrated with seed system for consistent testing
 
 ### Technical Implementation
+
 - **File**: `/MCP/mcp-test-client.js`
 - **Backend Integration**: Direct API calls to `/api/whatsapp/webhook`
 - **Seed Integration**: Runs `npm run seed` in backend directory when `seed=true`
@@ -136,19 +141,20 @@ node mcp-test-client.js "María García" "mostrar carrito" exit-first-message=tr
 ### 🔐 Token System Technical Specifications
 
 #### **🚀 KISS Token Generation Logic**
+
 ```typescript
 // 1. Check for ANY valid token for customer+workspace (IGNORES TYPE!)
 const existingToken = await prisma.secureToken.findFirst({
   where: {
     customerId,
     workspaceId,
-    expiresAt: { gt: new Date() }  // Only check: not expired
-  }
+    expiresAt: { gt: new Date() }, // Only check: not expired
+  },
 })
 
 // 2. If valid token exists → REUSE IT (regardless of original type)
 if (existingToken) {
-  return existingToken.token  // SAME TOKEN for cart, orders, profile, checkout!
+  return existingToken.token // SAME TOKEN for cart, orders, profile, checkout!
 }
 
 // 3. If no valid token → Generate ONE universal token
@@ -156,18 +162,20 @@ return await createNewUniversalToken(customerId, workspaceId, payload)
 ```
 
 #### **🚀 KISS Token Validation Logic**
+
 ```typescript
 // ULTRA-SIMPLE: Only check existence + expiration
 const secureToken = await prisma.secureToken.findFirst({
   where: {
     token,
-    expiresAt: { gt: new Date() }  // Only check: exists + not expired
-  }
+    expiresAt: { gt: new Date() }, // Only check: exists + not expired
+  },
 })
 // NO type checking, NO payload validation, NO usage tracking
 ```
 
 #### **🚀 KISS Token Lifecycle**
+
 - **Creation**: ONE universal token generated when none exists for customer+workspace
 - **Validation**: ONLY existence + expiration determines validity
 - **Reuse**: SAME token for cart/orders/profile/checkout until expiration
@@ -175,6 +183,7 @@ const secureToken = await prisma.secureToken.findFirst({
 - **No Usage Tracking**: `usedAt` field is ignored - tokens remain valid until expiration
 
 #### **Benefits of This Approach**
+
 - ✅ **Better UX**: Users can refresh/revisit links multiple times
 - ✅ **Consistent Links**: Same token for 1 hour ensures consistent URLs
 - ✅ **No "Operation Not Permitted"**: Tokens work until they expire
@@ -291,7 +300,7 @@ const secureToken = await prisma.secureToken.findFirst({
 
 ### ✅ UPDATED: Cart Management System Architecture (September 2025)
 
-- **Dual-Path Strategy:** 
+- **Dual-Path Strategy:**
   - **Path 1 - SearchRAG**: "Aggiungi mozzarella" → product search + automatic cart operation
   - **Path 2 - LLM Functions**: "Mostra carrello" → direct get_cart_info() call
 - **Smart Routing Logic:**
@@ -330,6 +339,7 @@ const secureToken = await prisma.secureToken.findFirst({
 - ~~No External APIs: No add_to_cart, get_cart, or similar functions~~
 
 **NEW APPROACH: Dual-Path Architecture**
+
 - **SearchRAG Path**: For product search + cart operations requiring product data
 - **Calling Functions Path**: For direct cart commands with known parameters
 - **Database Persistence**: Cart state persists in database, not LLM memory
@@ -453,20 +463,20 @@ Sistema checkout completo token-based con validazione sicura, supporto multi-lin
 ```typescript
 // 🚀 KISS Controller - Universal token validation
 const { valid, data: validation } = await SecureTokenService.validateToken(
-  token  // ✅ No type parameter needed - accepts ANY valid token
+  token // ✅ No type parameter needed - accepts ANY valid token
 )
 const customerId = validation.data.customerId // ✅ Consistent access pattern
 
 // 🚀 KISS Token Generation - Universal token
 const tokenData = await SecureTokenService.createToken(
-  'universal',  // ✅ Always 'universal' type
+  "universal", // ✅ Always 'universal' type
   workspaceId,
   { customer, prodotti, totale },
-  '1h',
+  "1h",
   undefined,
   undefined,
   undefined,
-  customerId  // ✅ Required for KISS system
+  customerId // ✅ Required for KISS system
 )
 ```
 
@@ -1030,15 +1040,15 @@ interface SmartCartSystem {
   searchRAGCartAware: {
     // REQUISITO: Query DEVE contenere parola carrello + azione
     intentDetection: {
-      triggerPattern: "CART_KEYWORD + ACTION_WORD + PRODUCT(S)",
-      cartKeywords: ['carrello', 'cart', 'carrito', 'carrinho', 'basket', 'bag'],
+      triggerPattern: "CART_KEYWORD + ACTION_WORD + PRODUCT(S)"
+      cartKeywords: ["carrello", "cart", "carrito", "carrinho", "basket", "bag"]
       safetyCheck: boolean // Evita false positive su domande generiche
     }
-    
+
     autoProductSearch: boolean // Cerca prodotto dopo rilevamento sicuro
     autoCartAddition: boolean // Aggiunge al carrello solo con trigger esplicito
-    multiLanguageSupport: ['it', 'en', 'es', 'pt'] // Intent detection multilingue
-    
+    multiLanguageSupport: ["it", "en", "es", "pt"] // Intent detection multilingue
+
     // 🆕 GESTIONE SCENARI COMPLESSI
     complexScenarios: {
       multipleProductsHandling: {
@@ -1047,7 +1057,7 @@ interface SmartCartSystem {
         parseQuantities: boolean // "2 formaggi e 1 vino"
         aggregateResponse: boolean // Response unica per tutti i prodotti
       }
-      
+
       disambiguationSystem: {
         enabled: boolean // Quando trova prodotti simili
         maxOptionsShown: 5 // Mostra max 5 opzioni
@@ -1055,18 +1065,18 @@ interface SmartCartSystem {
         fallbackToPopular: boolean // Default al più venduto
         priceInOptions: boolean // Include prezzo nelle opzioni
       }
-      
+
       intelligentFallbacks: {
-        noProductsFound: 'suggest_alternatives' // SearchRAG suggerisce
-        ambiguousQuantity: 'ask_clarification' // Chiede conferma
-        insufficientStock: 'offer_available' // Propone quantità disponibile
+        noProductsFound: "suggest_alternatives" // SearchRAG suggerisce
+        ambiguousQuantity: "ask_clarification" // Chiede conferma
+        insufficientStock: "offer_available" // Propone quantità disponibile
       }
     }
-    
+
     // ESEMPI TRIGGER SICURI
     validTriggers: [
       "🇮🇹 Aggiungi mozzarella al carrello",
-      "🇬🇧 Add cheese to cart", 
+      "🇬🇧 Add cheese to cart",
       "🇪🇸 Añadir queso al carrito",
       "🇵🇹 Adicionar queijo ao carrinho",
       // 🆕 Multi-product examples
@@ -1075,12 +1085,12 @@ interface SmartCartSystem {
       "🇪🇸 Poner jamón y queso en carrito",
       "🇵🇹 Colocar 2 vinhos no carrinho"
     ]
-    
+
     // ESEMPI NON-TRIGGER (SearchRAG normale)
     ignoredPhrases: [
       "🇮🇹 Voglio sapere il prezzo del formaggio",
       "🇬🇧 I want to know about cheese prices",
-      "🇪🇸 Quiero saber sobre precios de queso", 
+      "🇪🇸 Quiero saber sobre precios de queso",
       "🇵🇹 Quero saber sobre preços de queijo"
     ]
   }
@@ -1088,32 +1098,32 @@ interface SmartCartSystem {
   // CALLING FUNCTIONS - ENHANCED WITH COMPLEX SCENARIOS
   cartFunctions: {
     add_to_cart: {
-      signature: "(productName: string, quantity: number) => CartResponse",
+      signature: "(productName: string, quantity: number) => CartResponse"
       enhancements: {
         multiProductParsing: boolean // "prosecco e prosciutto"
         disambiguationHandling: boolean // Quando trova prodotti multipli
         sessionManagement: boolean // Gestisce stato disambiguazione
       }
     }
-    
+
     remove_from_cart: {
-      signature: "(productName: string, quantity?: number) => CartResponse",
+      signature: "(productName: string, quantity?: number) => CartResponse"
       enhancements: {
         fuzzyMatching: boolean // Trova prodotto simile nel carrello
         partialRemoval: boolean // Rimuove solo quantità specifica
       }
     }
-    
+
     get_cart_info: {
-      signature: "() => CartResponse",
+      signature: "() => CartResponse"
       enhancements: {
         formattedDisplay: boolean // Carrello con icone e totali
         multilingualMessages: boolean // Call-to-action localizzato
       }
     }
-    
+
     confirmOrderFromConversation: {
-      signature: "(useCartData: true) => CheckoutLinkResponse",
+      signature: "(useCartData: true) => CheckoutLinkResponse"
       enhancements: {
         tokenGeneration: boolean // Link sicuro con SecureTokenService
         cartDataEmbedding: boolean // Dati carrello nel token
@@ -1123,8 +1133,8 @@ interface SmartCartSystem {
 
   // TOKEN-BASED SECURITY
   tokenSystem: {
-    tokenType: 'universal' // 🚀 KISS: ONE type for ALL pages
-    expirationTime: '1h' // Same as other secure tokens
+    tokenType: "universal" // 🚀 KISS: ONE type for ALL pages
+    expirationTime: "1h" // Same as other secure tokens
     reusePolicy: boolean // Reuse existing valid tokens
     workspaceIsolation: boolean // Tokens isolated per workspace
     encryptedPayload: CartData // Full cart data encrypted in token
@@ -1160,24 +1170,29 @@ interface CartItem {
 
 interface CartResponse {
   success: boolean
-  action: 'added' | 'removed' | 'viewed' | 'disambiguation_needed' | 'multiple_products_processed'
-  
+  action:
+    | "added"
+    | "removed"
+    | "viewed"
+    | "disambiguation_needed"
+    | "multiple_products_processed"
+
   // Prodotto singolo elaborato
   productProcessed?: {
     name: string
     quantity: number
     price: number
-    action: 'added' | 'removed'
+    action: "added" | "removed"
   }
-  
-  // Prodotti multipli elaborati  
+
+  // Prodotti multipli elaborati
   productsProcessed?: Array<{
     name: string
     quantity: number
     price: number
-    action: 'added' | 'removed'
+    action: "added" | "removed"
   }>
-  
+
   // 🆕 Disambiguazione necessaria
   disambiguation?: {
     sessionId: string // ID sessione per tracking
@@ -1195,7 +1210,7 @@ interface CartResponse {
     instruction: string // "Scrivi il numero o il nome esatto"
     expiresAt: Date // Sessione scade dopo 5 minuti
   }
-  
+
   // Carrello aggiornato (sempre presente se success=true)
   cartData?: CartData
   formattedMessage: string // WhatsApp ready message with icons
@@ -1209,7 +1224,7 @@ interface DisambiguationSession {
   customerId: string
   workspaceId: string
   originalQuery: string // "aggiungi vino al carrello"
-  action: 'add' | 'remove'
+  action: "add" | "remove"
   productQuery: string // "vino"
   quantity: number // 1
   options: ProductOption[]
@@ -1225,7 +1240,7 @@ interface MultiProductParseResult {
     modifiers?: string[] // "grande", "bio", "italiano"
     position: number // Posizione nella query originale
   }>
-  action: 'add' | 'remove' | 'view'
+  action: "add" | "remove" | "view"
   cartKeyword: string // "carrello", "cart", etc.
   originalQuery: string
 }
@@ -1245,7 +1260,7 @@ interface CheckoutLinkResponse {
 # FLOW 1: SearchRAG Cart-Aware (Primary) - SECURE TRIGGERS
 interface SearchRAGCartFlow {
   trigger: "Cliente menziona CARRELLO + azione + prodotto"
-  
+
   // SAFE EXAMPLES - Require explicit cart keyword
   examples: [
     "Aggiungi 2 mozzarelle al carrello", // 🇮🇹 ✅
@@ -1253,7 +1268,7 @@ interface SearchRAGCartFlow {
     "Poner jamón en carrito", // 🇪🇸 ✅
     "Colocar queijo no carrinho" // 🇵🇹 ✅
   ]
-  
+
   // COUNTER-EXAMPLES - Go to normal SearchRAG
   counterExamples: [
     "Voglio sapere il prezzo", // 🇮🇹 → SearchRAG normale
@@ -1261,7 +1276,7 @@ interface SearchRAGCartFlow {
     "¿Dónde puedo comprar queso?", // 🇪🇸 → SearchRAG normale
     "Quero informações sobre preços" // 🇵🇹 → SearchRAG normale
   ]
-  
+
   process: [
     "1. SearchRAG rileva keyword carrello (carrello/cart/carrito/carrinho)",
     "2. Identifica azione (aggiungi/add/añadir/adicionar)",
@@ -1271,15 +1286,15 @@ interface SearchRAGCartFlow {
     "6. Formatta risposta con carrello aggiornato",
     "7. Include call-to-action per conferma"
   ]
-  
+
   response: `
     🧀 Trovata Mozzarella Bufala €9.99 - aggiunta al carrello!
-    
+
     🛒 CARRELLO ATTUALE:
     • 🧀 Mozzarella Bufala (2) €9.99 = €19.98
-    
+
     💰 TOTALE: €19.98
-    
+
     Vuoi aggiungere qualcosa d'altro o procedere con la conferma dell'ordine?
   `
 }
@@ -1291,10 +1306,10 @@ interface DirectFunctionFlow {
     "mostra carrello", "il mio carrello", "cosa c'è nel carrello", // Cart display intents
     "conferma carrello", "procedi dal carrello", "checkout carrello" // Confirmation intents
   ]
-  
+
   functions: [
     "remove_from_cart() - Explicit cart removals with 'carrello' keyword",
-    "get_cart_info() - Cart display requests with 'carrello' keyword", 
+    "get_cart_info() - Cart display requests with 'carrello' keyword",
     "confirmOrderFromConversation() - Order confirmations from cart context"
   ]
 }
@@ -1302,7 +1317,7 @@ interface DirectFunctionFlow {
 // FLOW 3: Token-Based Checkout
 interface TokenCheckoutFlow {
   trigger: "confirmOrderFromConversation(useCartData: true)"
-  
+
   process: [
     "1. CartService.createCartLink() called",
     "2. SecureTokenService generates 1h token",
@@ -1310,7 +1325,7 @@ interface TokenCheckoutFlow {
     "4. Secure URL generated: /cart?token=xxx",
     "5. Customer receives clickable link"
   ]
-  
+
   frontendValidation: [
     "1. Customer clicks cart link",
     "2. CartPage loads with token validation",
@@ -1368,15 +1383,15 @@ interface CartPageProps {
 interface CartPageLogic {
   // VALIDATION HOOK (Following existing pattern)
   validation: useCartTokenValidation(token) // Returns {valid, cartData, loading, error}
-  
+
   // UI COMPONENTS (Reuse existing checkout components)
   components: [
     "CartItemsList", // Reuse from checkout
-    "CartTotals", // Reuse from checkout  
+    "CartTotals", // Reuse from checkout
     "CheckoutButton", // Link to existing checkout flow
     "EmptyCartMessage" // New component for empty carts
   ]
-  
+
   // ERROR HANDLING
   errorStates: [
     "Invalid token", // Token expired/corrupted
@@ -1405,27 +1420,42 @@ interface UseCartTokenValidation {
 interface MultilingualCartMessages {
   // CALL-TO-ACTION MESSAGES
   callToAction: {
-    'it': "Vuoi aggiungere qualcosa d'altro o procedere con la conferma dell'ordine?",
-    'en': "Would you like to add something else or proceed with order confirmation?",
-    'es': "¿Quieres añadir algo más o proceder con la confirmación del pedido?",
-    'pt': "Quer adicionar mais alguma coisa ou prosseguir com a confirmação do pedido?"
+    it: "Vuoi aggiungere qualcosa d'altro o procedere con la conferma dell'ordine?"
+    en: "Would you like to add something else or proceed with order confirmation?"
+    es: "¿Quieres añadir algo más o proceder con la confirmación del pedido?"
+    pt: "Quer adicionar mais alguma coisa ou prosseguir com a confirmação do pedido?"
   }
-  
+
   // PRODUCT ICONS MAPPING
   productIcons: {
-    formaggi: '🧀', cheese: '🧀', quesos: '🧀', queijos: '🧀',
-    salumi: '🥓', cured_meats: '🥓', jamón: '🥓', presunto: '🥓',
-    vini: '🍷', wines: '🍷', vinos: '🍷', vinhos: '🍷',
-    pasta: '🍝', noodles: '🍝', fideos: '🍝', massas: '🍝',
-    limoncello: '🍋', liquors: '🍋', licores: '🍋', licores: '🍋'
+    formaggi: "🧀"
+    cheese: "🧀"
+    quesos: "🧀"
+    queijos: "🧀"
+    salumi: "🥓"
+    cured_meats: "🥓"
+    jamón: "🥓"
+    presunto: "🥓"
+    vini: "🍷"
+    wines: "🍷"
+    vinos: "🍷"
+    vinhos: "🍷"
+    pasta: "🍝"
+    noodles: "🍝"
+    fideos: "🍝"
+    massas: "🍝"
+    limoncello: "🍋"
+    liquors: "🍋"
+    licores: "🍋"
+    licores: "🍋"
   }
-  
+
   // CART HEADER MESSAGES
   cartHeaders: {
-    'it': '🛒 CARRELLO ATTUALE:',
-    'en': '🛒 CURRENT CART:',
-    'es': '🛒 CARRITO ACTUAL:',
-    'pt': '🛒 CARRINHO ATUAL:'
+    it: "🛒 CARRELLO ATTUALE:"
+    en: "🛒 CURRENT CART:"
+    es: "🛒 CARRITO ACTUAL:"
+    pt: "🛒 CARRINHO ATUAL:"
   }
 }
 ```
@@ -1436,26 +1466,26 @@ interface MultilingualCartMessages {
 interface CartSystemPerformance {
   // RESPONSE TIMES
   targets: {
-    cartDisplay: '<2 seconds', // After cart modification
-    tokenGeneration: '<1 second', // Checkout link creation
-    frontendValidation: '<3 seconds' // Page load with token
+    cartDisplay: "<2 seconds" // After cart modification
+    tokenGeneration: "<1 second" // Checkout link creation
+    frontendValidation: "<3 seconds" // Page load with token
   }
-  
+
   // SECURITY MEASURES
   security: {
-    tokenEncryption: 'AES-256', // Encrypted cart payload
-    tokenExpiration: '1 hour', // Secure expiration time
-    workspaceIsolation: boolean, // Cross-workspace protection
-    reusePolicy: boolean, // Prevent token abuse
+    tokenEncryption: "AES-256" // Encrypted cart payload
+    tokenExpiration: "1 hour" // Secure expiration time
+    workspaceIsolation: boolean // Cross-workspace protection
+    reusePolicy: boolean // Prevent token abuse
     httpsOnly: boolean // Secure transmission
   }
-  
+
   // ERROR HANDLING
   errorRecovery: {
-    productNotFound: 'Suggest alternatives from SearchRAG',
-    stockInsufficient: 'Show available quantity',
-    cartEmpty: 'Suggest popular products',
-    tokenExpired: 'Generate new checkout link'
+    productNotFound: "Suggest alternatives from SearchRAG"
+    stockInsufficient: "Show available quantity"
+    cartEmpty: "Suggest popular products"
+    tokenExpired: "Generate new checkout link"
   }
 }
 ```
@@ -1465,21 +1495,21 @@ interface CartSystemPerformance {
 ```typescript
 interface CartSystemKPIs {
   conversion: {
-    cartToCheckout: '>80%', // From cart display to checkout click
-    searchToCart: '>70%', // From product search to cart addition
-    chatToOrder: '>60%' // From chat interaction to completed order
+    cartToCheckout: ">80%" // From cart display to checkout click
+    searchToCart: ">70%" // From product search to cart addition
+    chatToOrder: ">60%" // From chat interaction to completed order
   }
-  
+
   performance: {
-    responseTime: '<2 seconds', // Cart display after modification
-    errorRate: '<5%', // Product not found, stock issues
-    userSatisfaction: '>90%' // Cart functionality satisfaction
+    responseTime: "<2 seconds" // Cart display after modification
+    errorRate: "<5%" // Product not found, stock issues
+    userSatisfaction: ">90%" // Cart functionality satisfaction
   }
-  
+
   business: {
-    averageOrderValue: '+25%', // Easier product addition
-    orderFrequency: '+40%', // Improved user experience
-    customerRetention: '+30%' // Better shopping experience
+    averageOrderValue: "+25%" // Easier product addition
+    orderFrequency: "+40%" // Improved user experience
+    customerRetention: "+30%" // Better shopping experience
   }
 }
 ```
@@ -2160,7 +2190,9 @@ ${order.items
   )
   .join("\n")}
 
-Totale: €${order.totalAmount.toFixed(2)}`// Admin email
+Totale: €${order.totalAmount.toFixed(
+  2
+)}` // Admin email
 `Ordine confermato e processato:
 Ordine: ${order.orderCode}
 Cliente: ${customer.name}
@@ -3026,10 +3058,12 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
 **🔄 FLUSSO COMPLETO:**
 
 1. **Primo Check**: Verifica se numero telefono esiste nel DB
+
    - ✅ **Se esiste**: Procedi con conversazione normale
    - ❌ **Se NON esiste**: Attiva Welcome Flow
 
 2. **Welcome Flow per Nuovi Utenti:**
+
    - Riconoscimento saluti: "Ciao", "Hello", "Hi", "Hola", "Buongiorno"
    - **Welcome message dal database** (settings) in base alla lingua rilevata
    - **Link registrazione con token sicuro** (valido 1 ora)
@@ -3038,12 +3072,14 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
    - **Loop continuo**: Fino a registrazione completata o blocco, continua a inviare welcome message
 
 3. **Gestione Lingue Welcome:**
+
    - 🇮🇹 **Italiano**: "Benvenuto a L'Altra Italia! 👋 Sono il tuo assistente virtuale e sono qui per aiutarti con qualsiasi informazione sui nostri prodotti e servizi. Prima di iniziare, ti invitiamo a registrarti al nostro servizio: potrai consultare le nostre politiche sulla privacy e scoprire come tuteliamo i tuoi dati, che saranno custoditi in modo sicuro nel nostro database e non verranno mai condivisi con terzi."
    - 🇬🇧 **Inglese**: "Welcome to L'Altra Italia! 👋 I'm your virtual assistant and I'm here to help you with any information about our products and services. Before we begin, we invite you to register for our service: you can review our privacy policies and discover how we protect your data, which will be securely stored in our database and never shared with third parties."
    - 🇪🇸 **Spagnolo**: "¡Bienvenido a L'Altra Italia! 👋 Soy tu asistente virtual y estoy aquí para ayudarte con cualquier información sobre nuestros productos y servicios. Antes de comenzar, te invitamos a registrarte en nuestro servicio: podrás consultar nuestras políticas de privacidad y descubrir cómo protegemos tus datos, que serán custodiados de forma segura en nuestra base de datos y nunca serán compartidos con terceros."
    - 🇵🇹 **Portoghese**: "Bem-vindo à L'Altra Italia! 👋 Sou o seu assistente virtual e estou aqui para ajudá-lo com informações sobre os nossos produtos e serviços. Antes de começar, convidamo-lo a registar-se no nosso serviço: poderá consultar as nossas políticas de privacidade e descobrir como protegemos os seus dados, que serão guardados de forma segura na nossa base de dados e nunca serão partilhados com terceiros."
 
 4. **Token di Registrazione:**
+
    - Tipo: `registration`
    - Durata: 1 ora
    - Payload: `{phone, workspaceId, language, createdAt}`
@@ -3090,6 +3126,7 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
 #### **Sistema Chat History per Nuovi Utenti**
 
 **Gestione Customer Temporanei:**
+
 - **Nuovo utente non registrato** → Crea customer temporaneo "Unknown User-XXX" (numero random 3 cifre: 100-999)
 - **Messaggi salvati** nella chat history collegati al customer temporaneo
 - **Dopo registrazione** → Sostituisce customer temporaneo con dati reali (nome, email, company)
@@ -3097,6 +3134,7 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
 - **Tracciabilità completa** del customer journey dall'inizio
 
 **Vantaggi del Sistema:**
+
 - ✅ **Chat history completa** anche per utenti non registrati
 - ✅ **Nomi temporanei unici** (Unknown User-761, Unknown User-234, etc.)
 - ✅ **Sostituzione trasparente** al momento della registrazione
@@ -3104,6 +3142,7 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
 - ✅ **Customer journey completo** tracciabile dall'inizio
 
 **Implementazione Tecnica:**
+
 - **Customer temporaneo**: `Unknown User-${randomNumber}` (100-999)
 - **isActive: false** fino alla registrazione
 - **Aggiornamento automatico** con dati reali al momento della registrazione
@@ -3112,6 +3151,7 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
 #### **Implementazione Tecnica - Sistema Blocco Registrazione**
 
 **Database Schema:**
+
 ```sql
 -- Tabella per tracking tentativi registrazione
 model RegistrationAttempts {
@@ -3130,6 +3170,7 @@ model RegistrationAttempts {
 ```
 
 **Servizi Implementati:**
+
 - `RegistrationAttemptsService`: Gestisce tracking tentativi e blocco automatico
 - `SecureTokenService`: Genera token di registrazione sicuri
 - `MessageRepository`: Gestisce salvataggio messaggi e creazione customer temporanei "Unknown User-XXX"
@@ -3137,6 +3178,7 @@ model RegistrationAttempts {
 - **Sistema di Tracking Costi**: Traccia automaticamente 1€ per registrazione e 1€ per ogni ordine
 
 **Flusso Implementativo:**
+
 1. **Nuovo utente rilevato** → Controlla `RegistrationAttempts`
 2. **Se bloccato** → Ignora completamente (nessun messaggio)
 3. **Se non bloccato** → Crea customer temporaneo "Unknown User-XXX" + salva messaggi in chat history
@@ -3146,12 +3188,14 @@ model RegistrationAttempts {
 7. **Reset automatico** → Dopo 24 ore, auto-unblock
 
 **Endpoint Coinvolti:**
+
 - `POST /api/whatsapp/webhook` - Gestisce nuovo utente e blocco
 - `POST /api/registration` - Gestisce registrazione, reset tentativi e tracking 1€
 - `POST /api/orders` - Gestisce creazione ordini e tracking 1€
 - `POST /api/checkout/submit` - Gestisce checkout e tracking 1€
 
 **Configurazione Sistema:**
+
 - **MAX_ATTEMPTS**: 5 (configurabile in `RegistrationAttemptsService`)
 - **ATTEMPT_WINDOW_HOURS**: 24 (reset automatico dopo 24 ore)
 - **TOKEN_EXPIRY**: 1 ora (per link di registrazione)
@@ -3160,6 +3204,7 @@ model RegistrationAttempts {
 - **ORDER_COST**: 1€ (tracking automatico per ogni ordine)
 
 **Comportamento Frontend:**
+
 - **Messaggio welcome**: Mostra link di registrazione + messaggio nella lingua rilevata
 - **Utente bloccato**: Riceve `EVENT_RECEIVED_CUSTOMER_BLACKLISTED` (nessun messaggio mostrato)
 - **Formato risposta**: `{success: true, data: {sessionId: null, message: "..."}}`
@@ -3167,12 +3212,14 @@ model RegistrationAttempts {
 - **Sender corretto**: Messaggi del bot con `sender: "bot"` per visualizzazione corretta
 
 **Logica di Rilevamento Lingua:**
+
 - **Italiano** (default): Nessuna parola chiave rilevata
 - **Inglese**: "hello", "hi", "good morning", "good afternoon"
 - **Spagnolo**: "hola", "buenos días", "buenas tardes"
 - **Portoghese**: "olá", "bom dia", "boa tarde"
 
 **Troubleshooting Sistema Blocco:**
+
 - **Problema**: Utente bloccato immediatamente al primo messaggio
   - **Causa**: Record precedenti in `registration_attempts` o `customers` con `isBlacklisted = true`
   - **Soluzione**: `DELETE FROM registration_attempts WHERE "phoneNumber" = '+XXX'; DELETE FROM customers WHERE phone = '+XXX';`
@@ -3194,15 +3241,18 @@ model RegistrationAttempts {
 ## Sistema di Tracking Costi
 
 ### **💰 Costi per Operazioni**
+
 - **Registrazione Nuovo Utente**: 1€ (aggiornato da 30 centesimi)
 - **Creazione Nuovo Ordine**: 1€ (sia via API che via chatbot)
 
 ### **📍 Punti di Tracking**
+
 1. **Registrazione**: `registration.controller.ts` - `trackRegistrationCost()`
 2. **Ordini API**: `order.controller.ts` - `trackOrderCost()`
 3. **Ordini Chatbot**: `CreateOrder.ts` - `trackOrderCost()`
 
 ### **🗄️ Database Schema Usage**
+
 ```sql
 CREATE TABLE usage (
   id SERIAL PRIMARY KEY,
@@ -3214,12 +3264,14 @@ CREATE TABLE usage (
 ```
 
 ### **⚙️ Comportamento Automatico**
+
 - I costi vengono tracciati automaticamente senza intervento manuale
 - Ogni operazione genera un record nella tabella `usage`
 - Tracking avviene in background durante le operazioni principali
 - Nessuna modifica richiesta nel frontend o nelle API pubbliche
 
 ### **🔧 Implementazione Tecnica**
+
 ```typescript
 // Esempio di tracking in registration.controller.ts
 private async trackRegistrationCost(workspaceId: string, customerId: string): Promise<void> {
@@ -3239,6 +3291,7 @@ private async trackRegistrationCost(workspaceId: string, customerId: string): Pr
 ```
 
 ### **📊 Monitoraggio Costi**
+
 - Tutti i costi sono tracciati nella tabella `usage`
 - Possibilità di query per reportistica per workspace
 - Tracking automatico senza impatto sulle performance
@@ -5605,21 +5658,24 @@ The backend follows a Domain-Driven Design (DDD) architecture:
 - **LLM Context Integration**: Chat history is automatically passed to dual-LLM service with enhanced prompt rules for context awareness
 
 **Key Features:**
+
 - ✅ Auto-creates `ChatSession` if not exists for customer+workspace
 - ✅ Saves user messages before LLM processing
-- ✅ Saves bot responses after LLM processing  
+- ✅ Saves bot responses after LLM processing
 - ✅ Retrieves conversation history (last 10 messages) automatically
 - ✅ Enhanced prompt with conversation context rules
 - ✅ Smart handling of numbered responses (1, 2, 3) based on previous options
 - ✅ No frontend involvement - backend handles everything automatically
 
 **Database Schema:**
+
 ```sql
 ChatSession { id, customerId, workspaceId, status, startedAt, createdAt }
 Message { id, chatSessionId, direction (INBOUND/OUTBOUND), content, createdAt }
 ```
 
 **Flow:**
+
 1. WhatsApp message → Backend webhook
 2. Find/create ChatSession for customer+workspace
 3. Save user message to Message table
@@ -6352,7 +6408,7 @@ The current system uses a fixed workspace ID for all WhatsApp users via environm
 
 ```typescript
 // backend/src/routes/index.ts (Line 354)
-workspaceId = process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv";
+workspaceId = process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv"
 ```
 
 **Why This Approach Works Now:**
@@ -6385,19 +6441,21 @@ The system is designed to support multi-tenant workspace routing when needed:
 
 ```typescript
 // Future implementation when WhatsApp provides destination number
-async function determineWorkspaceForWhatsApp(destinationPhone: string): Promise<string> {
+async function determineWorkspaceForWhatsApp(
+  destinationPhone: string
+): Promise<string> {
   // 1. Find workspace by WhatsApp phone number
   const workspace = await prisma.workspace.findFirst({
-    where: { 
+    where: {
       whatsappPhoneNumber: destinationPhone,
-      isActive: true 
-    }
-  });
-  
-  if (workspace) return workspace.id;
-  
+      isActive: true,
+    },
+  })
+
+  if (workspace) return workspace.id
+
   // 2. Fallback to environment variable (current behavior)
-  return process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv";
+  return process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv"
 }
 ```
 
@@ -6429,6 +6487,7 @@ All channels (WhatsApp, Frontend, Future integrations) support the same multi-la
 - 🔄 Multi-tenant routing ready for future implementation when needed
 
 This architecture ensures the system works reliably now while being prepared for future multi-tenant requirements when WhatsApp integration provides the necessary routing information.
+
 - Clear messaging about workspace requirement
 
 This comprehensive approach ensures that new users have a smooth onboarding experience while preventing technical errors related to missing workspace context.
@@ -9073,12 +9132,13 @@ async confirmOrderFromConversation(req: Request, res: Response): Promise<void> {
 // 🎯 TASK: Auto-update customer address in database
 try {
   // Validate shipping address fields
-  const hasValidShippingAddress = shippingAddress && 
-    shippingAddress.firstName && 
-    shippingAddress.lastName && 
-    shippingAddress.address && 
-    shippingAddress.city && 
-    shippingAddress.postalCode;
+  const hasValidShippingAddress =
+    shippingAddress &&
+    shippingAddress.firstName &&
+    shippingAddress.lastName &&
+    shippingAddress.address &&
+    shippingAddress.city &&
+    shippingAddress.postalCode
 
   if (hasValidShippingAddress) {
     // Create structured address object for customer
@@ -9089,21 +9149,21 @@ try {
       postalCode: shippingAddress.postalCode,
       province: shippingAddress.province || "",
       country: shippingAddress.country || "Italy",
-      phone: shippingAddress.phone || customer.phone || ""
-    };
+      phone: shippingAddress.phone || customer.phone || "",
+    }
 
     // Update customer address in database
     await prisma.customers.update({
       where: { id: customerId, workspaceId: workspaceId },
       data: {
         address: JSON.stringify(customerAddress),
-        updatedAt: new Date()
-      }
-    });
+        updatedAt: new Date(),
+      },
+    })
   }
 } catch (addressUpdateError) {
   // Don't fail the order if address update fails
-  logger.error(`Failed to auto-update customer address:`, addressUpdateError);
+  logger.error(`Failed to auto-update customer address:`, addressUpdateError)
 }
 ```
 
@@ -9363,6 +9423,7 @@ secureToken {
    **Key Enhancement**: **Removed `usedAt` validation** - tokens work until expiration
 
 **Benefits**:
+
 - ✅ **Better UX**: Users can refresh/revisit links multiple times
 - ✅ **No "Operation Not Permitted"**: Tokens work until they expire
 - ✅ **Consistent Links**: Same token for 1 hour ensures consistent URLs
@@ -9371,6 +9432,7 @@ secureToken {
 
 **Status**: ✅ **VERIFIED WORKING** - Enhanced token system with reusability
 **Test Results**:
+
 - ✅ **Token Reuse**: Same token returned for multiple requests within 1 hour
 - ✅ **Token Reusability**: Tokens can be used multiple times until expiration
 - ✅ **No Usage Tracking**: `usedAt` field completely ignored
@@ -9707,17 +9769,20 @@ output: 'Array of active offers with discount percentages, dates and categories'
 ## 🧪 **TESTING DOCUMENTATION**
 
 ### **Test Reports**
+
 - **Current Test Report**: `docs/check_report.md` - Contains real-time testing results, identified issues, and system status
 - **Test Cases**: `docs/check.md` - Complete test suite with 34 test cases across 6 categories (IT/EN/ES)
 
 ### **Architectural Documentation**
+
 - **System Architecture**: `docs/other/RULES_PROMPT.md` - Architectural bible defining component responsibilities and system patterns
 - **Agent Prompt**: `docs/other/prompt_agent.md` - LLM instructions and function definitions
 
 ### **Critical Testing Results**
+
 - **Core Functions**: ✅ **OPERATIVO AL 100%**
 - **Italian Language**: ✅ **FUNZIONANTE**
-- **Spanish Language**: ✅ **FUNZIONANTE**  
+- **Spanish Language**: ✅ **FUNZIONANTE**
 - **English Language**: ❌ **PROBLEMI TRADUZIONE**
 - **Cart Management**: ✅ **FUNZIONANTE**
 - **Order Links**: ✅ **FUNZIONANTE**

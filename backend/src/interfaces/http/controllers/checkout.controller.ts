@@ -27,7 +27,7 @@ export class CheckoutController {
 
       // Use SecureTokenService for unified token validation
       const validation = await this.secureTokenService.validateToken(token)
-      
+
       if (!validation.valid) {
         res.status(400).json({
           valid: false,
@@ -38,7 +38,7 @@ export class CheckoutController {
       }
 
       const secureToken = validation.data
-      
+
       // Check payload validity
       if (!validation.payload) {
         res.status(400).json({
@@ -72,66 +72,68 @@ export class CheckoutController {
       const cart = await prisma.carts.findFirst({
         where: {
           customerId: customer.id,
-          workspaceId: secureToken.workspaceId
+          workspaceId: secureToken.workspaceId,
         },
         include: {
           items: {
             include: {
-              product: true
-            }
-          }
-        }
-      });
+              product: true,
+            },
+          },
+        },
+      })
 
       // Calculate prices with discounts applied
-      const productIds = cart?.items.map(item => item.productId) || [];
-      const priceResult = await this.priceCalculationService.calculatePricesWithDiscounts(
-        secureToken.workspaceId,
-        productIds,
-        customer.discount || 0
-      );
+      const productIds = cart?.items.map((item) => item.productId) || []
+      const priceResult =
+        await this.priceCalculationService.calculatePricesWithDiscounts(
+          secureToken.workspaceId,
+          productIds,
+          customer.discount || 0
+        )
 
       // Create a map of product prices with discounts
-      const productPriceMap = new Map();
-      priceResult.products.forEach(product => {
+      const productPriceMap = new Map()
+      priceResult.products.forEach((product) => {
         productPriceMap.set(product.id, {
           finalPrice: product.finalPrice || product.price,
           originalPrice: product.originalPrice,
           appliedDiscount: product.appliedDiscount || 0,
           discountSource: product.discountSource,
-          discountName: product.discountName
-        });
-      });
+          discountName: product.discountName,
+        })
+      })
 
       // Calculate cart totals with discounted prices
-      let totalAmount = 0;
-      const cartItems = cart?.items.map(item => {
-        const priceInfo = productPriceMap.get(item.productId) || {
-          finalPrice: item.product.price,
-          originalPrice: item.product.price,
-          appliedDiscount: 0,
-          discountSource: undefined,
-          discountName: undefined
-        };
-        
-        const itemTotal = priceInfo.finalPrice * item.quantity;
-        totalAmount += itemTotal;
-        
-        return {
-          id: item.id,
-          productId: item.productId,
-          codice: item.product.ProductCode || item.product.sku || 'N/A',
-          descrizione: item.product.name,
-          formato: item.product.formato,
-          prezzo: priceInfo.finalPrice,
-          prezzoOriginale: priceInfo.originalPrice,
-          scontoApplicato: priceInfo.appliedDiscount,
-          fonteSconto: priceInfo.discountSource,
-          nomeSconto: priceInfo.discountName,
-          qty: item.quantity,
-          total: itemTotal
-        };
-      }) || [];
+      let totalAmount = 0
+      const cartItems =
+        cart?.items.map((item) => {
+          const priceInfo = productPriceMap.get(item.productId) || {
+            finalPrice: item.product.price,
+            originalPrice: item.product.price,
+            appliedDiscount: 0,
+            discountSource: undefined,
+            discountName: undefined,
+          }
+
+          const itemTotal = priceInfo.finalPrice * item.quantity
+          totalAmount += itemTotal
+
+          return {
+            id: item.id,
+            productId: item.productId,
+            codice: item.product.ProductCode || item.product.sku || "N/A",
+            descrizione: item.product.name,
+            formato: item.product.formato,
+            prezzo: priceInfo.finalPrice,
+            prezzoOriginale: priceInfo.originalPrice,
+            scontoApplicato: priceInfo.appliedDiscount,
+            fonteSconto: priceInfo.discountSource,
+            nomeSconto: priceInfo.discountName,
+            qty: item.quantity,
+            total: itemTotal,
+          }
+        }) || []
 
       res.json({
         valid: true,
@@ -176,7 +178,7 @@ export class CheckoutController {
 
       // Validate token again using SecureTokenService
       const validation = await this.secureTokenService.validateToken(token)
-      
+
       if (!validation.valid) {
         res.status(400).json({
           success: false,
@@ -184,32 +186,35 @@ export class CheckoutController {
         })
         return
       }
-      
+
       const secureToken = validation.data
       const payload = validation.payload as any
-      
+
       // 🔧 CRITICAL FIX: Get customerId from payload first, then fallback to tokenData
-      let customerId = payload?.customerId || secureToken?.customerId || secureToken?.userId;
+      let customerId =
+        payload?.customerId || secureToken?.customerId || secureToken?.userId
       const workspaceId = secureToken.workspaceId
-      
+
       // 🔧 ULTIMATE FALLBACK: If no customerId, try to find customer by phone number
       if (!customerId && secureToken?.phoneNumber && workspaceId) {
         const customer = await prisma.customers.findFirst({
           where: {
             phone: secureToken.phoneNumber,
-            workspaceId: workspaceId
-          }
-        });
+            workspaceId: workspaceId,
+          },
+        })
         if (customer) {
-          customerId = customer.id;
-          logger.info(`[CHECKOUT] Found customer by phone fallback: ${customerId}`);
+          customerId = customer.id
+          logger.info(
+            `[CHECKOUT] Found customer by phone fallback: ${customerId}`
+          )
         }
       }
-      
+
       if (!customerId || !workspaceId) {
         res.status(400).json({
           success: false,
-          error: "Token does not contain valid customer information"
+          error: "Token does not contain valid customer information",
         })
         return
       }
@@ -246,13 +251,13 @@ export class CheckoutController {
       const products = await prisma.products.findMany({
         where: {
           ProductCode: { in: productCodes },
-          workspaceId: workspaceId
-        }
+          workspaceId: workspaceId,
+        },
       })
-      
+
       // Create a map of productCode -> productId
       const productMap = new Map()
-      products.forEach(product => {
+      products.forEach((product) => {
         productMap.set(product.ProductCode, product.id)
       })
 
@@ -291,11 +296,12 @@ export class CheckoutController {
       // 🎯 TASK: Auto-update customer address in database
       try {
         // Validate shipping address fields (use correct field names from frontend)
-        const hasValidShippingAddress = shippingAddress && 
-          shippingAddress.name && 
-          shippingAddress.street && 
-          shippingAddress.city && 
-          shippingAddress.postalCode;
+        const hasValidShippingAddress =
+          shippingAddress &&
+          shippingAddress.name &&
+          shippingAddress.street &&
+          shippingAddress.city &&
+          shippingAddress.postalCode
 
         if (hasValidShippingAddress) {
           // Create structured address object for customer
@@ -307,34 +313,40 @@ export class CheckoutController {
             province: shippingAddress.province || "",
             country: shippingAddress.country || "Italia",
             phone: shippingAddress.phone || customer.phone || "",
-            company: shippingAddress.company || ""
-          };
+            company: shippingAddress.company || "",
+          }
 
           // Update customer address in database
           await prisma.customers.update({
             where: {
               id: customerId,
-              workspaceId: workspaceId
+              workspaceId: workspaceId,
             },
             data: {
               address: JSON.stringify(customerAddress),
               // Also update customer company if provided
               company: shippingAddress.company || customer.company,
-              updatedAt: new Date()
-            }
-          });
+              updatedAt: new Date(),
+            },
+          })
 
-          logger.info(`[CHECKOUT] Auto-updated customer address for ${customerId}:`, customerAddress);
+          logger.info(
+            `[CHECKOUT] Auto-updated customer address for ${customerId}:`,
+            customerAddress
+          )
         } else {
-          logger.warn(`[CHECKOUT] Invalid shipping address provided for customer ${customerId}, skipping auto-update`);
+          logger.warn(
+            `[CHECKOUT] Invalid shipping address provided for customer ${customerId}, skipping auto-update`
+          )
         }
 
         // Auto-update billing address if provided and different from shipping
         if (billingAddress && billingAddress !== shippingAddress) {
-          const hasValidBillingAddress = billingAddress.name && 
-            billingAddress.street && 
-            billingAddress.city && 
-            billingAddress.postalCode;
+          const hasValidBillingAddress =
+            billingAddress.name &&
+            billingAddress.street &&
+            billingAddress.city &&
+            billingAddress.postalCode
 
           if (hasValidBillingAddress) {
             const customerInvoiceAddress = {
@@ -345,27 +357,33 @@ export class CheckoutController {
               province: billingAddress.province || "",
               country: billingAddress.country || "Italia",
               phone: billingAddress.phone || customer.phone || "",
-              company: billingAddress.company || ""
-            };
+              company: billingAddress.company || "",
+            }
 
             // Update customer invoice address in database
             await prisma.customers.update({
               where: {
                 id: customerId,
-                workspaceId: workspaceId
+                workspaceId: workspaceId,
               },
               data: {
                 invoiceAddress: customerInvoiceAddress,
-                updatedAt: new Date()
-              }
-            });
+                updatedAt: new Date(),
+              },
+            })
 
-            logger.info(`[CHECKOUT] Auto-updated customer invoice address for ${customerId}:`, customerInvoiceAddress);
+            logger.info(
+              `[CHECKOUT] Auto-updated customer invoice address for ${customerId}:`,
+              customerInvoiceAddress
+            )
           }
         }
       } catch (addressUpdateError) {
         // Don't fail the order if address update fails
-        logger.error(`[CHECKOUT] Failed to auto-update customer address for ${customerId}:`, addressUpdateError);
+        logger.error(
+          `[CHECKOUT] Failed to auto-update customer address for ${customerId}:`,
+          addressUpdateError
+        )
       }
 
       // Token remains valid for reuse until expiration
@@ -399,39 +417,39 @@ export class CheckoutController {
    */
   private async generateOrderCode(): Promise<string> {
     // Generate 5 random uppercase letters
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    let orderCode = ''
-    
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    let orderCode = ""
+
     // Generate unique 5-letter code
     let attempts = 0
     const maxAttempts = 10
-    
+
     do {
-      orderCode = ''
+      orderCode = ""
       for (let i = 0; i < 5; i++) {
         orderCode += letters.charAt(Math.floor(Math.random() * letters.length))
       }
-      
+
       // Check if this code already exists
       const existingOrder = await prisma.orders.findFirst({
         where: {
           orderCode: orderCode,
         },
       })
-      
+
       if (!existingOrder) {
         break // Unique code found
       }
-      
+
       attempts++
     } while (attempts < maxAttempts)
-    
+
     // If we couldn't find a unique code after maxAttempts, add timestamp suffix
     if (attempts >= maxAttempts) {
       const timestamp = Date.now().toString().slice(-2) // Last 2 digits of timestamp
       orderCode = orderCode.slice(0, 3) + timestamp
     }
-    
+
     return orderCode
   }
 
