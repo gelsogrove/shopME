@@ -31,6 +31,7 @@ export interface MonthlyData {
 export interface ProductAnalytics {
   id: string
   name: string
+  formato?: string
   totalSold: number
   revenue: number
   stock: number
@@ -261,7 +262,8 @@ export class AnalyticsService {
         SELECT 
           p.id,
           p.name,
-          COUNT(oi.*) as total_sold,
+          p.formato,
+          COALESCE(SUM(oi.quantity), 0) as total_sold,
           COALESCE(SUM(oi."unitPrice" * oi.quantity), 0) as revenue,
           p.stock
         FROM "products" p
@@ -269,12 +271,13 @@ export class AnalyticsService {
         LEFT JOIN "orders" o ON oi."orderId" = o.id
         WHERE p."workspaceId" = ${workspaceId}
           AND (o."createdAt" IS NULL OR (o."createdAt" >= ${startDate} AND o."createdAt" <= ${endDate}))
-        GROUP BY p.id, p.name, p.stock
+        GROUP BY p.id, p.name, p.formato, p.stock
         ORDER BY total_sold DESC, revenue DESC
         LIMIT 10
       `) as {
         id: string
         name: string
+        formato: string | null
         total_sold: bigint
         revenue: number
         stock: number
@@ -283,6 +286,7 @@ export class AnalyticsService {
       return topProducts.map((product) => ({
         id: product.id,
         name: product.name,
+        formato: product.formato || undefined,
         totalSold: Number(product.total_sold) || 0,
         revenue: Number(product.revenue) || 0,
         stock: product.stock || 0,

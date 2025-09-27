@@ -180,6 +180,11 @@ export function AnalyticsPage() {
                             <p className="font-medium text-gray-900">
                               {product.name}
                             </p>
+                            {product.formato && (
+                              <p className="text-sm text-blue-600 font-medium">
+                                Format: {product.formato}
+                              </p>
+                            )}
                             <p className="text-sm text-gray-500">
                               {product.totalSold} venduti
                             </p>

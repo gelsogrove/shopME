@@ -40,6 +40,7 @@ export interface MonthlyData {
 export interface ProductAnalytics {
   id: string
   name: string
+  formato?: string
   totalSold: number
   revenue: number
   stock: number
