@@ -249,13 +249,18 @@ export function WhatsAppChatModal({
                 )
                 try {
                   // Check if it's already an object or a string that needs parsing
-                  const parsed = typeof message.functionCallsDebug === 'string' 
-                    ? JSON.parse(message.functionCallsDebug)
-                    : message.functionCallsDebug;
+                  const parsed =
+                    typeof message.functionCallsDebug === "string"
+                      ? JSON.parse(message.functionCallsDebug)
+                      : message.functionCallsDebug
                   console.log("🔧 Parsed functionCalls:", parsed)
                   return parsed
                 } catch (error) {
-                  console.warn("🔧 Failed to parse functionCallsDebug:", error, message.functionCallsDebug)
+                  console.warn(
+                    "🔧 Failed to parse functionCallsDebug:",
+                    error,
+                    message.functionCallsDebug
+                  )
                   return []
                 }
               })()
@@ -264,18 +269,26 @@ export function WhatsAppChatModal({
           debugInfo: message.debugInfo
             ? (() => {
                 console.log("🔧 Raw debugInfo from DB:", message.debugInfo)
-                console.log("🔧 Message content:", message.content.slice(0, 50) + "...")
+                console.log(
+                  "🔧 Message content:",
+                  message.content.slice(0, 50) + "..."
+                )
                 try {
                   // Check if it's already an object or a string that needs parsing
-                  const parsed = typeof message.debugInfo === 'string' 
-                    ? JSON.parse(message.debugInfo)
-                    : message.debugInfo;
+                  const parsed =
+                    typeof message.debugInfo === "string"
+                      ? JSON.parse(message.debugInfo)
+                      : message.debugInfo
                   console.log("🔧 Parsed debugInfo:", parsed)
                   console.log("🔧 Model found in debugInfo:", parsed?.model)
                   console.log("🔧 Function call found:", parsed?.functionCall)
                   return parsed
                 } catch (error) {
-                  console.warn("🔧 Failed to parse debugInfo:", error, message.debugInfo)
+                  console.warn(
+                    "🔧 Failed to parse debugInfo:",
+                    error,
+                    message.debugInfo
+                  )
                   return {}
                 }
               })()

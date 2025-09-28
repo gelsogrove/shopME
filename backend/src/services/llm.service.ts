@@ -34,8 +34,10 @@ export class LLMService {
     let customer = await messageRepo.findCustomerByPhone(llmRequest.phone)
     const workspaceId = customer ? customer.workspaceId : llmRequest.workspaceId
     const workspace = await workspaceService.getById(workspaceId)
-    
-    console.log(`🔧 LLM: Workspace config - llmModel: ${workspace.llmModel}, temperature: ${workspace.temperature}`)
+
+    console.log(
+      `🔧 LLM: Workspace config - llmModel: ${workspace.llmModel}, temperature: ${workspace.temperature}`
+    )
 
     // 2. New User Check
     if (!customer) {
@@ -355,8 +357,10 @@ export class LLMService {
     // Capture model and temperature for debug info outside try block
     const modelUsed = workspace.llmModel || "anthropic/claude-3.5-sonnet"
     const temperatureUsed = workspace.temperature || 0.1
-    
-    console.log(`🔧 LLM: Using model: ${modelUsed}, temperature: ${temperatureUsed}`)
+
+    console.log(
+      `🔧 LLM: Using model: ${modelUsed}, temperature: ${temperatureUsed}`
+    )
 
     try {
       const messages = [

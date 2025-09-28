@@ -1442,7 +1442,9 @@ router.post("/whatsapp/webhook", async (req, res) => {
         processedPrompt: result.processedPrompt,
         functionCalls: result.functionCalls || [],
         // Unisco tutte le proprietà di debugInfo (model, effectiveParams, ecc)
-        ...(result.debugInfo && typeof result.debugInfo === 'object' ? result.debugInfo : {}),
+        ...(result.debugInfo && typeof result.debugInfo === "object"
+          ? result.debugInfo
+          : {}),
         // 💰 Cost tracking info
         costInfo:
           result.success && result.output
