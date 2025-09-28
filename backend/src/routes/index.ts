@@ -693,6 +693,16 @@ router.post("/chat", async (req, res) => {
 
         const response = await llmService.handleMessage(llmRequest, variables)
 
+        // Check if customer is blocked - if IGNORE is returned, stop processing completely  
+        if (response === "IGNORE") {
+          console.log("🚫 /api/chat: Customer blocked - ignoring message completely")
+          res.status(200).json({
+            success: false,
+            message: "Customer interaction not allowed"
+          })
+          return
+        }
+
         // 🔧 CRITICAL FIX: Save message to database like webhook does
         try {
           if (customer?.id && workspaceId && response.success) {
@@ -1299,6 +1309,48 @@ router.post("/whatsapp/webhook", async (req, res) => {
         messageContent
       )
       result = await llmService.handleMessage(llmRequest, variables)
+      
+      // Check if customer is blocked - if IGNORE is returned, save user message but don't process response
+      if (result === "IGNORE") {
+        console.log("🚫 WEBHOOK: Customer blocked - saving user message only, no bot response")
+        
+        // Save ONLY the user message to keep conversation history
+        await messageRepository.saveMessage({
+          workspaceId: workspaceId,
+          phoneNumber: phoneNumber,
+          message: messageContent,
+          response: null, // No bot response when blocked
+          direction: "INBOUND",
+          agentSelected: "CUSTOMER_BLOCKED",
+          processingSource: "blocked-customer-no-response"
+        })
+        
+        console.log("💾 WEBHOOK: User message saved, waiting for human operator response")
+        
+        // Check if this is a frontend call (has isNewConversation or workspaceId)
+        if (data.message && data.phoneNumber && data.workspaceId) {
+          // Frontend call - return success but no message displayed (customer waits for operator)
+          const blockedResponse = {
+            success: true,
+            message: "Message received, waiting for operator",
+            data: {
+              message: "", // Empty message so frontend doesn't show anything
+              output: "",  // Empty output
+              isWaitingForOperator: true,
+              customerId: customerId,
+              sessionId: `session-${Date.now()}`
+            }
+          }
+          
+          console.log("🚫 WEBHOOK: Sending blocked customer response:", JSON.stringify(blockedResponse, null, 2))
+          res.status(200).json(blockedResponse)
+        } else {
+          // WhatsApp webhook - return plain OK (no message sent back)
+          res.status(200).send("OK")
+        }
+        return
+      }
+      
       console.log("🚀 WEBHOOK: LLM result received:", {
         success: result.success,
         hasOutput: !!result.output,

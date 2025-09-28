@@ -187,7 +187,26 @@ export class MessageRepository {
         },
       })
 
-      return messages
+      // Parse debugInfo from JSON string to object for better frontend handling
+      const parsedMessages = messages.map((message) => {
+        if (message.debugInfo) {
+          try {
+            return {
+              ...message,
+              debugInfo: JSON.parse(message.debugInfo as string),
+            }
+          } catch (parseError) {
+            logger.warn(
+              `Failed to parse debugInfo for message ${message.id}:`,
+              parseError
+            )
+            return message
+          }
+        }
+        return message
+      })
+
+      return parsedMessages
     } catch (error) {
       logger.error("Error getting chat session messages:", error)
       throw new Error("Failed to get chat session messages")
@@ -941,6 +960,7 @@ export class MessageRepository {
           name: true,
           ProductCode: true,
           price: true,
+          description: true, // Aggiungi description per il prompt
           category: {
             select: {
               name: true,
@@ -994,6 +1014,7 @@ export class MessageRepository {
             originalPrice: priceData?.originalPrice || product.price,
             finalPrice: priceData?.finalPrice || product.price,
             hasDiscount: (priceData?.appliedDiscount || 0) > 0,
+            description: product.description, // Mantieni la descrizione
           })
           return acc
         },
@@ -1010,13 +1031,14 @@ export class MessageRepository {
         // Mostra tutti i prodotti della categoria
         const productsToShow = productList
 
-        // Formato: ogni prodotto su una riga separata
+        // Formato: ogni prodotto su una riga separata con descrizione
         productsToShow.forEach((p) => {
           const originalPrice = Number(p.originalPrice).toFixed(2)
           const finalPrice = Number(p.finalPrice).toFixed(2)
+          const description = p.description ? ` - ${p.description}` : ''
 
-          // Mostra SEMPRE il formato scontato, anche se lo sconto è 0%
-          formattedProducts += `• ${p.name} ~~€${originalPrice}~~ → €${finalPrice}\n`
+          // Mostra SEMPRE il formato scontato, anche se lo sconto è 0%, con descrizione
+          formattedProducts += `• ${p.name} ~~€${originalPrice}~~ → €${finalPrice}${description}\n`
         })
         formattedProducts += "\n"
       }

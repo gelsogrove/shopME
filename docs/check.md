@@ -28,8 +28,8 @@
 
 NON VA
 
-- prompt e e modello dinamoco
-- nuovo utente che lingusa ha?
+- dove e' il mio ordine?
+
 - nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
 
 FASE 2

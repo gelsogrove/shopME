@@ -359,6 +359,13 @@ export function WhatsAppChatModal({
         isNewConversation: true, // Add flag to indicate new conversation
       })
 
+      // Check if response is just "OK" (customer blocked - no action needed)
+      if (response.data === "OK") {
+        logger.info("🚫 Customer blocked - received OK response, showing no bot message")
+        setIsLoading(false)
+        return
+      }
+
       if (response.data.success) {
         // Save sessionId if provided in the response
         if (response.data.data.sessionId) {
@@ -386,24 +393,33 @@ export function WhatsAppChatModal({
           localStorage.setItem("selectedChat", JSON.stringify(newChat))
         }
 
-        // Create the bot message from the API response
-        const botMessage: Message = {
-          id: (Date.now() + 200).toString(),
-          content: response.data.data.message,
-          sender: "bot",
-          timestamp: new Date(),
-          agentName: "AI Assistant",
-          metadata: {
-            isOperatorMessage: false,
-            isOperatorControl: false,
-            agentSelected: "CHATBOT",
-            sentBy: "AI",
-          },
-        }
+        // Check if we have a valid bot response before creating message
+        const botResponse = response.data.data.message
+        
+        if (botResponse && botResponse.trim() !== "") {
+          // Create the bot message from the API response
+          const botMessage: Message = {
+            id: (Date.now() + 200).toString(),
+            content: botResponse,
+            sender: "bot",
+            timestamp: new Date(),
+            agentName: "AI Assistant",
+            metadata: {
+              isOperatorMessage: false,
+              isOperatorControl: false,
+              agentSelected: "CHATBOT",
+              sentBy: "AI",
+            },
+          }
 
-        // Add ONLY the bot response to chat history, not the user's message again
-        // This prevents the duplicate "Ciao" message
-        setMessages((prev) => [...prev, botMessage]) // Add only bot response - user message already added
+          // Add ONLY the bot response to chat history, not the user's message again
+          // This prevents the duplicate "Ciao" message
+          setMessages((prev) => [...prev, botMessage]) // Add only bot response - user message already added
+        } else {
+          logger.info(
+            "Empty response from initial message, customer waiting for operator"
+          )
+        }
       } else {
         // Handle API error response
         logger.error("API Error:", response.data.error)
@@ -540,6 +556,13 @@ export function WhatsAppChatModal({
         "📥 FRONTEND DEBUG: Response success field:",
         response.data.success
       )
+
+      // Check if response is just "OK" (customer blocked - no action needed)
+      if (response.data === "OK") {
+        logger.info("🚫 Customer blocked - received OK response, showing no bot message")
+        setIsLoading(false)
+        return
+      }
 
       if (response.data.success) {
         // DUAL LLM SYSTEM response format

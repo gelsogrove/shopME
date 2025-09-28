@@ -37,21 +37,29 @@ export class LLMService {
 
     // 2. New User Check
     if (!customer) {
+      console.log("🆕 LLM: New user detected, calling NewUser method")
       return await this.NewUser(llmRequest, workspace, messageRepo)
     }
 
-    // 3. Blocca se blacklisted - non salvare nulla nello storico
+    console.log(
+      `🔍 LLM: Existing customer found - id: ${customer.id}, phone: ${customer.phone}, activeChatbot: ${customer.activeChatbot}, isBlacklisted: ${customer.isBlacklisted}`
+    )
+
+    // 3. Blocca se blacklisted o se activeChatbot è false - non salvare nulla nello storico
     const isBlocked = await messageRepo.isCustomerBlacklisted(
       customer.phone,
       workspace.id
     )
-    if (isBlocked || customer.isBlacklisted) {
-      // Restituisci null per ignorare completamente questa interazione
-      return {
-        success: false,
-        output: "❌ User blocked",
-        debugInfo: { stage: "no_prompt" },
-      }
+
+    // Check if chatbot is active for this customer
+    const isChatbotInactive = customer.activeChatbot === false
+
+    if (isBlocked || customer.isBlacklisted || isChatbotInactive) {
+      console.log(
+        `🚫 LLM: Customer blocked - isBlocked: ${isBlocked}, isBlacklisted: ${customer.isBlacklisted}, isChatbotInactive: ${isChatbotInactive}`
+      )
+      // Restituisci stringa speciale IGNORE per fermare il processo
+      return "IGNORE"
     }
 
     // 4. Get prompt
@@ -115,8 +123,8 @@ export class LLMService {
       console.log("❌ Errore salvando prompt:", error.message)
     }
 
-    // resoonse
-    const rawLLMResponse = await this.generateLLMResponse(
+    // 6. Generate LLM Response with debug info
+    const rawLLMResult = await this.generateLLMResponse(
       promptWithVars,
       llmRequest.chatInput,
       workspace,
@@ -127,7 +135,7 @@ export class LLMService {
 
     // 7. Post-processing: Replace link tokens
     const finalResponse = await this.replaceLinkTokens(
-      rawLLMResponse,
+      rawLLMResult.response,
       customer,
       workspace
     )
@@ -135,7 +143,13 @@ export class LLMService {
     return {
       success: true,
       output: finalResponse,
-      debugInfo: { stage: "completed" },
+      debugInfo: {
+        stage: "completed",
+        model: rawLLMResult.debugInfo.model,
+        temperature: rawLLMResult.debugInfo.temperature,
+        functionCall: rawLLMResult.debugInfo.functionCall,
+        error: rawLLMResult.debugInfo.error || false,
+      },
     }
   }
 
@@ -318,7 +332,11 @@ export class LLMService {
     customer: any,
     customerData?: any,
     language: "it" | "es" | "pt" | "en" = "it" // default italiano
-  ): Promise<string> {
+  ): Promise<{ response: string; debugInfo: any }> {
+    // Capture model and temperature for debug info outside try block
+    const modelUsed = workspace.llmModel || "openai/gpt-4o-mini"
+    const temperatureUsed = workspace.temperature || 0.3
+
     try {
       const messages = [
         {
@@ -342,10 +360,10 @@ export class LLMService {
             "X-Title": "ShopMe LLM Response",
           },
           body: JSON.stringify({
-            model: workspace.llmModel || "openai/gpt-4o-mini",
+            model: "anthropic/claude-opus-4.1",
             messages: messages,
             tools: this.getAvailableFunctions(),
-            temperature: workspace.temperature || 0.3,
+            temperature: temperatureUsed,
             max_tokens: workspace.maxTokens || 5000,
           }),
         }
@@ -421,47 +439,94 @@ export class LLMService {
 
         if (functionResult.success === false) {
           if (functionName === "GetLinkOrderByCode") {
-            return i18n.errors.orderNotFound[language]
+            return {
+              response: i18n.errors.orderNotFound[language],
+              debugInfo: {
+                model: modelUsed,
+                temperature: temperatureUsed,
+                functionCall: functionName,
+              },
+            }
           }
           if (functionName === "GetShipmentTrackingLink") {
-            return i18n.errors.trackingNotFound[language]
+            return {
+              response: i18n.errors.trackingNotFound[language],
+              debugInfo: {
+                model: modelUsed,
+                temperature: temperatureUsed,
+                functionCall: functionName,
+              },
+            }
           }
-          return (
-            functionResult.message ||
-            functionResult.error ||
-            i18n.errors.generic[language]
-          )
+          return {
+            response:
+              functionResult.message ||
+              functionResult.error ||
+              i18n.errors.generic[language],
+            debugInfo: {
+              model: modelUsed,
+              temperature: temperatureUsed,
+              functionCall: functionName,
+            },
+          }
         }
 
         if (functionName === "GetLinkOrderByCode") {
-          return `${i18n.success.orderLink[language]} ${functionResult.linkUrl || functionResult.output || functionResult.message} - ${
-            language === "it"
-              ? "valido per 1 ora"
-              : language === "es"
-                ? "válido por 1 hora"
-                : language === "pt"
+          return {
+            response: `${i18n.success.orderLink[language]} ${functionResult.linkUrl || functionResult.output || functionResult.message} - ${
+              language === "it"
+                ? "valido per 1 ora"
+                : language === "es"
                   ? "válido por 1 hora"
-                  : "valid for 1 hour"
-          }`
+                  : language === "pt"
+                    ? "válido por 1 hora"
+                    : "valid for 1 hour"
+            }`,
+            debugInfo: {
+              model: modelUsed,
+              temperature: temperatureUsed,
+              functionCall: functionName,
+            },
+          }
         }
 
         if (functionName === "GetShipmentTrackingLink") {
-          return `${i18n.success.trackingLink[language]} ${functionResult.linkUrl}`
+          return {
+            response: `${i18n.success.trackingLink[language]} ${functionResult.linkUrl}`,
+            debugInfo: {
+              model: modelUsed,
+              temperature: temperatureUsed,
+              functionCall: functionName,
+            },
+          }
         }
 
-        return (
-          functionResult.message ||
-          functionResult.output ||
-          functionResult.linkUrl ||
-          `${i18n.success.default[language]} ${functionResult.linkUrl}`
-        )
+        return {
+          response:
+            functionResult.message ||
+            functionResult.output ||
+            functionResult.linkUrl ||
+            `${i18n.success.default[language]} ${functionResult.linkUrl}`,
+          debugInfo: {
+            model: modelUsed,
+            temperature: temperatureUsed,
+            functionCall: functionName,
+          },
+        }
       }
 
       const llmResponse =
         data.choices?.[0]?.message?.content || i18n.fallback[language]
 
       console.log("🎯 LLM Final Response:", llmResponse)
-      return llmResponse
+      return {
+        response: llmResponse,
+        debugInfo: {
+          model: modelUsed,
+          temperature: temperatureUsed,
+          functionCall: null,
+        },
+      }
     } catch (error) {
       console.error("❌ Error generating LLM response:", error)
       const errorMessages = {
@@ -470,7 +535,14 @@ export class LLMService {
         pt: "❌ Desculpe, ocorreu um erro. Tente novamente mais tarde.",
         en: "❌ Sorry, an error occurred. Please try again later.",
       }
-      return errorMessages[language]
+      return {
+        response: errorMessages[language],
+        debugInfo: {
+          model: modelUsed,
+          temperature: temperatureUsed,
+          error: true,
+        },
+      }
     }
   }
 
