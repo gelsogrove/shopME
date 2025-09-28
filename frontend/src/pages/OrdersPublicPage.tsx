@@ -278,13 +278,13 @@ const OrdersPublicPage: React.FC = () => {
     const o = detailData.order
     return (
       <div className="min-h-screen bg-gray-100">
-        <div className="max-w-4xl mx-auto py-8 px-4">
+        <div className="max-w-4xl mx-auto py-4 sm:py-8 px-4">
           {/* Header - Uniformed with other public pages */}
-          <div className="flex flex-col space-y-1 mb-6">
-            <div className="flex items-center justify-between">
+          <div className="flex flex-col space-y-3 sm:space-y-1 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
               <div className="flex items-center gap-2">
                 <svg
-                  className="h-8 w-8 text-blue-600"
+                  className="h-6 sm:h-8 w-6 sm:w-8 text-blue-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -296,14 +296,14 @@ const OrdersPublicPage: React.FC = () => {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900">
                   Order Details
                 </h1>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                 <button
                   onClick={handleViewCart}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
                   <svg
                     className="h-4 w-4"
@@ -318,7 +318,8 @@ const OrdersPublicPage: React.FC = () => {
                       d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
                     />
                   </svg>
-                  {texts.viewCart}
+                  <span className="hidden sm:inline">{texts.viewCart}</span>
+                  <span className="sm:hidden">Cart</span>
                 </button>
                 <button
                   onClick={() => {
@@ -326,7 +327,7 @@ const OrdersPublicPage: React.FC = () => {
                     const ordersUrl = `/orders-public?token=${token}`
                     window.location.href = ordersUrl
                   }}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
                   <svg
                     className="h-4 w-4"
@@ -341,7 +342,8 @@ const OrdersPublicPage: React.FC = () => {
                       d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
-                  {texts.viewOrders}
+                  <span className="hidden sm:inline">{texts.viewOrders}</span>
+                  <span className="sm:hidden">Orders</span>
                 </button>
                 <button
                   onClick={() => {
@@ -350,7 +352,7 @@ const OrdersPublicPage: React.FC = () => {
                     const profileUrl = `/customer-profile?token=${token}`
                     window.location.href = profileUrl
                   }}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
                   <svg
                     className="h-4 w-4"
@@ -365,23 +367,24 @@ const OrdersPublicPage: React.FC = () => {
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                     />
                   </svg>
-                  {texts.viewProfile}
+                  <span className="hidden sm:inline">{texts.viewProfile}</span>
+                  <span className="sm:hidden">Profile</span>
                 </button>
               </div>
             </div>
-            <div className="text-sm text-gray-600 ml-10">
+            <div className="text-sm text-gray-600 sm:ml-10">
               Status: {o.status} • Date: {formatDate(o.date)}
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Invoice Header */}
             <div className="border-b border-gray-200 pb-6">
-              <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-6 rounded-lg">
-                <div className="flex justify-between items-start">
+              <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-4 sm:p-6 rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start space-y-4 sm:space-y-0">
                   <div className="space-y-2">
                     <div className="flex items-center space-x-3">
                       <svg
-                        className="w-8 h-8 text-blue-600"
+                        className="w-6 sm:w-8 h-6 sm:h-8 text-blue-600"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -393,15 +396,15 @@ const OrdersPublicPage: React.FC = () => {
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         />
                       </svg>
-                      <h1 className="text-xl font-bold text-gray-900">
+                      <h1 className="text-lg sm:text-xl font-bold text-gray-900">
                         INVOICE
                       </h1>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-lg font-semibold text-gray-700">
+                      <p className="text-base sm:text-lg font-semibold text-gray-700">
                         Order #{o.orderCode}
                       </p>
-                      <div className="flex items-center space-x-2 text-gray-600">
+                      <div className="flex items-center space-x-2 text-gray-600 text-sm sm:text-base">
                         <svg
                           className="w-4 h-4"
                           fill="none"
@@ -419,11 +422,11 @@ const OrdersPublicPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                    <div className="text-xl font-bold text-gray-900 mb-1">
+                  <div className="text-center sm:text-right bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200 w-full sm:w-auto">
+                    <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
                       {formatCurrency(o.totalAmount)}
                     </div>
-                    <div className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    <div className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">
                       Total Amount
                     </div>
                   </div>

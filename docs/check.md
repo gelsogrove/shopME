@@ -29,21 +29,17 @@
 NON VA
 
 - dove e' il mio ordine?
-- quando arriva il mio ultimo ordine
 - DEBUG
 - nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
+- QUANDO SI APPLUCA UNO SCONTO MADNARE MESSAGGIO
 
 FASE 2
 
+- pulizia codice.
 - PRD NON ESISTE
 - DOCUMENTAZIONE SPORCA > MEMORY BANK
 - siamo sicuri che passiamo sempre il workspceID
-- FE con le lingue come va?
-- QUANDO SI APPLUCA UNO SCONTO MADNARE MESSAGGIO
 - cateogorie nel DB ? cosi da togliere la parte harcodeata
-- MESSAGGI PUSH IN BASE ALLE OPERAZIONI
-- MIGLIORARE DEBUG
-- mostrare carrelli ?
 
 > > TODO <<
 > > DEPLOY
@@ -53,6 +49,6 @@ FASE 2
 
 > > COSTI <<
 > > 70 AMAZON
-> > 30 DI AI DEV
-> > COSTO ANDREA DI INTEGRAZIONE
-> > COSTO ANDREA DI USO
+> > 30 Flusso
+
+> > COSTO MENSILE ANDREA ??? 300
