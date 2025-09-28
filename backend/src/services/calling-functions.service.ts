@@ -438,43 +438,53 @@ export class CallingFunctionsService {
         } as TokenResponse
       }
 
-      // Generate internal tracking link with token
-      const {
-        SecureTokenService,
-      } = require("../application/services/secure-token.service")
-      const secureTokenService = new SecureTokenService()
+      // Generate direct DHL tracking link
+      const dhlTrackingUrl = `https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=${encodeURIComponent(
+        order.trackingNumber
+      )}`
 
-      const token = await secureTokenService.createToken(
-        "tracking",
-        request.workspaceId,
-        { customerId: request.customerId, workspaceId: request.workspaceId },
-        "1h",
-        undefined,
-        undefined,
-        undefined,
-        request.customerId
+      console.log(
+        `🔗 Generated DHL tracking URL: ${dhlTrackingUrl} for tracking number: ${order.trackingNumber}`
       )
 
-      // Use centralized link generator for consistent URL shortening
-      const {
-        linkGeneratorService,
-      } = require("../application/services/link-generator.service")
+      // Create short URL that redirects to DHL directly
+      try {
+        const { urlShortenerService } = require("../application/services/url-shortener.service")
+        
+        const shortResult = await urlShortenerService.createShortUrl(
+          dhlTrackingUrl,
+          request.workspaceId
+        )
+        const shortTrackingUrl = `http://localhost:3001${shortResult.shortUrl}`
+        
+        console.log(
+          `📎 Created short tracking link: ${shortTrackingUrl} → ${dhlTrackingUrl}`
+        )
 
-      // Generate tracking link for specific order (not generic orders list)
-      const trackingUrl = await linkGeneratorService.generateOrdersLink(
-        token,
-        request.workspaceId,
-        order.orderCode // Pass the specific order code
-      )
-
-      return {
-        success: true,
-        linkUrl: trackingUrl, // Now uses short URL instead of DHL direct link
-        trackingNumber: order.trackingNumber,
-        orderCode: order.orderCode,
-        expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        action: "tracking",
-        timestamp: new Date().toISOString(),
+        return {
+          success: true,
+          linkUrl: shortTrackingUrl, // Short URL that redirects to DHL
+          trackingNumber: order.trackingNumber,
+          orderCode: order.orderCode,
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+          action: "tracking",
+          timestamp: new Date().toISOString(),
+        }
+      } catch (shortError) {
+        console.warn(
+          "⚠️ Failed to create short URL for DHL tracking, using direct DHL link:",
+          shortError
+        )
+        
+        return {
+          success: true,
+          linkUrl: dhlTrackingUrl, // Fallback to direct DHL link
+          trackingNumber: order.trackingNumber,
+          orderCode: order.orderCode,
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+          action: "tracking",
+          timestamp: new Date().toISOString(),
+        }
       }
     } catch (error) {
       return this.createErrorResponse(

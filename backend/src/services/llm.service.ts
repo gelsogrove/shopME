@@ -155,6 +155,7 @@ export class LLMService {
         temperature: rawLLMResult.debugInfo.temperature,
         functionCall: rawLLMResult.debugInfo.functionCall,
         functionParams: rawLLMResult.debugInfo.functionParams,
+        effectiveParams: rawLLMResult.debugInfo.effectiveParams,
         tokenReplacements: linkResult.tokenReplacements,
         error: rawLLMResult.debugInfo.error || false,
       },
