@@ -449,14 +449,16 @@ export class CallingFunctionsService {
 
       // Create short URL that redirects to DHL directly
       try {
-        const { urlShortenerService } = require("../application/services/url-shortener.service")
-        
+        const {
+          urlShortenerService,
+        } = require("../application/services/url-shortener.service")
+
         const shortResult = await urlShortenerService.createShortUrl(
           dhlTrackingUrl,
           request.workspaceId
         )
         const shortTrackingUrl = `http://localhost:3001${shortResult.shortUrl}`
-        
+
         console.log(
           `📎 Created short tracking link: ${shortTrackingUrl} → ${dhlTrackingUrl}`
         )
@@ -475,7 +477,7 @@ export class CallingFunctionsService {
           "⚠️ Failed to create short URL for DHL tracking, using direct DHL link:",
           shortError
         )
-        
+
         return {
           success: true,
           linkUrl: dhlTrackingUrl, // Fallback to direct DHL link
