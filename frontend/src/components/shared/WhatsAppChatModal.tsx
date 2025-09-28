@@ -1070,6 +1070,18 @@ export function WhatsAppChatModal({
                                               )}
                                             </div>
                                           )}
+                                          {message.debugInfo?.tokenReplacements && message.debugInfo.tokenReplacements.length > 0 && (
+                                            <div className="font-mono text-xs">
+                                              <span className="font-semibold text-pink-600">
+                                                🔗 TOKENS:
+                                              </span>{" "}
+                                              {message.debugInfo.tokenReplacements.map((token: string, idx: number) => (
+                                                <div key={idx} className="ml-2">
+                                                  {token}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
                                         </div>
                                       )
                                     } else if (
@@ -1108,6 +1120,18 @@ export function WhatsAppChatModal({
                                                 🌡️ TEMPERATURE:
                                               </span>{" "}
                                               {message.debugInfo.temperature}
+                                            </div>
+                                          )}
+                                          {message.debugInfo?.tokenReplacements && message.debugInfo.tokenReplacements.length > 0 && (
+                                            <div className="font-mono text-xs">
+                                              <span className="font-semibold text-pink-600">
+                                                🔗 TOKENS:
+                                              </span>{" "}
+                                              {message.debugInfo.tokenReplacements.map((token: string, idx: number) => (
+                                                <div key={idx} className="ml-2">
+                                                  {token}
+                                                </div>
+                                              ))}
                                             </div>
                                           )}
                                         </div>

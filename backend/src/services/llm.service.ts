@@ -35,8 +35,10 @@ export class LLMService {
     const workspaceId = customer ? customer.workspaceId : llmRequest.workspaceId
     const workspace = await workspaceService.getById(workspaceId)
 
+    // Get agent config for LLM settings
+    const agentConfig = workspace.agentConfigs?.[0]
     console.log(
-      `🔧 LLM: Workspace config - llmModel: ${workspace.llmModel}, temperature: ${workspace.temperature}`
+      `🔧 LLM: Workspace config - llmModel: ${agentConfig?.model || 'default'}, temperature: ${agentConfig?.temperature || 'default'} (type: ${typeof agentConfig?.temperature})`
     )
 
     // 2. New User Check
@@ -138,7 +140,7 @@ export class LLMService {
     )
 
     // 7. Post-processing: Replace link tokens
-    const finalResponse = await this.replaceLinkTokens(
+    const linkResult = await this.replaceLinkTokens(
       rawLLMResult.response,
       customer,
       workspace
@@ -146,13 +148,14 @@ export class LLMService {
 
     return {
       success: true,
-      output: finalResponse,
+      output: linkResult.finalResponse,
       debugInfo: {
         stage: "completed",
         model: rawLLMResult.debugInfo.model,
         temperature: rawLLMResult.debugInfo.temperature,
         functionCall: rawLLMResult.debugInfo.functionCall,
         functionParams: rawLLMResult.debugInfo.functionParams,
+        tokenReplacements: linkResult.tokenReplacements,
         error: rawLLMResult.debugInfo.error || false,
       },
       functionCalls: rawLLMResult.debugInfo.functionCall
@@ -196,8 +199,9 @@ export class LLMService {
     response: string,
     customer: any,
     workspace: any
-  ): Promise<string> {
+  ): Promise<{ finalResponse: string; tokenReplacements: string[] }> {
     let finalResponse = response
+    const tokenReplacements: string[] = []
 
     // Replace checkout link token
     if (finalResponse.includes("[LINK_CHECKOUT_WITH_TOKEN]")) {
@@ -228,6 +232,7 @@ export class LLMService {
         "[LINK_CHECKOUT_WITH_TOKEN]",
         linkUrl
       )
+      tokenReplacements.push("REPLACE LINK_CHECKOUT_WITH_TOKEN with getCartLink")
     }
 
     // Replace profile link token
@@ -243,6 +248,7 @@ export class LLMService {
         "[LINK_PROFILE_WITH_TOKEN]",
         profileResult?.message?.match(/https?:\/\/[^\s)]+/)?.[0] || ""
       )
+      tokenReplacements.push("REPLACE LINK_PROFILE_WITH_TOKEN with replaceLinkWithToken")
     }
 
     // Replace orders link token
@@ -271,6 +277,7 @@ export class LLMService {
       }
 
       finalResponse = finalResponse.replace("[LINK_ORDERS_WITH_TOKEN]", linkUrl)
+      tokenReplacements.push("REPLACE LINK_ORDERS_WITH_TOKEN with getOrdersListLink")
     }
 
     // Replace catalog link token
@@ -285,9 +292,10 @@ export class LLMService {
       if (catalogResult?.success && catalogResult?.message) {
         finalResponse = catalogResult.message
       }
+      tokenReplacements.push("REPLACE LINK_CATALOG with replaceLinkWithToken")
     }
 
-    return finalResponse
+    return { finalResponse, tokenReplacements }
   }
 
   private getAvailableFunctions() {
@@ -354,12 +362,17 @@ export class LLMService {
     customerData?: any,
     language: "it" | "es" | "pt" | "en" = "it" // default italiano
   ): Promise<{ response: string; debugInfo: any }> {
+    // Get agent config for LLM settings
+    const agentConfig = workspace.agentConfigs?.[0]
+    
     // Capture model and temperature for debug info outside try block
-    const modelUsed = workspace.llmModel || "anthropic/claude-3.5-sonnet"
-    const temperatureUsed = workspace.temperature || 0.1
+    const modelUsed = agentConfig?.model || "anthropic/claude-3.5-sonnet"
+    const temperatureUsed = agentConfig?.temperature !== undefined && agentConfig?.temperature !== null 
+      ? agentConfig.temperature 
+      : 0.1
 
     console.log(
-      `🔧 LLM: Using model: ${modelUsed}, temperature: ${temperatureUsed}`
+      `🔧 LLM: Using model: ${modelUsed}, temperature: ${temperatureUsed} (agentConfig.temperature was: ${agentConfig?.temperature}, type: ${typeof agentConfig?.temperature})`
     )
 
     try {
@@ -389,7 +402,7 @@ export class LLMService {
             messages: messages,
             tools: this.getAvailableFunctions(),
             temperature: temperatureUsed,
-            max_tokens: workspace.maxTokens || 5000,
+            max_tokens: agentConfig?.maxTokens || 5000,
           }),
         }
       )

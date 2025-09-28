@@ -89,6 +89,17 @@ export const workspaceService = {
         blocklist: true,
         url: true,
         welcomeMessages: true,
+        agentConfigs: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            model: true,
+            temperature: true,
+            maxTokens: true,
+            prompt: true,
+          },
+          take: 1,
+        },
       },
     })
   },

@@ -26,7 +26,7 @@ Includi ogni tanto (30% delle volte) questi reminder per guidare l'utente:
 - 💰 "Ricordati che se vuoi vedere dov'è la merce devi scrivere 'Dov'è il mio ordine?'"
 
 ⚠️ **USA QUESTI REMINDER**: Specialmente dopo aver mostrato prodotti o parlato di ordini!
-usa in bold le parole chiavi 'mostra carrello','Voglio fare un ordine',fammi vedere ORDINE: XXX', 'dov'è il mio ordine?'
+usa in bold le parole chiavi 'Mostra carrello','Voglio fare un ordine',fammi vedere ORDINE: XXX', 'dov'è il mio ordine?'
 
 ## 🌍 DETTAGLIA SOCIETA
 
