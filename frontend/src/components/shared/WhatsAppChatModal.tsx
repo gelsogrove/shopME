@@ -247,11 +247,39 @@ export function WhatsAppChatModal({
                   "🔧 Raw functionCallsDebug:",
                   message.functionCallsDebug
                 )
-                const parsed = JSON.parse(message.functionCallsDebug)
-                console.log("🔧 Parsed functionCalls:", parsed)
-                return parsed
+                try {
+                  // Check if it's already an object or a string that needs parsing
+                  const parsed = typeof message.functionCallsDebug === 'string' 
+                    ? JSON.parse(message.functionCallsDebug)
+                    : message.functionCallsDebug;
+                  console.log("🔧 Parsed functionCalls:", parsed)
+                  return parsed
+                } catch (error) {
+                  console.warn("🔧 Failed to parse functionCallsDebug:", error, message.functionCallsDebug)
+                  return []
+                }
               })()
             : [],
+          // 🔧 NEW: Add debugInfo from database
+          debugInfo: message.debugInfo
+            ? (() => {
+                console.log("🔧 Raw debugInfo from DB:", message.debugInfo)
+                console.log("🔧 Message content:", message.content.slice(0, 50) + "...")
+                try {
+                  // Check if it's already an object or a string that needs parsing
+                  const parsed = typeof message.debugInfo === 'string' 
+                    ? JSON.parse(message.debugInfo)
+                    : message.debugInfo;
+                  console.log("🔧 Parsed debugInfo:", parsed)
+                  console.log("🔧 Model found in debugInfo:", parsed?.model)
+                  console.log("🔧 Function call found:", parsed?.functionCall)
+                  return parsed
+                } catch (error) {
+                  console.warn("🔧 Failed to parse debugInfo:", error, message.debugInfo)
+                  return {}
+                }
+              })()
+            : {},
           metadata: {
             isOperatorMessage: message.metadata?.isOperatorMessage || false,
             isOperatorControl: message.metadata?.isOperatorControl || false,
@@ -591,21 +619,8 @@ export function WhatsAppChatModal({
             processedPrompt: response.data.debug?.processedPrompt,
             processingSource: response.data.debug?.processingSource || "LLM", // 🔧 NEW: Source info
             functionCalls: response.data.debug?.functionCalls || [],
-            // 💰 Cost tracking info
-            debugInfo: response.data.debug?.costInfo
-              ? JSON.stringify(
-                  {
-                    currentCallCost:
-                      response.data.debug.costInfo.currentCallCost,
-                    previousTotalUsage:
-                      response.data.debug.costInfo.previousTotalUsage,
-                    newTotalUsage: response.data.debug.costInfo.newTotalUsage,
-                    costTimestamp: response.data.debug.costInfo.costTimestamp,
-                  },
-                  null,
-                  2
-                )
-              : undefined,
+            // 💰 Complete debug info (now all properties are directly in debug)
+            debugInfo: response.data.debug || {},
             metadata: {
               isOperatorMessage: false,
               isOperatorControl: false,
@@ -988,16 +1003,61 @@ export function WhatsAppChatModal({
                                           .join(", ")
 
                                       return (
-                                        <span className="font-mono">
-                                          <span className="font-semibold text-purple-600">
-                                            🔧 FUNCTION:
-                                          </span>{" "}
-                                          {functionNames}
-                                          {message.functionCalls.length > 3 &&
-                                            ` (+${
-                                              message.functionCalls.length - 3
-                                            } more)`}
-                                        </span>
+                                        <div className="space-y-1">
+                                          <div className="font-mono">
+                                            <span className="font-semibold text-blue-600">
+                                              📝 SOURCE:
+                                            </span>{" "}
+                                            LLM
+                                            {message.debugInfo?.model && (
+                                              <span className="text-gray-500 text-xs ml-2">
+                                                ({message.debugInfo.model})
+                                              </span>
+                                            )}
+                                          </div>
+                                          <div className="font-mono">
+                                            <span className="font-semibold text-purple-600">
+                                              🔧 FUNCTION:
+                                            </span>{" "}
+                                            {functionNames}
+                                            {message.functionCalls.length > 3 &&
+                                              ` (+${
+                                                message.functionCalls.length - 3
+                                              } more)`}
+                                          </div>
+                                          {message.debugInfo?.temperature && (
+                                            <div className="font-mono text-xs">
+                                              <span className="font-semibold text-orange-600">
+                                                🌡️ TEMPERATURE:
+                                              </span>{" "}
+                                              {message.debugInfo.temperature}
+                                            </div>
+                                          )}
+                                          {message.functionCalls[0]?.toolCall
+                                            ?.function?.arguments && (
+                                            <div className="font-mono text-xs">
+                                              <span className="font-semibold text-orange-600">
+                                                📋 PARAMS:
+                                              </span>{" "}
+                                              {
+                                                message.functionCalls[0]
+                                                  .toolCall.function.arguments
+                                              }
+                                            </div>
+                                          )}
+                                          {message.debugInfo
+                                            ?.effectiveParams && (
+                                            <div className="font-mono text-xs">
+                                              <span className="font-semibold text-green-600">
+                                                ✅ EFFECTIVE:
+                                              </span>{" "}
+                                              {JSON.stringify(
+                                                message.debugInfo
+                                                  .effectiveParams
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
                                       )
                                     } else if (
                                       message.processingSource &&
@@ -1017,12 +1077,27 @@ export function WhatsAppChatModal({
                                       )
                                     ) {
                                       return (
-                                        <span className="font-mono">
-                                          <span className="font-semibold text-green-600">
-                                            🤖 LLM:
-                                          </span>{" "}
-                                          AI Generated Response
-                                        </span>
+                                        <div className="space-y-1">
+                                          <div className="font-mono">
+                                            <span className="font-semibold text-blue-600">
+                                              📝 SOURCE:
+                                            </span>{" "}
+                                            LLM
+                                            {message.debugInfo?.model && (
+                                              <span className="text-gray-500 text-xs ml-2">
+                                                ({message.debugInfo.model})
+                                              </span>
+                                            )}
+                                          </div>
+                                          {message.debugInfo?.temperature && (
+                                            <div className="font-mono text-xs">
+                                              <span className="font-semibold text-orange-600">
+                                                🌡️ TEMPERATURE:
+                                              </span>{" "}
+                                              {message.debugInfo.temperature}
+                                            </div>
+                                          )}
+                                        </div>
                                       )
                                     } else {
                                       return (
@@ -1061,89 +1136,6 @@ export function WhatsAppChatModal({
                                 </div>
                               </div>
                             )}
-
-                            {showFunctionCalls &&
-                              message.functionCalls &&
-                              message.functionCalls.length > 0 && (
-                                <div className="bg-purple-50 border border-purple-200 rounded p-2">
-                                  <div className="text-xs font-semibold text-purple-800 mb-1">
-                                    {message.functionCalls.some(
-                                      (call) => call.type === "searchrag_result"
-                                    )
-                                      ? `🔍 SearchRag Results (${message.functionCalls.length}):`
-                                      : `⚡ Function Calls (${message.functionCalls.length}):`}
-                                  </div>
-
-                                  {/* Show translation if available */}
-                                  {message.translatedQuery && (
-                                    <div className="bg-pink-50 border border-pink-200 rounded p-2 mb-2">
-                                      <div className="text-xs font-medium text-pink-700">
-                                        🌐 Translated: {message.translatedQuery}
-                                      </div>
-                                    </div>
-                                  )}
-                                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                                    {message.functionCalls.map(
-                                      (call, index) => (
-                                        <div
-                                          key={index}
-                                          className="bg-white border border-purple-100 rounded p-2"
-                                        >
-                                          <div className="text-xs font-medium text-purple-700 mb-1">
-                                            {call.type === "searchrag_result"
-                                              ? "🔍"
-                                              : "🔧"}{" "}
-                                            {call.functionName ||
-                                              call.type ||
-                                              "Unknown"}
-                                          </div>
-                                          {call.type === "searchrag_result" &&
-                                            call.data && (
-                                              <div className="text-xs text-green-600">
-                                                <strong>Source:</strong>{" "}
-                                                {call.data.sourceName ||
-                                                  "Unknown"}
-                                                <br />
-                                                <strong>Type:</strong>{" "}
-                                                {call.data.sourceType ||
-                                                  "Unknown"}
-                                                <br />
-                                                <strong>
-                                                  Similarity:
-                                                </strong>{" "}
-                                                {(
-                                                  call.data.similarity * 100
-                                                ).toFixed(1)}
-                                                %<br />
-                                                <strong>Content:</strong>{" "}
-                                                {call.data.content?.substring(
-                                                  0,
-                                                  200
-                                                )}
-                                                ...
-                                              </div>
-                                            )}
-                                          {call.result &&
-                                            call.type !==
-                                              "searchrag_result" && (
-                                              <div className="text-xs text-green-600 mt-1">
-                                                <strong>Result:</strong>{" "}
-                                                {JSON.stringify(call.result)}
-                                              </div>
-                                            )}
-                                          {call.toolCall?.function
-                                            ?.arguments && (
-                                            <div className="text-xs text-blue-600 mt-1">
-                                              <strong>Arguments:</strong>{" "}
-                                              {call.toolCall.function.arguments}
-                                            </div>
-                                          )}
-                                        </div>
-                                      )
-                                    )}
-                                  </div>
-                                </div>
-                              )}
                           </div>
                         )}
 

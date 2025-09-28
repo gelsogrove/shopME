@@ -29,15 +29,13 @@ async function checkCustomerBlacklist(
     const customer = await prisma.customers.findFirst({
       where: {
         phone: phoneNumber.replace(/\s+/g, ""),
-        workspaceId: workspaceId,
         isActive: true,
       },
       select: {
         id: true,
         name: true,
+        email: true,
         phone: true,
-        company: true,
-        discount: true,
         language: true,
         isBlacklisted: true,
       },
@@ -1443,6 +1441,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
         translatedQuery: result.translatedQuery,
         processedPrompt: result.processedPrompt,
         functionCalls: result.functionCalls || [],
+        // Unisco tutte le proprietà di debugInfo (model, effectiveParams, ecc)
+        ...(result.debugInfo && typeof result.debugInfo === 'object' ? result.debugInfo : {}),
         // 💰 Cost tracking info
         costInfo:
           result.success && result.output

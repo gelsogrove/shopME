@@ -29,7 +29,7 @@
 NON VA
 
 - dove e' il mio ordine?
-
+- quando arriva il mio ultimo ordine
 - nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
 
 FASE 2

@@ -34,6 +34,8 @@ export class LLMService {
     let customer = await messageRepo.findCustomerByPhone(llmRequest.phone)
     const workspaceId = customer ? customer.workspaceId : llmRequest.workspaceId
     const workspace = await workspaceService.getById(workspaceId)
+    
+    console.log(`🔧 LLM: Workspace config - llmModel: ${workspace.llmModel}, temperature: ${workspace.temperature}`)
 
     // 2. New User Check
     if (!customer) {
@@ -148,8 +150,25 @@ export class LLMService {
         model: rawLLMResult.debugInfo.model,
         temperature: rawLLMResult.debugInfo.temperature,
         functionCall: rawLLMResult.debugInfo.functionCall,
+        functionParams: rawLLMResult.debugInfo.functionParams,
         error: rawLLMResult.debugInfo.error || false,
       },
+      functionCalls: rawLLMResult.debugInfo.functionCall
+        ? [
+            {
+              functionName: rawLLMResult.debugInfo.functionCall,
+              source: "LLM",
+              toolCall: {
+                function: {
+                  name: rawLLMResult.debugInfo.functionCall,
+                  arguments: JSON.stringify(
+                    rawLLMResult.debugInfo.functionParams || {}
+                  ),
+                },
+              },
+            },
+          ]
+        : [],
     }
   }
 
@@ -334,8 +353,10 @@ export class LLMService {
     language: "it" | "es" | "pt" | "en" = "it" // default italiano
   ): Promise<{ response: string; debugInfo: any }> {
     // Capture model and temperature for debug info outside try block
-    const modelUsed = workspace.llmModel || "openai/gpt-4o-mini"
-    const temperatureUsed = workspace.temperature || 0.3
+    const modelUsed = workspace.llmModel || "anthropic/claude-3.5-sonnet"
+    const temperatureUsed = workspace.temperature || 0.1
+    
+    console.log(`🔧 LLM: Using model: ${modelUsed}, temperature: ${temperatureUsed}`)
 
     try {
       const messages = [
@@ -360,7 +381,7 @@ export class LLMService {
             "X-Title": "ShopMe LLM Response",
           },
           body: JSON.stringify({
-            model: "anthropic/claude-opus-4.1",
+            model: modelUsed,
             messages: messages,
             tools: this.getAvailableFunctions(),
             temperature: temperatureUsed,
@@ -445,6 +466,8 @@ export class LLMService {
                 model: modelUsed,
                 temperature: temperatureUsed,
                 functionCall: functionName,
+                functionParams: functionArgs,
+                effectiveParams: functionResult.effectiveParams,
               },
             }
           }
@@ -455,6 +478,8 @@ export class LLMService {
                 model: modelUsed,
                 temperature: temperatureUsed,
                 functionCall: functionName,
+                functionParams: functionArgs,
+                effectiveParams: functionResult.effectiveParams,
               },
             }
           }
@@ -467,6 +492,8 @@ export class LLMService {
               model: modelUsed,
               temperature: temperatureUsed,
               functionCall: functionName,
+              functionParams: functionArgs,
+              effectiveParams: functionResult.effectiveParams,
             },
           }
         }
@@ -486,6 +513,8 @@ export class LLMService {
               model: modelUsed,
               temperature: temperatureUsed,
               functionCall: functionName,
+              functionParams: functionArgs,
+              effectiveParams: functionResult.effectiveParams,
             },
           }
         }
@@ -497,6 +526,8 @@ export class LLMService {
               model: modelUsed,
               temperature: temperatureUsed,
               functionCall: functionName,
+              functionParams: functionArgs,
+              effectiveParams: functionResult.effectiveParams,
             },
           }
         }
@@ -511,6 +542,8 @@ export class LLMService {
             model: modelUsed,
             temperature: temperatureUsed,
             functionCall: functionName,
+            functionParams: functionArgs,
+            effectiveParams: functionResult.effectiveParams,
           },
         }
       }
@@ -525,6 +558,7 @@ export class LLMService {
           model: modelUsed,
           temperature: temperatureUsed,
           functionCall: null,
+          functionParams: null,
         },
       }
     } catch (error) {
@@ -541,6 +575,8 @@ export class LLMService {
           model: modelUsed,
           temperature: temperatureUsed,
           error: true,
+          functionCall: null,
+          functionParams: null,
         },
       }
     }
@@ -563,24 +599,50 @@ export class LLMService {
           })
 
         case "GetShipmentTrackingLink":
-          return await this.callingFunctionsService.getShipmentTrackingLink({
-            customerId: customer.id,
-            workspaceId: workspace.id,
-            orderCode:
-              args.orderCode ||
-              customerData?.lastordercode ||
-              customer.lastOrderCode,
-          })
+          const trackingOrderCode =
+            args.orderCode ||
+            customerData?.lastordercode ||
+            customer.lastOrderCode
+          console.log(
+            "🔧 GetShipmentTrackingLink - Original args:",
+            args,
+            "Effective orderCode:",
+            trackingOrderCode
+          )
+          const trackingResult =
+            await this.callingFunctionsService.getShipmentTrackingLink({
+              customerId: customer.id,
+              workspaceId: workspace.id,
+              orderCode: trackingOrderCode,
+            })
+          // Add effectiveParams for debug
+          return {
+            ...trackingResult,
+            effectiveParams: { orderCode: trackingOrderCode },
+          }
 
         case "GetLinkOrderByCode":
-          return await this.callingFunctionsService.getOrdersListLink({
-            customerId: customer.id,
-            workspaceId: workspace.id,
-            orderCode:
-              args.orderCode ||
-              customerData?.lastordercode ||
-              customer.lastOrderCode,
-          })
+          const orderCodeForLink =
+            args.orderCode ||
+            customerData?.lastordercode ||
+            customer.lastOrderCode
+          console.log(
+            "🔧 GetLinkOrderByCode - Original args:",
+            args,
+            "Effective orderCode:",
+            orderCodeForLink
+          )
+          const orderResult =
+            await this.callingFunctionsService.getOrdersListLink({
+              customerId: customer.id,
+              workspaceId: workspace.id,
+              orderCode: orderCodeForLink,
+            })
+          // Add effectiveParams for debug
+          return {
+            ...orderResult,
+            effectiveParams: { orderCode: orderCodeForLink },
+          }
 
         default:
           return { error: "Funzione non riconosciuta" }

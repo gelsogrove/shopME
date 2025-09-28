@@ -1,14 +1,14 @@
 import { PageLayout } from "@/components/layout/PageLayout"
-import { logger } from "@/lib/logger"
 import { PageHeader } from "@/components/shared/PageHeader"
 import MarkdownEditor from "@/components/ui/markdown-editor"
 import {
-    Tooltip,
+  Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
+import { logger } from "@/lib/logger"
 import { Agent, getAgent, updateAgent } from "@/services/agentApi"
 import { Bot, HelpCircle, Loader2, Save } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -316,12 +316,14 @@ export function AgentPage() {
                                 <ul className="list-disc pl-5 space-y-1">
                                   <li>
                                     <span className="font-medium">
-                                      GPT-4o-mini:
+                                      anthropic/claude-opus-4.1:
                                     </span>{" "}
                                     Fast, cost-effective, good for most tasks
                                   </li>
                                   <li>
-                                    <span className="font-medium">GPT-4o:</span>{" "}
+                                    <span className="font-medium">
+                                      openai/gpt-4o-mini
+                                    </span>{" "}
                                     Most advanced, best quality responses
                                   </li>
                                   <li>
@@ -343,15 +345,25 @@ export function AgentPage() {
                         onChange={(e) => setModelValue(e.target.value)}
                         className="w-full px-3 py-2 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                       >
+                        <option value="anthropic/claude-opus-4.1">
+                          Claude Opus 4.1 (Premium)
+                        </option>
+                        <option value="openai/gpt-4.1">
+                          GPT-4.1 (High-end)
+                        </option>
+                        <option value="google/gemini-2.5-pro">
+                          Gemini 2.5 Pro
+                        </option>
+                        <option value="x-ai/grok-4">Grok 4</option>
+                        <option value="openai/gpt-4-turbo">GPT-4 Turbo</option>
                         <option value="openai/gpt-4o-mini">
                           GPT-4o-mini (Fast)
                         </option>
-                        <option value="openai/gpt-4o">GPT-4o (Advanced)</option>
-                        <option value="anthropic/claude-3.5-sonnet">
-                          Claude-3.5-sonnet
+                        <option value="deepseek/deepseek-r1">
+                          DeepSeek R1
                         </option>
-                        <option value="openai/gpt-3.5-turbo">
-                          GPT-3.5-turbo (Legacy)
+                        <option value="anthropic/claude-3.5-sonnet">
+                          Claude 3.5 Sonnet (Legacy)
                         </option>
                       </select>
                     </div>
