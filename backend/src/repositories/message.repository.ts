@@ -1035,7 +1035,7 @@ export class MessageRepository {
         productsToShow.forEach((p) => {
           const originalPrice = Number(p.originalPrice).toFixed(2)
           const finalPrice = Number(p.finalPrice).toFixed(2)
-          const description = p.description ? ` - ${p.description}` : ''
+          const description = p.description ? ` - ${p.description}` : ""
 
           // Mostra SEMPRE il formato scontato, anche se lo sconto è 0%, con descrizione
           formattedProducts += `• ${p.name} ~~€${originalPrice}~~ → €${finalPrice}${description}\n`

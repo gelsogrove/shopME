@@ -361,7 +361,9 @@ export function WhatsAppChatModal({
 
       // Check if response is just "OK" (customer blocked - no action needed)
       if (response.data === "OK") {
-        logger.info("🚫 Customer blocked - received OK response, showing no bot message")
+        logger.info(
+          "🚫 Customer blocked - received OK response, showing no bot message"
+        )
         setIsLoading(false)
         return
       }
@@ -395,7 +397,7 @@ export function WhatsAppChatModal({
 
         // Check if we have a valid bot response before creating message
         const botResponse = response.data.data.message
-        
+
         if (botResponse && botResponse.trim() !== "") {
           // Create the bot message from the API response
           const botMessage: Message = {
@@ -559,7 +561,9 @@ export function WhatsAppChatModal({
 
       // Check if response is just "OK" (customer blocked - no action needed)
       if (response.data === "OK") {
-        logger.info("🚫 Customer blocked - received OK response, showing no bot message")
+        logger.info(
+          "🚫 Customer blocked - received OK response, showing no bot message"
+        )
         setIsLoading(false)
         return
       }
