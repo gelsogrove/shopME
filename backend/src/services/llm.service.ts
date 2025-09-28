@@ -38,7 +38,7 @@ export class LLMService {
     // Get agent config for LLM settings
     const agentConfig = workspace.agentConfigs?.[0]
     console.log(
-      `🔧 LLM: Workspace config - llmModel: ${agentConfig?.model || 'default'}, temperature: ${agentConfig?.temperature || 'default'} (type: ${typeof agentConfig?.temperature})`
+      `🔧 LLM: Workspace config - llmModel: ${agentConfig?.model || "default"}, temperature: ${agentConfig?.temperature || "default"} (type: ${typeof agentConfig?.temperature})`
     )
 
     // 2. New User Check
@@ -232,7 +232,9 @@ export class LLMService {
         "[LINK_CHECKOUT_WITH_TOKEN]",
         linkUrl
       )
-      tokenReplacements.push("REPLACE LINK_CHECKOUT_WITH_TOKEN with getCartLink")
+      tokenReplacements.push(
+        "REPLACE LINK_CHECKOUT_WITH_TOKEN with getCartLink"
+      )
     }
 
     // Replace profile link token
@@ -248,7 +250,9 @@ export class LLMService {
         "[LINK_PROFILE_WITH_TOKEN]",
         profileResult?.message?.match(/https?:\/\/[^\s)]+/)?.[0] || ""
       )
-      tokenReplacements.push("REPLACE LINK_PROFILE_WITH_TOKEN with replaceLinkWithToken")
+      tokenReplacements.push(
+        "REPLACE LINK_PROFILE_WITH_TOKEN with replaceLinkWithToken"
+      )
     }
 
     // Replace orders link token
@@ -277,7 +281,9 @@ export class LLMService {
       }
 
       finalResponse = finalResponse.replace("[LINK_ORDERS_WITH_TOKEN]", linkUrl)
-      tokenReplacements.push("REPLACE LINK_ORDERS_WITH_TOKEN with getOrdersListLink")
+      tokenReplacements.push(
+        "REPLACE LINK_ORDERS_WITH_TOKEN with getOrdersListLink"
+      )
     }
 
     // Replace catalog link token
@@ -364,12 +370,14 @@ export class LLMService {
   ): Promise<{ response: string; debugInfo: any }> {
     // Get agent config for LLM settings
     const agentConfig = workspace.agentConfigs?.[0]
-    
+
     // Capture model and temperature for debug info outside try block
     const modelUsed = agentConfig?.model || "anthropic/claude-3.5-sonnet"
-    const temperatureUsed = agentConfig?.temperature !== undefined && agentConfig?.temperature !== null 
-      ? agentConfig.temperature 
-      : 0.1
+    const temperatureUsed =
+      agentConfig?.temperature !== undefined &&
+      agentConfig?.temperature !== null
+        ? agentConfig.temperature
+        : 0.1
 
     console.log(
       `🔧 LLM: Using model: ${modelUsed}, temperature: ${temperatureUsed} (agentConfig.temperature was: ${agentConfig?.temperature}, type: ${typeof agentConfig?.temperature})`
