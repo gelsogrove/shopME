@@ -684,7 +684,6 @@ router.post("/chat", async (req, res) => {
           phone: body.phoneNumber,
           language: variables.languageUser, // Use customer's language
           sessionId: "chat-session",
-          temperature: 0.0, // Zero temperature for deterministic responses
           maxTokens: 5000,
           model: "gpt-4o",
           messages: chatHistory, // 🔧 NOW INCLUDES REAL CHAT HISTORY like webhook
@@ -732,7 +731,10 @@ router.post("/chat", async (req, res) => {
           // Continue - don't fail the whole request if save fails
         }
 
-        return res.json(response)
+        return res.json({
+          ...response,
+          debug: response.debugInfo // 🔧 FIX: Map debugInfo to debug for frontend compatibility
+        })
       } catch (error) {
         console.error("❌ Error in /api/chat endpoint:", error)
         return res.status(500).json({

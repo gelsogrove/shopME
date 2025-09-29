@@ -5,7 +5,7 @@ export interface LLMRequest {
   phone: string
   language: string
   sessionId: string
-  temperature: number
+  temperature?: number // 🔧 OPTIONAL: Use database temperature if not specified
   maxTokens: number
   model: string
   messages: any[]
