@@ -52,7 +52,7 @@ const defaultAgent = {
   isRouter: true,
   department: null,
   promptName: "SofIA - Gusto Italiano Assistant",
-  model: "openai/gpt-4o-mini",
+  model: "anthropic/claude-3.5-sonnet",
 }
 
 // Andrea's Two-LLM Architecture - LLM 1 RAG Processor Prompt (Agent Settings)
@@ -590,8 +590,8 @@ async function main() {
           prompt: SOFIA_PROMPT,
           workspaceId: mainWorkspaceId,
           model: defaultAgent.model,
-          temperature: 0.3,
-          maxTokens: 1000,
+          temperature: 0,
+          maxTokens: 2000,
           isActive: true,
         },
       })
@@ -621,8 +621,8 @@ async function main() {
         data: {
           prompt: promptContent,
           model: defaultAgent.model,
-          temperature: 0.3,
-          maxTokens: 1000,
+          temperature: 0,
+          maxTokens: 2000,
           isActive: true,
         },
       })
@@ -647,7 +647,7 @@ async function main() {
           department: null,
           workspaceId: mainWorkspaceId,
           model: "gpt-3.5-turbo",
-          temperature: 0.3, // Abbassata per maggiore consistenza nei link
+          temperature: 0, // Abbassata per maggiore consistenza nei link
           top_p: 1,
           max_tokens: 1024,
         },
@@ -674,7 +674,7 @@ async function main() {
           isRouter: false,
           department: "router",
           workspaceId: mainWorkspaceId,
-          model: "openai/gpt-4o-mini",
+          model: "anthropic/claude-3.5-sonnet",
           temperature: 0.1,
           top_p: 1,
           max_tokens: 500,
@@ -782,8 +782,8 @@ async function main() {
           prompt: SOFIA_PROMPT,
           workspaceId: mainWorkspaceId,
           model: defaultAgent.model,
-          temperature: 0.3,
-          maxTokens: 1000,
+          temperature: 0,
+          maxTokens: 2000,
           isActive: true,
         },
       })
@@ -813,8 +813,8 @@ async function main() {
         data: {
           prompt: promptContent,
           model: defaultAgent.model,
-          temperature: 0.3,
-          maxTokens: 1000,
+          temperature: 0,
+          maxTokens: 2000,
           isActive: true,
         },
       })
@@ -839,7 +839,7 @@ async function main() {
           department: null,
           workspaceId: mainWorkspaceId,
           model: "gpt-3.5-turbo",
-          temperature: 0.3,
+          temperature: 0,
           top_p: 1,
           max_tokens: 1024,
         },
@@ -866,7 +866,7 @@ async function main() {
           isRouter: false,
           department: "router",
           workspaceId: mainWorkspaceId,
-          model: "openai/gpt-4o-mini",
+          model: "anthropic/claude-3.5-sonnet",
           temperature: 0.1,
           top_p: 1,
           max_tokens: 500,
@@ -1084,7 +1084,7 @@ async function main() {
         where: { id: existingPrompt.id },
         data: {
           content: promptContent,
-          temperature: 0.3,
+          temperature: 0,
           top_p: 0.8,
           top_k: 30,
           model: agent.model,
@@ -1138,7 +1138,7 @@ async function main() {
           content: promptContent,
           isRouter: agent.isRouter,
           department: agent.department,
-          temperature: 0.3,
+          temperature: 0,
           top_p: 0.8,
           top_k: 30,
           model: agent.model,

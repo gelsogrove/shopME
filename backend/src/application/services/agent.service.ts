@@ -30,9 +30,10 @@ export class AgentService {
       
       let agents = [];
       try {
-        agents = await this.prisma.prompts.findMany({
+        agents = await this.prisma.agentConfig.findMany({
           where: { 
-            workspaceId 
+            workspaceId,
+            isActive: true  // ← AGGIUNTO: solo quelli attivi!
           }
         });
         logger.info('DEBUG AGENT SERVICE: Prisma result:', agents);
@@ -52,7 +53,23 @@ export class AgentService {
         }
       }
       logger.info(`Found ${agents.length} agents for workspace ${workspaceId}`);
-      return agents || [];
+      
+      // 🔄 MAPPING: Trasforma agentConfig per il frontend
+      const mappedAgents = agents.map(agent => ({
+        id: agent.id,
+        name: agent.id, // Temporaneo - potremmo aggiungere un campo name
+        content: agent.prompt, // ← MAPPING: prompt → content
+        workspaceId: agent.workspaceId,
+        temperature: agent.temperature,
+        model: agent.model,
+        max_tokens: agent.maxTokens, // ← MAPPING: maxTokens → max_tokens
+        createdAt: agent.createdAt,
+        updatedAt: agent.updatedAt,
+        isActive: agent.isActive,
+      }));
+      
+      logger.info('🔄 MAPPED agents for frontend:', mappedAgents);
+      return mappedAgents;
     } catch (error) {
       logger.error(`Error getting agents:`, error);
       return []; // Return empty array instead of throwing
@@ -268,6 +285,74 @@ export class AgentService {
     } catch (error) {
       logger.error('Error getting default workspace ID:', error);
       return 'default-workspace-id';
+    }
+  }
+
+  /**
+   * Update agent configuration (AgentConfig table)
+   */
+  async updateAgentConfig(id: string, data: any, workspaceId: string) {
+    try {
+      logger.info(`🔄 Updating agentConfig ${id} for workspace ${workspaceId}`);
+      logger.info('📝 Update data received:', data);
+      
+      // Ensure required data is present
+      if (!id || !workspaceId) {
+        logger.warn("Missing required data for updating agentConfig");
+        throw new Error("ID and workspace ID are required");
+      }
+      
+      // First check if the agentConfig exists and belongs to the workspace
+      const existingAgent = await this.prisma.agentConfig.findFirst({
+        where: {
+          id,
+          workspaceId
+        }
+      });
+      
+      if (!existingAgent) {
+        logger.warn(`❌ AgentConfig ${id} not found for workspace ${workspaceId}`);
+        return null;
+      }
+      
+      // Map frontend fields to database fields (frontend → backend)
+      // Frontend sends: content, max_tokens
+      // Database expects: prompt, maxTokens
+      const updateData: any = {};
+      if (data.prompt !== undefined) updateData.prompt = data.prompt;
+      if (data.content !== undefined) updateData.prompt = data.content; // Map content → prompt
+      if (data.model !== undefined) updateData.model = data.model;
+      if (data.temperature !== undefined) updateData.temperature = data.temperature;
+      if (data.maxTokens !== undefined) updateData.maxTokens = data.maxTokens;
+      if (data.max_tokens !== undefined) updateData.maxTokens = data.max_tokens; // Map max_tokens → maxTokens
+      if (data.isActive !== undefined) updateData.isActive = data.isActive;
+      
+      logger.info('🛠️ Prepared update data:', updateData);
+      
+      // Update the agentConfig
+      const updatedAgent = await this.prisma.agentConfig.update({
+        where: { id },
+        data: updateData
+      });
+      
+      logger.info(`✅ AgentConfig ${id} updated successfully`);
+      
+      // Map database fields back to frontend format (backend → frontend)
+      // Database has: prompt, maxTokens
+      // Frontend expects: content, max_tokens
+      const mappedAgent = {
+        ...updatedAgent,
+        content: updatedAgent.prompt, // Map prompt → content
+        max_tokens: updatedAgent.maxTokens, // Map maxTokens → max_tokens
+        name: updatedAgent.prompt ? `Agent-${updatedAgent.workspaceId}` : 'Unnamed Agent',
+        createdAt: updatedAgent.createdAt?.toISOString(),
+        updatedAt: updatedAgent.updatedAt?.toISOString()
+      };
+      
+      return mappedAgent;
+    } catch (error) {
+      logger.error(`❌ Error updating agentConfig:`, error);
+      throw error;
     }
   }
 }

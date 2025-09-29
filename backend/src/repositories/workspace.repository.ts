@@ -109,6 +109,7 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
         where: { id },
         include: {
           whatsappSettings: true,
+          agentConfigs: true, // 🔧 FIX: Include agentConfigs for LLM settings
         },
       })
 
@@ -120,7 +121,10 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       logger.debug(`Found workspace with ID ${id}`)
 
       try {
-        return this.mapToDomain(workspace)
+        const domainWorkspace = this.mapToDomain(workspace)
+        // 🔧 FIX: Add agentConfigs to the domain object (temporary fix)
+        ;(domainWorkspace as any).agentConfigs = workspace.agentConfigs || []
+        return domainWorkspace
       } catch (error) {
         // If mapping fails but it's a deleted workspace, return a simplified version
         // This preserves compatibility with the test that expects to find deleted workspaces

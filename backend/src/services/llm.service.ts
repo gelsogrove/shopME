@@ -30,13 +30,33 @@ export class LLMService {
     const { replaceAllVariables } = require("../services/formatter")
     const { workspaceService } = require("../services/workspace.service")
 
-    // 1. Get Data
+    // 1. Get Data - TRACCIAMO TUTTO IL FLUSSO!
     let customer = await messageRepo.findCustomerByPhone(llmRequest.phone)
+    console.log("🔍 CUSTOMER TROVATO:", customer ? { id: customer.id, workspaceId: customer.workspaceId, phone: customer.phone } : "NESSUNO")
+    
     const workspaceId = customer ? customer.workspaceId : llmRequest.workspaceId
+    console.log("🏢 WORKSPACE ID SCELTO:", workspaceId, "- Source:", customer ? "customer.workspaceId" : "llmRequest.workspaceId")
+    console.log("📋 LLMREQUEST.WORKSPACEID:", llmRequest.workspaceId)
+    
     const workspace = await workspaceService.getById(workspaceId)
+    console.log("🏢 WORKSPACE TROVATO:", workspace ? { id: workspace.id, name: workspace.name, agentConfigsCount: workspace.agentConfigs?.length } : "NESSUNO")
 
     // Get agent config for LLM settings
     const agentConfig = workspace.agentConfigs?.[0]
+    
+    // 🚨 CRITICAL DEBUG: Flusso completo + agentConfigs
+    console.log("🤖 AGENTCONFIGS COUNT per workspace", workspaceId + ":", workspace.agentConfigs?.length)
+    workspace.agentConfigs?.forEach((config, index) => {
+      console.log(`🤖 [${index}] ID:${config.id?.substring(0, 8)}... MODEL:${config.model} TEMP:${config.temperature} CREATED:${config.createdAt}`)
+    })
+    console.log("🎯 SCELTO AGENTCONFIG[0]:", agentConfig ? `${agentConfig.model} temp:${agentConfig.temperature}` : "NESSUNO")
+    
+    console.log("🚨 RAW WORKSPACE:", JSON.stringify(workspace, null, 2))
+    console.log("🚨 AGENTCONFIGS ARRAY:", workspace.agentConfigs)
+    console.log("🚨 FIRST AGENTCONFIG:", agentConfig)
+    console.log("🚨 TEMPERATURE VALUE:", agentConfig?.temperature)
+    console.log("🚨 TEMPERATURE TYPE:", typeof agentConfig?.temperature)
+    
     console.log(
       `🔧 LLM: Workspace config - llmModel: ${agentConfig?.model || "default"}, temperature: ${agentConfig?.temperature || "default"} (type: ${typeof agentConfig?.temperature})`
     )

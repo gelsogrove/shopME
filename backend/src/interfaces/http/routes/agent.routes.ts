@@ -191,25 +191,6 @@ export const createAgentRouter = (): Router => {
    *           type: string
    *         required: true
    *         description: ID of the workspace
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               name:
-   *                 type: string
-   *                 description: Name of the agent
-   *               content:
-   *                 type: string
-   *                 description: Content of the agent
-   *               isActive:
-   *                 type: boolean
-   *                 description: Whether the agent is active
-   *               department:
-   *                 type: string
-   *                 description: Department of the agent
    *     responses:
    *       200:
    *         description: Agent updated successfully

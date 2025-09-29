@@ -68,7 +68,8 @@ export const workspaceService = {
   },
 
   async getById(id: string) {
-    return prisma.workspace.findUnique({
+    // 1. Query per il workspace
+    const workspace = await prisma.workspace.findUnique({
       where: { id },
       select: {
         id: true,
@@ -89,19 +90,33 @@ export const workspaceService = {
         blocklist: true,
         url: true,
         welcomeMessages: true,
-        agentConfigs: {
-          where: { isActive: true },
-          select: {
-            id: true,
-            model: true,
-            temperature: true,
-            maxTokens: true,
-            prompt: true,
-          },
-          take: 1,
-        },
       },
     })
+
+    if (!workspace) return null
+
+    // 2. Query SEPARATA per agentConfigs con FILTRO ESPLICITO per workspaceId
+    const agentConfigs = await prisma.agentConfig.findMany({
+      where: { 
+        workspaceId: id,  // ← FILTRO ESPLICITO per workspaceId!
+        isActive: true
+      },
+      select: {
+        id: true,
+        model: true,
+        temperature: true,
+        maxTokens: true,
+        prompt: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 1,
+    })
+
+    // 3. Combina i risultati
+    return {
+      ...workspace,
+      agentConfigs
+    }
   },
 
   async create(data: CreateWorkspaceData) {
