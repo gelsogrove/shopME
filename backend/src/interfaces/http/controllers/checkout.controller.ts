@@ -4,6 +4,7 @@ import { PriceCalculationService } from "../../../application/services/price-cal
 import { SecureTokenService } from "../../../application/services/secure-token.service"
 import { prisma } from "../../../lib/prisma"
 import logger from "../../../utils/logger"
+import { pushMessagingService } from "../../../services/push-messaging.service"
 
 export class CheckoutController {
   private emailService = new EmailService()
@@ -576,7 +577,7 @@ Accedi al pannello amministrativo per confermare l'ordine.
   }
 
   /**
-   * Send WhatsApp notification
+   * Send WhatsApp notification using centralized push messaging service
    */
   private async sendWhatsAppNotification(
     phoneNumber: string,
@@ -584,9 +585,7 @@ Accedi al pannello amministrativo per confermare l'ordine.
     workspaceId: string
   ): Promise<void> {
     try {
-      const message = `✅ Ordine numero ${orderCode} preso in consegna! Ti faremo sapere il prima possibile per la conferma.`
-
-      // Find or create chat session
+      // Find customer
       const customer = await prisma.customers.findFirst({
         where: { phone: phoneNumber, workspaceId },
       })
@@ -598,47 +597,23 @@ Accedi al pannello amministrativo per confermare l'ordine.
         return
       }
 
-      let chatSession = await prisma.chatSession.findFirst({
-        where: {
-          customerId: customer.id,
-          workspaceId,
-          status: "active",
-        },
-      })
-
-      if (!chatSession) {
-        chatSession = await prisma.chatSession.create({
-          data: {
-            customerId: customer.id,
-            workspaceId,
-            status: "active",
-            context: {},
-          },
-        })
-      }
-
-      // Save outbound message to history
-      await prisma.message.create({
-        data: {
-          chatSessionId: chatSession.id,
-          direction: "OUTBOUND",
-          content: message,
-          type: "TEXT",
-          status: "sent",
-          aiGenerated: true,
-          metadata: {
-            source: "checkout_notification",
-            orderCode,
-          },
-        },
-      })
-
-      // TODO: Send actual WhatsApp message via API
-      // This would require integration with WhatsApp Business API
-
-      logger.info(
-        `[CHECKOUT] WhatsApp message saved for ${phoneNumber}: ${orderCode}`
+      // 🚀 Use centralized push messaging service  
+      const success = await pushMessagingService.sendOrderConfirmation(
+        customer.id,
+        phoneNumber,
+        workspaceId,
+        orderCode
       )
+
+      if (success) {
+        logger.info(
+          `[CHECKOUT] ✅ WhatsApp notification sent via push service for ${phoneNumber}: ${orderCode}`
+        )
+      } else {
+        logger.error(
+          `[CHECKOUT] ❌ Failed to send WhatsApp notification for ${phoneNumber}: ${orderCode}`
+        )
+      }
     } catch (error) {
       logger.error("[CHECKOUT] Error sending WhatsApp notification:", error)
     }

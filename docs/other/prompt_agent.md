@@ -156,7 +156,7 @@ Rispondi SEMPRE in **markdown** seguendo queste regole di formattazione:
 - Organizza i contenuti per categorie con titolo in **grassetto**, senza lasciare linee vuote dopo il titolo
 - Usa il **grassetto** solo per titoli o passaggi importanti
 - Se presenti offerte/sconti: scrivile tutte sulla stessa riga separate da (•)
-- Se presenti link: specifica sempre "per motivi di sicurezza il link sarà valido solo per solo 1 ora"
+- Se presenti link: specifica sempre ⏰ /n/n Link valido per 1 ora
 
 esempi di traduzione
 

@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma"
 import logger from "../../utils/logger"
 import { EmailService } from "./email.service"
+import { pushMessagingService } from "../../services/push-messaging.service"
 
 export class StockService {
   private emailService = new EmailService()
@@ -300,7 +301,7 @@ L'ordine è stato processato e lo stock è stato aggiornato.
   }
 
   /**
-   * Send WhatsApp confirmation
+   * Send WhatsApp confirmation using centralized push messaging service
    */
   private async sendWhatsAppConfirmation(
     phoneNumber: string,
@@ -308,9 +309,7 @@ L'ordine è stato processato e lo stock è stato aggiornato.
     workspaceId: string
   ): Promise<void> {
     try {
-      const message = `🎉 Ordine confermato! Numero ordine: ${orderCode}. Ti contatteremo per i dettagli di consegna.`
-
-      // Find customer and chat session
+      // Find customer
       const customer = await prisma.customers.findFirst({
         where: { phone: phoneNumber, workspaceId },
       })
@@ -322,44 +321,23 @@ L'ordine è stato processato e lo stock è stato aggiornato.
         return
       }
 
-      let chatSession = await prisma.chatSession.findFirst({
-        where: {
-          customerId: customer.id,
-          workspaceId,
-          status: "active",
-        },
-      })
-
-      if (!chatSession) {
-        chatSession = await prisma.chatSession.create({
-          data: {
-            customerId: customer.id,
-            workspaceId,
-            status: "active",
-            context: {},
-          },
-        })
-      }
-
-      // Save outbound message to history
-      await prisma.message.create({
-        data: {
-          chatSessionId: chatSession.id,
-          direction: "OUTBOUND",
-          content: message,
-          type: "TEXT",
-          status: "sent",
-          aiGenerated: true,
-          metadata: {
-            source: "order_confirmation",
-            orderCode,
-          },
-        },
-      })
-
-      logger.info(
-        `[STOCK] WhatsApp confirmation saved for ${phoneNumber}: ${orderCode}`
+      // 🚀 Use centralized push messaging service
+      const success = await pushMessagingService.sendOrderConfirmation(
+        customer.id,
+        phoneNumber,
+        workspaceId,
+        orderCode
       )
+
+      if (success) {
+        logger.info(
+          `[STOCK] ✅ WhatsApp confirmation sent via push service for ${phoneNumber}: ${orderCode}`
+        )
+      } else {
+        logger.error(
+          `[STOCK] ❌ Failed to send WhatsApp confirmation for ${phoneNumber}: ${orderCode}`
+        )
+      }
     } catch (error) {
       logger.error("[STOCK] Error sending WhatsApp confirmation:", error)
     }

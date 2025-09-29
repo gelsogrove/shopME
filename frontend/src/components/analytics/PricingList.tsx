@@ -7,10 +7,10 @@ export function PricingList() {
       icon: MessageSquare,
       title: "LLM Response",
       description: "For each chatbot response",
-      price: "€0.005",
-      priceDetail: "0.5 cents",
+      price: "€0.010",
+      priceDetail: "0.10 cents",
       color: "text-blue-600",
-      bgColor: "bg-blue-100"
+      bgColor: "bg-blue-100",
     },
     {
       icon: UserPlus,
@@ -19,7 +19,7 @@ export function PricingList() {
       price: "€1.00",
       priceDetail: "1 euro",
       color: "text-green-600",
-      bgColor: "bg-green-100"
+      bgColor: "bg-green-100",
     },
     {
       icon: ShoppingCart,
@@ -28,8 +28,8 @@ export function PricingList() {
       price: "€1.00",
       priceDetail: "1 euro",
       color: "text-purple-600",
-      bgColor: "bg-purple-100"
-    }
+      bgColor: "bg-purple-100",
+    },
   ]
 
   return (
@@ -77,7 +77,7 @@ export function PricingList() {
             )
           })}
         </div>
-        
+
         {/* Additional Info */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <div className="flex items-start gap-2">
@@ -87,8 +87,8 @@ export function PricingList() {
                 Transparent Billing
               </p>
               <p className="text-sm text-gray-600">
-                All costs are calculated automatically and displayed in the analytics dashboard. 
-                No hidden fees or surprise costs.
+                All costs are calculated automatically and displayed in the
+                analytics dashboard. No hidden fees or surprise costs.
               </p>
             </div>
           </div>

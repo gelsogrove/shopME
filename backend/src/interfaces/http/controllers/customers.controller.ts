@@ -1,9 +1,11 @@
 import { NextFunction, Request, Response } from "express"
 import { CustomerService } from "../../../application/services/customer.service"
 import logger from "../../../utils/logger"
+import { pushMessagingService } from "../../../services/push-messaging.service"
 
 export class CustomersController {
   private customerService: CustomerService
+  private pushMessagingService = pushMessagingService
 
   constructor() {
     this.customerService = new CustomerService()
@@ -140,6 +142,12 @@ export class CustomersController {
         isBlacklisted,
       } = req.body
 
+      // Get original customer data to compare changes
+      const originalCustomer = await this.customerService.getById(id, workspaceId)
+      if (!originalCustomer) {
+        return res.status(404).json({ message: "Customer not found" })
+      }
+
       // Validate required fields if attempting to update them
       if (name !== undefined && (!name || name.trim() === "")) {
         return res.status(400).json({ message: "Name is required" })
@@ -205,30 +213,62 @@ export class CustomersController {
         ...customerData,
       })
 
-      try {
-        const customer = await this.customerService.update(
-          id,
-          workspaceId,
-          customerData
-        )
-        res.json(customer)
-      } catch (error: any) {
-        if (error.message === "Customer not found") {
-          return res.status(404).json({ message: "Customer not found" })
-        }
-        if (
-          error.message === "Email is already in use by another customer" ||
-          error.message ===
-            "Phone number is already in use by another customer" ||
-          error.message === "Invalid customer data"
-        ) {
-          return res.status(400).json({ message: error.message })
-        }
-        throw error
-      }
+      const updatedCustomer = await this.customerService.update(
+        id,
+        workspaceId,
+        customerData
+      )
+
+      // Handle automatic push messages for relevant changes
+      await this.handleAutomaticPushMessages(originalCustomer, updatedCustomer)
+
+      res.json({ data: updatedCustomer })
     } catch (error) {
       logger.error("Error updating customer:", error)
       next(error)
+    }
+  }
+
+  /**
+   * Handle automatic push messages when customer data changes
+   */
+  private async handleAutomaticPushMessages(originalCustomer: any, updatedCustomer: any) {
+    try {
+      // Check if discount changed
+      if (originalCustomer.discount !== updatedCustomer.discount) {
+        logger.info(`Customer discount changed from ${originalCustomer.discount}% to ${updatedCustomer.discount}%`, {
+          customerId: updatedCustomer.id,
+          workspaceId: updatedCustomer.workspaceId
+        })
+
+        await this.pushMessagingService.sendDiscountUpdate(
+          updatedCustomer.id,
+          updatedCustomer.phone,
+          updatedCustomer.workspaceId,
+          updatedCustomer.discount
+        )
+      }
+
+      // Check if chatbot status changed
+      if (originalCustomer.activeChatbot !== updatedCustomer.activeChatbot) {
+        logger.info(`Customer chatbot status changed from ${originalCustomer.activeChatbot} to ${updatedCustomer.activeChatbot}`, {
+          customerId: updatedCustomer.id,
+          workspaceId: updatedCustomer.workspaceId
+        })
+
+        // Only send push notification if chatbot was reactivated (false -> true)
+        if (!originalCustomer.activeChatbot && updatedCustomer.activeChatbot) {
+          await this.pushMessagingService.sendChatbotReactivated(
+            updatedCustomer.id,
+            updatedCustomer.phone,
+            updatedCustomer.workspaceId
+          )
+        }
+      }
+
+    } catch (error) {
+      logger.error('Error handling automatic push messages:', error)
+      // Don't throw error - automatic push failures shouldn't break customer update
     }
   }
 
@@ -393,7 +433,7 @@ export class CustomersController {
           workspaceId,
           activeChatbot,
           reason: reason || "No reason provided",
-          requestedBy: req.user?.id || "unknown", // Assumendo che req.user sia disponibile dal middleware auth
+          requestedBy: req.user?.id || req.user?.userId || "unknown", // Compatibility with different token formats
         }
       )
 
@@ -414,7 +454,7 @@ export class CustomersController {
         activeChatbot,
         // Aggiungiamo metadata per tracking
         chatbotControlChangedAt: new Date(),
-        chatbotControlChangedBy: req.user?.id || "unknown",
+        chatbotControlChangedBy: req.user?.id || req.user?.userId || "unknown",
         chatbotControlChangeReason: reason || null,
       }
 
@@ -426,14 +466,14 @@ export class CustomersController {
 
       // Logging dettagliato per audit
       logger.info(
-        `[TASK3] CHATBOT_CONTROL_CHANGED: customer-${customerId} activeChatbot=${activeChatbot} by user-${req.user?.id || "unknown"}`,
+        `[TASK3] CHATBOT_CONTROL_CHANGED: customer-${customerId} activeChatbot=${activeChatbot} by user-${req.user?.id || req.user?.userId || "unknown"}`,
         {
           customerId,
           workspaceId,
           previousState: existingCustomer.activeChatbot,
           newState: activeChatbot,
           reason: reason || "No reason provided",
-          changedBy: req.user?.id || "unknown",
+          changedBy: req.user?.id || req.user?.userId || "unknown",
           timestamp: new Date().toISOString(),
         }
       )
@@ -452,7 +492,7 @@ export class CustomersController {
           newState: activeChatbot,
           reason: reason || null,
           changedAt: new Date().toISOString(),
-          changedBy: req.user?.id || "unknown",
+          changedBy: req.user?.id || req.user?.userId || "unknown",
         },
         message: activeChatbot
           ? "Chatbot control activated - AI will handle messages"

@@ -3244,12 +3244,47 @@ model RegistrationAttempts {
 
 - **Registrazione Nuovo Utente**: 1€ (aggiornato da 30 centesimi)
 - **Creazione Nuovo Ordine**: 1€ (sia via API che via chatbot)
+- **📱 Push Messaging**: €0.50 (nuovo servizio centralizzato)
+- **🤖 Messaggi LLM**: €0.005 (5 centesimi per risposta AI)
 
 ### **📍 Punti di Tracking**
 
 1. **Registrazione**: `registration.controller.ts` - `trackRegistrationCost()`
 2. **Ordini API**: `order.controller.ts` - `trackOrderCost()`
 3. **Ordini Chatbot**: `CreateOrder.ts` - `trackOrderCost()`
+4. **📱 Push Messages**: `push-messaging.service.ts` - `trackPushCost()` ✅ **IMPLEMENTATO**
+
+### **🚀 NUOVO: Sistema Push Messaging Centralizzato** ✅ **IMPLEMENTATO**
+
+**📱 Servizio Unificato**: Sistema centralizzato per tutti i push messaging WhatsApp
+
+**🌍 Supporto Multilingua**: Template automatici in IT, EN, ES, FR, DE
+
+**💰 Tracking Automatico**: €0.50 per ogni push message inviato
+
+**🎯 Use Cases Supportati**:
+- 🎉 **Ordine Confermato**: "Ordine confermato! Numero ordine: {orderCode}"
+- 👋 **Nuovo Utente**: "Sei stato attivato al nostro servizio, come posso esserti utile?"
+- 💸 **Sconto Aggiornato**: "Da oggi puoi usufruire del {discountPercentage}% di sconto"
+- 🎯 **Nuova Offerta**: "Offerta del {offerPercentage}% su {categoryName} fino al {date}"
+- 🤖 **Chatbot Riattivato**: "Il chatbot è tornato attivo e pronto ad aiutarti"
+
+**🔧 Endpoints API**:
+- `POST /push/welcome` - Messaggio benvenuto nuovo utente
+- `POST /push/discount` - Aggiornamento sconto
+- `POST /push/offer` - Nuova offerta
+- `POST /push/chatbot-reactivated` - Chatbot riattivato
+- `POST /push/test` - Test push messaging
+
+**🧪 Admin Testing**:
+- `GET /admin/push-test` - Test sistema push
+- `GET /admin/push-stats` - Statistiche push messaging
+- `GET /admin/push-preview` - Anteprima messaggi multilingua
+
+**🔄 Migrazione Sistemi Esistenti**:
+- ✅ `StockService.sendWhatsAppConfirmation()` → Push Service
+- ✅ `CheckoutController.sendWhatsAppNotification()` → Push Service  
+- ✅ `WelcomeService.sendWelcomeMessage()` → Push Service
 
 ### **🗄️ Database Schema Usage**
 
@@ -9792,3 +9827,5 @@ output: 'Array of active offers with discount percentages, dates and categories'
 ---
 
 ## UI Screenshots
+
+

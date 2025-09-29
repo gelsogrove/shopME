@@ -28,15 +28,15 @@
 
 NON VA
 
+- benvenuto non e' il lingua
+- link corto di nuova registrazione
 - dove e' il mio ordine?
-- DEBUG
-- nuovo untente (mancherebbe un messaggio di benvenuto dopo la conferma di registrazone)
-- QUANDO SI APPLUCA UNO SCONTO MADNARE MESSAGGIO
 
 FASE 2
 
 - pulizia codice.
 - PRD NON ESISTE
+- la strtttura puo' tenere diversi dati ?
 - DOCUMENTAZIONE SPORCA > MEMORY BANK
 - siamo sicuri che passiamo sempre il workspceID
 - cateogorie nel DB ? cosi da togliere la parte harcodeata
@@ -52,3 +52,6 @@ FASE 2
 > > 30 Flusso
 
 > > COSTO MENSILE ANDREA ??? 300
+> > PIATTAFORMA
+> > INTEGRAZIOEN CON WHATSAPP
+> > MANUTENZIONE

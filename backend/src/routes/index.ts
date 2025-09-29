@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { NextFunction, Request, Response, Router } from "express"
+import { linkGeneratorService } from "../application/services/link-generator.service"
 import { OtpService } from "../application/services/otp.service"
 import { PasswordResetService } from "../application/services/password-reset.service"
 import { RegistrationAttemptsService } from "../application/services/registration-attempts.service"
@@ -405,8 +406,10 @@ async function handleNewUserWelcomeFlow(
       phoneNumber
     ) // 1 hour expiry
 
-    // Construct registration URL with phone and workspace parameters
-    const registrationUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/register?token=${registrationToken}&phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`
+    // Create short registration URL using LinkGeneratorService
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000"
+    const longUrl = `${frontendUrl}/register?token=${registrationToken}&phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`
+    const registrationUrl = await linkGeneratorService.generateShortLink(longUrl, workspaceId, "registration")
 
     // Send complete welcome message with registration link in customer's language
     const registrationText = getRegistrationText(detectedLanguage)
@@ -485,6 +488,8 @@ import { createLanguagesRouter } from "../interfaces/http/routes/languages.route
 // Removed messagesRouter import
 import { offersRouter } from "../interfaces/http/routes/offers.routes"
 import { createOrderRouter } from "../interfaces/http/routes/order.routes"
+import { createPushMessagingRouter } from "./push-messaging.router"
+import { createPushTestingRouter } from "./push-testing.router"
 import createRegistrationRouter from "../interfaces/http/routes/registration.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
@@ -813,6 +818,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
 
       // Find customer by phone number with ALL needed data in ONE query
       try {
+        console.log(`🔍 WHATSAPP: Looking for customer with phone="${phoneNumber}" (normalized: "${phoneNumber.replace(/\s+/g, "")}")`)
+        
         const customer = await prisma.customers.findFirst({
           where: {
             phone: phoneNumber.replace(/\s+/g, ""),
@@ -885,7 +892,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
       // Get full customer data (including language) for frontend format
       try {
         console.log(
-          `🔍 FRONTEND FORMAT: Searching for customer with phone="${phoneNumber}", workspaceId="${workspaceId}"`
+          `🔍 FRONTEND FORMAT: Searching for customer with phone="${phoneNumber}" (normalized: "${phoneNumber.replace(/\s+/g, "")}"), workspaceId="${workspaceId}"`
         )
         const customer = await prisma.customers.findFirst({
           where: {
@@ -903,6 +910,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
             isBlacklisted: true,
           },
         })
+
+        console.log(`🔍 FRONTEND FORMAT: Customer found:`, customer ? `${customer.name} (${customer.phone})` : 'NONE')
 
         if (customer) {
           // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
@@ -1534,6 +1543,10 @@ router.use("/auth", authRouter(authController))
 router.use("/registration", createRegistrationRouter())
 router.use("/chat", chatRouter(chatController))
 // Removed messages route
+router.use("/push", createPushMessagingRouter())
+logger.info("Registered push messaging routes for centralized push notifications")
+router.use("/admin", createPushTestingRouter())
+logger.info("Registered push testing routes for admin dashboard")
 router.use("/users", createUserRouter())
 // Mount customer routes on both legacy and workspace paths to ensure backward compatibility
 router.use("/", customersRouter(customersController))
