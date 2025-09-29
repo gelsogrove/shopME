@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import { TokenError } from "../components/ui/TokenError"
 import { UnifiedLoading } from "../components/ui/UnifiedLoading"
+import { PublicPageLayout } from "../components/layout/PublicPageLayout"
 import { useTokenValidation } from "../hooks/useTokenValidation"
 import { getPublicPageTexts } from "../utils/publicPageTranslations"
 
@@ -276,107 +277,31 @@ const OrdersPublicPage: React.FC = () => {
   // Detail page
   if (orderCode && detailData) {
     const o = detailData.order
+    const orderIcon = (
+      <svg
+        className="h-8 w-8"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
+      </svg>
+    )
+
     return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="max-w-4xl mx-auto py-4 sm:py-8 px-4">
-          {/* Header - Uniformed with other public pages */}
-          <div className="flex flex-col space-y-3 sm:space-y-1 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-              <div className="flex items-center gap-2">
-                <svg
-                  className="h-6 sm:h-8 w-6 sm:w-8 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <h1 className="text-lg sm:text-xl font-bold text-gray-900">
-                  Order Details
-                </h1>
-              </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                <button
-                  onClick={handleViewCart}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
-                >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
-                    />
-                  </svg>
-                  <span className="hidden sm:inline">{texts.viewCart}</span>
-                  <span className="sm:hidden">Cart</span>
-                </button>
-                <button
-                  onClick={() => {
-                    // Navigate back to orders list with current token
-                    const ordersUrl = `/orders-public?token=${token}`
-                    window.location.href = ordersUrl
-                  }}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
-                >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  <span className="hidden sm:inline">{texts.viewOrders}</span>
-                  <span className="sm:hidden">Orders</span>
-                </button>
-                <button
-                  onClick={() => {
-                    // Use current token for profile page (TOKEN-ONLY system)
-                    // Same token works for all pages - no need to generate new token
-                    const profileUrl = `/customer-profile?token=${token}`
-                    window.location.href = profileUrl
-                  }}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
-                >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                  <span className="hidden sm:inline">{texts.viewProfile}</span>
-                  <span className="sm:hidden">Profile</span>
-                </button>
-              </div>
-            </div>
-            <div className="text-sm text-gray-600 sm:ml-10">
-              Status: {o.status} • Date: {formatDate(o.date)}
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <PublicPageLayout
+        title="Order Details"
+        subtitle={`Status: ${o.status} • Date: ${formatDate(o.date)}`}
+        customerLanguage={customerLanguage}
+        token={token}
+        currentPage="orders"
+        icon={orderIcon}
+      >
             {/* Invoice Header */}
             <div className="border-b border-gray-200 pb-6">
               <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-4 sm:p-6 rounded-lg">
@@ -958,9 +883,7 @@ const OrdersPublicPage: React.FC = () => {
                 </a>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+      </PublicPageLayout>
     )
   }
 
@@ -978,81 +901,32 @@ const OrdersPublicPage: React.FC = () => {
         : true
       return matchStatus && matchPayment && fromOk && toOk
     })
+    
+    const ordersIcon = (
+      <svg
+        className="h-8 w-8"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
+      </svg>
+    )
+    
     return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="max-w-4xl mx-auto py-8 px-4">
-          {/* Header - Uniformed with other public pages */}
-          <div className="flex flex-col space-y-1 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <svg
-                  className="h-8 w-8 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <h1 className="text-xl font-bold text-gray-900">
-                  {texts.viewOrders}
-                </h1>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleViewCart}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
-                    />
-                  </svg>
-                  {texts.viewCart}
-                </button>
-                <button
-                  onClick={() => {
-                    // Use current token for profile page (TOKEN-ONLY system)
-                    // Same token works for all pages - no need to generate new token
-                    const profileUrl = `/customer-profile?token=${token}`
-                    window.location.href = profileUrl
-                  }}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                  {texts.viewProfile}
-                </button>
-              </div>
-            </div>
-            <div className="text-sm text-gray-600 ml-10">
-              {listData.customer.name} • {listData.workspace.name}
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+      <PublicPageLayout
+        title={texts.viewOrders}
+        subtitle={`${listData.customer.name} • ${listData.workspace.name}`}
+        customerLanguage={customerLanguage}
+        token={token}
+        currentPage="orders"
+        icon={ordersIcon}
+      >
             {/* Filters */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
               <div>
@@ -1278,9 +1152,7 @@ const OrdersPublicPage: React.FC = () => {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </div>
+      </PublicPageLayout>
     )
   }
 

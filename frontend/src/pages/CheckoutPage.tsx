@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { SearchBar, useProductSearch } from "../components/ui/SearchBar"
 import { TokenError } from "../components/ui/TokenError"
 import UnifiedLoading from "../components/ui/UnifiedLoading"
+import { PublicPageLayout } from "../components/layout/PublicPageLayout"
 import { useCheckoutTokenValidation } from "../hooks/useTokenValidation"
 import { getPublicPageTexts } from "../utils/publicPageTranslations"
 
@@ -735,84 +736,34 @@ const CheckoutPage: React.FC = () => {
   }
 
   // Render checkout page content when token is valid
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        {/* Header - Uniformed with other public pages */}
-        <div className="flex flex-col space-y-1 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <svg
-                className="h-8 w-8 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <h1 className="text-xl font-bold text-gray-900">
-                {texts.finalizeOrder}
-              </h1>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  const ordersUrl = `/orders-public?token=${token}`
-                  window.location.href = ordersUrl
-                }}
-                className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                {texts.viewOrders}
-              </button>
-              <button
-                onClick={() => {
-                  const profileUrl = `/customer-profile?token=${token}`
-                  window.location.href = profileUrl
-                }}
-                className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                {texts.viewProfile}
-              </button>
-            </div>
-          </div>
-          <div className="text-sm text-gray-600 ml-10">
-            {texts.greeting.replace("{name}", customer?.name || "")}
-          </div>
-        </div>
+  const checkoutIcon = (
+    <svg
+      className="h-8 w-8"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  )
 
+  return (
+    <PublicPageLayout
+      title={texts.finalizeOrder}
+      subtitle={texts.greeting.replace("{name}", customer?.name || "")}
+      customerLanguage={customer?.language}
+      token={token}
+      currentPage="cart"
+      icon={checkoutIcon}
+    >
+      <div className="p-6 space-y-6">
         {/* Progress Steps */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex flex-col items-center">
@@ -1706,7 +1657,7 @@ const CheckoutPage: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </PublicPageLayout>
   )
 }
 

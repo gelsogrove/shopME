@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { ProfileForm } from "../components/profile/ProfileForm"
 import { TokenError } from "../components/ui/TokenError"
 import UnifiedLoading from "../components/ui/UnifiedLoading"
+import { PublicPageLayout } from "../components/layout/PublicPageLayout"
 import { useTokenValidation } from "../hooks/useTokenValidation"
 import { getPublicPageTexts } from "../utils/publicPageTranslations"
 
@@ -273,75 +274,31 @@ const CustomerProfilePublicPage: React.FC = () => {
 
   // Show profile form - use centralized localization system
   const localizedText = texts
+  
+  const profileIcon = (
+    <User className="h-8 w-8" />
+  )
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header - Uniformed with other pages */}
-        <div className="flex flex-col space-y-1 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <User className="h-8 w-8 text-blue-600" />
-              <h1 className="text-xl font-bold text-gray-900">
-                {texts.personalData}
-              </h1>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleViewCart}
-                className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
-                  />
-                </svg>
-                {texts.viewCart}
-              </button>
-              <button
-                onClick={handleViewOrders}
-                className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                {texts.viewOrders}
-              </button>
-            </div>
-          </div>
-          <div className="text-sm text-gray-600 ml-10">{texts.contactInfo}</div>
+    <PublicPageLayout
+      title={texts.personalData}
+      subtitle={texts.contactInfo}
+      customerLanguage={customerLanguage}
+      token={token}
+      currentPage="profile"
+      icon={profileIcon}
+    >
+      {/* Profile Form */}
+      {profileData && (
+        <div className="p-6">
+          <ProfileForm
+            profileData={profileData}
+            onSave={handleSaveProfile}
+            saving={saving}
+          />
         </div>
-
-        {/* Profile Form */}
-        {profileData && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <ProfileForm
-              profileData={profileData}
-              onSave={handleSaveProfile}
-              saving={saving}
-            />
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </PublicPageLayout>
   )
 }
 
