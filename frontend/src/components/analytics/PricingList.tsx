@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Euro, MessageSquare, ShoppingCart, UserPlus } from "lucide-react"
+import { Euro, MessageSquare, Send, ShoppingCart, UserPlus } from "lucide-react"
 
 export function PricingList() {
   const pricingItems = [
@@ -30,6 +30,15 @@ export function PricingList() {
       color: "text-purple-600",
       bgColor: "bg-purple-100",
     },
+    {
+      icon: Send,
+      title: "Push Message",
+      description: "For each push message",
+      price: "€0.50",
+      priceDetail: "50 cents",
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
+    },
   ]
 
   return (
@@ -44,7 +53,7 @@ export function PricingList() {
         </p>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {pricingItems.map((item, index) => {
             const IconComponent = item.icon
             return (
