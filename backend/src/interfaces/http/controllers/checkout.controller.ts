@@ -3,8 +3,8 @@ import { EmailService } from "../../../application/services/email.service"
 import { PriceCalculationService } from "../../../application/services/price-calculation.service"
 import { SecureTokenService } from "../../../application/services/secure-token.service"
 import { prisma } from "../../../lib/prisma"
-import logger from "../../../utils/logger"
 import { pushMessagingService } from "../../../services/push-messaging.service"
+import logger from "../../../utils/logger"
 
 export class CheckoutController {
   private emailService = new EmailService()
@@ -597,7 +597,7 @@ Accedi al pannello amministrativo per confermare l'ordine.
         return
       }
 
-      // 🚀 Use centralized push messaging service  
+      // 🚀 Use centralized push messaging service
       const success = await pushMessagingService.sendOrderConfirmation(
         customer.id,
         phoneNumber,

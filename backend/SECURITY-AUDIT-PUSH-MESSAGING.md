@@ -9,7 +9,7 @@
    - **Ora**: Middleware `authMiddleware` richiesto su tutti gli endpoint
    - **Protezione**: Solo utenti autenticati possono inviare push
 
-2. **NESSUN RATE LIMITING** ❌ → ✅ **RISOLTO**  
+2. **NESSUN RATE LIMITING** ❌ → ✅ **RISOLTO**
    - **Prima**: Potenziale spam infinito = costi illimitati
    - **Ora**: Rate limiting 10 push/min (utenti), 50 push/min (admin)
    - **Protezione**: Previene abusi costosi (€0.50 per push)
@@ -38,25 +38,29 @@ REQUEST → [1. Auth] → [2. Rate Limit] → [3. Workspace] → [4. Input Valid
 ```
 
 ### LAYER 1: AUTENTICAZIONE
-- ✅ JWT token richiesto  
+
+- ✅ JWT token richiesto
 - ✅ Session validation
 - ✅ User existence check
 
 ### LAYER 2: RATE LIMITING
+
 - ✅ 10 push/minuto per utenti normali
-- ✅ 50 push/minuto per admin/owner  
+- ✅ 50 push/minuto per admin/owner
 - ✅ In-memory store (upgrade to Redis in production)
 - ✅ Automatic cleanup expired limits
 
 ### LAYER 3: WORKSPACE ACCESS CONTROL
+
 - ✅ User-workspace relationship validation
 - ✅ Customer-workspace ownership check
 - ✅ Admin bypass for super-admin operations
 - ✅ Detailed logging for audit trails
 
 ### LAYER 4: INPUT VALIDATION
+
 - ✅ UUID format validation (customerId, workspaceId)
-- ✅ Phone number format validation  
+- ✅ Phone number format validation
 - ✅ String sanitization (XSS prevention)
 - ✅ Message type whitelist
 - ✅ Numeric value clamping
@@ -64,6 +68,7 @@ REQUEST → [1. Auth] → [2. Rate Limit] → [3. Workspace] → [4. Input Valid
 ## 📊 MONITORAGGIO SICUREZZA
 
 ### Logging di Sicurezza Implementato:
+
 ```bash
 [SECURITY] Push input validation passed
 [SECURITY] Workspace access granted for user
@@ -72,22 +77,25 @@ REQUEST → [1. Auth] → [2. Rate Limit] → [3. Workspace] → [4. Input Valid
 ```
 
 ### Metriche Tracciabili:
+
 - Rate limit violations per user
-- Failed workspace access attempts  
+- Failed workspace access attempts
 - Invalid input attempts
 - Admin endpoint access logs
 
 ## 🚨 RACCOMANDAZIONI PRODUZIONE
 
 ### IMMEDIATE:
+
 1. **Environment Variables**: Spostare rate limits in configurazione
 2. **Redis Integration**: Sostituire in-memory rate limiting con Redis
 3. **IP Whitelisting**: Per endpoint admin critici
 4. **SSL/TLS**: Forzare HTTPS in production
 
 ### FUTURE:
+
 1. **API Keys**: Per integrazioni esterne autorizzate
-2. **Webhook Signatures**: Per validare chiamate da servizi esterni  
+2. **Webhook Signatures**: Per validare chiamate da servizi esterni
 3. **Audit Database**: Persistere log di sicurezza
 4. **Alerting**: Notifiche per comportamenti sospetti
 

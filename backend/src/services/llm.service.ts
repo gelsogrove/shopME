@@ -710,13 +710,19 @@ export class LLMService {
       new (require("../repositories/message.repository").MessageRepository)()
     const token = await tokenService.createRegistrationToken(phone, workspaceId)
     const workspaceUrl = await messageRepo.getWorkspaceUrl(workspaceId)
-    
+
     // Use LinkGeneratorService for consistent short URL creation
     try {
-      const { linkGeneratorService } = require("../application/services/link-generator.service")
+      const {
+        linkGeneratorService,
+      } = require("../application/services/link-generator.service")
       const registrationLink = `${workspaceUrl.replace(/\/$/, "")}/register?token=${token}`
-      const shortLink = await linkGeneratorService.generateShortLink(registrationLink, workspaceId, "registration")
-      
+      const shortLink = await linkGeneratorService.generateShortLink(
+        registrationLink,
+        workspaceId,
+        "registration"
+      )
+
       console.log(
         `📎 Created short registration link: ${shortLink} → ${registrationLink}`
       )

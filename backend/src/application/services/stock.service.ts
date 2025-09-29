@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma"
+import { pushMessagingService } from "../../services/push-messaging.service"
 import logger from "../../utils/logger"
 import { EmailService } from "./email.service"
-import { pushMessagingService } from "../../services/push-messaging.service"
 
 export class StockService {
   private emailService = new EmailService()

@@ -409,7 +409,11 @@ async function handleNewUserWelcomeFlow(
     // Create short registration URL using LinkGeneratorService
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000"
     const longUrl = `${frontendUrl}/register?token=${registrationToken}&phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`
-    const registrationUrl = await linkGeneratorService.generateShortLink(longUrl, workspaceId, "registration")
+    const registrationUrl = await linkGeneratorService.generateShortLink(
+      longUrl,
+      workspaceId,
+      "registration"
+    )
 
     // Send complete welcome message with registration link in customer's language
     const registrationText = getRegistrationText(detectedLanguage)
@@ -488,11 +492,11 @@ import { createLanguagesRouter } from "../interfaces/http/routes/languages.route
 // Removed messagesRouter import
 import { offersRouter } from "../interfaces/http/routes/offers.routes"
 import { createOrderRouter } from "../interfaces/http/routes/order.routes"
-import { createPushMessagingRouter } from "./push-messaging.router"
-import { createPushTestingRouter } from "./push-testing.router"
 import createRegistrationRouter from "../interfaces/http/routes/registration.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
+import { createPushMessagingRouter } from "./push-messaging.router"
+import { createPushTestingRouter } from "./push-testing.router"
 
 import { checkoutRouter } from "../interfaces/http/routes/checkout.routes"
 // Removed whatsappRouter import
@@ -818,8 +822,10 @@ router.post("/whatsapp/webhook", async (req, res) => {
 
       // Find customer by phone number with ALL needed data in ONE query
       try {
-        console.log(`🔍 WHATSAPP: Looking for customer with phone="${phoneNumber}" (normalized: "${phoneNumber.replace(/\s+/g, "")}")`)
-        
+        console.log(
+          `🔍 WHATSAPP: Looking for customer with phone="${phoneNumber}" (normalized: "${phoneNumber.replace(/\s+/g, "")}")`
+        )
+
         const customer = await prisma.customers.findFirst({
           where: {
             phone: phoneNumber.replace(/\s+/g, ""),
@@ -911,7 +917,10 @@ router.post("/whatsapp/webhook", async (req, res) => {
           },
         })
 
-        console.log(`🔍 FRONTEND FORMAT: Customer found:`, customer ? `${customer.name} (${customer.phone})` : 'NONE')
+        console.log(
+          `🔍 FRONTEND FORMAT: Customer found:`,
+          customer ? `${customer.name} (${customer.phone})` : "NONE"
+        )
 
         if (customer) {
           // ✅ BLACKLIST CHECK ENABLED - Check customer blacklist status
@@ -1544,7 +1553,9 @@ router.use("/registration", createRegistrationRouter())
 router.use("/chat", chatRouter(chatController))
 // Removed messages route
 router.use("/push", createPushMessagingRouter())
-logger.info("Registered push messaging routes for centralized push notifications")
+logger.info(
+  "Registered push messaging routes for centralized push notifications"
+)
 router.use("/admin", createPushTestingRouter())
 logger.info("Registered push testing routes for admin dashboard")
 router.use("/users", createUserRouter())

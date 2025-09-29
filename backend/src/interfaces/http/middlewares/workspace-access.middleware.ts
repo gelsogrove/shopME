@@ -1,33 +1,38 @@
 /**
  * 🛡️ WORKSPACE ACCESS CONTROL MIDDLEWARE
- * 
+ *
  * Verifica che l'utente abbia accesso al workspace richiesto
  * e che il customer appartenga a quel workspace
  */
 
-import { Request, Response, NextFunction } from "express"
-import { AppError } from "./error.middleware"
+import { NextFunction, Request, Response } from "express"
 import { prisma } from "../../../lib/prisma"
 import logger from "../../../utils/logger"
+import { AppError } from "./error.middleware"
 
-export const workspaceAccessMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const workspaceAccessMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const userId = req.user?.id || req.user?.userId
     const userRole = req.user?.role
-    
+
     if (!userId) {
       throw new AppError(401, "Authentication required")
     }
 
     // Get workspaceId from body or params
-    const workspaceId = req.body.workspaceId || req.params.workspaceId || req.query.workspaceId
-    
+    const workspaceId =
+      req.body.workspaceId || req.params.workspaceId || req.query.workspaceId
+
     if (!workspaceId) {
       throw new AppError(400, "workspaceId is required")
     }
 
     // ADMIN users can access any workspace (super admin)
-    if (userRole === 'ADMIN') {
+    if (userRole === "ADMIN") {
       logger.info(`Admin user ${userId} accessing workspace ${workspaceId}`)
       return next()
     }
@@ -36,38 +41,49 @@ export const workspaceAccessMiddleware = async (req: Request, res: Response, nex
     const userWorkspace = await prisma.userWorkspace.findFirst({
       where: {
         userId: userId,
-        workspaceId: workspaceId
-      }
+        workspaceId: workspaceId,
+      },
     })
 
     if (!userWorkspace) {
-      logger.warn(`User ${userId} attempted to access workspace ${workspaceId} without permission`)
-      throw new AppError(403, "Access denied: You don't have permission to access this workspace")
+      logger.warn(
+        `User ${userId} attempted to access workspace ${workspaceId} without permission`
+      )
+      throw new AppError(
+        403,
+        "Access denied: You don't have permission to access this workspace"
+      )
     }
 
     // If there's a customerId in the request, verify it belongs to the workspace
-    const customerId = req.body.customerId || req.params.customerId || req.query.customerId
-    
+    const customerId =
+      req.body.customerId || req.params.customerId || req.query.customerId
+
     if (customerId) {
       const customer = await prisma.customers.findFirst({
         where: {
           id: customerId,
-          workspaceId: workspaceId
-        }
+          workspaceId: workspaceId,
+        },
       })
 
       if (!customer) {
-        logger.warn(`User ${userId} attempted to access customer ${customerId} not in their workspace ${workspaceId}`)
+        logger.warn(
+          `User ${userId} attempted to access customer ${customerId} not in their workspace ${workspaceId}`
+        )
         throw new AppError(404, "Customer not found or not accessible")
       }
     }
 
-    logger.info(`Workspace access granted for user ${userId} to workspace ${workspaceId}`, {
-      userId,
-      workspaceId,
-      customerId,
-      userRole
-    })
+    logger.info(
+      `Workspace access granted for user ${userId} to workspace ${workspaceId}`,
+      {
+        userId,
+        workspaceId,
+        customerId,
+        userRole,
+      }
+    )
 
     next()
   } catch (error) {

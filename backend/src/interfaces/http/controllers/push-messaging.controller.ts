@@ -1,23 +1,22 @@
 import { Request, Response } from "express"
-import logger from "../../../utils/logger"
-import { pushMessagingService } from "../../../services/push-messaging.service"
 import { prisma } from "../../../lib/prisma"
+import { pushMessagingService } from "../../../services/push-messaging.service"
+import logger from "../../../utils/logger"
 
 /**
  * 📱 PUSH MESSAGING CONTROLLER
- * 
+ *
  * Controller per gestire tutti i tipi di push messaging
  * con supporto per i nuovi use cases:
  * - Nuovo utente registrato
  * - Sconto aggiornato
  * - Nuova offerta
  * - Chatbot riattivato
- * 
+ *
  * @author Andrea Gelso
  */
 
 export class PushMessagingController {
-
   /**
    * 👋 Invia push di benvenuto per nuovo utente registrato
    */
@@ -25,13 +24,15 @@ export class PushMessagingController {
     try {
       const { customerId, workspaceId } = req.body
 
-      logger.info(`[PUSH-CONTROLLER] 👋 Sending welcome push for customer ${customerId}`)
+      logger.info(
+        `[PUSH-CONTROLLER] 👋 Sending welcome push for customer ${customerId}`
+      )
 
       // Validate input
       if (!customerId || !workspaceId) {
         res.status(400).json({
           success: false,
-          error: "customerId and workspaceId are required"
+          error: "customerId and workspaceId are required",
         })
         return
       }
@@ -39,13 +40,13 @@ export class PushMessagingController {
       // Get customer data
       const customer = await prisma.customers.findFirst({
         where: { id: customerId, workspaceId },
-        select: { id: true, phone: true, name: true }
+        select: { id: true, phone: true, name: true },
       })
 
       if (!customer || !customer.phone) {
         res.status(404).json({
           success: false,
-          error: "Customer not found or missing phone number"
+          error: "Customer not found or missing phone number",
         })
         return
       }
@@ -59,17 +60,16 @@ export class PushMessagingController {
 
       res.json({
         success: success,
-        message: success 
-          ? `Welcome push sent successfully to ${customer.name}` 
+        message: success
+          ? `Welcome push sent successfully to ${customer.name}`
           : "Failed to send welcome push",
-        cost: "€0.50"
+        cost: "€0.50",
       })
-
     } catch (error) {
       logger.error("[PUSH-CONTROLLER] Error sending user welcome push:", error)
       res.status(500).json({
         success: false,
-        error: "Internal server error"
+        error: "Internal server error",
       })
     }
   }
@@ -81,13 +81,15 @@ export class PushMessagingController {
     try {
       const { workspaceId, discountPercentage, customerIds } = req.body
 
-      logger.info(`[PUSH-CONTROLLER] 💸 Sending discount update push: ${discountPercentage}%`)
+      logger.info(
+        `[PUSH-CONTROLLER] 💸 Sending discount update push: ${discountPercentage}%`
+      )
 
       // Validate input
       if (!workspaceId || !discountPercentage) {
         res.status(400).json({
           success: false,
-          error: "workspaceId and discountPercentage are required"
+          error: "workspaceId and discountPercentage are required",
         })
         return
       }
@@ -97,9 +99,9 @@ export class PushMessagingController {
         where: {
           workspaceId: workspaceId,
           ...(customerIds ? { id: { in: customerIds } } : {}),
-          phone: { not: null }
+          phone: { not: null },
         },
-        select: { id: true, phone: true, name: true }
+        select: { id: true, phone: true, name: true },
       })
 
       const results = []
@@ -111,10 +113,10 @@ export class PushMessagingController {
             workspaceId,
             discountPercentage
           )
-          results.push({ 
-            customerId: customer.id, 
+          results.push({
+            customerId: customer.id,
             customerName: customer.name,
-            success 
+            success,
           })
         }
       }
@@ -123,14 +125,16 @@ export class PushMessagingController {
         success: true,
         message: `Discount update push sent to ${customers.length} customers`,
         results: results,
-        totalCost: `€${(customers.length * 0.50).toFixed(2)}`
+        totalCost: `€${(customers.length * 0.5).toFixed(2)}`,
       })
-
     } catch (error) {
-      logger.error("[PUSH-CONTROLLER] Error sending discount update push:", error)
+      logger.error(
+        "[PUSH-CONTROLLER] Error sending discount update push:",
+        error
+      )
       res.status(500).json({
         success: false,
-        error: "Internal server error"
+        error: "Internal server error",
       })
     }
   }
@@ -140,21 +144,24 @@ export class PushMessagingController {
    */
   async sendNewOffer(req: Request, res: Response): Promise<void> {
     try {
-      const { 
-        workspaceId, 
-        offerPercentage, 
-        categoryName, 
+      const {
+        workspaceId,
+        offerPercentage,
+        categoryName,
         offerEndDate,
-        customerIds 
+        customerIds,
       } = req.body
 
-      logger.info(`[PUSH-CONTROLLER] 🎯 Sending new offer push: ${offerPercentage}% on ${categoryName}`)
+      logger.info(
+        `[PUSH-CONTROLLER] 🎯 Sending new offer push: ${offerPercentage}% on ${categoryName}`
+      )
 
       // Validate input
       if (!workspaceId || !offerPercentage || !categoryName || !offerEndDate) {
         res.status(400).json({
           success: false,
-          error: "workspaceId, offerPercentage, categoryName and offerEndDate are required"
+          error:
+            "workspaceId, offerPercentage, categoryName and offerEndDate are required",
         })
         return
       }
@@ -164,9 +171,9 @@ export class PushMessagingController {
         where: {
           workspaceId: workspaceId,
           ...(customerIds ? { id: { in: customerIds } } : {}),
-          phone: { not: null }
+          phone: { not: null },
         },
-        select: { id: true, phone: true, name: true }
+        select: { id: true, phone: true, name: true },
       })
 
       const results = []
@@ -180,10 +187,10 @@ export class PushMessagingController {
             categoryName,
             offerEndDate
           )
-          results.push({ 
-            customerId: customer.id, 
+          results.push({
+            customerId: customer.id,
             customerName: customer.name,
-            success 
+            success,
           })
         }
       }
@@ -192,14 +199,13 @@ export class PushMessagingController {
         success: true,
         message: `New offer push sent to ${customers.length} customers`,
         results: results,
-        totalCost: `€${(customers.length * 0.50).toFixed(2)}`
+        totalCost: `€${(customers.length * 0.5).toFixed(2)}`,
       })
-
     } catch (error) {
       logger.error("[PUSH-CONTROLLER] Error sending new offer push:", error)
       res.status(500).json({
         success: false,
-        error: "Internal server error"
+        error: "Internal server error",
       })
     }
   }
@@ -217,7 +223,7 @@ export class PushMessagingController {
       if (!workspaceId) {
         res.status(400).json({
           success: false,
-          error: "workspaceId is required"
+          error: "workspaceId is required",
         })
         return
       }
@@ -232,12 +238,12 @@ export class PushMessagingController {
           chatSessions: {
             some: {
               updatedAt: {
-                gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-              }
-            }
-          }
+                gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+              },
+            },
+          },
         },
-        select: { id: true, phone: true, name: true }
+        select: { id: true, phone: true, name: true },
       })
 
       const results = []
@@ -248,10 +254,10 @@ export class PushMessagingController {
             customer.phone,
             workspaceId
           )
-          results.push({ 
-            customerId: customer.id, 
+          results.push({
+            customerId: customer.id,
             customerName: customer.name,
-            success 
+            success,
           })
         }
       }
@@ -260,14 +266,16 @@ export class PushMessagingController {
         success: true,
         message: `Chatbot reactivated push sent to ${customers.length} active customers`,
         results: results,
-        totalCost: `€${(customers.length * 0.50).toFixed(2)}`
+        totalCost: `€${(customers.length * 0.5).toFixed(2)}`,
       })
-
     } catch (error) {
-      logger.error("[PUSH-CONTROLLER] Error sending chatbot reactivated push:", error)
+      logger.error(
+        "[PUSH-CONTROLLER] Error sending chatbot reactivated push:",
+        error
+      )
       res.status(500).json({
         success: false,
-        error: "Internal server error"
+        error: "Internal server error",
       })
     }
   }
@@ -282,20 +290,20 @@ export class PushMessagingController {
       if (!customerId || !workspaceId || !type) {
         res.status(400).json({
           success: false,
-          error: "customerId, workspaceId and type are required"
+          error: "customerId, workspaceId and type are required",
         })
         return
       }
 
       const customer = await prisma.customers.findFirst({
         where: { id: customerId, workspaceId },
-        select: { id: true, phone: true, name: true }
+        select: { id: true, phone: true, name: true },
       })
 
       if (!customer || !customer.phone) {
         res.status(404).json({
           success: false,
-          error: "Customer not found or missing phone number"
+          error: "Customer not found or missing phone number",
         })
         return
       }
@@ -305,7 +313,7 @@ export class PushMessagingController {
         customerId,
         customerPhone: customer.phone,
         type: type,
-        templateData: templateData
+        templateData: templateData,
       })
 
       res.json({
@@ -314,16 +322,15 @@ export class PushMessagingController {
         customer: {
           id: customer.id,
           name: customer.name,
-          phone: customer.phone
+          phone: customer.phone,
         },
-        cost: "€0.50"
+        cost: "€0.50",
       })
-
     } catch (error) {
       logger.error("[PUSH-CONTROLLER] Error sending test push message:", error)
       res.status(500).json({
         success: false,
-        error: "Internal server error"
+        error: "Internal server error",
       })
     }
   }

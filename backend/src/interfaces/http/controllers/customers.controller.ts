@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express"
 import { CustomerService } from "../../../application/services/customer.service"
-import logger from "../../../utils/logger"
 import { pushMessagingService } from "../../../services/push-messaging.service"
+import logger from "../../../utils/logger"
 
 export class CustomersController {
   private customerService: CustomerService
@@ -143,7 +143,10 @@ export class CustomersController {
       } = req.body
 
       // Get original customer data to compare changes
-      const originalCustomer = await this.customerService.getById(id, workspaceId)
+      const originalCustomer = await this.customerService.getById(
+        id,
+        workspaceId
+      )
       if (!originalCustomer) {
         return res.status(404).json({ message: "Customer not found" })
       }
@@ -232,14 +235,20 @@ export class CustomersController {
   /**
    * Handle automatic push messages when customer data changes
    */
-  private async handleAutomaticPushMessages(originalCustomer: any, updatedCustomer: any) {
+  private async handleAutomaticPushMessages(
+    originalCustomer: any,
+    updatedCustomer: any
+  ) {
     try {
       // Check if discount changed
       if (originalCustomer.discount !== updatedCustomer.discount) {
-        logger.info(`Customer discount changed from ${originalCustomer.discount}% to ${updatedCustomer.discount}%`, {
-          customerId: updatedCustomer.id,
-          workspaceId: updatedCustomer.workspaceId
-        })
+        logger.info(
+          `Customer discount changed from ${originalCustomer.discount}% to ${updatedCustomer.discount}%`,
+          {
+            customerId: updatedCustomer.id,
+            workspaceId: updatedCustomer.workspaceId,
+          }
+        )
 
         await this.pushMessagingService.sendDiscountUpdate(
           updatedCustomer.id,
@@ -251,10 +260,13 @@ export class CustomersController {
 
       // Check if chatbot status changed
       if (originalCustomer.activeChatbot !== updatedCustomer.activeChatbot) {
-        logger.info(`Customer chatbot status changed from ${originalCustomer.activeChatbot} to ${updatedCustomer.activeChatbot}`, {
-          customerId: updatedCustomer.id,
-          workspaceId: updatedCustomer.workspaceId
-        })
+        logger.info(
+          `Customer chatbot status changed from ${originalCustomer.activeChatbot} to ${updatedCustomer.activeChatbot}`,
+          {
+            customerId: updatedCustomer.id,
+            workspaceId: updatedCustomer.workspaceId,
+          }
+        )
 
         // Only send push notification if chatbot was reactivated (false -> true)
         if (!originalCustomer.activeChatbot && updatedCustomer.activeChatbot) {
@@ -265,9 +277,8 @@ export class CustomersController {
           )
         }
       }
-
     } catch (error) {
-      logger.error('Error handling automatic push messages:', error)
+      logger.error("Error handling automatic push messages:", error)
       // Don't throw error - automatic push failures shouldn't break customer update
     }
   }

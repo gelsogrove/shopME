@@ -3263,6 +3263,7 @@ model RegistrationAttempts {
 **💰 Tracking Automatico**: €0.50 per ogni push message inviato
 
 **🎯 Use Cases Supportati**:
+
 - 🎉 **Ordine Confermato**: "Ordine confermato! Numero ordine: {orderCode}"
 - 👋 **Nuovo Utente**: "Sei stato attivato al nostro servizio, come posso esserti utile?"
 - 💸 **Sconto Aggiornato**: "Da oggi puoi usufruire del {discountPercentage}% di sconto"
@@ -3270,6 +3271,7 @@ model RegistrationAttempts {
 - 🤖 **Chatbot Riattivato**: "Il chatbot è tornato attivo e pronto ad aiutarti"
 
 **🔧 Endpoints API**:
+
 - `POST /push/welcome` - Messaggio benvenuto nuovo utente
 - `POST /push/discount` - Aggiornamento sconto
 - `POST /push/offer` - Nuova offerta
@@ -3277,13 +3279,15 @@ model RegistrationAttempts {
 - `POST /push/test` - Test push messaging
 
 **🧪 Admin Testing**:
+
 - `GET /admin/push-test` - Test sistema push
 - `GET /admin/push-stats` - Statistiche push messaging
 - `GET /admin/push-preview` - Anteprima messaggi multilingua
 
 **🔄 Migrazione Sistemi Esistenti**:
+
 - ✅ `StockService.sendWhatsAppConfirmation()` → Push Service
-- ✅ `CheckoutController.sendWhatsAppNotification()` → Push Service  
+- ✅ `CheckoutController.sendWhatsAppNotification()` → Push Service
 - ✅ `WelcomeService.sendWelcomeMessage()` → Push Service
 
 ### **🗄️ Database Schema Usage**
@@ -9827,5 +9831,3 @@ output: 'Array of active offers with discount percentages, dates and categories'
 ---
 
 ## UI Screenshots
-
-
