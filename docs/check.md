@@ -48,6 +48,9 @@ Quando si paga la merce?
 
 Puoi consigliarmi una ricetta italiana con i vostri prodotti?
 
+Non e' possibile che ogni volta che ricevo la merce e' danneggiata sono stufo !
+
+
 NON VA
 
 - benvenuto non e' il lingua
@@ -80,3 +83,19 @@ FASE 2
 > > PIATTAFORMA
 > > INTEGRAZIOEN CON WHATSAPP
 > > MANUTENZIONE
+
+
+
+
+i prodotti che sono arrivati 4 sono scaduti
+22:40
+Mi dispiace sentire che hai ricevuto prodotti scaduti. Per risolvere al meglio questa situazione ti suggerisco di contattare direttamente il nostro servizio clienti. Puoi farlo inviando un'email a info@laltrait.com o chiamando il numero (+34) 93 15 91 221. Saranno felici di assisterti nell'organizzazione di una sostituzione o di un rimborso.
+
+Se preferisci una risoluzione immediata, posso anche metterti in contatto diretto con un operatore. Vuoi che faccia questo?
+22:40
+🤖 AI Assistant
+si
+22:41
+Perfetto! Se hai bisogno di ulteriori informazioni o desideri fare qualcos'altro, sono qui per aiutarti. Vuoi forse aggiungere qualche prodotto al carrello o hai bisogno di assistenza su un ordine specifico? 🛍️
+22:41
+🤖 AI 

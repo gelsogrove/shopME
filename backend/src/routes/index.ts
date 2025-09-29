@@ -647,7 +647,9 @@ router.post("/chat", async (req, res) => {
           if (agentConfig?.maxTokens) {
             agentMaxTokens = agentConfig.maxTokens
           }
-          console.log(`🔧 /api/chat: Using agent model: ${agentModel}, maxTokens: ${agentMaxTokens}`)
+          console.log(
+            `🔧 /api/chat: Using agent model: ${agentModel}, maxTokens: ${agentMaxTokens}`
+          )
         } catch (error) {
           console.error("❌ Error fetching agent config:", error)
         }
@@ -1158,7 +1160,9 @@ router.post("/whatsapp/webhook", async (req, res) => {
         if (agentConfig?.maxTokens) {
           agentMaxTokens = agentConfig.maxTokens
         }
-        console.log(`🔧 WEBHOOK: Using agent model: ${agentModel}, maxTokens: ${agentMaxTokens}`)
+        console.log(
+          `🔧 WEBHOOK: Using agent model: ${agentModel}, maxTokens: ${agentMaxTokens}`
+        )
 
         // Use customer data from first query (avoid double query)
         const customer = (req as any).customerData

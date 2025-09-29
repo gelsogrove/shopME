@@ -457,14 +457,18 @@ export class LLMService {
           `📜 LLM: Adding ${recentHistory.length} messages from history to context`
         )
         console.log(
-          `📜 LLM: History messages:`, 
-          recentHistory.map(msg => `[${msg.role}]: ${msg.content.substring(0, 50)}...`)
+          `📜 LLM: History messages:`,
+          recentHistory.map(
+            (msg) => `[${msg.role}]: ${msg.content.substring(0, 50)}...`
+          )
         )
 
         // Aggiungi i messaggi storici
         messages.push(...recentHistory)
       } else {
-        console.log(`📜 LLM: No message history available - starting fresh conversation`)
+        console.log(
+          `📜 LLM: No message history available - starting fresh conversation`
+        )
       }
 
       // Aggiungi il messaggio utente corrente
