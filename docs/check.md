@@ -31,6 +31,7 @@ NON VA
 - benvenuto non e' il lingua
 - responsive header carrello
 - il prpmtp e' da pulire
+- minumo di storico quindi nel prompt metteremo fai domande se voui all'utente...
 
 FASE 2
 
