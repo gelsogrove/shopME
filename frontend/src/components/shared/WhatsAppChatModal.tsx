@@ -1038,14 +1038,17 @@ export function WhatsAppChatModal({
                                                 message.functionCalls.length - 3
                                               } more)`}
                                           </div>
-                                          {(message.debugInfo?.temperature !== undefined && message.debugInfo?.temperature !== null) && (
-                                            <div className="font-mono text-xs">
-                                              <span className="font-semibold text-orange-600">
-                                                🌡️ TEMPERATURE:
-                                              </span>{" "}
-                                              {message.debugInfo.temperature}
-                                            </div>
-                                          )}
+                                          {message.debugInfo?.temperature !==
+                                            undefined &&
+                                            message.debugInfo?.temperature !==
+                                              null && (
+                                              <div className="font-mono text-xs">
+                                                <span className="font-semibold text-orange-600">
+                                                  🌡️ TEMPERATURE:
+                                                </span>{" "}
+                                                {message.debugInfo.temperature}
+                                              </div>
+                                            )}
                                           {message.functionCalls[0]?.toolCall
                                             ?.function?.arguments && (
                                             <div className="font-mono text-xs">
@@ -1100,14 +1103,27 @@ export function WhatsAppChatModal({
                                       message.processingSource !== "unknown"
                                     ) {
                                       // 🔧 ENHANCED: Show full debug info if available, even with processingSource
-                                      if (message.debugInfo || (message.functionCalls && message.functionCalls.length > 0)) {
-                                        const functionNames = message.functionCalls
-                                          ? message.functionCalls
-                                              .map((call) => call.functionName || call.type || "Unknown")
-                                              .filter((name, index, arr) => arr.indexOf(name) === index)
-                                              .slice(0, 3)
-                                              .join(", ")
-                                          : null;
+                                      if (
+                                        message.debugInfo ||
+                                        (message.functionCalls &&
+                                          message.functionCalls.length > 0)
+                                      ) {
+                                        const functionNames =
+                                          message.functionCalls
+                                            ? message.functionCalls
+                                                .map(
+                                                  (call) =>
+                                                    call.functionName ||
+                                                    call.type ||
+                                                    "Unknown"
+                                                )
+                                                .filter(
+                                                  (name, index, arr) =>
+                                                    arr.indexOf(name) === index
+                                                )
+                                                .slice(0, 3)
+                                                .join(", ")
+                                            : null
 
                                         return (
                                           <div className="space-y-1">
@@ -1128,49 +1144,81 @@ export function WhatsAppChatModal({
                                                   🔧 FUNCTION:
                                                 </span>{" "}
                                                 {functionNames}
-                                                {message.functionCalls && message.functionCalls.length > 3 &&
-                                                  ` (+${message.functionCalls.length - 3} more)`}
+                                                {message.functionCalls &&
+                                                  message.functionCalls.length >
+                                                    3 &&
+                                                  ` (+${
+                                                    message.functionCalls
+                                                      .length - 3
+                                                  } more)`}
                                               </div>
                                             )}
-                                            {(message.debugInfo?.temperature !== undefined && message.debugInfo?.temperature !== null) && (
-                                              <div className="font-mono text-xs">
-                                                <span className="font-semibold text-orange-600">
-                                                  🌡️ TEMPERATURE:
-                                                </span>{" "}
-                                                {message.debugInfo.temperature}
-                                              </div>
-                                            )}
-                                            {message.functionCalls && message.functionCalls[0]?.toolCall?.function?.arguments && (
-                                              <div className="font-mono text-xs">
-                                                <span className="font-semibold text-orange-600">
-                                                  � PARAMS:
-                                                </span>{" "}
-                                                {message.functionCalls[0].toolCall.function.arguments}
-                                              </div>
-                                            )}
-                                            {message.debugInfo?.effectiveParams && (
+                                            {message.debugInfo?.temperature !==
+                                              undefined &&
+                                              message.debugInfo?.temperature !==
+                                                null && (
+                                                <div className="font-mono text-xs">
+                                                  <span className="font-semibold text-orange-600">
+                                                    🌡️ TEMPERATURE:
+                                                  </span>{" "}
+                                                  {
+                                                    message.debugInfo
+                                                      .temperature
+                                                  }
+                                                </div>
+                                              )}
+                                            {message.functionCalls &&
+                                              message.functionCalls[0]?.toolCall
+                                                ?.function?.arguments && (
+                                                <div className="font-mono text-xs">
+                                                  <span className="font-semibold text-orange-600">
+                                                    � PARAMS:
+                                                  </span>{" "}
+                                                  {
+                                                    message.functionCalls[0]
+                                                      .toolCall.function
+                                                      .arguments
+                                                  }
+                                                </div>
+                                              )}
+                                            {message.debugInfo
+                                              ?.effectiveParams && (
                                               <div className="font-mono text-xs">
                                                 <span className="font-semibold text-green-600">
                                                   ✅ EFFECTIVE:
                                                 </span>{" "}
-                                                {JSON.stringify(message.debugInfo.effectiveParams)}
+                                                {JSON.stringify(
+                                                  message.debugInfo
+                                                    .effectiveParams
+                                                )}
                                               </div>
                                             )}
-                                            {message.debugInfo?.tokenReplacements &&
-                                              message.debugInfo.tokenReplacements.length > 0 && (
+                                            {message.debugInfo
+                                              ?.tokenReplacements &&
+                                              message.debugInfo
+                                                .tokenReplacements.length >
+                                                0 && (
                                                 <div className="font-mono text-xs">
                                                   <span className="font-semibold text-pink-600">
                                                     🔗 TOKENS:
                                                   </span>{" "}
-                                                  {message.debugInfo.tokenReplacements.map((token: string, idx: number) => (
-                                                    <div key={idx} className="ml-2">
-                                                      {token}
-                                                    </div>
-                                                  ))}
+                                                  {message.debugInfo.tokenReplacements.map(
+                                                    (
+                                                      token: string,
+                                                      idx: number
+                                                    ) => (
+                                                      <div
+                                                        key={idx}
+                                                        className="ml-2"
+                                                      >
+                                                        {token}
+                                                      </div>
+                                                    )
+                                                  )}
                                                 </div>
                                               )}
                                           </div>
-                                        );
+                                        )
                                       } else {
                                         return (
                                           <span className="font-mono">
@@ -1179,7 +1227,7 @@ export function WhatsAppChatModal({
                                             </span>{" "}
                                             {message.processingSource}
                                           </span>
-                                        );
+                                        )
                                       }
                                     } else if (
                                       message.metadata?.agentSelected?.includes(
@@ -1199,14 +1247,17 @@ export function WhatsAppChatModal({
                                               </span>
                                             )}
                                           </div>
-                                          {(message.debugInfo?.temperature !== undefined && message.debugInfo?.temperature !== null) && (
-                                            <div className="font-mono text-xs">
-                                              <span className="font-semibold text-orange-600">
-                                                🌡️ TEMPERATURE:
-                                              </span>{" "}
-                                              {message.debugInfo.temperature}
-                                            </div>
-                                          )}
+                                          {message.debugInfo?.temperature !==
+                                            undefined &&
+                                            message.debugInfo?.temperature !==
+                                              null && (
+                                              <div className="font-mono text-xs">
+                                                <span className="font-semibold text-orange-600">
+                                                  🌡️ TEMPERATURE:
+                                                </span>{" "}
+                                                {message.debugInfo.temperature}
+                                              </div>
+                                            )}
                                           {message.debugInfo
                                             ?.tokenReplacements &&
                                             message.debugInfo.tokenReplacements

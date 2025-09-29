@@ -1,9 +1,9 @@
-import { Router } from 'express';
-import logger from '../../../utils/logger';
-import { AgentController } from '../controllers/agent.controller';
-import { asyncHandler } from '../middlewares/async.middleware';
-import { authMiddleware } from '../middlewares/auth.middleware';
-import { workspaceValidationMiddleware } from '../middlewares/workspace-validation.middleware';
+import { Router } from "express"
+import logger from "../../../utils/logger"
+import { AgentController } from "../controllers/agent.controller"
+import { asyncHandler } from "../middlewares/async.middleware"
+import { authMiddleware } from "../middlewares/auth.middleware"
+import { workspaceValidationMiddleware } from "../middlewares/workspace-validation.middleware"
 
 /**
  * @swagger
@@ -48,16 +48,16 @@ import { workspaceValidationMiddleware } from '../middlewares/workspace-validati
  */
 
 export const createAgentRouter = (): Router => {
-  const router = Router({ mergeParams: true }); // Enable mergeParams to inherit workspaceId
-  const agentController = new AgentController();
-  
-  logger.info('Setting up agent routes');
+  const router = Router({ mergeParams: true }) // Enable mergeParams to inherit workspaceId
+  const agentController = new AgentController()
+
+  logger.info("Setting up agent routes")
 
   // Apply auth middleware first
-  router.use(authMiddleware); // ENABLED FOR PROPER AUTHENTICATION
-  
+  router.use(authMiddleware) // ENABLED FOR PROPER AUTHENTICATION
+
   // Enable workspace validation middleware (this will extract workspaceId from params)
-  router.use(workspaceValidationMiddleware);
+  router.use(workspaceValidationMiddleware)
 
   /**
    * @swagger
@@ -84,7 +84,7 @@ export const createAgentRouter = (): Router => {
    *               items:
    *                 $ref: '#/components/schemas/Agent'
    */
-  router.get('/', asyncHandler(agentController.getAllForWorkspace));
+  router.get("/", asyncHandler(agentController.getAllForWorkspace))
 
   /**
    * @swagger
@@ -117,7 +117,7 @@ export const createAgentRouter = (): Router => {
    *       404:
    *         description: Agent not found
    */
-  router.get('/:id', asyncHandler(agentController.getById));
+  router.get("/:id", asyncHandler(agentController.getById))
 
   /**
    * @swagger
@@ -168,7 +168,7 @@ export const createAgentRouter = (): Router => {
    *             schema:
    *               $ref: '#/components/schemas/Agent'
    */
-  router.post('/', asyncHandler(agentController.create));
+  router.post("/", asyncHandler(agentController.create))
 
   /**
    * @swagger
@@ -201,7 +201,7 @@ export const createAgentRouter = (): Router => {
    *       404:
    *         description: Agent not found
    */
-  router.put('/:id', asyncHandler(agentController.update));
+  router.put("/:id", asyncHandler(agentController.update))
 
   /**
    * @swagger
@@ -230,9 +230,9 @@ export const createAgentRouter = (): Router => {
    *       404:
    *         description: Agent not found
    */
-  router.delete('/:id', asyncHandler(agentController.delete));
-  
-  logger.info('Agent routes setup complete');
-  
-  return router;
-}; 
+  router.delete("/:id", asyncHandler(agentController.delete))
+
+  logger.info("Agent routes setup complete")
+
+  return router
+}

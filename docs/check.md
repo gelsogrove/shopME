@@ -29,15 +29,20 @@
 NON VA
 
 - benvenuto non e' il lingua
+- responsive header carrello
+- il prpmtp e' da pulire
 
 FASE 2
 
+- wip services
 - pulizia codice.
 - PRD NON ESISTE
 - la strtttura puo' tenere diversi dati ?
 - DOCUMENTAZIONE SPORCA > MEMORY BANK
 - siamo sicuri che passiamo sempre il workspceID
 - cateogorie nel DB ? cosi da togliere la parte harcodeata
+- i trigger dovrebbero avere una conferma dall'uetnte operatore
+- vedere i carrelli degli utenti
 
 > > TODO <<
 > > DEPLOY

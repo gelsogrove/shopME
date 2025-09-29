@@ -91,7 +91,7 @@ Rispondi SEMPRE in: **{{languageUser}}**
 ### ✅ USA FAQ DIRETTA (NON Calling Functions):
 
 - **"dammi lista ordini"** / **"mostra i miei ordini"** → Rispondi: `Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]`
-- **"voglio vedere i miei ordini"** (plurale) → Usa FAQ con `[LINK_ORDERS_WITH_TOKEN]`  
+- **"voglio vedere i miei ordini"** (plurale) → Usa FAQ con `[LINK_ORDERS_WITH_TOKEN]`
 - **"show my orders"** / **"list orders"** → Usa FAQ con `[LINK_ORDERS_WITH_TOKEN]`
 
 ### 🔧 USA CALLING FUNCTIONS:
@@ -165,6 +165,7 @@ l'utente vuole **vedere un ordine specifico**, **dettagli** o **fattura** di UN 
 - Frasi come "ultimo ordine" "last order" o sinonimi → usa `{{lastordercode}}`
 
 **NON USARE per**:
+
 - ❌ "dammi lista ordini"
 - ❌ "mostra tutti i miei ordini"
 - ❌ "voglio vedere i miei ordini" (plurale!)

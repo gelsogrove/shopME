@@ -4,7 +4,6 @@ import {
   agentService as applicationAgentService,
 } from "../../../application/services/agent.service"
 import { WorkspaceService } from "../../../application/services/workspace.service"
-import { AgentProps } from "../../../domain/entities/agent.entity"
 import { prisma } from "../../../lib/prisma"
 import logger from "../../../utils/logger"
 
@@ -86,7 +85,10 @@ export class AgentController {
       let workspaceId = req.params.workspaceId
 
       // If not in params, try to determine from user context
-      workspaceId = this.agentService.getWorkspaceId(workspaceId, (req as any).user)
+      workspaceId = this.agentService.getWorkspaceId(
+        workspaceId,
+        (req as any).user
+      )
 
       logger.info(`Getting agent ${id} for workspace ${workspaceId}`)
 
@@ -109,7 +111,10 @@ export class AgentController {
   async create(req: Request, res: Response): Promise<void> {
     try {
       let workspaceId = (req as any).workspaceId
-      workspaceId = this.agentService.getWorkspaceId(workspaceId, (req as any).user)
+      workspaceId = this.agentService.getWorkspaceId(
+        workspaceId,
+        (req as any).user
+      )
 
       // Get data from request body
       const data = {
@@ -163,7 +168,11 @@ export class AgentController {
       logger.info(`Updating agentConfig ${id} for workspace ${workspaceId}`)
 
       // Use updateAgentConfig method for AgentConfig table
-      const updatedAgent = await this.agentService.updateAgentConfig(id, req.body, workspaceId)
+      const updatedAgent = await this.agentService.updateAgentConfig(
+        id,
+        req.body,
+        workspaceId
+      )
 
       if (!updatedAgent) {
         return res.status(404).json({ message: "Agent not found" })
@@ -196,7 +205,10 @@ export class AgentController {
       let workspaceId = req.params.workspaceId
 
       // If not in params, try to determine from user context
-      workspaceId = this.agentService.getWorkspaceId(workspaceId, (req as any).user)
+      workspaceId = this.agentService.getWorkspaceId(
+        workspaceId,
+        (req as any).user
+      )
 
       logger.info(`Deleting agent ${id} for workspace ${workspaceId}`)
 

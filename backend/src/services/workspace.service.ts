@@ -97,9 +97,9 @@ export const workspaceService = {
 
     // 2. Query SEPARATA per agentConfigs con FILTRO ESPLICITO per workspaceId
     const agentConfigs = await prisma.agentConfig.findMany({
-      where: { 
-        workspaceId: id,  // ← FILTRO ESPLICITO per workspaceId!
-        isActive: true
+      where: {
+        workspaceId: id, // ← FILTRO ESPLICITO per workspaceId!
+        isActive: true,
       },
       select: {
         id: true,
@@ -108,14 +108,14 @@ export const workspaceService = {
         maxTokens: true,
         prompt: true,
       },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { updatedAt: "desc" },
       take: 1,
     })
 
     // 3. Combina i risultati
     return {
       ...workspace,
-      agentConfigs
+      agentConfigs,
     }
   },
 
