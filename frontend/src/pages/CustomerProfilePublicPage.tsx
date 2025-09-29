@@ -4,10 +4,10 @@ import { User } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
+import { PublicPageLayout } from "../components/layout/PublicPageLayout"
 import { ProfileForm } from "../components/profile/ProfileForm"
 import { TokenError } from "../components/ui/TokenError"
 import UnifiedLoading from "../components/ui/UnifiedLoading"
-import { PublicPageLayout } from "../components/layout/PublicPageLayout"
 import { useTokenValidation } from "../hooks/useTokenValidation"
 import { getPublicPageTexts } from "../utils/publicPageTranslations"
 
@@ -274,10 +274,8 @@ const CustomerProfilePublicPage: React.FC = () => {
 
   // Show profile form - use centralized localization system
   const localizedText = texts
-  
-  const profileIcon = (
-    <User className="h-8 w-8" />
-  )
+
+  const profileIcon = <User className="h-8 w-8" />
 
   return (
     <PublicPageLayout

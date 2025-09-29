@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react"
 import { useLocation, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
+import { PublicPageLayout } from "../components/layout/PublicPageLayout"
 import { SearchBar, useProductSearch } from "../components/ui/SearchBar"
 import { TokenError } from "../components/ui/TokenError"
 import UnifiedLoading from "../components/ui/UnifiedLoading"
-import { PublicPageLayout } from "../components/layout/PublicPageLayout"
 import { useCheckoutTokenValidation } from "../hooks/useTokenValidation"
 import { getPublicPageTexts } from "../utils/publicPageTranslations"
 
