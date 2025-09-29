@@ -1585,7 +1585,7 @@ export class MessageRepository {
         {
           name: "ContactOperator",
           description:
-            "Contact a human operator when user explicitly requests it with phrases like: 'voglio parlare con operatore', 'contatta operatore', 'mettimi in contatto con operatore', 'I want to speak with operator'. Do NOT trigger for product problems like 'prodotti scaduti', 'prodotti difettosi', or general questions.",
+            "Contact a human operator when: 1) User explicitly requests operator with phrases like 'voglio parlare con operatore', 'contatta operatore', 'mettimi in contatto con operatore'. 2) User responds 'si', 'yes', 'sì' after being asked if they want to contact an operator. Check conversation history to see if previous message offered operator contact. Do NOT trigger for product problems unless user confirms with 'si'/'yes'.",
           parameters: {
             type: "object",
             properties: {

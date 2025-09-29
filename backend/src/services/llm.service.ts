@@ -367,7 +367,7 @@ export class LLMService {
         function: {
           name: "ContactOperator",
           description:
-            "Connette l'utente con un operatore umano. Usare SOLO quando l'utente dice ESPLICITAMENTE: 'voglio parlare con operatore', 'contatta operatore', 'mettimi in contatto con operatore', 'voglio assistenza umana'. NON usare mai per problemi con prodotti (scaduti, difettosi), domande generali, o richieste di informazioni.",
+            "Connette l'utente con un operatore umano quando: 1) L'utente richiede esplicitamente un operatore ('voglio parlare con operatore', 'contatta operatore'), 2) L'utente risponde 'si', 'yes', 'sì' dopo che è stato chiesto se vuole contattare un operatore. Controlla la cronologia conversazione per vedere se il messaggio precedente offriva contatto operatore.",
           parameters: {
             type: "object",
             properties: {},

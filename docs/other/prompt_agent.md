@@ -128,6 +128,7 @@ Quando l'utente chiede un ordine **SPECIFICO** o informazioni su **UN** ordine:
 - 🇵🇹 "operador", "assistência humana", "falar com alguém", "atendimento ao cliente"
 
 altre frasi ambigue non devono chiamare la funzione!
+cosa devo fare se ho dei prodotti scaduti? > NON DEVE CHIAMARE LA FUNZIONE
 
 ---
 
