@@ -46,7 +46,7 @@ export async function ContactOperator({
     return {
       success: true,
       message:
-        "Certo, verrai contattato il prima possibile da un nostro operatore.",
+        "Certo, lo capisco,  verrai contattato il prima possibile da un nostro operatore umano nel frattempo puoi inviarci tutti i dettagli del tuo caso all'indirizzo email: info@laltrait.com , cosi da poter essere più veloci nella risoluzione del tuo problema.",
       data: {
         customerName: customer.name,
         customerPhone: customer.phone,

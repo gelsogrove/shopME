@@ -2662,6 +2662,22 @@ async function main() {
       question: "sconti",
       answer: "Ecco le nostre offerte e sconti attivi: [LIST_OFFERS]",
     },
+    {
+      question: "sono arrivati prodotti scaduti",
+      answer: "Mi dispiace molto per i prodotti scaduti ricevuti! 😔\n\nPer risolvere immediatamente:\n✅ **Non consumare** i prodotti scaduti\n✅ **Contattaci subito** al (+34) 93 15 91 221 o info@laltrait.com\n✅ **Reso gratuito**: ritiriamo tutto senza costi\n✅ **Rimborso completo** o sostituzione immediata\n\nLa qualità è la nostra priorità assoluta. Tutti i prodotti vengono controllati prima della spedizione, ma in casi rari possono verificarsi errori.\n\nVuoi che ti metta in contatto con un operatore per accelerare la pratica?",
+    },
+    {
+      question: "prodotti scaduti",
+      answer: "Mi dispiace molto per i prodotti scaduti! 😔\n\nPer risolvere immediatamente:\n✅ **Non consumare** i prodotti scaduti\n✅ **Contattaci subito** al (+34) 93 15 91 221 o info@laltrait.com\n✅ **Reso gratuito**: ritiriamo tutto senza costi\n✅ **Rimborso completo** o sostituzione immediata\n\nLa qualità è la nostra priorità assoluta.",
+    },
+    {
+      question: "prodotti difettosi",
+      answer: "Mi dispiace per il prodotto difettoso! 😔\n\nPer risolvere:\n✅ **Contattaci subito** al (+34) 93 15 91 221 o info@laltrait.com\n✅ **Reso gratuito** con ritiro gratuito\n✅ **Rimborso completo** o sostituzione immediata\n\nLa qualità è la nostra priorità. Ti aiutiamo a risolvere subito!",
+    },
+    {
+      question: "cosa faccio con prodotti scaduti",
+      answer: "Per i prodotti scaduti:\n✅ **Non consumarli**\n✅ **Contattaci** al (+34) 93 15 91 221 o info@laltrait.com\n✅ **Reso gratuito** garantito\n✅ **Rimborso completo** o sostituzione\n\nRisolviamo tutto noi senza costi per te!",
+    },
   ]
 
   // Create new FAQs

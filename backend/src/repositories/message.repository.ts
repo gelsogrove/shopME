@@ -1549,9 +1549,10 @@ export class MessageRepository {
   /**
    * Chiama il function router di OpenAI per ottenere la funzione da chiamare
    * @param message Messaggio dell'utente
+   * @param conversationContext Array di messaggi precedenti per contesto
    * @returns Risultato della chiamata al function router
    */
-  async callFunctionRouter(message: string): Promise<any> {
+  async callFunctionRouter(message: string, conversationContext: any[] = []): Promise<any> {
     console.log("🚨 DEBUG - callFunctionRouter CALLED with message:", message)
     try {
       // Check if OpenRouter is properly configured
@@ -1579,9 +1580,9 @@ export class MessageRepository {
       // ANDREA DECISION: CF ATTIVE CON NOMI CORRETTI
       const availableFunctions = [
         {
-          name: "ContactOperator",
+          name: "ContactOperator", 
           description:
-            "Contact a human operator when the user explicitly requests to speak with a human representative, operator, or customer service agent",
+            "Contact a human operator when user explicitly requests it with phrases like: 'voglio parlare con operatore', 'contatta operatore', 'mettimi in contatto con operatore', 'I want to speak with operator'. Do NOT trigger for product problems like 'prodotti scaduti', 'prodotti difettosi', or general questions.",
           parameters: {
             type: "object",
             properties: {
@@ -1661,14 +1662,32 @@ export class MessageRepository {
         availableFunctions.map((f) => f.name)
       )
       console.log("🔍 DEBUG - User Message:", message)
+      console.log("🔍 DEBUG - Conversation Context:", conversationContext.length, "messages")
       console.log("🔍 DEBUG - OpenRouter API Key present:", !!openRouterApiKey)
+
+      // Costruisci l'array di messaggi includendo il contesto della conversazione
+      const messages = [
+        { role: "system", content: functionRouterPrompt }
+      ]
+
+      // Aggiungi gli ultimi 3 messaggi della conversazione per contesto
+      if (conversationContext && conversationContext.length > 0) {
+        const recentContext = conversationContext.slice(-3) // Ultimi 3 messaggi
+        for (const contextMsg of recentContext) {
+          messages.push({
+            role: contextMsg.direction === "INBOUND" ? "user" : "assistant",
+            content: contextMsg.content
+          })
+        }
+        console.log("🔍 DEBUG - Added", recentContext.length, "context messages")
+      }
+
+      // Aggiungi il messaggio corrente
+      messages.push({ role: "user", content: message })
 
       const requestPayload = {
         model: "openai/gpt-5-mini",
-        messages: [
-          { role: "system", content: functionRouterPrompt },
-          { role: "user", content: message },
-        ],
+        messages: messages,
         tools: availableFunctions.map((func) => ({
           type: "function",
           function: func,
