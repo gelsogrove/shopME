@@ -1,36 +1,58 @@
-- chi sei?
-- che servizi offrite ?
-- Che prodotti vendete
-- dammi la lista dei prodotti
-- posso vedere il catalogo ?
-- Avete la mozzarella?
-- Che sconto ho sui prodotti?
-- dammi la lista degli ordini
-- dove'e' il mio ordine ORD-001-2024
-- dove'e' il mio ultimo ordine
-- qual'e' la vostra politica di reso ?
-- come viene gestita la catena del freddo ?
-- che categorie avete?
-- mostrami carrello
-- Quanto ci mette ad arrivare un ordine?
-- voglio modificare la mia mail
-- Che prodotti vendete?
-- prodotti surgelati
-- fammi vedere i prodotti della categoria dei surgelati
-- nuovo ordine
-- In quanto tempo arriva l'ordine?
-- Che sconto ho sui prodotti?
-- Voglio fare un ordine
-- Voglio modificare la mia mail
-- Voglio parlare con un operatore
-- dammi il mio ultimo ordine
--
+Chi sei?
+
+Che servizi offrite?
+
+Che prodotti vendete?
+
+Dammi la lista dei prodotti.
+
+Posso vedere il catalogo?
+
+Che sconto ho sui prodotti?
+
+Avete la mozzarella di bufala?
+
+Che sconto ho sui miei prodotti?
+
+Voglio vedere la lista dei miei ordini.
+
+Dov’è il mio ordine ORD-001-2024?
+
+Dov’è il mio ultimo ordine?
+
+Dammi il mio ultimo ordine.
+
+Qual è la vostra politica di reso?
+
+Come viene gestita la catena del freddo?
+
+Che categorie di prodotti avete?
+
+Mostrami il carrello per favore.
+
+Quanto ci mette ad arrivare un ordine?
+
+Voglio modificare il mio indirizzo di spedizione.
+
+Mostrami i prodotti della categoria prodotti surgelati.
+
+Fammi vedere i prodotti della categoria surgelati.
+
+Voglio fare un nuovo ordine.
+
+Voglio parlare con un operatore.
+
+Vorrei sapere se ricevo la bolla di trasporto quando ricevo la merce.
+
+Quando si paga la merce?
+
+Puoi consigliarmi una ricetta italiana con i vostri prodotti?
 
 NON VA
 
 - benvenuto non e' il lingua
-- il prpmtp e' da pulire
 - minumo di storico quindi nel prompt metteremo fai domande se voui all'utente...
+- il prpmtp e' da pulire
 
 FASE 2
 

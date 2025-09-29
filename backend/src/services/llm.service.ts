@@ -190,7 +190,8 @@ export class LLMService {
       workspace,
       customer,
       customerData,
-      userLanguage
+      userLanguage,
+      llmRequest
     )
 
     // 7. Post-processing: Replace link tokens
@@ -421,7 +422,8 @@ export class LLMService {
     workspace: any,
     customer: any,
     customerData?: any,
-    language: "it" | "es" | "pt" | "en" = "it" // default italiano
+    language: "it" | "es" | "pt" | "en" = "it", // default italiano
+    llmRequest?: LLMRequest
   ): Promise<{ response: string; debugInfo: any }> {
     // Get agent config for LLM settings
     const agentConfig = workspace.agentConfigs?.[0]
@@ -439,16 +441,41 @@ export class LLMService {
     )
 
     try {
-      const messages = [
+      // Costruisci l'array di messaggi con lo storico se disponibile
+      let messages = [
         {
           role: "system",
           content: processedPrompt,
         },
-        {
-          role: "user",
-          content: userQuery,
-        },
       ]
+
+      // Aggiungi lo storico degli ultimi 5 messaggi se disponibile in llmRequest
+      if (llmRequest?.messages && llmRequest.messages.length > 0) {
+        // Prendi solo gli ultimi 5 messaggi per mantenere un contesto più ricco
+        const recentHistory = llmRequest.messages.slice(-5)
+        console.log(
+          `📜 LLM: Adding ${recentHistory.length} messages from history to context`
+        )
+        console.log(
+          `📜 LLM: History messages:`, 
+          recentHistory.map(msg => `[${msg.role}]: ${msg.content.substring(0, 50)}...`)
+        )
+
+        // Aggiungi i messaggi storici
+        messages.push(...recentHistory)
+      } else {
+        console.log(`📜 LLM: No message history available - starting fresh conversation`)
+      }
+
+      // Aggiungi il messaggio utente corrente
+      messages.push({
+        role: "user",
+        content: userQuery,
+      })
+
+      console.log(
+        `📝 LLM: Sending ${messages.length} messages to OpenRouter (${Math.max(0, messages.length - 2)} from history + system + current)`
+      )
 
       const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",

@@ -632,6 +632,8 @@ router.post("/chat", async (req, res) => {
 
         // Get agent config with prompt from database
         let agentPrompt = "WhatsApp conversation" // fallback
+        let agentModel = "anthropic/claude-3.5-sonnet" // fallback to Claude
+        let agentMaxTokens = 5000 // fallback
         try {
           const agentConfig = await prisma.agentConfig.findFirst({
             where: { workspaceId },
@@ -639,6 +641,13 @@ router.post("/chat", async (req, res) => {
           if (agentConfig?.prompt) {
             agentPrompt = agentConfig.prompt
           }
+          if (agentConfig?.model) {
+            agentModel = agentConfig.model
+          }
+          if (agentConfig?.maxTokens) {
+            agentMaxTokens = agentConfig.maxTokens
+          }
+          console.log(`🔧 /api/chat: Using agent model: ${agentModel}, maxTokens: ${agentMaxTokens}`)
         } catch (error) {
           console.error("❌ Error fetching agent config:", error)
         }
@@ -684,8 +693,8 @@ router.post("/chat", async (req, res) => {
           phone: body.phoneNumber,
           language: variables.languageUser, // Use customer's language
           sessionId: "chat-session",
-          maxTokens: 5000,
-          model: "gpt-4o",
+          maxTokens: agentMaxTokens,
+          model: agentModel, // Use agent config model instead of hardcoded
           messages: chatHistory, // 🔧 NOW INCLUDES REAL CHAT HISTORY like webhook
           prompt: agentPrompt, // 🔧 Now includes processed prompt with variables
         }
@@ -1134,6 +1143,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
       // Get agent config with prompt from database
       let agentPrompt = "WhatsApp conversation" // fallback
       let welcomeBackMessage = null // 🎯 TASK: Declare welcome back message variable
+      let agentModel = "anthropic/claude-3.5-sonnet" // fallback to Claude
+      let agentMaxTokens = 5000 // fallback
       try {
         const agentConfig = await prisma.agentConfig.findFirst({
           where: { workspaceId: workspaceId },
@@ -1141,6 +1152,13 @@ router.post("/whatsapp/webhook", async (req, res) => {
         if (agentConfig && agentConfig.prompt) {
           agentPrompt = agentConfig.prompt
         }
+        if (agentConfig?.model) {
+          agentModel = agentConfig.model
+        }
+        if (agentConfig?.maxTokens) {
+          agentMaxTokens = agentConfig.maxTokens
+        }
+        console.log(`🔧 WEBHOOK: Using agent model: ${agentModel}, maxTokens: ${agentMaxTokens}`)
 
         // Use customer data from first query (avoid double query)
         const customer = (req as any).customerData
@@ -1312,8 +1330,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
         language: variables.languageUser,
         sessionId: "webhook-session",
         temperature: 0.0, // Zero temperature for webhook responses - no variations
-        maxTokens: 5000,
-        model: "gpt-4o",
+        maxTokens: agentMaxTokens, // Use agent config maxTokens instead of hardcoded
+        model: agentModel, // Use agent config model instead of hardcoded
         messages: chatHistory, // 🔥 NOW INCLUDES REAL CHAT HISTORY
         prompt: agentPrompt,
         welcomeBackMessage: welcomeBackMessage || null, // 🎯 TASK: Pass welcome back message to LLM
