@@ -733,7 +733,7 @@ router.post("/chat", async (req, res) => {
 
         return res.json({
           ...response,
-          debug: response.debugInfo // 🔧 FIX: Map debugInfo to debug for frontend compatibility
+          debug: response.debugInfo, // 🔧 FIX: Map debugInfo to debug for frontend compatibility
         })
       } catch (error) {
         console.error("❌ Error in /api/chat endpoint:", error)
