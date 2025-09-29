@@ -29,8 +29,6 @@
 NON VA
 
 - benvenuto non e' il lingua
-- link corto di nuova registrazione
-- dove e' il mio ordine?
 
 FASE 2
 
