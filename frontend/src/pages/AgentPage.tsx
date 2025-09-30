@@ -354,16 +354,27 @@ export function AgentPage() {
                         <option value="google/gemini-2.5-pro">
                           Gemini 2.5 Pro
                         </option>
+
+                        <option value="google/gemini-2.0-flash-001">
+                          google/gemini-2.0-flash-001 (Best quality and fantasy)
+                        </option>
+
+                        <option value="openai/gpt-4">openai/gpt-4</option>
+
+                        <option value="anthropic/claude-3.5-haiku">
+                          anthropic/claude-3.5-haiku
+                        </option>
+
                         <option value="x-ai/grok-4">Grok 4</option>
                         <option value="openai/gpt-4-turbo">GPT-4 Turbo</option>
                         <option value="openai/gpt-4o-mini">
-                          GPT-4o-mini (Fast)
+                          GPT-4o-mini (good)
                         </option>
                         <option value="deepseek/deepseek-r1">
-                          DeepSeek R1
+                          DeepSeek R1 (too many error for multiple languages)
                         </option>
                         <option value="anthropic/claude-3.5-sonnet">
-                          Claude 3.5 Sonnet (Legacy)
+                          Claude 3.5 Sonnet (Works but expensive)
                         </option>
                       </select>
                     </div>

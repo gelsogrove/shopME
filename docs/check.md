@@ -54,7 +54,6 @@ ho 4 prodotti che sono arrivati scaduti cosa devo fare?
 
 NON VA
 
-NON E IN LINGUA
 FASE 2
 
 - benvenuto non e' il lingua
@@ -89,15 +88,23 @@ FASE 2
 > > INTEGRAZIOEN CON WHATSAPP
 > > MANUTENZIONE
 
-i prodotti che sono arrivati 4 sono scaduti
-22:40
-Mi dispiace sentire che hai ricevuto prodotti scaduti. Per risolvere al meglio questa situazione ti suggerisco di contattare direttamente il nostro servizio clienti. Puoi farlo inviando un'email a info@laltrait.com o chiamando il numero (+34) 93 15 91 221. Saranno felici di assisterti nell'organizzazione di una sostituzione o di un rimborso.
+Ma la merce che e' arrivata cazzo e' fredda non ha tenuto il freddo il correire
+Ehi! Le parolacce non si dicono...Lo sanno persino i bambini! 👶😠
 
-Se preferisci una risoluzione immediata, posso anche metterti in contatto diretto con un operatore. Vuoi che faccia questo?
-22:40
-🤖 AI Assistant
+Mi dispiace molto per l'inconveniente! 😔 Cerchiamo di capire cosa è successo.
+
+Per prima cosa, ti chiedo scusa per il disagio. La merce refrigerata dovrebbe arrivare in perfette condizioni.
+
+Per risolvere subito:
+✅ Contattaci subito al (+34) 93 15 91 221 o info@laltrait.com
+✅ Inviaci delle foto del pacco e dei prodotti
+✅ Non consumare i prodotti se non sei sicuro
+
+Ti offriamo:
+✅ Reso gratuito con ritiro a domicilio
+✅ Rimborso completo o sostituzione immediata
+
+La tua soddisfazione è la nostra priorità! Vuoi che ti metta subito in contatto con un operatore per risolvere la situazione?
+🤖 CHATBOT_LLM
 si
-22:41
-Perfetto! Se hai bisogno di ulteriori informazioni o desideri fare qualcos'altro, sono qui per aiutarti. Vuoi forse aggiungere qualche prodotto al carrello o hai bisogno di assistenza su un ordine specifico? 🛍️
-22:41
-🤖 AI
+Ciao Mario! Per parlare con un operatore umano, contatta il nostro servizio clienti: info@laltrait.com o chiama (+34) 93 15 91 221. Siamo disponibili dal lunedì al venerdì dalle 9:00 alle 18:00.
