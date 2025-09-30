@@ -52,7 +52,7 @@ const defaultAgent = {
   isRouter: true,
   department: null,
   promptName: "SofIA - Gusto Italiano Assistant",
-  model: "anthropic/claude-3.5-sonnet",
+  model: "deepseek/deepseek-r1",
 }
 
 // Andrea's Two-LLM Architecture - LLM 1 RAG Processor Prompt (Agent Settings)
@@ -2513,6 +2513,11 @@ async function main() {
         "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
+      question: "I want to make an order",
+      answer:
+        "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
+    },
+    {
       question: "Voglio fare un ordine",
       answer:
         "Ciao! Per effettuare un nuovo ordine, clicca su questo link: [LINK_CHECKOUT_WITH_TOKEN]",
@@ -2763,7 +2768,7 @@ async function main() {
         country: "Italia",
       }),
       company: "Rossi Limited S.r.l.",
-      discount: 0,
+      discount: 10,
       language: "it",
       currency: "EUR",
       notes: "Cliente premium - Preferisce prodotti DOP",

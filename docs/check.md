@@ -54,21 +54,25 @@ ho 4 prodotti che sono arrivati scaduti cosa devo fare?
 
 NON VA
 
-- benvenuto non e' il lingua
-- minumo di storico quindi nel prompt metteremo fai domande se voui all'utente...
-- il prpmtp e' da pulire
-
+NON E IN LINGUA
 FASE 2
 
+- benvenuto non e' il lingua
+- Attivare e disattivare la chatbot con messaggio vuoi inviare il messaggio all'utente ?
+- chathistory degli ultimi 100 messaggi
 - wip services
 - pulizia codice.
 - PRD NON ESISTE
 - la strtttura puo' tenere diversi dati ?
+- i link vengono cancellati ?
 - DOCUMENTAZIONE SPORCA > MEMORY BANK
 - siamo sicuri che passiamo sempre il workspceID
-- cateogorie nel DB ? cosi da togliere la parte harcodeata
 - i trigger dovrebbero avere una conferma dall'uetnte operatore
 - vedere i carrelli degli utenti
+- login di sicurezza
+- new user
+- forgot pwd
+- embedding da pulire
 
 > > TODO <<
 > > DEPLOY

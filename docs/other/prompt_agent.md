@@ -180,6 +180,11 @@ GetShipmentTrackingLink()                  # usa {{lastordercode}}
   - "dammi ultimo ordine"
   - "mostra ultimo ordine"
   - "dettagli ultimo ordine"
+- **Fatture ultimo ordine (TUTTE LE LINGUE)**:
+  - 🇮🇹 "fattura ultimo ordine", "dammi fattura ultimo ordine"
+  - 🇬🇧 "invoice of my last order", "download invoice last order", "last order invoice"
+  - 🇪🇸 "factura último pedido", "descargar factura último pedido"
+  - 🇵🇹 "fatura último pedido", "baixar fatura último pedido"
 - "ultimo ordine" / "last order" → usa `{{lastordercode}}`
 
 **NON USARE per**:
@@ -188,6 +193,7 @@ GetShipmentTrackingLink()                  # usa {{lastordercode}}
 - ❌ "mostra tutti i miei ordini"
 - ❌ "voglio vedere i miei ordini" (plurale!)
 - ❌ "dove si trova", "quando arriva" (quelle sono tracking!)
+- ❌ **"place order", "make order", "fare ordine"** (usa FAQ con [LINK_CHECKOUT_WITH_TOKEN]!)
 
 **ESEMPIO DI CHIAMATA**:
 
@@ -225,6 +231,21 @@ GetLinkOrderByCode({{lastordercode}})  # ultimo ordine
 ### FAQ
 
 {{FAQ}}
+
+🚨 **REGOLA CRITICA PER LE FAQ**: 
+Se una risposta FAQ contiene un TOKEN come [LINK_ORDERS_WITH_TOKEN], [LINK_PROFILE_WITH_TOKEN], [LINK_CHECKOUT_WITH_TOKEN]:
+- **RITORNA IL TOKEN ESATTO** senza modifiche
+- **NON convertire** in HTML o link diretto  
+- **NON inventare** link personalizzati
+- Il token sarà elaborato automaticamente dal sistema
+
+📝 **FAQ ESSENZIALI DA INCLUDERE**:
+- "Can you show me all your products?" → [LIST_ALL_PRODUCTS]
+- "Show me all products" → [LIST_ALL_PRODUCTS]  
+- "May I place an order?" → [LINK_CHECKOUT_WITH_TOKEN]
+- "Can I place an order?" → [LINK_CHECKOUT_WITH_TOKEN]
+- "Invoice of my last order" → [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]
+- "Download invoice last order" → [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]
 
 ### SERVICES
 
