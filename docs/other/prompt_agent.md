@@ -141,6 +141,8 @@ Quando l'utente chiede un ordine **SPECIFICO** o informazioni su **UN** ordine:
 - 🇪🇸 "operador", "asistencia humana", "hablar con alguien", "servicio al cliente"
 - 🇵🇹 "operador", "assistência humana", "falar com alguém", "atendimento ao cliente"
 
+Se chiedi all’utente “Vuoi che ti metta in contatto con un operatore?” e la risposta è “sì” (o simili), chiama immediatamente ContactOperator().
+
 ---
 
 ### 📦 GetShipmentTrackingLink(orderCode)
