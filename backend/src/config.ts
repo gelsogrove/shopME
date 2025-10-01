@@ -38,9 +38,7 @@ export const config: Config = {
   cors: {
     origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   },
-  frontendUrl:
-    process.env.FRONTEND_URL ||
-    "http://localhost:5173", // Fixed: Vite runs on 5173, not 3000
+  frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173", // Fixed: Vite runs on 5173, not 3000
   dhlTrackingBaseUrl:
     process.env.DHL_TRACKING_BASE_URL ||
     "https://www.dhl.com/global-en/home/tracking/tracking-express.html",

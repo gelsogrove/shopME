@@ -52,7 +52,8 @@ const defaultAgent = {
   isRouter: true,
   department: null,
   promptName: "SofIA - Gusto Italiano Assistant",
-  model: "deepseek/deepseek-r1",
+  model: "google/gemini-2.0-flash-001",
+  temperature: 0.3,
 }
 
 // Andrea's Two-LLM Architecture - LLM 1 RAG Processor Prompt (Agent Settings)
@@ -150,85 +151,6 @@ async function generateEmbeddingsAfterSeed() {
     console.log("⚠️ You may need to generate embeddings manually via frontend")
   }
 }
-
-// Legacy N8N integration removed - using direct AI function calling
-
-// Function to seed Aviso Legal document - RIMOSSA (documenti non esistono più nel sistema)
-/*
-async function seedAvisoLegalDocument(workspaceId: string) {
-  console.log("Seeding Aviso Legal document...")
-
-  try {
-    // Check if document already exists
-    const existingDocument = await prisma.documents.findFirst({
-      where: {
-        workspaceId: workspaceId,
-        originalName: "aviso-legal.pdf",
-      },
-    })
-
-    if (existingDocument) {
-      console.log("Aviso Legal document already exists, skipping...")
-      return
-    }
-
-    // Copy PDF from samples to uploads directory
-    const sourcePath = path.join(__dirname, "samples", "aviso-legal.pdf")
-    const targetDir = path.join(__dirname, "..", "uploads", "documents")
-    const filename = `${Date.now()}-aviso-legal.pdf`
-    const targetPath = path.join(targetDir, filename)
-
-    // Ensure uploads directory exists
-    if (!fs.existsSync(targetDir)) {
-      fs.mkdirSync(targetDir, { recursive: true })
-    }
-
-    // Check if source file exists
-    if (!fs.existsSync(sourcePath)) {
-      console.error(`Source PDF file not found: ${sourcePath}`)
-      return
-    }
-
-    // Copy the file using streams for better handling of large binary files
-    const sourceStream = fs.createReadStream(sourcePath)
-    const targetStream = fs.createWriteStream(targetPath)
-
-    await new Promise<void>((resolve, reject) => {
-      sourceStream.pipe(targetStream)
-      targetStream.on("finish", () => resolve())
-      targetStream.on("error", reject)
-      sourceStream.on("error", reject)
-    })
-
-    const stats = fs.statSync(targetPath)
-
-    console.log(`PDF copied to: ${targetPath}`)
-
-    // Create document record
-    const document = await prisma.documents.create({
-      data: {
-        filename: filename,
-        originalName: "aviso-legal.pdf",
-        filePath: targetPath, // Use absolute path for processing
-        fileSize: stats.size,
-        mimeType: "application/pdf",
-        status: "UPLOADED",
-        workspaceId: workspaceId,
-      },
-    })
-
-    console.log(`Document created with ID: ${document.id}`)
-
-    // Note: Embedding generation is skipped in seed due to memory constraints
-    // The document will be in UPLOADED status and can be processed manually via API
-    console.log(
-      "Aviso Legal document created successfully - embeddings can be generated via API"
-    )
-  } catch (error) {
-    console.error("Error seeding Aviso Legal document:", error)
-  }
-}
-*/
 
 async function main() {
   console.log("🚀 STARTING COMPLETE DATABASE SEED")
@@ -2462,26 +2384,7 @@ async function main() {
       answer:
         "Hello! Your current discount on products is [USER_DISCOUNT], and the following offers are also active: [LIST_OFFERS]",
     },
-    {
-      question: "What services do you offer?",
-      answer: "Hello! We offer the following services: [LIST_SERVICES]",
-    },
-    {
-      question: "Give me the list of products",
-      answer: "Hello! We sell the following products: [LIST_ALL_PRODUCTS]",
-    },
-    {
-      question: "What products do you have?",
-      answer: "Hello! We sell the following products: [LIST_ALL_PRODUCTS]",
-    },
-    {
-      question: "What products do you sell?",
-      answer: "Hello! We sell the following products: [LIST_ALL_PRODUCTS]",
-    },
-    {
-      question: "products",
-      answer: "Hello! Here are our products: [LIST_ALL_PRODUCTS]",
-    },
+    /* Rimosse FAQ con token non supportati - LIST_SERVICES e LIST_ALL_PRODUCTS sono gestiti dal prompt */
     {
       question: "How can I see my orders?",
       answer:
@@ -2537,18 +2440,7 @@ async function main() {
       answer:
         "Hello! I am SofIA, the digital assistant of L'Altra Italia. I'm here to help you with information about our Italian products, orders, and services. How can I assist you today?",
     },
-    {
-      question: "What services do you offer?",
-      answer: "Hello! We offer the following services: [LIST_SERVICES]",
-    },
-    {
-      question: "¿Qué servicios ofrecen?",
-      answer: "¡Hola! Ofrecemos los siguientes servicios: [LIST_SERVICES]",
-    },
-    {
-      question: "Que serviços vocês oferecem?",
-      answer: "Olá! Oferecemos os seguintes serviços: [LIST_SERVICES]",
-    },
+    /* Rimosse FAQ con token non supportati - LIST_SERVICES sono gestiti dal prompt */
     {
       question: "What categories do you have?",
       answer:
@@ -2642,14 +2534,7 @@ async function main() {
       question: "che offerte avete?",
       answer: "Ciao! Ecco le nostre offerte attive: [LIST_OFFERS]",
     },
-    {
-      question: "dammi la lista i prodotti",
-      answer: "[LIST_ALL_PRODUCTS]",
-    },
-    {
-      question: "give me the list of products",
-      answer: "[LIST_ALL_PRODUCTS]",
-    },
+    /* Rimosse FAQ con token LIST_ALL_PRODUCTS - sono gestiti dal prompt */
     {
       question: "what offers do you have?",
       answer: "Hello! Here are our active offers: [LIST_OFFERS]",
@@ -3308,20 +3193,8 @@ async function main() {
   console.log(
     `- 7 sample orders created with different statuses (5 for Mario Rossi, 1 for John Smith, 1 for Maria Garcia)`
   )
-  console.log(`- Embeddings ready for manual generation via API`)
 
-  // 🚨 REGOLA ASSOLUTA: Generazione automatica embedding dopo seed
-  console.log("\n🚨 REGOLA CRITICA: GENERAZIONE AUTOMATICA EMBEDDINGS")
-  console.log("================================================")
-  console.log("⚠️  QUESTA È UNA REGOLA ASSOLUTA CHE NON DEVE ESSERE BYPASSATA")
-  console.log(
-    "⚠️  Gli embeddings DEVONO essere generati automaticamente dopo ogni seed"
-  )
-  console.log(
-    "⚠️  Senza embeddings, SearchRag non funziona e il chatbot fallisce"
-  )
-
-  await generateEmbeddingsAfterSeed()
+  //await generateEmbeddingsAfterSeed()
 }
 
 main()
