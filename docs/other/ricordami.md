@@ -113,9 +113,14 @@ MCP
 
 # Formato generale:
 
+cd /Users/gelso/workspace/AI/shop/MCP
 node mcp-test-client.js "Nome Utente" "messaggio" exit-first-message=true log=true
 
 # Altri esempi:
 
 node mcp-test-client.js "Mario Rossi" "che prodotti avete?" exit-first-message=true log=true
 node mcp-test-client.js "John Smith" "show me products" exit-first-message=true log=true
+
+RICORDATI CHE PROMPT.txt e' generato quello che dobbiamo cambiare e' promot_agent
+
+RICDATI CHE SE CAMBI prompt_Agente devi lanciare npm run update:prompt

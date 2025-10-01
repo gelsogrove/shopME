@@ -2523,11 +2523,6 @@ async function main() {
         "Ciao! Per effettuare un nuovo ordine, clicca su questo link: [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
-      question: "Fattura del mio ultimo ordine",
-      answer:
-        "Ciao! Per visualizzare la fattura del tuo ultimo ordine, clicca su questo link: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
-    },
-    {
       question: "Factura de mi último pedido",
       answer:
         "¡Hola! Para ver la factura de tu último pedido, haz clic en este enlace: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
@@ -2668,24 +2663,9 @@ async function main() {
       answer: "Ecco le nostre offerte e sconti attivi: [LIST_OFFERS]",
     },
     {
-      question: "sono arrivati prodotti scaduti",
-      answer:
-        "Mi dispiace molto per i prodotti scaduti ricevuti! 😔\n\nPer risolvere immediatamente:\n✅ **Non consumare** i prodotti scaduti\n✅ **Contattaci subito** al (+34) 93 15 91 221 o info@laltrait.com\n✅ **Reso gratuito**: ritiriamo tutto senza costi\n✅ **Rimborso completo** o sostituzione immediata\n\nLa qualità è la nostra priorità assoluta. Tutti i prodotti vengono controllati prima della spedizione, ma in casi rari possono verificarsi errori.\n\nVuoi che ti metta in contatto con un operatore per accelerare la pratica?",
-    },
-    {
-      question: "prodotti scaduti",
-      answer:
-        "Mi dispiace molto per i prodotti scaduti! 😔\n\nPer risolvere immediatamente:\n✅ **Non consumare** i prodotti scaduti\n✅ **Contattaci subito** al (+34) 93 15 91 221 o info@laltrait.com\n✅ **Reso gratuito**: ritiriamo tutto senza costi\n✅ **Rimborso completo** o sostituzione immediata\n\nLa qualità è la nostra priorità assoluta.",
-    },
-    {
       question: "prodotti difettosi",
       answer:
         "Mi dispiace per il prodotto difettoso! 😔\n\nPer risolvere:\n✅ **Contattaci subito** al (+34) 93 15 91 221 o info@laltrait.com\n✅ **Reso gratuito** con ritiro gratuito\n✅ **Rimborso completo** o sostituzione immediata\n\nLa qualità è la nostra priorità. Ti aiutiamo a risolvere subito!",
-    },
-    {
-      question: "cosa faccio con prodotti scaduti",
-      answer:
-        "Per i prodotti scaduti:\n✅ **Non consumarli**\n✅ **Contattaci** al (+34) 93 15 91 221 o info@laltrait.com\n✅ **Reso gratuito** garantito\n✅ **Rimborso completo** o sostituzione\n\nRisolviamo tutto noi senza costi per te!",
     },
   ]
 
