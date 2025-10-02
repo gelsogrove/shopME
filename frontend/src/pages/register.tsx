@@ -1,5 +1,6 @@
 import { GDPRDialog } from "@/components/ui/gdpr-dialog"
 import { logger } from "@/lib/logger"
+import { getPublicPageTexts } from "@/utils/publicPageTranslations"
 import axios from "axios"
 import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
@@ -11,6 +12,10 @@ const RegisterPage = () => {
   const phone = searchParams.get("phone") || ""
   const workspaceId = searchParams.get("workspace") || ""
   const token = searchParams.get("token") || ""
+  const langParam = searchParams.get("lang") || "en"
+
+  // Get translations based on lang parameter
+  const texts = getPublicPageTexts(langParam)
 
   const [workspaceName, setWorkspaceName] = useState("")
   const [loading, setLoading] = useState(true)
@@ -34,11 +39,35 @@ const RegisterPage = () => {
     lastName: "",
     company: "",
     email: "",
-    language: "ENG",
+    language: "ENG", // Default, will be updated based on lang parameter
     currency: "EUR",
     gdprConsent: false,
     pushNotificationsConsent: false,
   })
+
+  // Set initial language and currency based on lang parameter
+  useEffect(() => {
+    const langMapping: Record<string, { language: string, currency: string }> = {
+      it: { language: "IT", currency: "EUR" },     // Italy
+      en: { language: "ENG", currency: "USD" },    // English (default to USD)
+      es: { language: "ESP", currency: "EUR" },    // Spain 
+      pt: { language: "PRT", currency: "EUR" }     // Portugal
+    }
+    
+    const mapping = langMapping[langParam] || { language: "ENG", currency: "USD" }
+    setFormData((prev) => ({
+      ...prev,
+      language: mapping.language,
+      currency: mapping.currency,
+    }))
+    
+    logger.info(
+      "[Register] Language and currency set from URL parameter:",
+      langParam,
+      "->",
+      mapping
+    )
+  }, [langParam])
 
   const [formErrors, setFormErrors] = useState({
     firstName: "",
@@ -90,27 +119,6 @@ const RegisterPage = () => {
         } catch (error) {
           logger.error("[Register] Error fetching workspace info:", error)
           // Non-fatal error, continue with registration
-        }
-
-        // Set language based on browser if possible
-        const browserLanguage = navigator.language.split("-")[0]
-        const languageMatch = languages.find(
-          (l) =>
-            l.code.toLowerCase() === browserLanguage.toLowerCase() ||
-            l.name.toLowerCase().includes(browserLanguage.toLowerCase())
-        )
-
-        if (languageMatch) {
-          setFormData((prev) => ({
-            ...prev,
-            language: languageMatch.code,
-          }))
-          logger.info(
-            "[Register] Browser language detected:",
-            browserLanguage,
-            "->",
-            languageMatch.code
-          )
         }
       }
     }
@@ -279,7 +287,7 @@ const RegisterPage = () => {
             <div className="h-10 bg-gray-200 rounded w-1/2 mx-auto"></div>
           </div>
           <p className="text-center mt-4 text-gray-500">
-            Validating registration link...
+            {texts.validatingLink}
           </p>
         </div>
       </div>
@@ -306,7 +314,7 @@ const RegisterPage = () => {
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <h2 className="text-xl font-bold mt-4">Registration Error</h2>
+            <h2 className="text-xl font-bold mt-4">{texts.registrationErrorTitle}</h2>
           </div>
           <p className="text-gray-700 text-center">{tokenError}</p>
           <div className="mt-6">
@@ -314,7 +322,7 @@ const RegisterPage = () => {
               onClick={() => window.location.reload()}
               className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             >
-              Try Again
+              {texts.tryAgain}
             </button>
           </div>
         </div>
@@ -342,11 +350,10 @@ const RegisterPage = () => {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            <h2 className="text-xl font-bold mt-4">Registration Successful!</h2>
+            <h2 className="text-xl font-bold mt-4">{texts.registrationSuccessTitle}</h2>
           </div>
           <p className="text-gray-700 text-center">
-            Thank you for registering. You can now return to WhatsApp to
-            continue your conversation.
+            {texts.registrationSuccessMessage}
           </p>
           <div className="mt-6">
             <button
@@ -358,7 +365,7 @@ const RegisterPage = () => {
               }
               className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
             >
-              Return to WhatsApp
+              {texts.returnToWhatsApp}
             </button>
           </div>
         </div>
@@ -372,10 +379,10 @@ const RegisterPage = () => {
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-8 text-white">
           <h1 className="text-lg font-bold text-center">
-            Register for {workspaceName || "Our Service"}
+            {texts.registerTitle.replace("{workspaceName}", workspaceName || "Our Service")}
           </h1>
           <p className="mt-2 text-center text-white text-opacity-80">
-            Complete the form below to get started
+            {texts.registerSubtitle}
           </p>
         </div>
 
@@ -392,7 +399,7 @@ const RegisterPage = () => {
               className="block text-sm font-medium text-gray-700"
               htmlFor="firstName"
             >
-              First Name *
+              {texts.firstName}
             </label>
             <input
               id="firstName"
@@ -418,7 +425,7 @@ const RegisterPage = () => {
               className="block text-sm font-medium text-gray-700"
               htmlFor="lastName"
             >
-              Last Name *
+              {texts.lastName}
             </label>
             <input
               id="lastName"
@@ -442,7 +449,7 @@ const RegisterPage = () => {
               className="block text-sm font-medium text-gray-700"
               htmlFor="company"
             >
-              Company *
+              {texts.company} *
             </label>
             <input
               id="company"
@@ -466,7 +473,7 @@ const RegisterPage = () => {
               className="block text-sm font-medium text-gray-700"
               htmlFor="email"
             >
-              Email *
+              {texts.email} *
             </label>
             <input
               id="email"
@@ -490,7 +497,7 @@ const RegisterPage = () => {
               className="block text-sm font-medium text-gray-700"
               htmlFor="language"
             >
-              Preferred Language *
+              {texts.preferredLanguage}
             </label>
             <select
               id="language"
@@ -513,7 +520,7 @@ const RegisterPage = () => {
               className="block text-sm font-medium text-gray-700"
               htmlFor="currency"
             >
-              Preferred Currency *
+              {texts.currency}
             </label>
             <select
               id="currency"
@@ -547,7 +554,7 @@ const RegisterPage = () => {
                 htmlFor="pushNotificationsConsent"
                 className="font-medium text-gray-700"
               >
-                Are you interested to receive offers with push notifications?
+                {texts.pushNotifications}
               </label>
               <p className="text-gray-500">
                 You will be able to unsubscribe whenever you want
@@ -577,7 +584,7 @@ const RegisterPage = () => {
                   formErrors.gdprConsent ? "text-red-700" : "text-gray-700"
                 }`}
               >
-                I accept the privacy policy *
+                {texts.gdprConsent}
               </label>
               <p className="text-gray-500">
                 By checking this box, you agree to our{" "}
@@ -631,7 +638,7 @@ const RegisterPage = () => {
                   Processing...
                 </>
               ) : (
-                "Complete Registration"
+                texts.registerButton
               )}
             </button>
           </div>

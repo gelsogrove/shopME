@@ -26,11 +26,13 @@ export class WelcomeService {
         return false
       }
 
-      const success = await pushMessagingService.sendUserWelcome(
-        customer.id,
-        customer.phone,
-        customer.workspaceId
-      )
+      const success = await pushMessagingService.sendPushMessage({
+        workspaceId: customer.workspaceId,
+        customerId: customer.id,
+        customerPhone: customer.phone,
+        type: "USER_REGISTERED" as any,
+        // No need to pass customerLanguage, it will be retrieved from DB and mapped correctly
+      })
 
       if (success) {
         logger.info(`[WELCOME] Welcome push sent to customer ${customerId}`)

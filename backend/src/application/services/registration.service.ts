@@ -100,8 +100,20 @@ export class RegistrationService {
    * Normalize language code for consistent lookup
    */
   private normalizeLanguageCode(language: string): string {
-    const lowerCaseLanguage = language.toLowerCase();
+    if (!language) return 'en';
     
+    const upperLanguage = language.toUpperCase();
+    
+    // Direct 3-letter code mapping (used by our system)
+    if (upperLanguage === 'IT') return 'it';
+    if (upperLanguage === 'ENG') return 'en';
+    if (upperLanguage === 'ESP') return 'es';
+    if (upperLanguage === 'PRT') return 'pt';
+    if (upperLanguage === 'FR') return 'fr';
+    if (upperLanguage === 'DE') return 'de';
+    
+    // Fallback: partial string matching
+    const lowerCaseLanguage = language.toLowerCase();
     if (lowerCaseLanguage.includes('ital')) return 'it';
     if (lowerCaseLanguage.includes('engl') || lowerCaseLanguage.includes('ing')) return 'en';
     if (lowerCaseLanguage.includes('span') || lowerCaseLanguage.includes('esp')) return 'es';

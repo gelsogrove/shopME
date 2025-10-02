@@ -121,6 +121,23 @@ export interface PublicPageTexts {
   orderSuccessMessage: string
   notSpecified: string
   goBack: string
+
+  // Registration page
+  registerTitle: string
+  registerSubtitle: string
+  firstName: string
+  lastName: string
+  preferredLanguage: string
+  currency: string
+  gdprConsent: string
+  pushNotifications: string
+  registerButton: string
+  registrationSuccessTitle: string
+  registrationSuccessMessage: string
+  returnToWhatsApp: string
+  registrationErrorTitle: string
+  tryAgain: string
+  validatingLink: string
 }
 
 export const publicPageTranslations: Record<
@@ -247,6 +264,23 @@ export const publicPageTranslations: Record<
       "✅ Ordine creato con successo! Verrai reindirizzato...",
     notSpecified: "Non specificato",
     goBack: "← Indietro",
+
+    // Registration page
+    registerTitle: "Registrati per {workspaceName}",
+    registerSubtitle: "Completa il modulo qui sotto per iniziare",
+    firstName: "Nome *",
+    lastName: "Cognome *",
+    preferredLanguage: "Lingua Preferita *",
+    currency: "Valuta *",
+    gdprConsent: "Accetto i termini sulla privacy e il trattamento dei dati",
+    pushNotifications: "Accetto di ricevere notifiche push",
+    registerButton: "Registrati",
+    registrationSuccessTitle: "Registrazione Completata!",
+    registrationSuccessMessage: "Grazie per esserti registrato. Ora puoi tornare su WhatsApp per continuare la conversazione.",
+    returnToWhatsApp: "Torna su WhatsApp",
+    registrationErrorTitle: "Errore di Registrazione",
+    tryAgain: "Riprova",
+    validatingLink: "Validazione link di registrazione...",
   },
 
   EN: {
@@ -369,6 +403,23 @@ export const publicPageTranslations: Record<
       "✅ Order created successfully! You will be redirected...",
     notSpecified: "Not specified",
     goBack: "← Back",
+
+    // Registration page
+    registerTitle: "Register for {workspaceName}",
+    registerSubtitle: "Complete the form below to get started",
+    firstName: "First Name *",
+    lastName: "Last Name *",
+    preferredLanguage: "Preferred Language *",
+    currency: "Currency *",
+    gdprConsent: "I accept the privacy terms and data processing",
+    pushNotifications: "I accept to receive push notifications",
+    registerButton: "Register",
+    registrationSuccessTitle: "Registration Successful!",
+    registrationSuccessMessage: "Thank you for registering. You can now return to WhatsApp to continue your conversation.",
+    returnToWhatsApp: "Return to WhatsApp",
+    registrationErrorTitle: "Registration Error",
+    tryAgain: "Try Again",
+    validatingLink: "Validating registration link...",
   },
 
   ES: {
@@ -491,6 +542,23 @@ export const publicPageTranslations: Record<
     orderSuccessMessage: "✅ ¡Pedido creado con éxito! Serás redirigido...",
     notSpecified: "No especificado",
     goBack: "← Volver",
+
+    // Registration page
+    registerTitle: "Regístrate en {workspaceName}",
+    registerSubtitle: "Completa el formulario para comenzar",
+    firstName: "Nombre *",
+    lastName: "Apellido *",
+    preferredLanguage: "Idioma Preferido *",
+    currency: "Moneda *",
+    gdprConsent: "Acepto los términos de privacidad y tratamiento de datos",
+    pushNotifications: "Acepto recibir notificaciones push",
+    registerButton: "Registrarse",
+    registrationSuccessTitle: "¡Registro Exitoso!",
+    registrationSuccessMessage: "Gracias por registrarte. Ahora puedes volver a WhatsApp para continuar la conversación.",
+    returnToWhatsApp: "Volver a WhatsApp",
+    registrationErrorTitle: "Error de Registro",
+    tryAgain: "Intentar de Nuevo",
+    validatingLink: "Validando enlace de registro...",
   },
 
   PT: {
@@ -614,6 +682,23 @@ export const publicPageTranslations: Record<
       "✅ Pedido criado com sucesso! Você será redirecionado...",
     notSpecified: "Não especificado",
     goBack: "← Voltar",
+
+    // Registration page
+    registerTitle: "Registrar-se em {workspaceName}",
+    registerSubtitle: "Preencha o formulário abaixo para começar",
+    firstName: "Nome *",
+    lastName: "Sobrenome *",
+    preferredLanguage: "Idioma Preferido *",
+    currency: "Moeda *",
+    gdprConsent: "Aceito os termos de privacidade e tratamento de dados",
+    pushNotifications: "Aceito receber notificações push",
+    registerButton: "Registrar",
+    registrationSuccessTitle: "Registro Bem-sucedido!",
+    registrationSuccessMessage: "Obrigado por se registrar. Agora você pode voltar ao WhatsApp para continuar a conversa.",
+    returnToWhatsApp: "Voltar ao WhatsApp",
+    registrationErrorTitle: "Erro de Registro",
+    tryAgain: "Tentar Novamente",
+    validatingLink: "Validando link de registro...",
   },
 }
 

@@ -70,7 +70,30 @@ async function checkCustomerBlacklist(
 }
 
 /**
- * 🆕 NEW USER WELCOME FLOW HELPER
+ * � LANGUAGE DETECTION HELPER
+ * Determines user language based on phone number prefix
+ * @param phoneNumber - User phone number with country prefix
+ * @returns Language code (it, es, pt, en)
+ */
+function detectLanguageFromPhonePrefix(phoneNumber: string): string {
+  // Supported country prefixes with their corresponding languages:
+  // +39 = Italy (Italian)
+  // +34 = Spain (Spanish) 
+  // +351 = Portugal (Portuguese)
+  // All others = Default to English
+  
+  if (phoneNumber.startsWith("+39")) {
+    return "it" // Italian
+  } else if (phoneNumber.startsWith("+34")) {
+    return "es" // Spanish
+  } else if (phoneNumber.startsWith("+351")) {
+    return "pt" // Portuguese
+  }
+  return "en" // Default to English for all other prefixes
+}
+
+/**
+ * �🆕 NEW USER WELCOME FLOW HELPER
  * Handles new user detection, registration attempts tracking, and welcome message sending
  * @param phoneNumber - User phone number
  * @param workspaceId - Workspace ID
@@ -166,222 +189,9 @@ async function handleNewUserWelcomeFlow(
       return true
     }
 
-    // Detect language from message content
-    let detectedLanguage = "it" // Default to Italian
-    if (messageContent) {
-      const lowerMessage = messageContent.toLowerCase()
-
-      // Italian detection - FIXED: Added Italian words for proper language detection
-      const italianWords = [
-        "ciao",
-        "buongiorno",
-        "buonasera",
-        "buonanotte",
-        "voglio",
-        "ho bisogno",
-        "vorrei",
-        "per favore",
-        "grazie",
-        "prego",
-        "sì",
-        "no",
-        "aggiungere",
-        "carrello",
-        "comprare",
-        "acquistare",
-        "ordine",
-        "prezzo",
-        "costo",
-        "quanto",
-        "consegna",
-        "spedizione",
-        "prodotto",
-        "prodotti",
-        "aiuto",
-        "informazioni",
-        "riguardo",
-        "il",
-        "la",
-        "i",
-        "le",
-        "e",
-        "o",
-        "ma",
-        "con",
-        "per",
-        "da",
-        "in",
-        "su",
-        "a",
-        "di",
-      ]
-
-      // English detection - more comprehensive
-      const englishWords = [
-        "hello",
-        "hi",
-        "good morning",
-        "good afternoon",
-        "good evening",
-        "i want",
-        "i need",
-        "i would like",
-        "please",
-        "thank you",
-        "thanks",
-        "yes",
-        "no",
-        "add",
-        "cart",
-        "buy",
-        "purchase",
-        "order",
-        "price",
-        "cost",
-        "how much",
-        "delivery",
-        "shipping",
-        "product",
-        "products",
-        "help",
-        "information",
-        "about",
-        "the",
-        "and",
-        "or",
-        "but",
-        "with",
-        "for",
-        "to",
-        "from",
-        "in",
-        "on",
-        "at",
-        "by",
-      ]
-
-      // Spanish detection
-      const spanishWords = [
-        "hola",
-        "buenos días",
-        "buenas tardes",
-        "buenas noches",
-        "quiero",
-        "necesito",
-        "me gustaría",
-        "por favor",
-        "gracias",
-        "sí",
-        "no",
-        "añadir",
-        "carrito",
-        "comprar",
-        "precio",
-        "costo",
-        "cuánto",
-        "entrega",
-        "envío",
-        "producto",
-        "productos",
-        "ayuda",
-        "información",
-        "sobre",
-        "el",
-        "la",
-        "los",
-        "las",
-        "y",
-        "o",
-        "pero",
-        "con",
-        "para",
-        "de",
-        "en",
-        "por",
-      ]
-
-      // Portuguese detection
-      const portugueseWords = [
-        "olá",
-        "bom dia",
-        "boa tarde",
-        "boa noite",
-        "quero",
-        "preciso",
-        "gostaria",
-        "por favor",
-        "obrigado",
-        "obrigada",
-        "sim",
-        "não",
-        "adicionar",
-        "carrinho",
-        "comprar",
-        "preço",
-        "custo",
-        "quanto",
-        "entrega",
-        "envio",
-        "produto",
-        "produtos",
-        "ajuda",
-        "informação",
-        "sobre",
-        "o",
-        "a",
-        "os",
-        "as",
-        "e",
-        "ou",
-        "mas",
-        "com",
-        "para",
-        "de",
-        "em",
-        "por",
-      ]
-
-      // Count matches for each language
-      const italianMatches = italianWords.filter((word) =>
-        lowerMessage.includes(word)
-      ).length
-      const englishMatches = englishWords.filter((word) =>
-        lowerMessage.includes(word)
-      ).length
-      const spanishMatches = spanishWords.filter((word) =>
-        lowerMessage.includes(word)
-      ).length
-      const portugueseMatches = portugueseWords.filter((word) =>
-        lowerMessage.includes(word)
-      ).length
-
-      // Determine language based on highest match count
-      if (
-        italianMatches > englishMatches &&
-        italianMatches > spanishMatches &&
-        italianMatches > portugueseMatches
-      ) {
-        detectedLanguage = "it"
-      } else if (
-        englishMatches > italianMatches &&
-        englishMatches > spanishMatches &&
-        englishMatches > portugueseMatches
-      ) {
-        detectedLanguage = "en"
-      } else if (
-        spanishMatches > italianMatches &&
-        spanishMatches > englishMatches &&
-        spanishMatches > portugueseMatches
-      ) {
-        detectedLanguage = "es"
-      } else if (
-        portugueseMatches > italianMatches &&
-        portugueseMatches > englishMatches &&
-        portugueseMatches > spanishMatches
-      ) {
-        detectedLanguage = "pt"
-      }
-    }
+    // If no customer is found, this is a new user
+    // Determine language based on phone number prefix
+    const detectedLanguage = detectLanguageFromPhonePrefix(phoneNumber)
 
     // Get welcome message from database
     const welcomeMessage = await messageRepository.getWelcomeMessage(
@@ -408,7 +218,7 @@ async function handleNewUserWelcomeFlow(
 
     // Create short registration URL using LinkGeneratorService
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000"
-    const longUrl = `${frontendUrl}/register?token=${registrationToken}&phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`
+    const longUrl = `${frontendUrl}/register?token=${registrationToken}&phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}&lang=${detectedLanguage}`
     const registrationUrl = await linkGeneratorService.generateShortLink(
       longUrl,
       workspaceId,
