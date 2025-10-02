@@ -52,14 +52,14 @@ Voglio parlare con un operatore.
 
 NON VA
 
-LINK_ORDER_WITH_TOKEN
 SEED TUTTO IN ITALIANO
-
-SBAGLITAO !!
 
 FASE 2
 
-- benvenuto non e' il lingua
+- welcome messge non e' dinamic
+- cateogorie si possoon tigliere?
+- anche nel promto differenza di lingua si puo' togiere?
+- devmode
 - Attivare e disattivare la chatbot con messaggio vuoi inviare il messaggio all'utente ?
 - chathistory degli ultimi 100 messaggi
 - wip services

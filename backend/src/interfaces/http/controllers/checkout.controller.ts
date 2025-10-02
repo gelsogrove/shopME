@@ -393,6 +393,21 @@ export class CheckoutController {
         `[CHECKOUT] Order created: ${orderCode} for customer ${customerId}`
       )
 
+      // Track complete order cost (€1.50: order + push notification)
+      try {
+        await prisma.usage.create({
+          data: {
+            workspaceId: workspaceId,
+            clientId: customerId,
+            price: 1.50 // Complete order cost including push notification
+          }
+        });
+
+        logger.info(`Order cost tracked: €1.50 for customer ${customerId}`);
+      } catch (error) {
+        logger.error(`Error tracking order cost for customer ${customerId}:`, error);
+      }
+
       // Send notifications
       await this.sendNotifications(order, customer, workspace)
 

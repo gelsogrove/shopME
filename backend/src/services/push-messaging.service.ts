@@ -165,9 +165,17 @@ export const pushMessagingService = {
         whatsappResult.messageId
       )
 
-      // 7. 💰 Track usage cost solo se messaggio inviato con successo (€0.50 per push message)
-      if (whatsappResult.success) {
+      // 7. 💰 Track usage cost solo per push NON-ORDER (€0.50 per push message)
+      // ORDER_CONFIRMED è già tracciato nel cart controller come parte del costo ordine completo (€1.50)
+      if (data.type !== PushMessageType.ORDER_CONFIRMED) {
         await this.trackPushCost(data.workspaceId, data.customerId)
+      } else {
+        logger.info(
+          `[PUSH-MESSAGING] 💰 SKIPPING cost tracking for ORDER_CONFIRMED (already included in order cost)`
+        )
+      }
+
+      if (whatsappResult.success) {
         logger.info(
           `[PUSH-MESSAGING] ✅ Push sent successfully: ${data.type} to ${customer.name}`
         )
@@ -286,17 +294,22 @@ export const pushMessagingService = {
    * 💰 Traccia costo push message (€0.50)
    */
   async trackPushCost(workspaceId: string, customerId: string) {
-    const PUSH_MESSAGE_COST = config.pushMessaging.price // €0.50 per push message
+    try {
+      const PUSH_MESSAGE_COST = config.pushMessaging.price
 
-    await usageService.trackUsage({
-      workspaceId: workspaceId,
-      clientId: customerId,
-      price: PUSH_MESSAGE_COST,
-    })
+      await usageService.trackUsage({
+        workspaceId: workspaceId,
+        clientId: customerId,
+        price: PUSH_MESSAGE_COST,
+      })
 
-    logger.info(
-      `[PUSH-MESSAGING] 💰 Cost tracked: €${PUSH_MESSAGE_COST} for push message`
-    )
+      logger.info(
+        `[PUSH-MESSAGING] ✅ Cost tracked: €${PUSH_MESSAGE_COST} for push message`
+      )
+    } catch (error) {
+      logger.error(`[PUSH-MESSAGING] ❌ Error tracking push cost:`, error)
+      throw error
+    }
   },
 
   /**

@@ -438,7 +438,7 @@ export class OrderController {
   };
 
   /**
-   * Track order cost (1€) in usage table
+   * Track order cost (€1.50) in usage table
    */
   private async trackOrderCost(workspaceId: string, customerId: string): Promise<void> {
     try {
@@ -446,13 +446,13 @@ export class OrderController {
         data: {
           workspaceId: workspaceId,
           clientId: customerId,
-          price: 1.00 // 1€
+          price: 1.50 // Complete order cost including push notification
         }
       });
 
-      logger.info(`[ORDER_COST] Tracked 1€ order cost for customer ${customerId} in workspace ${workspaceId}`);
+      logger.info(`Order cost tracked: €1.50 for customer ${customerId}`);
     } catch (error) {
-      logger.error(`[ORDER_COST] Error tracking order cost for customer ${customerId}:`, error);
+      logger.error(`Error tracking order cost for customer ${customerId}:`, error);
     }
   }
 }

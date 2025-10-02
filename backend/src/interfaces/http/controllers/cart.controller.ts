@@ -979,6 +979,21 @@ export class CartController {
         where: { cartId: cart.id },
       })
 
+      // Track complete order cost (€1.50: order + push notification)
+      try {
+        await prisma.usage.create({
+          data: {
+            workspaceId: validation.data.workspaceId,
+            clientId: cart.customerId,
+            price: 1.50 // Complete order cost including push notification
+          }
+        });
+
+        logger.info(`Order cost tracked: €1.50 for customer ${cart.customerId}`);
+      } catch (error) {
+        logger.error(`Error tracking order cost for customer ${cart.customerId}:`, error);
+      }
+
       // Invalidate token (optional since user might want to create new orders)
       // await this.secureTokenService.invalidateToken(token)
 
