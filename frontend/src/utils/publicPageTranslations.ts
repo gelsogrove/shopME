@@ -276,7 +276,8 @@ export const publicPageTranslations: Record<
     pushNotifications: "Accetto di ricevere notifiche push",
     registerButton: "Registrati",
     registrationSuccessTitle: "Registrazione Completata!",
-    registrationSuccessMessage: "Grazie per esserti registrato. Ora puoi tornare su WhatsApp per continuare la conversazione.",
+    registrationSuccessMessage:
+      "Grazie per esserti registrato. Ora puoi tornare su WhatsApp per continuare la conversazione.",
     returnToWhatsApp: "Torna su WhatsApp",
     registrationErrorTitle: "Errore di Registrazione",
     tryAgain: "Riprova",
@@ -415,7 +416,8 @@ export const publicPageTranslations: Record<
     pushNotifications: "I accept to receive push notifications",
     registerButton: "Register",
     registrationSuccessTitle: "Registration Successful!",
-    registrationSuccessMessage: "Thank you for registering. You can now return to WhatsApp to continue your conversation.",
+    registrationSuccessMessage:
+      "Thank you for registering. You can now return to WhatsApp to continue your conversation.",
     returnToWhatsApp: "Return to WhatsApp",
     registrationErrorTitle: "Registration Error",
     tryAgain: "Try Again",
@@ -554,7 +556,8 @@ export const publicPageTranslations: Record<
     pushNotifications: "Acepto recibir notificaciones push",
     registerButton: "Registrarse",
     registrationSuccessTitle: "¡Registro Exitoso!",
-    registrationSuccessMessage: "Gracias por registrarte. Ahora puedes volver a WhatsApp para continuar la conversación.",
+    registrationSuccessMessage:
+      "Gracias por registrarte. Ahora puedes volver a WhatsApp para continuar la conversación.",
     returnToWhatsApp: "Volver a WhatsApp",
     registrationErrorTitle: "Error de Registro",
     tryAgain: "Intentar de Nuevo",
@@ -694,7 +697,8 @@ export const publicPageTranslations: Record<
     pushNotifications: "Aceito receber notificações push",
     registerButton: "Registrar",
     registrationSuccessTitle: "Registro Bem-sucedido!",
-    registrationSuccessMessage: "Obrigado por se registrar. Agora você pode voltar ao WhatsApp para continuar a conversa.",
+    registrationSuccessMessage:
+      "Obrigado por se registrar. Agora você pode voltar ao WhatsApp para continuar a conversa.",
     returnToWhatsApp: "Voltar ao WhatsApp",
     registrationErrorTitle: "Erro de Registro",
     tryAgain: "Tentar Novamente",

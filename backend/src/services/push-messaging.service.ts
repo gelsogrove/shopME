@@ -121,17 +121,17 @@ export const pushMessagingService = {
 
       // 2. Rileva lingua (auto o da parametro) e mappa formato
       const languageMapping: Record<string, string> = {
-        'IT': 'it',
-        'ENG': 'en', 
-        'ESP': 'es',
-        'PRT': 'pt',
-        'FR': 'fr',
-        'DE': 'de'
+        IT: "it",
+        ENG: "en",
+        ESP: "es",
+        PRT: "pt",
+        FR: "fr",
+        DE: "de",
       }
-      
+
       const rawLanguage = data.customerLanguage || customer.language || "it"
       const language = languageMapping[rawLanguage] || rawLanguage || "it"
-      
+
       logger.info(
         `[PUSH-MESSAGING] 🌍 Language mapping: ${customer.language} -> ${language} for customer ${customer.name}`
       )

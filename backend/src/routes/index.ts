@@ -78,10 +78,10 @@ async function checkCustomerBlacklist(
 function detectLanguageFromPhonePrefix(phoneNumber: string): string {
   // Supported country prefixes with their corresponding languages:
   // +39 = Italy (Italian)
-  // +34 = Spain (Spanish) 
+  // +34 = Spain (Spanish)
   // +351 = Portugal (Portuguese)
   // All others = Default to English
-  
+
   if (phoneNumber.startsWith("+39")) {
     return "it" // Italian
   } else if (phoneNumber.startsWith("+34")) {

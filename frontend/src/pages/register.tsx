@@ -47,20 +47,24 @@ const RegisterPage = () => {
 
   // Set initial language and currency based on lang parameter
   useEffect(() => {
-    const langMapping: Record<string, { language: string, currency: string }> = {
-      it: { language: "IT", currency: "EUR" },     // Italy
-      en: { language: "ENG", currency: "USD" },    // English (default to USD)
-      es: { language: "ESP", currency: "EUR" },    // Spain 
-      pt: { language: "PRT", currency: "EUR" }     // Portugal
+    const langMapping: Record<string, { language: string; currency: string }> =
+      {
+        it: { language: "IT", currency: "EUR" }, // Italy
+        en: { language: "ENG", currency: "USD" }, // English (default to USD)
+        es: { language: "ESP", currency: "EUR" }, // Spain
+        pt: { language: "PRT", currency: "EUR" }, // Portugal
+      }
+
+    const mapping = langMapping[langParam] || {
+      language: "ENG",
+      currency: "USD",
     }
-    
-    const mapping = langMapping[langParam] || { language: "ENG", currency: "USD" }
     setFormData((prev) => ({
       ...prev,
       language: mapping.language,
       currency: mapping.currency,
     }))
-    
+
     logger.info(
       "[Register] Language and currency set from URL parameter:",
       langParam,
@@ -314,7 +318,9 @@ const RegisterPage = () => {
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <h2 className="text-xl font-bold mt-4">{texts.registrationErrorTitle}</h2>
+            <h2 className="text-xl font-bold mt-4">
+              {texts.registrationErrorTitle}
+            </h2>
           </div>
           <p className="text-gray-700 text-center">{tokenError}</p>
           <div className="mt-6">
@@ -350,7 +356,9 @@ const RegisterPage = () => {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            <h2 className="text-xl font-bold mt-4">{texts.registrationSuccessTitle}</h2>
+            <h2 className="text-xl font-bold mt-4">
+              {texts.registrationSuccessTitle}
+            </h2>
           </div>
           <p className="text-gray-700 text-center">
             {texts.registrationSuccessMessage}
@@ -379,7 +387,10 @@ const RegisterPage = () => {
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-8 text-white">
           <h1 className="text-lg font-bold text-center">
-            {texts.registerTitle.replace("{workspaceName}", workspaceName || "Our Service")}
+            {texts.registerTitle.replace(
+              "{workspaceName}",
+              workspaceName || "Our Service"
+            )}
           </h1>
           <p className="mt-2 text-center text-white text-opacity-80">
             {texts.registerSubtitle}
