@@ -85,6 +85,7 @@ export interface PublicPageTexts {
   addToCart: string
   thanks: string
   greeting: string
+  creatingOrder: string
   steps: {
     products: string
     addresses: string
@@ -117,6 +118,9 @@ export interface PublicPageTexts {
   countryLabel: string
   sameAsShippingLabel: string
   additionalNotesLabel: string
+  orderSuccessMessage: string
+  notSpecified: string
+  goBack: string
 }
 
 export const publicPageTranslations: Record<
@@ -206,6 +210,7 @@ export const publicPageTranslations: Record<
     addToCart: "Aggiungi",
     thanks: "Grazie",
     greeting: "Ciao {name}, completa il tuo ordine in pochi passaggi",
+    creatingOrder: "Creazione ordine...",
     steps: {
       products: "Prodotti",
       addresses: "Indirizzi",
@@ -238,6 +243,9 @@ export const publicPageTranslations: Record<
     countryLabel: "Paese",
     sameAsShippingLabel: "Stesso indirizzo di spedizione",
     additionalNotesLabel: "Note aggiuntive",
+    orderSuccessMessage: "✅ Ordine creato con successo! Verrai reindirizzato...",
+    notSpecified: "Non specificato",
+    goBack: "← Indietro",
   },
 
   EN: {
@@ -323,6 +331,7 @@ export const publicPageTranslations: Record<
     addToCart: "Add",
     thanks: "Thanks",
     greeting: "Hello {name}, complete your order in a few steps",
+    creatingOrder: "Creating order...",
     steps: {
       products: "Products",
       addresses: "Addresses",
@@ -355,6 +364,9 @@ export const publicPageTranslations: Record<
     countryLabel: "Country",
     sameAsShippingLabel: "Same as shipping address",
     additionalNotesLabel: "Additional notes",
+    orderSuccessMessage: "✅ Order created successfully! You will be redirected...",
+    notSpecified: "Not specified",
+    goBack: "← Back",
   },
 
   ES: {
@@ -440,6 +452,7 @@ export const publicPageTranslations: Record<
     addToCart: "Agregar",
     thanks: "Gracias",
     greeting: "Hola {name}, completa tu pedido en pocos pasos",
+    creatingOrder: "Creando pedido...",
     steps: {
       products: "Productos",
       addresses: "Direcciones",
@@ -473,6 +486,10 @@ export const publicPageTranslations: Record<
     countryLabel: "País",
     sameAsShippingLabel: "Misma dirección de envío",
     additionalNotesLabel: "Notas adicionales",
+    orderSuccessMessage:
+      "✅ ¡Pedido creado con éxito! Serás redirigido...",
+    notSpecified: "No especificado",
+    goBack: "← Volver",
   },
 
   PT: {
@@ -558,6 +575,7 @@ export const publicPageTranslations: Record<
     addToCart: "Adicionar",
     thanks: "Obrigado",
     greeting: "Olá {name}, complete seu pedido em poucos passos",
+    creatingOrder: "Criando pedido...",
     steps: {
       products: "Produtos",
       addresses: "Endereços",
@@ -591,6 +609,10 @@ export const publicPageTranslations: Record<
     countryLabel: "País",
     sameAsShippingLabel: "Mesmo endereço de envio",
     additionalNotesLabel: "Notas adicionais",
+    orderSuccessMessage:
+      "✅ Pedido criado com sucesso! Você será redirecionado...",
+    notSpecified: "Não especificado",
+    goBack: "← Voltar",
   },
 }
 

@@ -105,12 +105,6 @@ Includi ogni tanto (30% delle volte) questi reminder per guidare l'utente **NELL
 
 Quando l'utente chiede la **lista di TUTTI gli ordini** (plurale):
 
-- "dammi lista ordini" / "mostra i miei ordini" → Rispondi: `Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]`
-- "voglio vedere i miei ordini" → Usa FAQ con `[LINK_ORDERS_WITH_TOKEN]`
-- "show my orders" / "list orders" → Usa FAQ con `[LINK_ORDERS_WITH_TOKEN]`
-
-### 🔧 USA CALLING FUNCTIONS:
-
 Quando l'utente chiede un ordine **SPECIFICO** o informazioni su **UN** ordine:
 
 - "mostrami ordine 1234" (ordine SPECIFICO) → `GetLinkOrderByCode()`

@@ -50,44 +50,10 @@ ho 4 prodotti che sono arrivati scaduti cosa devo fare?
 
 Voglio parlare con un operatore.
 
-NON VA ti facciao una lista di quello che non va , e punto per punto analizziamo
-ricordati che devo cambaire il prompt_agent ma devi mettere eventuali modifiche nel posto giusto
-nella formattazine di ogni signolo topics e in fondo abbiamo la formattazione globale
+NON VA
 
-TASK 1
-Dammi la lista dei prodotti.
-sta ritando fuori 66 prodotti e si milita a farmi una lista solo di CHEESES & DAIRY
-temperatura a 0.1 e max_token 5000
-non voglio tutta la lista, vorrei che mi facesse vedere le cateogorie con la domanda che categoria sein interessato ?
-
-TASK 2
-Mostrami il carrello per favore.
-la risposta e' giusta
-Ecco il tuo carrello! 🛒 http://localhost:3001/s/zEBjxT
-
-Ricordati che hai uno sconto del 10% su tutti i prodotti! 😊 Vuoi aggiungere qualcosa di speciale? 🍝🧀🍷 Ricordati che per vedere il carrello devi scrivere 'Mostra carrello'
-
-(MA IL LINK E? SBAGLIATO VA A http://localhost:3001/track/ORD-001-2024 404 !!!! ) ma il replace che problema ha?
-
-TASK3
-dammi ultimo ordine il link http://localhost:3001/orders/ORD-001-2024 e' sbagliato ma e' il replace che probelam ha ?
-
-TASK 4
-cancella tutte le FAQ che parlando di prodotti SCADUTI PLEASE
-
-TASK 5
-dammi lista link
-dammi lista link
-🕒 Timestamp:
-01/10/25, 10:30:00
-10:30
-Ciao! Di seguito puoi trovare il link dell'ordine che stai cercando dove puoi scaricare la fattura e la bolla di trasporto: http://localhost:3001/s/BFLDPZ - valido per 1 ora
-🎯 Response Source:
-📝 SOURCE: LLM(deepseek/deepseek-r1)
-🔧 FUNCTION: GetLinkOrderByCode
-🌡️ TEMPERATURE: 0
-📋 PARAMS: {"orderCode":"ORD-001-2024"}
-✅ EFFECTIVE: {"orderCode":"ORD-001-2024"}
+LINK_ORDER_WITH_TOKEN
+SEED TUTTO IN ITALIANO
 
 SBAGLITAO !!
 

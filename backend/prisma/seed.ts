@@ -1,24 +1,24 @@
 /**
- * DATABASE SEED SCRIPT - VERSIONE FUNZIONANTE
+ * DATABASE SEED SCRIPT - WORKING VERSION
  *
- * ✅ CREDENZIALI ADMIN TESTATE E FUNZIONANTI
- * Data: 13 Giugno 2025
+ * ✅ ADMIN CREDENTIALS TESTED AND WORKING
+ * Date: June 13, 2025
  *
- * CREDENZIALI ADMIN:
+ * ADMIN CREDENTIALS:
  * - Email: admin@shopme.com
- * - Password: venezia44 (dal file .env ADMIN_PASSWORD)
+ * - Password: venezia44 (from .env file ADMIN_PASSWORD)
  *
- * LOGIN TESTATO CON SUCCESSO:
+ * LOGIN TESTED SUCCESSFULLY:
  * curl -X POST http://localhost:3001/api/auth/login \
  *   -H "Content-Type: application/json" \
  *   -d '{"email":"admin@shopme.com","password":"venezia44"}'
  *
- * WORKSPACE PRINCIPALE:
+ * MAIN WORKSPACE:
  * - ID: cm9hjgq9v00014qk8fsdy4ujv
- * - Nome: L'Altra Italia(ESP)
- * - Admin associato come OWNER
+ * - Name: L'Altra Italia(ESP)
+ * - Admin associated as OWNER
  *
- * ⚠️ NON MODIFICARE CREDENZIALI SENZA AGGIORNARE .env
+ * ⚠️ DO NOT MODIFY CREDENTIALS WITHOUT UPDATING .env
  */
 
 import { PrismaClient } from "@prisma/client"
@@ -62,9 +62,9 @@ const SOFIA_PROMPT = fs.readFileSync(
   "utf8"
 )
 
-// Inizializziamo createdWorkspaces qui, prima di main()
+// Initialize createdWorkspaces here, before main()
 let createdWorkspaces: any[] = []
-// Definiamo un ID fisso per il nostro workspace unico
+// Define a fixed ID for our unique workspace
 const mainWorkspaceId = "cm9hjgq9v00014qk8fsdy4ujv"
 
 // Function to automatically generate ALL embeddings like clicking buttons in frontend
@@ -75,10 +75,10 @@ async function generateEmbeddingsAfterSeed() {
   try {
     // Import the embedding services
     const { EmbeddingService } = require("../src/services/embeddingService")
-    // const { DocumentService } = require("../src/services/documentService") // RIMOSSO - documenti non esistono più
+    // const { DocumentService } = require("../src/services/documentService") // REMOVED - documents no longer exist
 
     const embeddingService = new EmbeddingService()
-    // const documentService = new DocumentService() // RIMOSSO - documenti non esistono più
+    // const documentService = new DocumentService() // REMOVED - documents no longer exist
 
     console.log("🔄 1. Generating FAQ embeddings...")
     try {
@@ -156,13 +156,13 @@ async function main() {
   console.log("🚀 STARTING COMPLETE DATABASE SEED")
   console.log("=".repeat(50))
 
-  // 🔥 PULIZIA COMPLETA DEL DATABASE
+  // 🔥 COMPLETE DATABASE CLEANUP
   console.log(
     "🧹 COMPLETE DATABASE CLEANUP - Removing all data from all tables..."
   )
 
   try {
-    // Elimina tutti i chunks prima (foreign keys)
+    // Delete all chunks first (foreign keys)
     await prisma.documentChunks.deleteMany({})
     console.log("✅ Deleted all document chunks")
 
@@ -172,7 +172,7 @@ async function main() {
     await prisma.serviceChunks.deleteMany({})
     console.log("✅ Deleted all service chunks")
 
-    // Elimina ordini e carrelli
+    // Delete orders and carts
     await prisma.orderItems.deleteMany({})
     await prisma.paymentDetails.deleteMany({})
     await prisma.orders.deleteMany({})
@@ -180,12 +180,12 @@ async function main() {
     await prisma.carts.deleteMany({})
     console.log("✅ Deleted all orders and carts")
 
-    // Elimina chat e messaggi
+    // Delete chats and messages
     await prisma.message.deleteMany({})
     await prisma.chatSession.deleteMany({})
     console.log("✅ Deleted all chat sessions and messages")
 
-    // Elimina documenti, FAQ, prodotti, categorie, servizi
+    // Delete documents, FAQs, products, categories, services
     await prisma.documents.deleteMany({})
     await prisma.fAQ.deleteMany({})
     await prisma.products.deleteMany({})
@@ -194,11 +194,11 @@ async function main() {
     await prisma.offers.deleteMany({})
     console.log("✅ Deleted all content entities")
 
-    // Elimina usage prima dei customers (foreign key)
+    // Delete usage before customers (foreign key)
     await prisma.usage.deleteMany({})
     console.log("✅ Deleted all usage records")
 
-    // Elimina customers e configurazioni
+    // Delete customers and configurations
     await prisma.customers.deleteMany({})
     await prisma.agentConfig.deleteMany({})
     await prisma.prompts.deleteMany({})
@@ -206,15 +206,15 @@ async function main() {
     await prisma.whatsappSettings.deleteMany({})
     console.log("✅ Deleted all customers and configurations")
 
-    // Elimina associazioni user-workspace
+    // Delete user-workspace associations
     await prisma.userWorkspace.deleteMany({})
     console.log("✅ Deleted all user-workspace associations")
 
-    // Elimina secure tokens prima dei workspace (foreign key)
+    // Delete secure tokens before workspaces (foreign key)
     await prisma.secureToken.deleteMany({})
     console.log("✅ Deleted all secure tokens")
 
-    // Elimina workspace e utenti
+    // Delete workspaces and users
     await prisma.workspace.deleteMany({})
     await prisma.user.deleteMany({})
     console.log("✅ Deleted all workspaces and users")
@@ -226,7 +226,7 @@ async function main() {
     throw error
   }
 
-  // Check if the admin user already exists (dovrebbe essere vuoto dopo la pulizia)
+  // Check if the admin user already exists (should be empty after cleanup)
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail },
   })
@@ -257,17 +257,15 @@ async function main() {
   })
 
   if (existingMainWorkspace) {
-    console.log(`Trovato workspace principale con ID: ${mainWorkspaceId}`)
+    console.log(`Found main workspace with ID: ${mainWorkspaceId}`)
 
-    // PULIZIA COMPLETA: Elimina tutti i dati del workspace principale
-    console.log(
-      "🧹 PULIZIA COMPLETA: eliminazione di tutti i dati del workspace..."
-    )
+    // COMPLETE CLEANUP: Delete all data from the main workspace
+    console.log("🧹 COMPLETE CLEANUP: deleting all workspace data...")
 
-    // 1. Prima eliminiamo gli elementi con dipendenze (chunks e relazioni)
-    console.log("🗑️ Eliminazione chunks e dipendenze...")
+    // 1. First, delete items with dependencies (chunks and relations)
+    console.log("🗑️ Deleting chunks and dependencies...")
 
-    // Elimina tutti i chunks (usando i nomi corretti dal schema)
+    // Delete all chunks (using correct names from schema)
     try {
       await prisma.documentChunks.deleteMany({
         where: {
@@ -276,12 +274,9 @@ async function main() {
           },
         },
       })
-      console.log("Eliminati document chunks")
+      console.log("Deleted document chunks")
     } catch (error) {
-      console.log(
-        "Errore eliminazione document chunks:",
-        (error as any).message
-      )
+      console.log("Error deleting document chunks:", (error as any).message)
     }
 
     try {
@@ -292,9 +287,9 @@ async function main() {
           },
         },
       })
-      console.log("Eliminati FAQ chunks")
+      console.log("Deleted FAQ chunks")
     } catch (error) {
-      console.log("Errore eliminazione FAQ chunks:", (error as any).message)
+      console.log("Error deleting FAQ chunks:", (error as any).message)
     }
 
     try {
@@ -305,12 +300,12 @@ async function main() {
           },
         },
       })
-      console.log("Eliminati service chunks")
+      console.log("Deleted service chunks")
     } catch (error) {
-      console.log("Errore eliminazione service chunks:", (error as any).message)
+      console.log("Error deleting service chunks:", (error as any).message)
     }
 
-    // Elimina tutti gli ordini e gli items
+    // Delete all orders and items
     await prisma.orderItems.deleteMany({
       where: {
         order: {
@@ -331,7 +326,7 @@ async function main() {
       },
     })
 
-    // Elimina tutti i carrelli e items
+    // Delete all carts and items
     await prisma.cartItems.deleteMany({
       where: {
         cart: {
@@ -345,7 +340,7 @@ async function main() {
       },
     })
 
-    // Elimina tutte le chat e messaggi
+    // Delete all chats and messages
     await prisma.message.deleteMany({
       where: {
         chatSession: {
@@ -359,80 +354,78 @@ async function main() {
       },
     })
 
-    // 2. Poi eliminiamo le entità principali
-    console.log("🗑️ Eliminazione entità principali...")
+    // 2. Then, delete the main entities
+    console.log("🗑️ Deleting main entities...")
 
-    // Elimina tutti i documenti
+    // Delete all documents
     await prisma.documents.deleteMany({
       where: {
         workspaceId: mainWorkspaceId,
       },
     })
-    console.log("Eliminati tutti i documenti dal workspace principale")
+    console.log("Deleted all documents from the main workspace")
 
-    // Elimina tutte le FAQ
+    // Delete all FAQs
     await prisma.fAQ.deleteMany({
       where: {
         workspaceId: mainWorkspaceId,
       },
     })
-    console.log("Eliminate tutte le FAQ dal workspace principale")
+    console.log("Deleted all FAQs from the main workspace")
 
-    // Elimina tutti i prodotti
+    // Delete all products
     await prisma.products.deleteMany({
       where: {
         workspaceId: mainWorkspaceId,
       },
     })
-    console.log("Eliminati tutti i prodotti dal workspace principale")
+    console.log("Deleted all products from the main workspace")
 
-    // Elimina tutti i clienti
+    // Delete all customers
     await prisma.customers.deleteMany({
       where: {
         workspaceId: mainWorkspaceId,
       },
     })
-    console.log("Eliminati tutti i clienti dal workspace principale")
+    console.log("Deleted all customers from the main workspace")
 
-    // Elimina tutte le categorie
+    // Delete all categories
     await prisma.categories.deleteMany({
       where: {
         workspaceId: mainWorkspaceId,
       },
     })
-    console.log("Eliminate tutte le categorie dal workspace principale")
+    console.log("Deleted all categories from the main workspace")
 
-    // Elimina tutti i servizi
+    // Delete all services
     await prisma.services.deleteMany({
       where: {
         workspaceId: mainWorkspaceId,
       },
     })
-    console.log("Eliminati tutti i servizi dal workspace principale")
+    console.log("Deleted all services from the main workspace")
 
-    // Elimina tutte le configurazioni agenti
+    // Delete all agent configurations
     await prisma.agentConfig.deleteMany({
       where: {
         workspaceId: mainWorkspaceId,
       },
     })
-    console.log(
-      "Eliminate tutte le configurazioni agenti dal workspace principale"
-    )
+    console.log("Deleted all agent configurations from the main workspace")
 
-    // Elimina tutti i prompt e agenti
+    // Delete all prompts and agents
     const deletedPrompts = await prisma.prompts.deleteMany({
       where: {
         workspaceId: mainWorkspaceId,
       },
     })
     console.log(
-      `Eliminati ${deletedPrompts.count} prompt dal workspace principale`
+      `Deleted ${deletedPrompts.count} prompts from the main workspace`
     )
 
-    console.log("✅ Pulizia completa terminata!")
+    console.log("✅ Complete cleanup finished!")
 
-    // Aggiorniamo il workspace con i dati richiesti, ma manteniamo lo slug originale
+    // We update the workspace with the required data, but keep the original slug
     const updatedWorkspace = await prisma.workspace.update({
       where: { id: mainWorkspaceId },
       data: {
@@ -453,11 +446,11 @@ async function main() {
       },
     })
     console.log(
-      `Workspace aggiornato: ${updatedWorkspace.name} con ID ${updatedWorkspace.id}`
+      `Workspace updated: ${updatedWorkspace.name} with ID ${updatedWorkspace.id}`
     )
     createdWorkspaces.push(updatedWorkspace)
 
-    // Ensure admin user has access to this workspace (FORZATO)
+    // Ensure admin user has access to this workspace (FORCED)
     try {
       await prisma.userWorkspace.upsert({
         where: {
@@ -476,10 +469,10 @@ async function main() {
         },
       })
       console.log(
-        `✅ Admin user forzatamente associato al workspace come OWNER (upsert) - UserID: ${adminUser.id}`
+        `✅ Admin user forcibly associated with the workspace as OWNER (upsert) - UserID: ${adminUser.id}`
       )
 
-      // Verifica che l'associazione sia stata creata
+      // Verify that the association was created
       const verification = await prisma.userWorkspace.findUnique({
         where: {
           userId_workspaceId: {
@@ -490,19 +483,19 @@ async function main() {
       })
       if (verification) {
         console.log(
-          `✅ Verifica: associazione UserWorkspace creata correttamente`
+          `✅ Verification: UserWorkspace association created correctly`
         )
       } else {
         console.error(
-          `❌ ERRORE: associazione UserWorkspace NON trovata dopo la creazione!`
+          `❌ ERROR: UserWorkspace association NOT found after creation!`
         )
       }
     } catch (error) {
-      console.error(`❌ ERRORE nella creazione UserWorkspace:`, error)
+      console.error(`❌ ERROR in UserWorkspace creation:`, error)
       throw error
     }
 
-    // AGGIUNTA: CREA AgentConfig DI DEFAULT SE NON ESISTE
+    // ADDITION: CREATE Default AgentConfig IF IT DOES NOT EXIST
     const existingAgentConfig = await prisma.agentConfig.findFirst({
       where: { workspaceId: mainWorkspaceId },
     })
@@ -517,9 +510,9 @@ async function main() {
           isActive: true,
         },
       })
-      console.log("SofIA AgentConfig creato per il workspace principale")
+      console.log("SofIA AgentConfig created for the main workspace")
     } else {
-      // FORCE UPDATE: Aggiorna sempre agentConfig con il contenuto di prompt_agent.md
+      // FORCE UPDATE: Always update agentConfig with the content of prompt_agent.md
       let promptContent = ""
       const promptFilePath = path.join(
         __dirname,
@@ -532,10 +525,10 @@ async function main() {
 
       try {
         promptContent = fs.readFileSync(promptFilePath, "utf8")
-        console.log(`🔄 Aggiornando agentConfig con prompt_agent.md`)
+        console.log(`🔄 Updating agentConfig with prompt_agent.md`)
       } catch (error) {
-        console.error(`❌ Errore lettura prompt_agent.md: ${error}`)
-        promptContent = SOFIA_PROMPT // Fallback al prompt di default
+        console.error(`❌ Error reading prompt_agent.md: ${error}`)
+        promptContent = SOFIA_PROMPT // Fallback to default prompt
       }
 
       await prisma.agentConfig.update({
@@ -548,10 +541,10 @@ async function main() {
           isActive: true,
         },
       })
-      console.log("✅ AgentConfig aggiornato con prompt_agent.md")
+      console.log("✅ AgentConfig updated with prompt_agent.md")
     }
 
-    // CREA ANCHE UN AGENT NELLA TABELLA PROMPTS SE NON ESISTE
+    // ALSO CREATE AN AGENT IN THE PROMPTS TABLE IF IT DOES NOT EXIST
     const existingPromptAgent = await prisma.prompts.findFirst({
       where: {
         workspaceId: mainWorkspaceId,
@@ -569,17 +562,17 @@ async function main() {
           department: null,
           workspaceId: mainWorkspaceId,
           model: "gpt-3.5-turbo",
-          temperature: 0, // Abbassata per maggiore consistenza nei link
+          temperature: 0, // Lowered for more consistency in links
           top_p: 1,
           max_tokens: 1024,
         },
       })
-      console.log("SofIA Prompt agent creato per il workspace principale")
+      console.log("SofIA Prompt agent created for the main workspace")
     } else {
-      console.log("Prompt agent già esistente per il workspace principale")
+      console.log("Prompt agent already exists for the main workspace")
     }
 
-    // CREA ROUTER PROMPT SE NON ESISTE
+    // CREATE ROUTER PROMPT IF IT DOES NOT EXIST
     const existingRouterPrompt = await prisma.prompts.findFirst({
       where: {
         workspaceId: mainWorkspaceId,
@@ -602,13 +595,13 @@ async function main() {
           max_tokens: 500,
         },
       })
-      console.log("Router Prompt creato per il workspace principale")
+      console.log("Router Prompt created for the main workspace")
     } else {
-      console.log("Router Prompt già esistente per il workspace principale")
+      console.log("Router Prompt already exists for the main workspace")
     }
   } else {
     console.log(
-      `Il workspace con ID ${mainWorkspaceId} non esiste nel database, lo creiamo`
+      `The workspace with ID ${mainWorkspaceId} does not exist in the database, creating it`
     )
     // Create the workspace if it doesn't exist
     const mainWorkspace = await prisma.workspace.create({
@@ -645,11 +638,11 @@ async function main() {
       },
     })
     console.log(
-      `Workspace creato: ${mainWorkspace.name} con ID ${mainWorkspace.id}`
+      `Workspace created: ${mainWorkspace.name} with ID ${mainWorkspace.id}`
     )
     createdWorkspaces.push(mainWorkspace)
 
-    // Associate admin user with the new workspace (FORZATO)
+    // Associate admin user with the new workspace (FORCED)
     try {
       await prisma.userWorkspace.upsert({
         where: {
@@ -668,10 +661,10 @@ async function main() {
         },
       })
       console.log(
-        `✅ Admin user forzatamente associato al nuovo workspace come OWNER (upsert) - UserID: ${adminUser.id}`
+        `✅ Admin user forcibly associated with the new workspace as OWNER (upsert) - UserID: ${adminUser.id}`
       )
 
-      // Verifica che l'associazione sia stata creata
+      // Verify that the association was created
       const verification = await prisma.userWorkspace.findUnique({
         where: {
           userId_workspaceId: {
@@ -682,19 +675,19 @@ async function main() {
       })
       if (verification) {
         console.log(
-          `✅ Verifica: associazione UserWorkspace creata correttamente`
+          `✅ Verification: UserWorkspace association created correctly`
         )
       } else {
         console.error(
-          `❌ ERRORE: associazione UserWorkspace NON trovata dopo la creazione!`
+          `❌ ERROR: UserWorkspace association NOT found after creation!`
         )
       }
     } catch (error) {
-      console.error(`❌ ERRORE nella creazione UserWorkspace:`, error)
+      console.error(`❌ ERROR in UserWorkspace creation:`, error)
       throw error
     }
 
-    // AGGIUNTA: CREA AgentConfig DI DEFAULT SE NON ESISTE
+    // ADDITION: CREATE Default AgentConfig IF IT DOES NOT EXIST
     const existingAgentConfig = await prisma.agentConfig.findFirst({
       where: { workspaceId: mainWorkspaceId },
     })
@@ -709,9 +702,9 @@ async function main() {
           isActive: true,
         },
       })
-      console.log("SofIA AgentConfig creato per il workspace principale")
+      console.log("SofIA AgentConfig created for the main workspace")
     } else {
-      // FORCE UPDATE: Aggiorna sempre agentConfig con il contenuto di prompt_agent.md
+      // FORCE UPDATE: Always update agentConfig with the content of prompt_agent.md
       let promptContent = ""
       const promptFilePath = path.join(
         __dirname,
@@ -724,10 +717,10 @@ async function main() {
 
       try {
         promptContent = fs.readFileSync(promptFilePath, "utf8")
-        console.log(`🔄 Aggiornando agentConfig con prompt_agent.md`)
+        console.log(`🔄 Updating agentConfig with prompt_agent.md`)
       } catch (error) {
-        console.error(`❌ Errore lettura prompt_agent.md: ${error}`)
-        promptContent = SOFIA_PROMPT // Fallback al prompt di default
+        console.error(`❌ Error reading prompt_agent.md: ${error}`)
+        promptContent = SOFIA_PROMPT // Fallback to default prompt
       }
 
       await prisma.agentConfig.update({
@@ -740,10 +733,10 @@ async function main() {
           isActive: true,
         },
       })
-      console.log("✅ AgentConfig aggiornato con prompt_agent.md")
+      console.log("✅ AgentConfig updated with prompt_agent.md")
     }
 
-    // CREA ANCHE UN AGENT NELLA TABELLA PROMPTS SE NON ESISTE
+    // ALSO CREATE AN AGENT IN THE PROMPTS TABLE IF IT DOES NOT EXIST
     const existingPromptAgent = await prisma.prompts.findFirst({
       where: {
         workspaceId: mainWorkspaceId,
@@ -766,12 +759,12 @@ async function main() {
           max_tokens: 1024,
         },
       })
-      console.log("SofIA Prompt agent creato per il workspace principale")
+      console.log("SofIA Prompt agent created for the main workspace")
     } else {
-      console.log("Prompt agent già esistente per il workspace principale")
+      console.log("Prompt agent already exists for the main workspace")
     }
 
-    // CREA ROUTER PROMPT SE NON ESISTE
+    // CREATE ROUTER PROMPT IF IT DOES NOT EXIST
     const existingRouterPrompt = await prisma.prompts.findFirst({
       where: {
         workspaceId: mainWorkspaceId,
@@ -794,9 +787,9 @@ async function main() {
           max_tokens: 500,
         },
       })
-      console.log("Router Prompt creato per il workspace principale")
+      console.log("Router Prompt created for the main workspace")
     } else {
-      console.log("Router Prompt già esistente per il workspace principale")
+      console.log("Router Prompt already exists for the main workspace")
     }
   }
 
@@ -811,9 +804,9 @@ async function main() {
 
   if (otherWorkspaces.length > 0) {
     console.log(
-      `Trovati ${otherWorkspaces.length} altri workspace (non verranno utilizzati)`
+      `Found ${otherWorkspaces.length} other workspaces (will not be used)`
     )
-    // Non li cancelliamo per sicurezza, ma non li includiamo nelle operazioni successive
+    // We don't delete them for safety, but we don't include them in subsequent operations
   }
 
   // L'Altra Italia Categories - Based on catalog structure
@@ -822,61 +815,61 @@ async function main() {
       name: "Cheeses & Dairy",
       slug: "cheeses-dairy",
       description:
-        "🧀 Formaggi e latticini italiani premium, mozzarella, burrata e prodotti caseari di alta qualità.",
+        "🧀 Premium Italian cheeses and dairy, mozzarella, burrata, and high-quality dairy products.",
     },
     {
       name: "Cured Meats",
       slug: "cured-meats",
       description:
-        "🥓 Salumi tradizionali italiani e insaccati artigianali di alta qualità.",
+        "🥓 Traditional Italian cured meats and high-quality artisanal sausages.",
     },
     {
       name: "Salami & Cold Cuts",
       slug: "salami-cold-cuts",
       description:
-        "🍖 Salami artigianali, prosciutto e affettati italiani della migliore tradizione.",
+        "🍖 Artisanal salami, prosciutto, and the best traditional Italian cold cuts.",
     },
     {
       name: "Pasta & Rice",
       slug: "pasta-rice",
       description:
-        "🍝 Pasta e riso italiani premium, varietà tradizionali e artigianali di alta qualità.",
+        "🍝 Premium Italian pasta and rice, traditional and high-quality artisanal varieties.",
     },
     {
       name: "Tomato Products",
       slug: "tomato-products",
       description:
-        "🍅 Salse di pomodoro italiane, passata e prodotti a base di pomodoro di qualità superiore.",
+        "🍅 Italian tomato sauces, passata, and superior quality tomato-based products.",
     },
     {
       name: "Flour & Baking",
       slug: "flour-baking",
       description:
-        "🌾 Farine italiane e ingredienti per panificazione e pasticceria artigianale.",
+        "🌾 Italian flours and ingredients for artisanal baking and pastry.",
     },
     {
       name: "Sauces & Preserves",
       slug: "sauces-preserves",
       description:
-        "🫙 Salse gourmet, conserve e condimenti italiani di alta qualità per arricchire ogni piatto.",
+        "🫙 Gourmet sauces, preserves, and high-quality Italian condiments to enrich every dish.",
     },
     {
       name: "Water & Beverages",
       slug: "water-beverages",
       description:
-        "💧 Acque minerali italiane premium e bevande tradizionali di alta qualità.",
+        "💧 Premium Italian mineral waters and high-quality traditional beverages.",
     },
     {
       name: "Frozen Products",
       slug: "frozen-products",
       description:
-        "🧊 Dolci surgelati italiani, pasticceria e specialità congelate di alta qualità.",
+        "🧊 Italian frozen desserts, pastries, and high-quality frozen specialties.",
     },
     {
       name: "Various & Spices",
       slug: "various-spices",
       description:
-        "🌶️ Spezie italiane, condimenti e vari prodotti gourmet per la cucina tradizionale.",
+        "🌶️ Italian spices, condiments, and various gourmet products for traditional cuisine.",
     },
   ]
 
@@ -912,7 +905,7 @@ async function main() {
     }
   }
 
-  // Crea le lingue disponibili solo se non esistono già
+  // Create available languages only if they don't exist
   const languageCodes = ["it", "en", "es", "pt"]
   const existingLanguages = await prisma.languages.findMany({
     where: {
@@ -954,12 +947,12 @@ async function main() {
       )
     )
     languages.push(...newLanguages)
-    console.log(`Nuove lingue create: ${languagesToCreate.join(", ")}`)
+    console.log(`New languages created: ${languagesToCreate.join(", ")}`)
   } else {
-    console.log("Tutte le lingue esistono già")
+    console.log("All languages already exist")
   }
 
-  // Connetti le lingue al workspace
+  // Connect languages to the workspace
   await prisma.workspace.update({
     where: { id: mainWorkspaceId },
     data: {
@@ -1108,7 +1101,7 @@ async function main() {
       name: "Burrata in Vaso",
       ProductCode: "0212000020",
       description:
-        "Burrata artigianale conservata in vaso, perfetta per mantenere la freschezza e la cremosità. Specialità pugliese di alta qualità.",
+        "Artisanal burrata preserved in a jar, perfect for maintaining freshness and creaminess. High-quality Apulian specialty.",
       formato: "125gr x12",
       price: 6.8,
       stock: 24,
@@ -1120,7 +1113,7 @@ async function main() {
       name: "Burrata Artigianale Senza Testa",
       ProductCode: "0212000043",
       description:
-        "Burrata artigianale di produzione limitata, senza testa, dal sapore intenso e cremosità eccezionale. Prodotta da maestri casari pugliesi.",
+        "Limited production artisanal burrata without head, with intense flavor and exceptional creaminess. Produced by Apulian master cheesemakers.",
       formato: "150gr x2",
       price: 8.9,
       stock: 18,
@@ -1132,7 +1125,7 @@ async function main() {
       name: "Burrata",
       ProductCode: "0212000029",
       description:
-        "Burrata classica pugliese di grande formato, perfetta per condivisione. Cuore cremoso di stracciatella e panna, pasta filata esterna.",
+        "Classic large Apulian burrata, perfect for sharing. Creamy heart of stracciatella and cream, with stretched curd outer shell.",
       formato: "250gr x10",
       price: 9.5,
       stock: 30,
@@ -1204,7 +1197,7 @@ async function main() {
       name: "Burrata alla Nduja",
       ProductCode: "0212000040",
       description:
-        "Burrata piccante con 'nduja calabrese, fusione di sapori del Sud Italia. Cremosità pugliese incontra il piccante calabrese.",
+        "Spicy burrata with Calabrian 'nduja, a fusion of flavors from Southern Italy. Apulian creaminess meets Calabrian spiciness.",
       formato: "200 Grx8",
       price: 11.2,
       stock: 12,
@@ -1216,7 +1209,7 @@ async function main() {
       name: "Burrata Caprese",
       ProductCode: "0212000046",
       description:
-        "Burrata con pomodorini e basilico, ispirata alla tradizione caprese. Freschezza campana in versione pugliese.",
+        "Burrata with cherry tomatoes and basil, inspired by the Caprese tradition. Campanian freshness in an Apulian version.",
       formato: "100Gr x12",
       price: 7.9,
       stock: 28,
@@ -1228,7 +1221,7 @@ async function main() {
       name: "Burrata ai Ricci di Mare",
       ProductCode: "0212000044",
       description:
-        "Burrata gourmet con ricci di mare, specialità di lusso che unisce la cremosità della burrata al sapore del mare pugliese.",
+        "Gourmet burrata with sea urchins, a luxury specialty that combines the creaminess of burrata with the taste of the Apulian sea.",
       formato: "100Gr x12",
       price: 15.5,
       stock: 8,
@@ -1240,7 +1233,7 @@ async function main() {
       name: "Burrata Affumicata con Cuore di Ricotta",
       ProductCode: "0212000041",
       description:
-        "Burrata affumicata con cuore di ricotta fresca, doppia cremosità e sapore affumicato delicato. Innovazione della tradizione.",
+        "Smoked burrata with a heart of fresh ricotta, double creaminess and a delicate smoky flavor. An innovation of tradition.",
       formato: "100gr x16",
       price: 8.9,
       stock: 22,
@@ -1252,7 +1245,7 @@ async function main() {
       name: "Burrata con Tartufo",
       ProductCode: "0212000019",
       description:
-        "Burrata gourmet con tartufo, eccellenza pugliese arricchita dal pregiato tartufo italiano. Lusso e tradizione in un solo prodotto. Regione: Puglia - Dalle murge pugliesi, dove la burrata incontra il tartufo umbro in un matrimonio di sapori unico.",
+        "Gourmet burrata with truffle, an Apulian excellence enriched by the precious Italian truffle. Luxury and tradition in a single product. Region: Puglia - From the Apulian Murgia, where burrata meets Umbrian truffle in a unique marriage of flavors.",
       formato: "100g x12",
       price: 12.8,
       stock: 10,
@@ -1264,7 +1257,7 @@ async function main() {
       name: "Burrata Anchoas del Cantábrico y pimiento",
       ProductCode: "G-ANCH-PROV",
       description:
-        "Burrata gourmet con acciughe del Cantabrico e peperoni, fusione italo-spagnola di sapori marini e terrestri.",
+        "Gourmet burrata with Cantabrian anchovies and peppers, an Italian-Spanish fusion of sea and land flavors.",
       formato: "100gr x16",
       price: 13.5,
       stock: 6,
@@ -1276,7 +1269,7 @@ async function main() {
       name: "Burrata Olive e Maggiorana",
       ProductCode: "G-OLIV-PROV",
       description:
-        "Burrata aromatizzata con olive pugliesi e maggiorana fresca, sapori mediterranei in perfetta armonia con la cremosità tradizionale.",
+        "Burrata flavored with Apulian olives and fresh marjoram, Mediterranean flavors in perfect harmony with traditional creaminess.",
       formato: "100gr x16",
       price: 9.2,
       stock: 14,
@@ -1288,7 +1281,7 @@ async function main() {
       name: "Burrata di Bufala",
       ProductCode: "0212000047",
       description:
-        "Burrata di latte di bufala campana, cremosità superiore e sapore più intenso. Eccellenza casearia del Sud Italia.",
+        "Burrata made from buffalo milk from Campania, with superior creaminess and a more intense flavor. A dairy excellence from Southern Italy.",
       formato: "125Gr x12",
       price: 11.8,
       stock: 16,
@@ -1302,7 +1295,7 @@ async function main() {
       name: "Mozzarela Di Bufala",
       ProductCode: "0212000035",
       description:
-        "Mozzarella di bufala campana DOP, dal sapore intenso e consistenza elastica. Prodotta con latte di bufala 100% campano.",
+        "PDO buffalo mozzarella from Campania, with an intense flavor and elastic texture. Produced with 100% Campanian buffalo milk.",
       formato: "5x100 Gr",
       price: 12.5,
       stock: 25,
@@ -1314,7 +1307,7 @@ async function main() {
       name: "Bocconcino Di Bufala",
       ProductCode: "0212000033",
       description:
-        "Bocconcini di mozzarella di bufala campana DOP, formato pratico per insalate e antipasti. Freschezza e qualità garantite.",
+        "Small balls of PDO buffalo mozzarella from Campania, a practical format for salads and appetizers. Freshness and quality guaranteed.",
       formato: "2x125 Gr",
       price: 8.9,
       stock: 32,
@@ -1326,7 +1319,7 @@ async function main() {
       name: "Ciliegina",
       ProductCode: "0212000048",
       description:
-        "Ciliegine di mozzarella di bufala DOP, formato mini perfetto per aperitivi e insalate caprese. Dolcezza e freschezza campana.",
+        "PDO buffalo mozzarella cherries, a mini format perfect for appetizers and Caprese salads. Sweetness and Campanian freshness.",
       formato: "15Gr (250Grx10)",
       price: 6.8,
       stock: 40,
@@ -1338,7 +1331,7 @@ async function main() {
       name: "Mozzarella Di Bufala Campana D.O.P.",
       ProductCode: "0212000034",
       description:
-        "Mozzarella di bufala campana DOP certificata, ciliegine in busta. Tradizione casearia campana dal 1800, sapore autentico.",
+        "Certified PDO buffalo mozzarella from Campania, cherries in a bag. Campanian dairy tradition since 1800, authentic flavor.",
       formato: "15Gr xbolsa 250Gr",
       price: 7.2,
       stock: 35,
@@ -1350,7 +1343,7 @@ async function main() {
       name: "Mozzarella di Bufala Campana D.O.P. 125gr",
       ProductCode: "0212000024",
       description:
-        "Mozzarella di bufala campana DOP formato classico, prodotta nelle province di Caserta e Salerno secondo disciplinare tradizionale. Regione: Campania - Terra dei bufali, dove la tradizione DOP protegge l'eccellenza casearia da generazioni.",
+        "Classic-sized PDO buffalo mozzarella from Campania, produced in the provinces of Caserta and Salerno according to traditional regulations. Region: Campania - Land of buffaloes, where the PDO tradition has protected dairy excellence for generations.",
       formato: "125gr x 12",
       price: 9.5,
       stock: 28,
@@ -1362,7 +1355,7 @@ async function main() {
       name: "Mozzarella di Bufala Campana D.O.P. 250gr",
       ProductCode: "0212000031",
       description:
-        "Mozzarella di bufala campana DOP grande formato, ideale per famiglie. Cremosità e sapore intenso della tradizione campana.",
+        "Large-sized PDO buffalo mozzarella from Campania, ideal for families. Creaminess and intense flavor of the Campanian tradition.",
       formato: "250gr x12",
       price: 14.8,
       stock: 20,
@@ -1374,7 +1367,7 @@ async function main() {
       name: "Mozzarella di Bufala D.O.P. Treccia 1kg",
       ProductCode: "0212000053",
       description:
-        "Treccia di mozzarella di bufala DOP da 1kg, formato professionale per ristoranti. Lavorazione artigianale a mano.",
+        "1kg braid of PDO buffalo mozzarella, a professional format for restaurants. Artisanal hand-crafting.",
       formato: "1 Kg",
       price: 18.9,
       stock: 15,
@@ -1386,7 +1379,7 @@ async function main() {
       name: "Mozzarella di Bufala D.O.P. Affumicata",
       ProductCode: "0212000028",
       description:
-        "Mozzarella di bufala DOP affumicata con legni naturali, sapore unico che unisce tradizione campana e tecnica affumicatura.",
+        "Smoked PDO buffalo mozzarella with natural woods, a unique flavor that combines Campanian tradition and smoking techniques.",
       formato: "250gr x12",
       price: 16.2,
       stock: 12,
@@ -1398,7 +1391,7 @@ async function main() {
       name: "Mozzarella di Bufala D.O.P. Treccia 2kg",
       ProductCode: "0212000049",
       description:
-        "Treccia di mozzarella di bufala DOP da 2kg, formato per grandi eventi e ristorazione. Lavorazione completamente manuale.",
+        "2kg braid of PDO buffalo mozzarella, a format for large events and catering. Completely handmade.",
       formato: "2 Kg",
       price: 35.5,
       stock: 8,
@@ -1410,7 +1403,7 @@ async function main() {
       name: "Mozzarella di Bufala Senza Lattosio",
       ProductCode: "0212000036",
       description:
-        "Mozzarella di bufala senza lattosio, per intolleranti che non vogliono rinunciare al sapore autentico della bufala campana.",
+        "Lactose-free buffalo mozzarella, for those with intolerance who do not want to give up the authentic taste of Campanian buffalo.",
       formato: "2x125 Gr",
       price: 10.8,
       stock: 18,
@@ -1422,7 +1415,7 @@ async function main() {
       name: "Mozzarella di Bufala Senza Lattosio 500gr",
       ProductCode: "P-MBSL-PROV",
       description:
-        "Mozzarella di bufala senza lattosio formato grande, innovazione per intolleranti. Mantiene tutto il sapore della tradizione campana.",
+        "Large-sized lactose-free buffalo mozzarella, an innovation for the intolerant. It retains all the flavor of the Campanian tradition.",
       formato: "500 Gr",
       price: 16.5,
       stock: 10,
@@ -1434,7 +1427,7 @@ async function main() {
       name: "Bocconcini di Bufala Senza Lattosio",
       ProductCode: "0212000037",
       description:
-        "Bocconcini di mozzarella di bufala senza lattosio, formato pratico per chi ha intolleranze ma ama i sapori autentici.",
+        "Lactose-free buffalo mozzarella bites, a practical format for those with intolerances who love authentic flavors.",
       formato: "5x50 Gr",
       price: 9.2,
       stock: 22,
@@ -1448,7 +1441,7 @@ async function main() {
       name: "Fiordilatte Taglio Napoli",
       ProductCode: "0212000025",
       description:
-        "Fior di latte taglio Napoli, mozzarella di latte vaccino della tradizione napoletana. Perfetta per pizza e piatti tipici campani.",
+        "Fior di latte with a Napoli cut, cow's milk mozzarella from the Neapolitan tradition. Perfect for pizza and typical Campanian dishes.",
       formato: "6x500Gr",
       price: 8.5,
       stock: 30,
@@ -1460,7 +1453,7 @@ async function main() {
       name: "Fiordilatte Julienne Taglio Fiammifero",
       ProductCode: "0212000026",
       description:
-        "Fior di latte taglio julienne a fiammifero, formato professionale per pizzerie e ristoranti. Fusione perfetta e veloce.",
+        "Julienne-cut fior di latte, professional format for pizzerias and restaurants. Perfect and fast melting.",
       formato: "3 Kg",
       price: 12.8,
       stock: 20,
@@ -1472,7 +1465,7 @@ async function main() {
       name: "Fior di Latte Boccone",
       ProductCode: "0212000045",
       description:
-        "Fior di latte a bocconi, formato professionale per ristorazione. Mozzarella di latte vaccino dalla consistenza perfetta.",
+        "Fior di latte in bites, professional format for catering. Cow's milk mozzarella with a perfect consistency.",
       formato: "3 Kg",
       price: 11.9,
       stock: 25,
@@ -1484,7 +1477,7 @@ async function main() {
       name: "Fior di Latte Cubettata",
       ProductCode: "0212000051",
       description:
-        "Fior di latte cubettata, taglio uniforme per preparazioni professionali. Ideale per insalate e piatti freddi.",
+        "Diced fior di latte, uniform cut for professional preparations. Ideal for salads and cold dishes.",
       formato: "3 Kg",
       price: 12.2,
       stock: 18,
@@ -1496,7 +1489,7 @@ async function main() {
       name: "Mozzarella Fior di Latte",
       ProductCode: "0212000032",
       description:
-        "Mozzarella fior di latte formato famiglia, dalla tradizione casearia campana. Sapore delicato e consistenza elastica.",
+        "Family-sized fior di latte mozzarella, from the Campanian dairy tradition. Delicate flavor and elastic consistency.",
       formato: "15x200 Gr",
       price: 6.8,
       stock: 35,
@@ -1508,7 +1501,7 @@ async function main() {
       name: "Mozzarella Fiordilatte 500gr",
       ProductCode: "0212000027",
       description:
-        "Mozzarella fiordilatte formato medio, perfetta per uso domestico. Prodotta con latte fresco italiano di alta qualità.",
+        "Medium-sized fior di latte mozzarella, perfect for home use. Produced with high-quality fresh Italian milk.",
       formato: "500 Gr x6",
       price: 5.9,
       stock: 42,
@@ -1520,7 +1513,7 @@ async function main() {
       name: "Fior di Latte 125gr",
       ProductCode: "0212000042",
       description:
-        "Fior di latte formato piccolo, ideale per porzioni individuali. Freschezza e qualità della tradizione casearia italiana.",
+        "Small-sized fior di latte, ideal for individual portions. Freshness and quality of the Italian dairy tradition.",
       formato: "125Gr x20",
       price: 4.5,
       stock: 50,
@@ -1532,7 +1525,7 @@ async function main() {
       name: "Mozzarella Julienne",
       ProductCode: "0219000003",
       description:
-        "Mozzarella julienne professionale, taglio sottile per fusione rapida. Formato ristorante per preparazioni veloci.",
+        "Professional julienne mozzarella, thin cut for quick melting. Restaurant format for fast preparations.",
       formato: "2 Kg",
       price: 9.8,
       stock: 28,
@@ -1594,7 +1587,7 @@ async function main() {
       name: "Ricotta",
       ProductCode: "1002037075",
       description:
-        "Ricotta fresca italiana, prodotta con siero di latte di alta qualità. Sapore dolce e consistenza cremosa, tradizione casearia.",
+        "Fresh Italian ricotta, produced with high-quality whey. Sweet flavor and creamy consistency, a dairy tradition.",
       formato: "1,5 Kg x2",
       price: 6.5,
       stock: 30,
@@ -1606,7 +1599,7 @@ async function main() {
       name: "Ricotta 250gr",
       ProductCode: "1002020376",
       description:
-        "Ricotta fresca formato famiglia, perfetta per dolci e preparazioni salate. Prodotta giornalmente con latte italiano.",
+        "Family-sized fresh ricotta, perfect for desserts and savory preparations. Produced daily with Italian milk.",
       formato: "250gr x8",
       price: 3.8,
       stock: 45,
@@ -1618,7 +1611,7 @@ async function main() {
       name: "Ricotta de Bufala",
       ProductCode: "0217000037",
       description:
-        "Ricotta di bufala campana, sapore più intenso e cremosità superiore. Prodotta con siero di latte di bufala DOP.",
+        "Campanian buffalo ricotta, more intense flavor and superior creaminess. Produced with PDO buffalo whey.",
       formato: "200 Gr x12",
       price: 8.9,
       stock: 20,
@@ -1630,7 +1623,7 @@ async function main() {
       name: "Ricotta de Bufala 400gr",
       ProductCode: "0217000038",
       description:
-        "Ricotta di bufala formato grande, eccellenza casearia campana. Ideale per preparazioni dolci e salate di alta qualità.",
+        "Large-sized buffalo ricotta, a Campanian dairy excellence. Ideal for high-quality sweet and savory preparations.",
       formato: "400 Gr x6",
       price: 12.5,
       stock: 15,
@@ -1642,7 +1635,7 @@ async function main() {
       name: "Mascarpone",
       ProductCode: "1002037074",
       description:
-        "Mascarpone lombardo tradizionale, cremoso e delicato. Perfetto per tiramisù e preparazioni dolci della tradizione italiana.",
+        "Traditional Lombard mascarpone, creamy and delicate. Perfect for tiramisu and traditional Italian desserts.",
       formato: "500 gr x6",
       price: 7.8,
       stock: 25,
@@ -1654,7 +1647,7 @@ async function main() {
       name: "Mascarpone 2kg",
       ProductCode: "0217000026",
       description:
-        "Mascarpone formato professionale per pasticcerie e ristoranti. Cremosità e qualità lombarda per preparazioni di alto livello.",
+        "Professional-sized mascarpone for pastry shops and restaurants. Lombard creaminess and quality for high-level preparations.",
       formato: "2 Kg x6",
       price: 22.5,
       stock: 12,
@@ -1666,7 +1659,7 @@ async function main() {
       name: "Scamorza Affumicata a Spicchi",
       ProductCode: "0217000043",
       description:
-        "Scamorza affumicata a spicchi, formato aperitivo. Sapore affumicato delicato della tradizione casearia del Sud Italia. Regione: Molise - Dalle montagne del Matese, dove l'antica arte dell'affumicatura dona sapori unici ai formaggi a pasta filata.",
+        "Smoked scamorza in wedges, appetizer format. Delicate smoky flavor from the dairy tradition of Southern Italy. Region: Molise - From the Matese mountains, where the ancient art of smoking gives unique flavors to stretched-curd cheeses.",
       formato: "30 Gr (250Gr x10)",
       price: 6.2,
       stock: 35,
@@ -1678,7 +1671,7 @@ async function main() {
       name: "Taleggio DOP",
       ProductCode: "1002037073",
       description:
-        "Taleggio DOP lombardo, formaggio a pasta molle dalla crosta lavata. Sapore intenso e cremosità tipica delle valli bergamasche.",
+        "Lombard PDO Taleggio, a soft cheese with a washed rind. Intense flavor and typical creaminess of the Bergamo valleys.",
       formato: "+/-2Kg",
       price: 24.8,
       stock: 8,
@@ -1690,7 +1683,7 @@ async function main() {
       name: "Gorgonzola Dolce",
       ProductCode: "0217000031",
       description:
-        "Gorgonzola dolce lombardo, erborinato cremoso dal sapore delicato. Tradizione casearia della pianura padana dal 1800. Regione: Lombardia - Nelle valli bergamasche nasce questo gioiello erborinato, simbolo dell'eccellenza casearia lombarda.",
+        "Sweet Lombard Gorgonzola, a creamy blue cheese with a delicate flavor. Dairy tradition of the Po Valley since 1800. Region: Lombardy - In the Bergamo valleys, this blue-veined jewel is born, a symbol of Lombard dairy excellence.",
       formato: "1,5 Kg +/-",
       price: 18.9,
       stock: 12,
@@ -1702,7 +1695,7 @@ async function main() {
       name: "Yogurt di Bufala",
       ProductCode: "0320000001",
       description:
-        "Yogurt di bufala campana, cremoso e ricco di proteine. Prodotto con latte di bufala fresco delle migliori aziende campane.",
+        "Campanian buffalo yogurt, creamy and rich in protein. Produced with fresh buffalo milk from the best Campanian farms.",
       formato: "150 Gr x6",
       price: 5.8,
       stock: 30,
@@ -1714,7 +1707,7 @@ async function main() {
       name: "Burro di Bufala",
       ProductCode: "0227000021",
       description:
-        "Burro di bufala campana, sapore intenso e cremosità superiore. Prodotto con panna di bufala, eccellenza casearia italiana.",
+        "Campanian buffalo butter, intense flavor and superior creaminess. Produced with buffalo cream, an Italian dairy excellence.",
       formato: "125 Gr x40",
       price: 4.5,
       stock: 40,
@@ -1726,7 +1719,7 @@ async function main() {
       name: "Panna Cotta de Bufala",
       ProductCode: "0221000003",
       description:
-        "Panna cotta di bufala, dolce tradizionale piemontese con latte di bufala campana. Cremosità e sapore unici.",
+        "Buffalo panna cotta, a traditional Piedmontese dessert with Campanian buffalo milk. Unique creaminess and flavor.",
       formato: "100 Gr",
       price: 3.8,
       stock: 25,
@@ -1738,7 +1731,7 @@ async function main() {
       name: "Kefir di Bufala",
       ProductCode: "P-KEFB-PROV",
       description:
-        "Kefir di bufala, bevanda fermentata probiotica. Innovazione salutistica con latte di bufala campana, ricco di fermenti vivi.",
+        "Buffalo kefir, a probiotic fermented drink. A healthy innovation with Campanian buffalo milk, rich in live cultures.",
       formato: "200 Gr x6",
       price: 6.8,
       stock: 18,
@@ -1750,7 +1743,7 @@ async function main() {
       name: "Formaggio Fresco di Bufala Spalmabile",
       ProductCode: "P-QFRE-PROV",
       description:
-        "Formaggio fresco di bufala spalmabile, cremoso e delicato. Perfetto per aperitivi e colazioni, innovazione della tradizione campana.",
+        "Spreadable fresh buffalo cheese, creamy and delicate. Perfect for appetizers and breakfasts, an innovation of the Campanian tradition.",
       formato: "150 Gr x6",
       price: 7.2,
       stock: 22,
@@ -1762,7 +1755,7 @@ async function main() {
       name: "Perle di Bufala in Crema Fresca",
       ProductCode: "P-PBCF-PROV",
       description:
-        "Perle di bufala avvolte in crema fresca, specialità gourmet. Piccole sfere di mozzarella di bufala in crema, esperienza unica.",
+        "Buffalo pearls wrapped in fresh cream, a gourmet specialty. Small spheres of buffalo mozzarella in cream, a unique experience.",
       formato: "500 Gr",
       price: 14.5,
       stock: 10,
@@ -1776,7 +1769,7 @@ async function main() {
       name: "Gran Moravia",
       ProductCode: "0217000005",
       description:
-        "Gran Moravia, formaggio stagionato ceco di alta qualità. Sapore intenso e consistenza compatta, perfetto per grattugie e degustazioni.",
+        "Gran Moravia, a high-quality aged Czech cheese. Intense flavor and compact consistency, perfect for grating and tasting.",
       formato: "500 Gr x10",
       price: 12.8,
       stock: 20,
@@ -1788,7 +1781,7 @@ async function main() {
       name: "Gran Moravia Rallado",
       ProductCode: "1002037090",
       description:
-        "Gran Moravia grattugiato, pronto all'uso per pasta e risotti. Stagionatura prolungata per sapore intenso e aroma persistente.",
+        "Grated Gran Moravia, ready to use for pasta and risottos. Prolonged aging for intense flavor and persistent aroma.",
       formato: "1 Kg",
       price: 15.5,
       stock: 25,
@@ -1800,7 +1793,7 @@ async function main() {
       name: "Gran Moravia En Laminas",
       ProductCode: "0201020522",
       description:
-        "Gran Moravia a lamelle, taglio professionale per antipasti e piatti gourmet. Presentazione elegante e sapore intenso.",
+        "Gran Moravia in flakes, professional cut for appetizers and gourmet dishes. Elegant presentation and intense flavor.",
       formato: "1 Kg",
       price: 16.8,
       stock: 15,
@@ -1812,7 +1805,7 @@ async function main() {
       name: "Gran Moravia 1/8",
       ProductCode: "0217000003",
       description:
-        "Gran Moravia in ottavo di forma, formato tradizionale per taglio personalizzato. Stagionatura minima 12 mesi.",
+        "Gran Moravia in an eighth of a wheel, traditional format for custom cutting. Minimum aging of 12 months.",
       formato: "4 Kg +/-",
       price: 38.5,
       stock: 8,
@@ -1824,7 +1817,7 @@ async function main() {
       name: "Parmigiano Reggiano D.O.P. Gran Fiore",
       ProductCode: "0202020436",
       description:
-        "Parmigiano Reggiano DOP Gran Fiore, stagionato 24 mesi. Re dei formaggi italiani dalle province di Parma, Reggio Emilia e Modena. Regione: Emilia-Romagna - Patria del Parmigiano, dove la pianura padana dona il latte più pregiato d'Italia.",
+        "Parmigiano Reggiano DOP Gran Fiore, aged 24 months. The king of Italian cheeses from the provinces of Parma, Reggio Emilia, and Modena. Region: Emilia-Romagna - Homeland of Parmigiano, where the Po Valley provides the finest milk in Italy.",
       formato: "1 Kg +/-",
       price: 28.5,
       stock: 15,
@@ -1836,7 +1829,7 @@ async function main() {
       name: "Parmigiano Reggiano Rueda Entera",
       ProductCode: "0202020582",
       description:
-        "Parmigiano Reggiano DOP ruota intera, stagionato 24+ mesi. Eccellenza assoluta della tradizione casearia emiliana, formato professionale.",
+        "PDO Parmigiano Reggiano whole wheel, aged 24+ months. The absolute excellence of the Emilian cheese-making tradition, professional format.",
       formato: "34 Kg +/-",
       price: 39.9,
       stock: 2,
@@ -2162,8 +2155,8 @@ async function main() {
   // Define sample offers
   const specialOffers = [
     {
-      name: "Offerta Frozen Products 20%",
-      description: "Sconto del 20% su tutti i prodotti surgelati!",
+      name: "Frozen Products 20% Offer",
+      description: "20% discount on all frozen products!",
       discountPercent: 20,
       startDate: new Date(new Date().setDate(new Date().getDate() - 30)), // 30 days ago
       endDate: new Date(new Date().setDate(new Date().getDate() + 365)), // 1 year from now
@@ -2421,9 +2414,9 @@ async function main() {
         "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
-      question: "Voglio fare un ordine",
+      question: "I want to place an order",
       answer:
-        "Ciao! Per effettuare un nuovo ordine, clicca su questo link: [LINK_CHECKOUT_WITH_TOKEN]",
+        "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
       question: "Factura de mi último pedido",
@@ -2472,9 +2465,9 @@ async function main() {
         "Hello! You can change your shipping address through this secure link: [LINK_PROFILE_WITH_TOKEN]",
     },
     {
-      question: "dammi lista ordini",
+      question: "Give me the list of orders",
       answer:
-        "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+        "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
       question: "Give me the list of orders",
@@ -2482,32 +2475,32 @@ async function main() {
         "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
-      question: "voglio modificare il mio profilo",
+      question: "I want to modify my profile",
       answer:
-        "Ciao! Puoi modificare il tuo profilo attraverso questo link sicuro: [LINK_PROFILE_WITH_TOKEN]",
+        "Hello! You can modify your profile through this secure link: [LINK_PROFILE_WITH_TOKEN]",
     },
     {
-      question: "mostra i miei ordini",
+      question: "Show my orders",
       answer:
-        "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+        "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
-      question: "voglio vedere i miei ordini",
+      question: "I want to see my orders",
       answer:
-        "Ciao! Per visualizzare i tuoi ordini, clicca su questo link: [LINK_ORDERS_WITH_TOKEN]",
+        "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
-      question: "posso parlare con un operatore?",
+      question: "Can I speak with an operator?",
       answer:
-        "Ciao! Per parlare con un operatore umano, contatta il nostro servizio clienti: info@laltrait.com o chiama (+34) 93 15 91 221. Siamo disponibili dal lunedì al venerdì dalle 9:00 alle 18:00.",
+        "Hello! To speak with a human operator, contact our customer service: info@laltrait.com or call (+34) 93 15 91 221. We are available Monday to Friday from 9:00 AM to 6:00 PM.",
     },
     {
-      question: "mostra carrello",
-      answer: "Ecco il tuo carrello! 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
+      question: "Show cart",
+      answer: "Here is your cart! 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
-      question: "mosrami cararello",
-      answer: "Ecco il tuo carrello! 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
+      question: "Show me cart",
+      answer: "Here is your cart! 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
       question: "show cart",
@@ -2531,8 +2524,8 @@ async function main() {
       answer: "Here is your cart! 🛒 [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
-      question: "che offerte avete?",
-      answer: "Ciao! Ecco le nostre offerte attive: [LIST_OFFERS]",
+      question: "What offers do you have?",
+      answer: "Hello! Here are our active offers: [LIST_OFFERS]",
     },
     /* Rimosse FAQ con token LIST_ALL_PRODUCTS - sono gestiti dal prompt */
     {
@@ -2540,17 +2533,17 @@ async function main() {
       answer: "Hello! Here are our active offers: [LIST_OFFERS]",
     },
     {
-      question: "offerte",
-      answer: "Ecco le nostre offerte attive: [LIST_OFFERS]",
+      question: "Offers",
+      answer: "Here are our active offers: [LIST_OFFERS]",
     },
     {
-      question: "sconti",
-      answer: "Ecco le nostre offerte e sconti attivi: [LIST_OFFERS]",
+      question: "Discounts",
+      answer: "Here are our active offers and discounts: [LIST_OFFERS]",
     },
     {
-      question: "prodotti difettosi",
+      question: "Defective products",
       answer:
-        "Mi dispiace per il prodotto difettoso! 😔\n\nPer risolvere:\n✅ **Contattaci subito** al (+34) 93 15 91 221 o info@laltrait.com\n✅ **Reso gratuito** con ritiro gratuito\n✅ **Rimborso completo** o sostituzione immediata\n\nLa qualità è la nostra priorità. Ti aiutiamo a risolvere subito!",
+        "I'm sorry about the defective product! 😔\n\nTo resolve:\n✅ **Contact us immediately** at (+34) 93 15 91 221 or info@laltrait.com\n✅ **Free return** with free pickup\n✅ **Full refund** or immediate replacement\n\nQuality is our priority. We'll help you resolve it right away!",
     },
   ]
 

@@ -243,7 +243,9 @@ export const PublicPageLayout: React.FC<PublicPageLayoutProps> = ({
 
       {/* Main content con padding uniforme */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="bg-white rounded-lg shadow-sm border">{children}</div>
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          {children}
+        </div>
       </main>
     </div>
   )

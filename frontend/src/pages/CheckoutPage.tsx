@@ -1257,7 +1257,7 @@ const CheckoutPage: React.FC = () => {
                   onClick={() => setCurrentStep(1)}
                   className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
                 >
-                  ← Indietro
+                  {texts.goBack}
                 </button>
                 <button
                   onClick={handleNextStep}
@@ -1326,14 +1326,14 @@ const CheckoutPage: React.FC = () => {
                     <div className="bg-gray-50 p-3 rounded-lg">
                       <p>
                         <strong>
-                          {formData.shippingAddress.name || "Non specificato"}
+                          {formData.shippingAddress.name || texts.notSpecified}
                         </strong>
                       </p>
                       <p>
-                        {formData.shippingAddress.street || "Non specificato"}
+                        {formData.shippingAddress.street || texts.notSpecified}
                       </p>
                       <p>
-                        {formData.shippingAddress.city || "Non specificato"}{" "}
+                        {formData.shippingAddress.city || texts.notSpecified}{" "}
                         {formData.shippingAddress.postalCode || ""}
                       </p>
                       {formData.shippingAddress.province && (
@@ -1363,15 +1363,15 @@ const CheckoutPage: React.FC = () => {
                           <p>
                             <strong>
                               {formData.billingAddress.name ||
-                                "Non specificato"}
+                                texts.notSpecified}
                             </strong>
                           </p>
                           <p>
                             {formData.billingAddress.street ||
-                              "Non specificato"}
+                              texts.notSpecified}
                           </p>
                           <p>
-                            {formData.billingAddress.city || "Non specificato"}{" "}
+                            {formData.billingAddress.city || texts.notSpecified}{" "}
                             {formData.billingAddress.postalCode || ""}
                           </p>
                           {formData.billingAddress.province && (
@@ -1415,7 +1415,7 @@ const CheckoutPage: React.FC = () => {
 
               {submitStatus.success && (
                 <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
-                  ✅ Ordine creato con successo! Verrai reindirizzato...
+                  {texts.orderSuccessMessage}
                 </div>
               )}
 
@@ -1426,7 +1426,7 @@ const CheckoutPage: React.FC = () => {
                   className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
                   disabled={submitStatus.loading}
                 >
-                  ← Indietro
+                  {texts.goBack}
                 </button>
                 {!submitStatus.success && (
                   <button
@@ -1437,10 +1437,10 @@ const CheckoutPage: React.FC = () => {
                     {submitStatus.loading ? (
                       <span className="flex items-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Creazione ordine...
+                        {texts.creatingOrder}
                       </span>
                     ) : (
-                      "✅ CONFERMA ORDINE"
+                      `✅ ${texts.confirmOrder}`
                     )}
                   </button>
                 )}
