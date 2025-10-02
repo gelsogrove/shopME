@@ -243,7 +243,8 @@ export const publicPageTranslations: Record<
     countryLabel: "Paese",
     sameAsShippingLabel: "Stesso indirizzo di spedizione",
     additionalNotesLabel: "Note aggiuntive",
-    orderSuccessMessage: "✅ Ordine creato con successo! Verrai reindirizzato...",
+    orderSuccessMessage:
+      "✅ Ordine creato con successo! Verrai reindirizzato...",
     notSpecified: "Non specificato",
     goBack: "← Indietro",
   },
@@ -364,7 +365,8 @@ export const publicPageTranslations: Record<
     countryLabel: "Country",
     sameAsShippingLabel: "Same as shipping address",
     additionalNotesLabel: "Additional notes",
-    orderSuccessMessage: "✅ Order created successfully! You will be redirected...",
+    orderSuccessMessage:
+      "✅ Order created successfully! You will be redirected...",
     notSpecified: "Not specified",
     goBack: "← Back",
   },
@@ -486,8 +488,7 @@ export const publicPageTranslations: Record<
     countryLabel: "País",
     sameAsShippingLabel: "Misma dirección de envío",
     additionalNotesLabel: "Notas adicionales",
-    orderSuccessMessage:
-      "✅ ¡Pedido creado con éxito! Serás redirigido...",
+    orderSuccessMessage: "✅ ¡Pedido creado con éxito! Serás redirigido...",
     notSpecified: "No especificado",
     goBack: "← Volver",
   },
