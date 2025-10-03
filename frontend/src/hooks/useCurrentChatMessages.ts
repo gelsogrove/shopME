@@ -86,9 +86,9 @@ export function useCurrentChatMessages(
       }
     },
     enabled: !!sessionId, // Always enabled when sessionId exists - polling controlled by refetchInterval
-    refetchInterval: hasPollingLock ? 4000 : false, // Only poll if we have the lock
+    refetchInterval: hasPollingLock ? 10000 : false, // Poll every 10 seconds if we have the lock
     refetchIntervalInBackground: true, // Allow background polling
-    staleTime: 1000, // Data is fresh for 1 second
+    staleTime: 2000, // Data is fresh for 2 seconds
     gcTime: 2 * 60 * 1000, // Keep in cache for 2 minutes
     refetchOnWindowFocus: hasPollingLock, // Refetch on focus if we have lock
   })

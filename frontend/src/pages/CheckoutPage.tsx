@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger"
 import React, { useEffect, useState } from "react"
 import { useLocation, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -300,9 +301,8 @@ const CheckoutPage: React.FC = () => {
       }
 
       // ✅ Success - UI is already updated, no need to refresh
-      console.log("✅ Quantity updated successfully in backend")
     } catch (error) {
-      console.error("❌ Error updating quantity:", error)
+      logger.error("Error updating quantity:", error)
       toast.error("Errore nell'aggiornare la quantità")
     }
   }
@@ -359,7 +359,7 @@ const CheckoutPage: React.FC = () => {
       // Show success message
       toast.success(`${productToDelete.name} rimosso dal carrello`)
     } catch (error) {
-      console.error("❌ Error removing product:", error)
+      logger.error("Error removing product:", error)
       toast.error("Errore nel rimuovere il prodotto")
     }
   }
@@ -375,7 +375,6 @@ const CheckoutPage: React.FC = () => {
     if (!token) return
 
     try {
-      console.log("🔄 Starting cart refresh...")
       const response = await fetch(`/api/cart/${token}`)
 
       if (!response.ok) {
@@ -383,12 +382,10 @@ const CheckoutPage: React.FC = () => {
       }
 
       const result = await response.json()
-      console.log("🔍 Raw cart data from API:", result)
 
       if (result.success && result.data) {
         // Convert backend cart items to frontend format
         const updatedProdotti = result.data.items.map((item: any) => {
-          console.log("🔍 Processing cart item:", item)
           return {
             id: item.id,
             productId: item.productId,
@@ -406,12 +403,10 @@ const CheckoutPage: React.FC = () => {
           }
         })
 
-        console.log("🔍 About to set prodotti with:", updatedProdotti)
         setProdotti(updatedProdotti)
-        console.log("✅ Cart refreshed from backend:", updatedProdotti)
       }
     } catch (error) {
-      console.error("❌ Error refreshing cart from backend:", error)
+      logger.error("Error refreshing cart from backend:", error)
     }
   }
 
@@ -420,7 +415,7 @@ const CheckoutPage: React.FC = () => {
     // 🔧 FIX: Get workspaceId from tokenData.data (correct path)
     const workspaceId = tokenData?.data?.workspaceId || tokenData?.workspaceId
     if (!workspaceId) {
-      console.error("❌ No workspaceId found in tokenData:", tokenData)
+      logger.error("No workspaceId found in tokenData:", tokenData)
       return
     }
 

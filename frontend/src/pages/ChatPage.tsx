@@ -181,12 +181,6 @@ export function ChatPage() {
     try {
       setIsLoadingCartToken(true)
 
-      // Debug logging
-      console.log(
-        `[FRONTEND] 🔍 Getting cart token for customerId: "${customerId}", workspaceId: "${workspaceId}"`
-      )
-      console.log(`[FRONTEND] 🔍 selectedChat:`, selectedChat)
-
       const response = await api.post("/cart-tokens", {
         customerId,
         workspaceId,
@@ -194,12 +188,6 @@ export function ChatPage() {
 
       if (response.data.success) {
         const token = response.data.data.token
-        console.log(
-          `[FRONTEND] ✅ Token ricevuto: ${token.substring(
-            0,
-            10
-          )}...${token.substring(-10)} (length: ${token.length})`
-        )
         return token
       } else {
         throw new Error(response.data.error || "Failed to get cart token")

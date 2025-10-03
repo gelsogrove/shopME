@@ -72,13 +72,6 @@ export function useRecentChats(
             isBlacklisted: chat.customer?.isBlacklisted ?? false, // Include blacklist status
           }))
 
-          // DEBUG: Log per vedere che lingue arrivano dal backend
-          transformedChats.forEach((chat) => {
-            console.log(`🔍 DEBUG - Customer: ${chat.customerName}`)
-            console.log(`🔍 DEBUG - Language field:`, chat.language)
-            console.log(`🔍 DEBUG - Raw chat object:`, chat)
-          })
-
           // Note: Global toast notifications are now handled by useGlobalNewMessageNotifier
           // in PageLayout - no need to duplicate here
 
@@ -98,9 +91,9 @@ export function useRecentChats(
       }
     },
     enabled: true, // Always enabled - polling is controlled by refetchInterval
-    refetchInterval: hasPollingLock ? 4000 : false, // Only poll if we have the lock
+    refetchInterval: hasPollingLock ? 10000 : false, // Poll every 10 seconds if we have the lock
     refetchIntervalInBackground: true, // Allow background polling
-    staleTime: 1000, // Data is fresh for 1 second only
+    staleTime: 2000, // Data is fresh for 2 seconds
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     refetchOnWindowFocus: hasPollingLock, // Refetch on focus if we have lock
   })
