@@ -128,17 +128,8 @@ export function ClientSheet({
   const [loadingClient, setLoadingClient] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
 
-  // Debug dell'apertura
-  useEffect(() => {
-    logger.info("ClientSheet open state changed:", { open, client })
-  }, [open])
-
   // Reset form when client changes
   useEffect(() => {
-    logger.info(
-      "ClientSheet useEffect triggered for client/availableLanguages",
-      { client, open, availableLanguages }
-    )
     if (fetchedClient) {
       setName(fetchedClient.name || "")
       setEmail(fetchedClient.email || "")

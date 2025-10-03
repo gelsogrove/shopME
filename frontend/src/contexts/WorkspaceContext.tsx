@@ -1,4 +1,5 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import { logger } from '@/lib/logger'
 
 export interface Workspace {
   id: string
@@ -32,16 +33,34 @@ interface WorkspaceProviderProps {
   children: ReactNode
 }
 
-export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }) => {
-  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null)
+export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
+  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(() => {
+    // Initialize from sessionStorage
+    try {
+      const stored = sessionStorage.getItem('currentWorkspace')
+      return stored ? JSON.parse(stored) : null
+    } catch (error) {
+      return null
+    }
+  })
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
 
-  // Check authentication status
+  // Check authentication status and workspace
   useEffect(() => {
     const checkAuth = () => {
       try {
         const user = localStorage.getItem('user')
         const authenticated = user !== null
+
+        // If authenticated but no workspace, try to get from sessionStorage
+        if (authenticated && !currentWorkspace) {
+          const stored = sessionStorage.getItem('currentWorkspace')
+          if (stored) {
+            const workspace = JSON.parse(stored)
+            setCurrentWorkspace(workspace)
+          }
+        }
+
         setIsAuthenticated(authenticated)
         return authenticated
       } catch (error) {
@@ -74,6 +93,14 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
   const workspaceData = null
   const isLoading = false
   const error = null
+
+  // Salva il workspace nel sessionStorage quando cambia
+  useEffect(() => {
+    if (currentWorkspace) {
+      sessionStorage.setItem('currentWorkspace', JSON.stringify(currentWorkspace))
+      logger.info('🏢 Workspace saved to sessionStorage:', currentWorkspace.name)
+    }
+  }, [currentWorkspace])
 
   // Carica il workspace dal sessionStorage all'avvio
   useEffect(() => {

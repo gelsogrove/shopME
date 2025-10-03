@@ -102,19 +102,7 @@ export function WhatsAppChatModal({
   const currentWorkspaceId = getWorkspaceId(workspaceId)
   const hasValidWorkspace = currentWorkspaceId !== null
 
-  logger.info("WhatsAppChatModal props:", {
-    isOpen,
-    channelName,
-    phoneNumber,
-    workspaceId,
-    selectedChat,
-  })
-
-  logger.info("Workspace check:", {
-    currentWorkspaceId,
-    hasValidWorkspace,
-    providedWorkspaceId: workspaceId,
-  })
+  // Track workspace validity
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)

@@ -43,58 +43,7 @@ import { Input } from "../components/ui/input"
 import { Switch } from "../components/ui/switch"
 import { Textarea } from "../components/ui/textarea"
 
-interface Message {
-  id: string
-  content: string
-  sender: "user" | "customer"
-  timestamp: string
-  agentName?: string
-  metadata?: {
-    isOperatorMessage?: boolean
-    isOperatorControl?: boolean
-    agentSelected?: string
-    sentBy?: string
-    operatorId?: string
-  }
-}
-
-interface ShippingAddress {
-  street: string
-  city: string
-  zip: string
-  country: string
-}
-
-interface Customer {
-  id: string
-  name: string
-  email: string
-  phone: string
-  company?: string
-  discount?: number
-  language?: string
-  notes?: string
-  shippingAddress: ShippingAddress
-  activeChatbot?: boolean
-}
-
-interface Chat {
-  id: string
-  sessionId: string
-  customerId: string
-  customerName: string
-  customerPhone: string
-  companyName?: string
-  lastMessage: string
-  lastMessageTime: string
-  unreadCount: number
-  isActive: boolean
-  isFavorite: boolean
-  messages?: Message[]
-  activeChatbot?: boolean
-  isBlacklisted?: boolean
-  language?: string
-}
+import type { Chat, Customer, Message, ShippingAddress } from "@/types/chat"
 
 const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) {
@@ -139,14 +88,13 @@ const getLanguageFlag = (language?: string): string => {
 }
 
 export function ChatPage() {
-  logger.info("🟦 ChatPage component loaded - modifiche applicate!")
+  // ChatPage loaded
   const { workspace, loading: isWorkspaceLoading } = useWorkspace()
 
-  // Clean any stale locks on mount
+    // Clean any stale locks on mount
   useEffect(() => {
     const lockKey = "chat-tab-lock"
     localStorage.removeItem(lockKey) // ALWAYS clear lock on mount
-    logger.info("🧹 Cleared tab lock on mount")
   }, [])
 
   // REMOVED: Tab blocking system is causing issues with React Strict Mode
@@ -231,7 +179,6 @@ export function ChatPage() {
   // Redirect to workspace selection if user has no workspace
   useEffect(() => {
     if (!isWorkspaceLoading && !workspace) {
-      logger.info("No workspace found, redirecting to workspace selection")
       navigate("/clients")
     }
   }, [isWorkspaceLoading, workspace, navigate])
@@ -239,8 +186,6 @@ export function ChatPage() {
   // Callback when new message arrives - navigate to that chat
   const handleNewMessage = useCallback(
     (sessionId: string) => {
-      logger.info("🔔 New message arrived in session:", sessionId)
-
       // Update URL params
       const newParams = new URLSearchParams(searchParams)
       newParams.set("sessionId", sessionId)
@@ -355,10 +300,7 @@ export function ChatPage() {
     enabled: !!workspaceId,
   })
 
-  // Log available languages whenever they change
-  useEffect(() => {
-    logger.info("Available languages in ChatPage:", availableLanguages)
-  }, [availableLanguages])
+
 
   // Sync polled messages with local state
   // This updates when the polling tab fetches new data
@@ -402,7 +344,6 @@ export function ChatPage() {
     try {
       setLoadingChat(true)
       const sessionIdToUse = chat.sessionId || chat.id
-      logger.info("Fetching messages for chat with sessionId:", sessionIdToUse)
       const response = await api.get(`/chat/${sessionIdToUse}/messages`)
       if (response.data.success) {
         // Transform backend messages to frontend format
@@ -592,7 +533,6 @@ export function ChatPage() {
 
     try {
       setLoading(true)
-      logger.info("Deleting chat with sessionId:", sessionIdToDelete)
       const response = await api.delete(`/chat/${sessionIdToDelete}`)
 
       if (response.data.success) {
@@ -643,9 +583,6 @@ export function ChatPage() {
 
       // Use clientId if provided, otherwise use selectedChat.customerId
       const customerId = clientId || selectedChat?.customerId
-
-      // Log customerData for debugging
-      logger.info("Customer data to save:", customerData)
 
       // Endpoint for the customer update
       const endpoint = `/workspaces/${workspaceId}/customers/${customerId}`
@@ -715,19 +652,7 @@ export function ChatPage() {
   // Handle submitting a new message
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    logger.info("🟦 HandleSubmit called", {
-      messageInput: messageInput.trim(),
-      selectedChat: selectedChat?.id,
-      loading,
-      workspace: workspace?.id,
-    })
-
     if (!messageInput.trim() || !selectedChat || loading) {
-      logger.info("❌ Early return - validation failed", {
-        hasMessage: !!messageInput.trim(),
-        hasSelectedChat: !!selectedChat,
-        notLoading: !loading,
-      })
       return
     }
 
@@ -771,32 +696,11 @@ export function ChatPage() {
       // Send message to API
       const sessionIdToUse = selectedChat.sessionId || selectedChat.id
 
-      // Debug workspace and sessionStorage
-      logger.info(`🔍 Debug workspace info:`, {
-        workspace: workspace,
-        workspaceId: workspace?.id,
-        sessionStorageWorkspace: sessionStorage.getItem("currentWorkspace"),
-        sessionId: sessionIdToUse,
-      })
-
       // Verify headers manually
       const headers = {
         "Content-Type": "application/json",
         "x-workspace-id": workspace?.id,
       }
-
-      logger.info(
-        `🚀 About to send POST request to /chat/${sessionIdToUse}/send`,
-        {
-          content: messageInput,
-          sender: "user",
-          sessionIdToUse,
-          workspaceId: workspace?.id,
-          url: `/chat/${sessionIdToUse}/send`,
-          method: "POST",
-          headers,
-        }
-      )
 
       let response
       try {
@@ -810,7 +714,6 @@ export function ChatPage() {
             headers: headers,
           }
         )
-        logger.info(`✅ POST request successful`, response)
       } catch (requestError) {
         logger.error(`❌ POST request failed`, {
           error: requestError,
@@ -907,9 +810,8 @@ export function ChatPage() {
         )
 
         // Update selected chat
-        setSelectedChat((prev) =>
-          prev ? { ...prev, isBlacklisted: !isCurrentlyBlocked } : null
-        )
+        if (!selectedChat) return
+        setSelectedChat({ ...selectedChat, isBlacklisted: !isCurrentlyBlocked })
 
         toast.success(
           `${selectedChat.customerName} has been ${
@@ -1264,34 +1166,9 @@ export function ChatPage() {
                         message.metadata?.isOperatorMessage === true ||
                         message.metadata?.sentBy === "HUMAN_OPERATOR")
 
-                    // Debug logging for operator messages
-                    if (
-                      isAgentMessage &&
-                      message.metadata?.agentSelected === "MANUAL_OPERATOR"
-                    ) {
-                      logger.info("🔍 MANUAL_OPERATOR message detected:", {
-                        content: message.content.substring(0, 30) + "...",
-                        isOperatorMessage,
-                        isChatbotMessage,
-                        agentSelected: message.metadata?.agentSelected,
-                        metadata: message.metadata,
-                      })
-                    }
 
-                    // Debug log for non-chatbot messages
-                    if (
-                      isAgentMessage &&
-                      !isChatbotMessage &&
-                      !isOperatorMessage
-                    ) {
-                      logger.info("🔍 Non-chatbot, non-operator message:", {
-                        content: message.content.substring(0, 50) + "...",
-                        agentSelected: message.metadata?.agentSelected,
-                        isOperatorMessage: message.metadata?.isOperatorMessage,
-                        sentBy: message.metadata?.sentBy,
-                        metadata: message.metadata,
-                      })
-                    }
+
+
 
                     const isOperatorControl =
                       message.metadata?.isOperatorControl === true
@@ -1302,16 +1179,6 @@ export function ChatPage() {
                       message.metadata?.sentBy === "HUMAN_OPERATOR"
 
                     const getMessageStyle = () => {
-                      // LOG DI DEBUG PER VEDERE I VALORI ESATTI
-                      logger.info("🎨 DEBUG MESSAGGIO:", {
-                        id: message.id,
-                        content: message.content.substring(0, 30),
-                        agentSelected: message.metadata?.agentSelected,
-                        agentName: message.agentName,
-                        isAgentMessage,
-                        fullMetadata: message.metadata,
-                      })
-
                       if (!isAgentMessage) {
                         return isOperatorControl
                           ? "bg-orange-50 text-orange-900 border-l-4 border-orange-400" // Customer under control
