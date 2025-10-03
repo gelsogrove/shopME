@@ -28,8 +28,13 @@ Voglio parlare con un operatore.
 FASE 2
 
 SEED TUTTO IN ITALIANO
+LE CATEGORIES SONO IN INGLESE per MARIO ROSSI
+POPUP NUOVO MESSAGGIO
+POPUP NUOVO ORDINE
+-new tab va in loop
 
 - codice da pulire
+- log di fe da pulire
 - sicurezza
 - togliere harcode categorie ?
 - chat history deve ritornare non tutta la storia
@@ -45,6 +50,8 @@ SEED TUTTO IN ITALIANO
 - forgot pwd
 - chathistory degli ultimi 100 messaggi
   -- link Localhost da rivedere per andare in produczione
+- togliere Swagger?
+- websocket su new order
 
 SICUREZZA:
 

@@ -144,6 +144,7 @@ export function Header() {
       sessionStorage.removeItem("currentWorkspace")
       sessionStorage.removeItem("currentWorkspaceName")
       sessionStorage.removeItem("currentWorkspaceType")
+      localStorage.removeItem("chat-tab-lock") // Clear tab lock
 
       navigate("/auth/login")
     } catch (error) {

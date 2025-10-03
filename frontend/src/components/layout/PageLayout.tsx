@@ -1,5 +1,6 @@
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { useWorkspace } from "@/hooks/use-workspace"
+import { useGlobalNewMessageNotifier } from "@/hooks/useGlobalNewMessageNotifier"
 import { Chat } from "@/types/chat"
 import { ReactNode, useState } from "react"
 
@@ -16,6 +17,9 @@ export function PageLayout({ children, selectedChat }: PageLayoutProps) {
   const { workspace } = useWorkspace()
   const [showPlaygroundDialog, setShowPlaygroundDialog] =
     useState<boolean>(false)
+
+  // Global background polling for new message notifications
+  useGlobalNewMessageNotifier()
 
   const handlePlaygroundClick = () => {
     setShowPlaygroundDialog(true)

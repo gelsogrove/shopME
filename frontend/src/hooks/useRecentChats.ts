@@ -1,8 +1,30 @@
 import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useEffect } from "react"
 
-export function useRecentChats() {
+export function useRecentChats(
+  isExternallyBlocked: boolean = false,
+  onNewMessage?: (sessionId: string) => void,
+  selectedChatId?: string | null
+) {
+  // SIMPLIFIED: No tab blocking, always poll
+  const hasPollingLock = !isExternallyBlocked // Can poll if not externally blocked
+  const queryClient = useQueryClient()
+
+  // Listen for updates from other tabs via localStorage
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'chat-list-updated' && e.newValue) {
+        logger.info('📥 Received chat list update from another tab')
+        queryClient.invalidateQueries({ queryKey: ['chats'] })
+      }
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [queryClient])
+
   return useQuery({
     queryKey: ["chats"],
     queryFn: async () => {
@@ -32,7 +54,7 @@ export function useRecentChats() {
         })
 
         if (response.data.success) {
-                    // Transform the backend data to match frontend expectations
+          // Transform the backend data to match frontend expectations
           const transformedChats = response.data.data.map((chat: any) => ({
             id: chat.id,
             sessionId: chat.id, // Map id to sessionId for frontend compatibility
@@ -57,6 +79,15 @@ export function useRecentChats() {
             console.log(`🔍 DEBUG - Raw chat object:`, chat)
           })
 
+          // Note: Global toast notifications are now handled by useGlobalNewMessageNotifier
+          // in PageLayout - no need to duplicate here
+
+          // Notify other tabs if this tab has the lock
+          if (hasPollingLock) {
+            localStorage.setItem('chat-list-updated', Date.now().toString())
+            logger.info('📤 Notified other tabs about chat list update')
+          }
+
           return transformedChats
         }
 
@@ -66,7 +97,11 @@ export function useRecentChats() {
         throw error
       }
     },
-    staleTime: 60 * 1000, // 1 minute
-    refetchOnWindowFocus: false,
+    enabled: true, // Always enabled - polling is controlled by refetchInterval
+    refetchInterval: hasPollingLock ? 4000 : false, // Only poll if we have the lock
+    refetchIntervalInBackground: true, // Allow background polling
+    staleTime: 1000, // Data is fresh for 1 second only
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: hasPollingLock, // Refetch on focus if we have lock
   })
 }

@@ -7,11 +7,14 @@ import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
+import { useCurrentChatMessages } from "@/hooks/useCurrentChatMessages"
+import { useChatSync } from "@/hooks/useChatSync"
+import { useChat } from "@/contexts/ChatContext"
 import { logger } from "@/lib/logger"
 import { toast } from "@/lib/toast"
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   Ban,
   Bot,
@@ -22,7 +25,7 @@ import {
   ShoppingCart,
   Trash2,
 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
   AlertDialog,
@@ -138,7 +141,20 @@ const getLanguageFlag = (language?: string): string => {
 export function ChatPage() {
   logger.info("🟦 ChatPage component loaded - modifiche applicate!")
   const { workspace, loading: isWorkspaceLoading } = useWorkspace()
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
+  
+  // Clean any stale locks on mount
+  useEffect(() => {
+    const lockKey = 'chat-tab-lock'
+    localStorage.removeItem(lockKey) // ALWAYS clear lock on mount
+    logger.info('🧹 Cleared tab lock on mount')
+  }, [])
+  
+  // REMOVED: Tab blocking system is causing issues with React Strict Mode
+  // const { isBlocked: isTabBlocked, hasLock } = useTabBlock()
+  const isTabBlocked = false // Never block
+  const hasLock = true // Always has lock
+  
+  const { selectedChat, setSelectedChat } = useChat()
   const [messages, setMessages] = useState<Message[]>([])
   const [messageInput, setMessageInput] = useState("")
   const [loading, setLoading] = useState(false)
@@ -222,13 +238,7 @@ export function ChatPage() {
   const [isBlocking, setIsBlocking] = useState(false)
   const navigate = useNavigate()
   const [showPlaygroundDialog, setShowPlaygroundDialog] = useState(false)
-
-  const handlePlaygroundClick = () => setShowPlaygroundDialog(true)
-  const handleClosePlayground = () => {
-    setShowPlaygroundDialog(false)
-    // Reload the entire page to refresh all data
-    window.location.reload()
-  }
+  const queryClient = useQueryClient()
 
   // Redirect to workspace selection if user has no workspace
   useEffect(() => {
@@ -238,12 +248,47 @@ export function ChatPage() {
     }
   }, [isWorkspaceLoading, workspace, navigate])
 
+  // Callback when new message arrives - navigate to that chat
+  const handleNewMessage = useCallback((sessionId: string) => {
+    logger.info('🔔 New message arrived in session:', sessionId)
+    
+    // Update URL params
+    const newParams = new URLSearchParams(searchParams)
+    newParams.set('sessionId', sessionId)
+    setSearchParams(newParams)
+    
+    // Invalidate messages query to force refresh
+    queryClient.invalidateQueries({ queryKey: ['chat-messages', sessionId] })
+    
+    // Note: selectedChat will be updated by the useEffect that watches sessionId
+  }, [searchParams, setSearchParams, queryClient])
+
+  // POLLING ENABLED ALWAYS - no blocking
   const {
     data: allChats = [],
     isLoading: isLoadingChats,
     isError: isErrorChats,
     refetch: refetchChats,
-  } = useRecentChats()
+  } = useRecentChats(false, handleNewMessage, selectedChat?.sessionId) // Pass selected chat ID
+
+  // Polling with messages
+  const {
+    data: polledMessages = [],
+    isLoading: isLoadingMessages,
+  } = useCurrentChatMessages(selectedChat?.sessionId || null, !!selectedChat)
+
+  // Cross-tab sync disabled (using polling lock instead)
+  const { notifyOtherTabs } = useChatSync()
+
+  // Playground handlers
+  const handlePlaygroundClick = () => setShowPlaygroundDialog(true)
+  const handleClosePlayground = () => {
+    setShowPlaygroundDialog(false)
+    // Refetch chats instead of reloading the entire page
+    refetchChats()
+    // Notify other tabs about the update
+    notifyOtherTabs()
+  }
 
   // Filter chats based on search term
   useEffect(() => {
@@ -267,14 +312,16 @@ export function ChatPage() {
     setChats(filteredChats)
   }, [allChats, clientSearchTerm])
 
-  // Select first chat when chats are loaded and no chat is selected, or select the chat matching the client filter if present
+  // SMART SELECTION: Auto-select when appropriate, but DON'T update existing selection
   useEffect(() => {
+    // Only auto-select if we don't have a selection yet
     if (chats.length > 0 && !selectedChat && !clientSearchTerm) {
       selectChat(chats[0])
       return
     }
-    // If we have a sessionId, find that specific chat
-    if (chats.length > 0 && (!selectedChat || clientSearchTerm)) {
+
+    // If we have a sessionId in URL, find that specific chat
+    if (chats.length > 0 && !selectedChat) {
       if (sessionId) {
         const chatWithSessionId = chats.find(
           (chat) => chat.sessionId === sessionId
@@ -306,17 +353,8 @@ export function ChatPage() {
           return
         }
       }
-
-      // 🚨 ANDREA LOOP FIX: Don't auto-select first chat to prevent potential loops
-      // As a fallback, select the first chat
-      // if (!selectedChat) {
-      //   selectChat(chats[0])
-      // }
-      logger.info(
-        "🚨 LOOP PREVENTION: Not auto-selecting first chat to prevent potential loops"
-      )
     }
-  }, [chats, selectedChat, sessionId, clientSearchTerm])
+  }, [chats, sessionId, clientSearchTerm])
 
   // Get workspaceId from workspace hook
   const workspaceId = workspace?.id
@@ -333,10 +371,30 @@ export function ChatPage() {
     logger.info("Available languages in ChatPage:", availableLanguages)
   }, [availableLanguages])
 
+  // Sync polled messages with local state
+  // This updates when the polling tab fetches new data
+  useEffect(() => {
+    if (polledMessages.length > 0 && selectedChat) {
+      setMessages(polledMessages)
+      // Scroll to bottom only if user is already at bottom
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          const container = messagesEndRef.current.parentElement
+          if (container) {
+            const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100
+            if (isAtBottom) {
+              messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+            }
+          }
+        }
+      }, 100)
+    }
+  }, [polledMessages, selectedChat])
+
   // Fetch selected chat details
   useEffect(() => {
     if (selectedChat) {
-      // Load messages for the selected chat
+      // Load messages for the selected chat (initial load)
       fetchMessagesForChat(selectedChat)
 
       // Check for stored activeChatbot value and update the state
@@ -809,6 +867,9 @@ export function ChatPage() {
 
         // Update chat list to reflect new message
         refetchChats()
+        
+        // Notify other tabs about the update
+        notifyOtherTabs()
       }
     } catch (error) {
       logger.error("❌ Error sending message:", error)
@@ -875,6 +936,33 @@ export function ChatPage() {
       setIsBlocking(false)
       setShowBlockDialog(false)
     }
+  }
+
+  // BLOCK UI if multiple tabs detected - fullscreen overlay with NO menu/header
+  if (isTabBlocked) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-100">
+        <Card className="p-12 max-w-2xl text-center shadow-2xl">
+          <div className="mb-6">
+            <Ban className="h-24 w-24 text-red-500 mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-red-600 mb-2">
+              ⛔ TAB BLOCKED
+            </h2>
+            <p className="text-xl text-gray-700 mb-4">
+              Another tab is already using the chat
+            </p>
+          </div>
+          <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-6">
+            <p className="text-lg font-semibold text-yellow-800 mb-2">
+              ⚠️ Only ONE tab can be used at a time
+            </p>
+            <p className="text-gray-700">
+              Please close the other tab to use this one.
+            </p>
+          </div>
+        </Card>
+      </div>
+    )
   }
 
   return (

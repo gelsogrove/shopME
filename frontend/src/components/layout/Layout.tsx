@@ -2,9 +2,10 @@ import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { logger } from "@/lib/logger"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Chat } from "@/types/chat"
+import { useChat } from "@/contexts/ChatContext"
 // Importiamo l'icona WhatsAppIcon che creiamo internamente
 import { memo, useEffect, useState } from "react"
-import { Outlet } from "react-router-dom"
+import { Outlet, useLocation } from "react-router-dom"
 import { Header } from "./Header"
 import { Sidebar } from "./Sidebar"
 
@@ -13,6 +14,17 @@ const MemoizedHeader = memo(Header)
 const MemoizedSidebar = memo(Sidebar)
 
 export function Layout() {
+  const { setSelectedChat } = useChat()
+  const location = useLocation()
+  
+  // Reset selected chat when leaving chat page
+  useEffect(() => {
+    if (location.pathname !== '/chat') {
+      logger.info('🔄 Resetting selectedChat - left chat page')
+      setSelectedChat(null)
+    }
+  }, [location.pathname, setSelectedChat])
+  
   // Get workspace from sessionStorage instead of API call
   const [workspace, setWorkspace] = useState<any>(null)
   

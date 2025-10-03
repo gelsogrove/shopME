@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { Toaster } from "sonner"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 import { Layout } from "./components/layout/Layout"
+import { ChatProvider } from "./contexts/ChatContext"
 import { AgentPage } from "./pages/AgentPage"
 import { AnalyticsPage } from "./pages/AnalyticsPage"
 import SignupPage from "./pages/auth/SignupPage"
@@ -55,9 +56,10 @@ const CustomerProfilePublicPage = lazy(
 export function App() {
   return (
     <WorkspaceProvider>
-      <BrowserRouter>
-        <Toaster position="top-right" duration={1000} />
-        <Routes>
+      <ChatProvider>
+        <BrowserRouter>
+          <Toaster position="top-right" duration={800} />
+          <Routes>
           {/* Auth Routes - accessibili senza autenticazione */}
           <Route path="/auth">
             <Route path="login" element={<LoginPage />} />
@@ -267,6 +269,7 @@ export function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
+      </ChatProvider>
     </WorkspaceProvider>
   )
 }

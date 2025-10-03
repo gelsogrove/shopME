@@ -64,5 +64,6 @@ export interface Chat {
   unreadCount: number
   isActive: boolean
   isFavorite: boolean
+  isBlacklisted?: boolean
   messages?: Message[]
 } 

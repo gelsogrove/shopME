@@ -50,6 +50,7 @@ export function LoginPage() {
     sessionStorage.removeItem("currentWorkspace")
     localStorage.removeItem("user")
     localStorage.removeItem("token") // Remove any old token
+    localStorage.removeItem("chat-tab-lock") // Clear tab lock to prevent blocking
 
     try {
       // Usa await esplicitamente e salva la risposta
