@@ -6,13 +6,13 @@ Il sistema di fatturazione traccia automaticamente tutti i costi secondo la pric
 
 ## 💰 Pricing List Implementata
 
-| Servizio         | Costo | Descrizione                           |
-| ---------------- | ----- | ------------------------------------- |
-| **Human Response** | €0.05 | 5 centesimi per risposta operatore   |
-| **LLM Response** | €0.15 | 15 centesimi per risposta chatbot     |
-| **New Customer** | €1.50 | 1.50 euro per nuovo cliente registrato   |
-| **New Order**    | €1.50 | 1.50 euro per ordine completo     |
-| **Push Message** | €0.50 | 50 centesimi per notifiche standalone |
+| Servizio           | Costo | Descrizione                            |
+| ------------------ | ----- | -------------------------------------- |
+| **Human Response** | €0.05 | 5 centesimi per risposta operatore     |
+| **LLM Response**   | €0.15 | 15 centesimi per risposta chatbot      |
+| **New Customer**   | €1.50 | 1.50 euro per nuovo cliente registrato |
+| **New Order**      | €1.50 | 1.50 euro per ordine completo          |
+| **Push Message**   | €0.50 | 50 centesimi per notifiche standalone  |
 
 ## 🏗️ Architettura
 
