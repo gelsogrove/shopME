@@ -2564,7 +2564,7 @@ export class MessageRepository {
             .filter((r) => r.service),
           documents: documentResults,
         },
-        chatHistory: chatHistory.slice(0, 5),
+        chatHistory: chatHistory.slice(0, 8),
       }
 
       // STEP 7: BUILD COMPREHENSIVE PROMPT FOR LLM FORMATTER

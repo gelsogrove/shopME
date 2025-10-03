@@ -43,6 +43,7 @@ import { ProductsPage as SettingsProductsPage } from "./pages/settings/ProductsP
 
 import { Suspense, lazy } from "react"
 import { WorkspaceProvider } from "./contexts/WorkspaceContext"
+import { ChatListProvider } from "./contexts/ChatListContext"
 import SurveysPage from "./pages/SurveysPage"
 import { VerifyOtpPage } from "./pages/VerifyOtpPage"
 import { WorkspacePage } from "./pages/WorkspacePage"
@@ -57,7 +58,8 @@ export function App() {
   return (
     <WorkspaceProvider>
       <ChatProvider>
-        <BrowserRouter>
+        <ChatListProvider>
+          <BrowserRouter>
           <Toaster position="top-right" duration={800} />
           <Routes>
             {/* Auth Routes - accessibili senza autenticazione */}
@@ -272,6 +274,7 @@ export function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </BrowserRouter>
+        </ChatListProvider>
       </ChatProvider>
     </WorkspaceProvider>
   )

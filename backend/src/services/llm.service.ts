@@ -451,7 +451,7 @@ export class LLMService {
       // Aggiungi lo storico degli ultimi 5 messaggi se disponibile in llmRequest
       if (llmRequest?.messages && llmRequest.messages.length > 0) {
         // Prendi solo gli ultimi 5 messaggi per mantenere un contesto più ricco
-        const recentHistory = llmRequest.messages.slice(-5)
+        const recentHistory = llmRequest.messages.slice(-8)
         console.log(
           `📜 LLM: Adding ${recentHistory.length} messages from history to context`
         )

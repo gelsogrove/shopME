@@ -6,6 +6,7 @@ import { MessageRenderer } from "@/components/shared/MessageRenderer"
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
 import { useChat } from "@/contexts/ChatContext"
+import { useChatList } from "@/contexts/ChatListContext"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useChatSync } from "@/hooks/useChatSync"
 import { useCurrentChatMessages } from "@/hooks/useCurrentChatMessages"
@@ -164,14 +165,26 @@ export function ChatPage() {
       // Error already handled in getCartToken
     }
   }
-  const [chats, setChats] = useState<Chat[]>([])
+  const {
+    chats,
+    isLoading: isLoadingChats,
+    updateActiveChatbot
+  } = useChatList()
+  
+  const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
+  const [isBlocking, setIsBlocking] = useState(false)
+  const [isChatbotActive, setIsChatbotActive] = useState(selectedChat?.activeChatbot ?? true)
+  
+  // Keep local state in sync with selected chat
+  useEffect(() => {
+    if (selectedChat) {
+      setIsChatbotActive(selectedChat.activeChatbot ?? true)
+    }
+  }, [selectedChat])
   const [isInputDisabled, setIsInputDisabled] = useState(false)
-  const [activeChatbot, setActiveChatbot] = useState<boolean>(true)
   const [showActiveChatbotDialog, setShowActiveChatbotDialog] = useState(false)
   const [showActiveChatbotNotifyDialog, setShowActiveChatbotNotifyDialog] =
     useState(false)
-  const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
-  const [isBlocking, setIsBlocking] = useState(false)
   const navigate = useNavigate()
   const [showPlaygroundDialog, setShowPlaygroundDialog] = useState(false)
   const queryClient = useQueryClient()
@@ -199,15 +212,7 @@ export function ChatPage() {
     [searchParams, setSearchParams, queryClient]
   )
 
-  // POLLING ENABLED ALWAYS - no blocking
-  const {
-    data: allChats = [],
-    isLoading: isLoadingChats,
-    isError: isErrorChats,
-    refetch: refetchChats,
-  } = useRecentChats(false, handleNewMessage, selectedChat?.sessionId) // Pass selected chat ID
-
-  // Polling with messages
+  // Polling with messages  
   const { data: polledMessages = [], isLoading: isLoadingMessages } =
     useCurrentChatMessages(selectedChat?.sessionId || null, !!selectedChat)
 
@@ -218,39 +223,36 @@ export function ChatPage() {
   const handlePlaygroundClick = () => setShowPlaygroundDialog(true)
   const handleClosePlayground = () => {
     setShowPlaygroundDialog(false)
-    // Refetch chats instead of reloading the entire page
-    refetchChats()
+    // Invalidate queries to refresh chat list
+    queryClient.invalidateQueries({ queryKey: ["chats"] })
     // Notify other tabs about the update
     notifyOtherTabs()
   }
 
   // Filter chats based on search term
-  useEffect(() => {
-    const filteredChats = clientSearchTerm
-      ? allChats.filter(
-          (chat: Chat) =>
-            chat.customerName
-              ?.toLowerCase()
-              .includes(clientSearchTerm.toLowerCase()) ||
-            chat.customerPhone
-              ?.toLowerCase()
-              .includes(clientSearchTerm.toLowerCase()) ||
-            chat.companyName
-              ?.toLowerCase()
-              .includes(clientSearchTerm.toLowerCase()) ||
-            chat.lastMessage
-              ?.toLowerCase()
-              .includes(clientSearchTerm.toLowerCase())
-        )
-      : allChats
-    setChats(filteredChats)
-  }, [allChats, clientSearchTerm])
+  const filteredChats = clientSearchTerm
+    ? chats.filter(
+        (chat: Chat) =>
+          chat.customerName
+            ?.toLowerCase()
+            .includes(clientSearchTerm.toLowerCase()) ||
+          chat.customerPhone
+            ?.toLowerCase()
+            .includes(clientSearchTerm.toLowerCase()) ||
+          chat.companyName
+            ?.toLowerCase()
+            .includes(clientSearchTerm.toLowerCase()) ||
+          chat.lastMessage
+            ?.toLowerCase()
+            .includes(clientSearchTerm.toLowerCase())
+      )
+    : chats
 
   // SMART SELECTION: Auto-select when appropriate, but DON'T update existing selection
   useEffect(() => {
     // Only auto-select if we don't have a selection yet
-    if (chats.length > 0 && !selectedChat && !clientSearchTerm) {
-      selectChat(chats[0])
+    if (filteredChats.length > 0 && !selectedChat && !clientSearchTerm) {
+      selectChat(filteredChats[0])
       return
     }
 
@@ -369,7 +371,7 @@ export function ChatPage() {
 
   // Function to fetch customer details
   const fetchCustomerDetails = async (customerId: string) => {
-    if (!workspaceId) return
+    if (!workspaceId || !selectedChat) return
 
     try {
       const response = await api.get(
@@ -377,8 +379,8 @@ export function ChatPage() {
       )
       const customerData = response.data
 
-      // Update the activeChatbot state based on the customer data
-      setActiveChatbot(customerData.activeChatbot !== false) // Default to true if undefined
+      // Update the activeChatbot state based on the customer data using context
+      updateActiveChatbot(selectedChat.id, customerData.activeChatbot !== false) // Default to true if undefined
     } catch (error) {
       logger.error("Error fetching customer details:", error)
     }
@@ -389,7 +391,7 @@ export function ChatPage() {
     if (!selectedChat || !workspaceId) return
 
     // If turning off the chatbot and first time, show confirmation dialog
-    if (!checked && !hasToggledChatbot) {
+    if (!checked && hasToggledChatbot === false) {
       setShowActiveChatbotDialog(true)
       return
     }
@@ -426,6 +428,9 @@ export function ChatPage() {
     try {
       setLoading(true)
 
+      // Update UI immediately for better responsiveness
+      setIsChatbotActive(status)
+
       // Update the customer in the backend
       const response = await api.put(
         `/workspaces/${workspaceId}/customers/${selectedChat.customerId}`,
@@ -433,7 +438,15 @@ export function ChatPage() {
       )
 
       if (response.status === 200) {
-        setActiveChatbot(status)
+        // Log the response for debugging
+        logger.info("Update chatbot response:", response.data)
+
+        // Update context state
+        updateActiveChatbot(selectedChat.id, status)
+
+        // Invalidate queries to refresh chat list
+        await queryClient.invalidateQueries({ queryKey: ["chats"] })
+
         // If enabling chatbot and notification is requested
         if (status && shouldNotify) {
           try {
@@ -457,11 +470,20 @@ export function ChatPage() {
           { duration: 1000 }
         )
       } else {
-        toast.error("Failed to update chatbot status", { duration: 1000 })
+        // Log error for debugging
+        logger.error("Failed to update chatbot status:", {
+          status: response.status,
+          data: response.data
+        })
+        toast.error(response.data.error || "Failed to update chatbot status", { 
+          duration: 1000 
+        })
       }
     } catch (error) {
       logger.error("Error updating chatbot status:", error)
-      toast.error("Failed to update chatbot status", { duration: 1000 })
+      toast.error(error instanceof Error ? error.message : "Failed to update chatbot status", { 
+        duration: 1000 
+      })
     } finally {
       setLoading(false)
     }
@@ -487,20 +509,14 @@ export function ChatPage() {
 
     // Reset unread count when selecting a chat
     if (chat.unreadCount > 0) {
-      // Update unread count in the local state
-      setChats((prevChats) =>
-        prevChats.map((c) =>
-          (c.sessionId || c.id) === sessionIdToUse
-            ? { ...c, unreadCount: 0 }
-            : c
-        )
-      )
-
       // Call API to mark messages as read
       api
         .post(`/chat/${sessionIdToUse}/read`)
         .then((response) => {
-          if (!response.data.success) {
+          if (response.data.success) {
+            // Invalidate chat queries to refresh unread counts
+            queryClient.invalidateQueries({ queryKey: ["chats"] })
+          } else {
             logger.error("Failed to mark messages as read")
           }
         })
@@ -535,19 +551,13 @@ export function ChatPage() {
 
       if (response.data.success) {
         toast.success("Chat deleted successfully", { duration: 1000 })
-        // Remove deleted chat from state
-        setChats((prev) =>
-          prev.filter(
-            (chat) => (chat.sessionId || chat.id) !== sessionIdToDelete
-          )
-        )
+        // Invalidate chat queries to refresh the list
+        queryClient.invalidateQueries({ queryKey: ["chats"] })
         setSelectedChat(null)
         // Remove sessionId from URL
         const newParams = new URLSearchParams(searchParams)
         newParams.delete("sessionId")
         setSearchParams(newParams)
-        // Refresh chat list
-        refetchChats()
       } else {
         toast.error(
           "Failed to delete chat: " + (response.data.error || "Unknown error"),
@@ -602,7 +612,7 @@ export function ChatPage() {
           })
         }
         // Refresh chat list
-        refetchChats()
+        queryClient.invalidateQueries({ queryKey: ["chats"] })
       } else {
         toast.error(
           "Failed to update customer: " +
@@ -661,7 +671,7 @@ export function ChatPage() {
     }
 
     // Disable chatbot automatically when agent takes control by typing
-    if (activeChatbot) {
+    if (isChatbotActive) {
       // Only show the dialog if it hasn't been shown before
       if (!hasToggledChatbot) {
         setShowActiveChatbotDialog(true)
@@ -678,7 +688,7 @@ export function ChatPage() {
       // We'll add the message only when we get the response from the server
       let tempMessage: Message | null = null
 
-      if (activeChatbot) {
+      if (isChatbotActive) {
         // Only add temp message if chatbot is active (AI responses)
         tempMessage = {
           id: `temp-${Date.now()}`,
@@ -758,7 +768,7 @@ export function ChatPage() {
         }
 
         // Update chat list to reflect new message
-        refetchChats()
+        queryClient.invalidateQueries({ queryKey: ["chats"] })
 
         // Notify other tabs about the update
         notifyOtherTabs()
@@ -798,16 +808,8 @@ export function ChatPage() {
       )
 
       if (response.status === 200) {
-        // Update the chat in the list with new blocked status
-        setChats((prev) =>
-          prev.map((chat) =>
-            chat.customerId === selectedChat.customerId
-              ? { ...chat, isBlacklisted: !isCurrentlyBlocked }
-              : chat
-          )
-        )
-
-        // Update selected chat
+        // Update the chat in the context and invalidate queries
+        queryClient.invalidateQueries({ queryKey: ["chats"] })
         if (!selectedChat) return
         setSelectedChat({ ...selectedChat, isBlacklisted: !isCurrentlyBlocked })
 
@@ -1005,7 +1007,7 @@ export function ChatPage() {
           {selectedChat ? (
             <>
               {/* 🚨 OPERATOR CONTROL BANNER */}
-              {!activeChatbot && (
+              {!isChatbotActive && (
                 <div className="bg-orange-100 border-l-4 border-orange-500 p-3 mb-2">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
@@ -1070,15 +1072,15 @@ export function ChatPage() {
                   <div className="flex items-center mr-2">
                     <Bot
                       className={`h-4 w-4 mr-1 ${
-                        activeChatbot ? "text-green-600" : "text-gray-400"
+                        isChatbotActive ? "text-green-600" : "text-gray-400"
                       }`}
                     />
                     <Switch
                       className="mr-1"
-                      checked={activeChatbot}
+                      checked={isChatbotActive}
                       onCheckedChange={handleActiveChatbotToggle}
                       title={
-                        activeChatbot ? "Disable chatbot" : "Enable chatbot"
+                        isChatbotActive ? "Disable chatbot" : "Enable chatbot"
                       }
                     />
                   </div>
@@ -1279,7 +1281,7 @@ export function ChatPage() {
               </div>
 
               {/* Message Input: Only show if chatbot is disabled */}
-              {!activeChatbot && (
+              {!isChatbotActive && (
                 <div className="mt-2 flex gap-2">
                   <Textarea
                     value={messageInput}

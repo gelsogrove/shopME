@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
-import { useRecentChats } from "@/hooks/useRecentChats"
+import { useChatList } from "@/contexts/ChatListContext"
 import { logger } from "@/lib/logger"
 import { toast } from "@/lib/toast"
 import { api } from "@/services/api"
@@ -124,7 +124,7 @@ export default function ClientsPage(): JSX.Element {
   // Stati per il dialogo di conferma eliminazione
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
-  const { data: allChats = [] } = useRecentChats()
+  const { chats: allChats } = useChatList()
   const [showPlayground, setShowPlayground] = useState(false)
 
   // Replace with useQuery

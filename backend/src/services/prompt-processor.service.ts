@@ -29,11 +29,11 @@ export class PromptProcessorService {
     workspaceId: string,
     customerData: any,
     dynamicContent: {
-      faqs: string;
-      products: string;
-      categories: string;
-      services: string;
-      offers: string;
+      faqs: string
+      products: string
+      categories: string
+      services: string
+      offers: string
     }
   ): Promise<string> {
     let processedPrompt = promptContent
@@ -47,19 +47,31 @@ export class PromptProcessorService {
     }
 
     if (processedPrompt.includes("{{PRODUCTS}}")) {
-      processedPrompt = processedPrompt.replace("{{PRODUCTS}}", dynamicContent.products)
+      processedPrompt = processedPrompt.replace(
+        "{{PRODUCTS}}",
+        dynamicContent.products
+      )
     }
 
     if (processedPrompt.includes("{{CATEGORIES}}")) {
-      processedPrompt = processedPrompt.replace("{{CATEGORIES}}", dynamicContent.categories)
+      processedPrompt = processedPrompt.replace(
+        "{{CATEGORIES}}",
+        dynamicContent.categories
+      )
     }
 
     if (processedPrompt.includes("{{SERVICES}}")) {
-      processedPrompt = processedPrompt.replace("{{SERVICES}}", dynamicContent.services)
+      processedPrompt = processedPrompt.replace(
+        "{{SERVICES}}",
+        dynamicContent.services
+      )
     }
 
     if (processedPrompt.includes("{{OFFERS}}")) {
-      processedPrompt = processedPrompt.replace("{{OFFERS}}", dynamicContent.offers)
+      processedPrompt = processedPrompt.replace(
+        "{{OFFERS}}",
+        dynamicContent.offers
+      )
     }
 
     // Remove duplicate CATEGORIES check since it's already handled above

@@ -3,6 +3,7 @@ import { api } from "@/services/api"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect } from "react"
 import { pollingCoordinator } from "./usePollingCoordinator"
+import { useChatList } from "@/contexts/ChatListContext"
 
 export function useRecentChats(
   isExternallyBlocked: boolean = false,
@@ -12,6 +13,7 @@ export function useRecentChats(
   // SIMPLIFIED: No tab blocking, always poll
   const hasPollingLock = !isExternallyBlocked // Can poll if not externally blocked
   const queryClient = useQueryClient()
+  const { setChats } = useChatList()
 
   // Listen for updates from other tabs via localStorage
   useEffect(() => {
@@ -94,6 +96,9 @@ export function useRecentChats(
 
           // Note: Global toast notifications are now handled by useGlobalNewMessageNotifier
           // in PageLayout - no need to duplicate here
+
+          // Aggiorna immediatamente il context con i nuovi dati
+          setChats(transformedChats)
 
           // Notify other tabs if this tab has the lock
           if (hasPollingLock) {

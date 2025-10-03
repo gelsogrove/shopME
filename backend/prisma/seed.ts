@@ -2159,7 +2159,7 @@ async function main() {
       description: "20% discount on all frozen products!",
       discountPercent: 20,
       startDate: new Date(new Date().setDate(new Date().getDate() - 30)), // 30 days ago
-      endDate: new Date(new Date().setDate(new Date().getDate() + 365)), // 1 year from now
+      endDate: new Date(2025, 11, 31), // Scade il 31 dicembre 2025
       isActive: true,
       categoryId: null as string | null, // Will be set to Frozen Products category below
     },
@@ -2194,9 +2194,9 @@ async function main() {
   // Create new offers
   for (const offer of specialOffers) {
     try {
-      // For "Offerta Frozen Products 20%", find and assign Frozen Products category
+      // For "Frozen Products 20% Offer", find and assign Frozen Products category
       let finalCategoryId = offer.categoryId
-      if (offer.name === "Offerta Frozen Products 20%") {
+      if (offer.name === "Frozen Products 20% Offer") {
         const frozenCategory = await prisma.categories.findFirst({
           where: {
             workspaceId: mainWorkspaceId,
@@ -2394,27 +2394,7 @@ async function main() {
         "Hello! You can view your orders by clicking this link: [LINK_ORDERS_WITH_TOKEN]",
     },
     {
-      question: "Who are you?",
-      answer:
-        "Hello! I am SofIA, the digital assistant of L'Altra Italia. I'm here to help you with information about our Italian products, orders, and services. How can I assist you today?",
-    },
-    {
       question: "How can I place an order?",
-      answer:
-        "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
-    },
-    {
-      question: "I want to place an order",
-      answer:
-        "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
-    },
-    {
-      question: "I want to make an order",
-      answer:
-        "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
-    },
-    {
-      question: "I want to place an order",
       answer:
         "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
     },
