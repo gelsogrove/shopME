@@ -21,8 +21,15 @@ declare global {
   }
 }
 
+// Import scheduler service
+import { SchedulerService } from "./services/scheduler.service"
+
 // Initialize Express app
 const app = express()
+
+// Initialize and start scheduler service
+const schedulerService = new SchedulerService()
+schedulerService.startScheduledTasks()
 
 // Logging middleware should be first
 app.use(loggingMiddleware)
