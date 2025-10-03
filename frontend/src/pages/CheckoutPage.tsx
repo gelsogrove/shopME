@@ -690,9 +690,23 @@ const CheckoutPage: React.FC = () => {
 
       if (result.success) {
         setSubmitStatus({ loading: false, success: true, error: "" })
-        // Redirect to success page after 2 seconds
+        // Redirect to success page after 2 seconds with token and customer language
         setTimeout(() => {
-          window.location.href = `/checkout-success?orderCode=${result.orderCode}`
+          const params = new URLSearchParams({
+            orderCode: result.orderCode
+          })
+          
+          // Add token if available
+          if (token) {
+            params.append('token', token)
+          }
+          
+          // Add customer language if available
+          if (customer?.language) {
+            params.append('lang', customer.language)
+          }
+          
+          window.location.href = `/checkout-success?${params.toString()}`
         }, 2000)
       } else {
         setSubmitStatus({

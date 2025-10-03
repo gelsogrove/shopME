@@ -300,6 +300,13 @@ export class AgentService {
     try {
       logger.info(`🔄 Updating agentConfig ${id} for workspace ${workspaceId}`)
       logger.info("📝 Update data received:", data)
+      logger.info("🌡️  Temperature in request:", {
+        temperature: data.temperature,
+        type: typeof data.temperature,
+        isDefined: data.temperature !== undefined,
+        isNull: data.temperature === null,
+        isZero: data.temperature === 0
+      })
 
       // Ensure required data is present
       if (!id || !workspaceId) {
@@ -336,6 +343,11 @@ export class AgentService {
       if (data.isActive !== undefined) updateData.isActive = data.isActive
 
       logger.info("🛠️ Prepared update data:", updateData)
+      logger.info("🌡️  Temperature in updateData:", {
+        temperature: updateData.temperature,
+        type: typeof updateData.temperature,
+        willUpdate: updateData.temperature !== undefined
+      })
 
       // Update the agentConfig
       const updatedAgent = await this.prisma.agentConfig.update({
@@ -344,6 +356,7 @@ export class AgentService {
       })
 
       logger.info(`✅ AgentConfig ${id} updated successfully`)
+      logger.info("🌡️  Temperature after update:", updatedAgent.temperature)
 
       // Map database fields back to frontend format (backend → frontend)
       // Database has: prompt, maxTokens

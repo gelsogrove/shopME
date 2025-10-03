@@ -96,12 +96,12 @@ export function AgentPage() {
         setAgent(agentData)
 
         // Set form values from agent data
-        setTempValue(agentData.temperature || 0.7)
+        setTempValue(agentData.temperature || 0.3)
         setModelValue(agentData.model || "openai/gpt-4.1-mini")
         setMaxTokensValue(agentData.max_tokens || 1000)
 
         logger.info("=== FORM VALUES SET ===")
-        logger.info("Temperature:", agentData.temperature || 0.7)
+        logger.info("Temperature:", agentData.temperature || 0.3)
         logger.info("Model:", agentData.model || "openai/gpt-4.1-mini")
         logger.info("Max tokens:", agentData.max_tokens || 1000)
       } catch (error) {

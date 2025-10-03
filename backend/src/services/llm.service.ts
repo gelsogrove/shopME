@@ -433,7 +433,7 @@ export class LLMService {
       agentConfig?.temperature !== undefined &&
       agentConfig?.temperature !== null
         ? agentConfig.temperature
-        : 0.1
+        : 0.3 // Changed from 0.1 to 0.3 to match seed default
 
     console.log(
       `🔧 LLM: Using model: ${modelUsed}, temperature: ${temperatureUsed} (agentConfig.temperature was: ${agentConfig?.temperature}, type: ${typeof agentConfig?.temperature})`

@@ -111,7 +111,7 @@ export function AgentSheet({
                   <Label htmlFor="temperature">
                     Temperature:{" "}
                     <span className="font-bold">
-                      {agent?.temperature || 0.7}
+                      {agent?.temperature || 0.3}
                     </span>
                     <InfoTooltip content={
                       <div>
@@ -129,7 +129,7 @@ export function AgentSheet({
                     min="0"
                     max="2"
                     step="0.1"
-                    defaultValue={agent?.temperature || 0.7}
+                    defaultValue={agent?.temperature || 0.3}
                   />
                   <p className="text-xs text-muted-foreground">
                     Controls creativity (0-2)
