@@ -1,15 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardAnalytics } from "@/services/analyticsApi"
 import {
-    Euro,
-    MessageCircle,
-    Minus,
-    ShoppingCart,
-    TrendingDown,
-    TrendingUp,
-    Users,
+  Euro,
+  MessageCircle,
+  Minus,
+  ShoppingCart,
+  TrendingDown,
+  TrendingUp,
+  Users,
 } from "lucide-react"
 import React from "react"
+import { getAdminPageTexts } from "../../utils/adminPageTranslations"
 
 interface MetricsOverviewProps {
   analytics: DashboardAnalytics
@@ -23,6 +24,7 @@ interface MetricCardProps {
   formatter: (value: number) => string
   trend?: number
   description?: string
+  t: any // Add translations prop
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({
@@ -32,6 +34,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   formatter,
   trend,
   description,
+  t,
 }) => {
   const getTrendIcon = () => {
     if (trend === undefined || trend === 0) return <Minus className="h-3 w-3" />
@@ -62,7 +65,11 @@ const MetricCard: React.FC<MetricCardProps> = ({
             {getTrendIcon()}
             <span>
               {Math.abs(trend).toFixed(1)}%
-              {trend > 0 ? " in più" : trend < 0 ? " in meno" : " invariato"}
+              {trend > 0
+                ? ` ${t.increase}`
+                : trend < 0
+                ? ` ${t.decrease}`
+                : ` ${t.unchanged}`}
             </span>
           </div>
         )}
@@ -78,6 +85,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
   analytics,
   previousPeriodAnalytics,
 }) => {
+  // Get translations
+  const t = getAdminPageTexts()
+
   // Calculate trends if previous period data is available
   const calculateTrend = (current: number, previous: number): number => {
     if (previous === 0) return current > 0 ? 100 : 0
@@ -117,10 +127,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
     }).format(value)
   }
 
-
   const metrics = [
     {
-      title: "Ordini Totali",
+      title: t.totalOrders,
       value: analytics.overview.totalOrders,
       icon: <ShoppingCart className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
@@ -130,10 +139,10 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.totalOrders
           )
         : undefined,
-      description: "Numero totale di ordini ricevuti",
+      description: t.totalOrdersDesc,
     },
     {
-      title: "Clienti",
+      title: t.clients,
       value: analytics.overview.totalCustomers,
       icon: <Users className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
@@ -143,10 +152,10 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.totalCustomers
           )
         : undefined,
-      description: "Numero di clienti attivi",
+      description: t.activeClientsDesc,
     },
     {
-      title: "Messaggi",
+      title: t.messages,
       value: analytics.overview.totalMessages,
       icon: <MessageCircle className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
@@ -156,7 +165,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.totalMessages
           )
         : undefined,
-      description: "Messaggi scambiati con i clienti",
+      description: t.messagesDesc,
     },
     {
       title: "Costo LLM",
@@ -179,7 +188,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
     <div className="space-y-6">
       {/* Main Metrics */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">Metriche Principali</h3>
+        <h3 className="text-lg font-semibold mb-4">{t.mainMetrics}</h3>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {metrics.map((metric) => (
             <MetricCard
@@ -190,6 +199,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
               formatter={metric.formatter}
               trend={metric.trend}
               description={metric.description}
+              t={t}
             />
           ))}
         </div>

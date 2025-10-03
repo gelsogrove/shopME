@@ -362,8 +362,6 @@ Restituisci testo formattato in Markdown arricchiendo le risposte e saludando l'
       "[LINK_PROFILE_WITH_TOKEN]",
       "[LINK_CHECKOUT_WITH_TOKEN]",
       "[LINK_TRACKING_WITH_TOKEN]",
-      "[LINK_CHECKOUT_WITH_TOKEN]",
-      "[LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
     ].some((token) => result.includes(token))
 
     if (hasOtherTokens) {

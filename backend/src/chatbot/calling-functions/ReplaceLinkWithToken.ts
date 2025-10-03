@@ -49,9 +49,6 @@ export async function ReplaceLinkWithToken(
     const hasOrdersToken = response.includes("[LINK_ORDERS_WITH_TOKEN]")
     const hasTrackingToken = response.includes("[LINK_TRACKING_WITH_TOKEN]")
     const hasCheckoutToken = response.includes("[LINK_CHECKOUT_WITH_TOKEN]")
-    const hasLastOrderInvoiceToken = response.includes(
-      "[LINK_LAST_ORDER_INVOICE_WITH_TOKEN]"
-    )
     const hasCatalogToken = response.includes("[LINK_CATALOG]")
     const hasUserDiscountToken = response.includes("[USER_DISCOUNT]")
     const hasListOffersToken = response.includes("[LIST_OFFERS]")
@@ -66,7 +63,6 @@ export async function ReplaceLinkWithToken(
       !hasOrdersToken &&
       !hasTrackingToken &&
       !hasCheckoutToken &&
-      !hasLastOrderInvoiceToken &&
       !hasCatalogToken &&
       !hasUserDiscountToken &&
       !hasListOffersToken &&
@@ -292,44 +288,6 @@ export async function ReplaceLinkWithToken(
         replacedResponse = replacedResponse.replace(
           /\[LINK_CHECKOUT_WITH_TOKEN\]/g,
           "Link di checkout non disponibile"
-        )
-      }
-    }
-
-    // Handle last order invoice token
-    if (hasLastOrderInvoiceToken) {
-      try {
-        const {
-          SecureTokenService,
-        } = require("../../application/services/secure-token.service")
-        const secureTokenService = new SecureTokenService()
-
-        const invoiceToken = await secureTokenService.createToken(
-          "invoice",
-          workspaceId,
-          { customerId, workspaceId },
-          "1h",
-          undefined,
-          undefined,
-          undefined,
-          customerId
-        )
-
-        // Use centralized link generator
-        const finalInvoiceLink = await linkGeneratorService.generateInvoiceLink(
-          invoiceToken,
-          workspaceId
-        )
-
-        replacedResponse = replacedResponse.replace(
-          /\[LINK_LAST_ORDER_INVOICE_WITH_TOKEN\]/g,
-          finalInvoiceLink
-        )
-      } catch (error) {
-        console.error("❌ Error generating invoice link:", error)
-        replacedResponse = replacedResponse.replace(
-          /\[LINK_LAST_ORDER_INVOICE_WITH_TOKEN\]/g,
-          "Link della fattura non disponibile"
         )
       }
     }

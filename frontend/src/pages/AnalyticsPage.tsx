@@ -1,5 +1,4 @@
-import {
-  DateRangeSelector,
+import DateRangeSelector, {
   PeriodPreset,
   getDateRangeFromPeriod,
 } from "@/components/analytics/DateRangeSelector"
@@ -17,6 +16,7 @@ import {
   DashboardAnalytics,
   getDashboardAnalytics,
 } from "@/services/analyticsApi"
+import { getAdminPageTexts } from "@/utils/adminPageTranslations"
 import { Activity, AlertCircle, BarChart3, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -27,6 +27,9 @@ export function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null)
   const { selectedPeriod, setSelectedPeriod, isInitialized } =
     useAnalyticsPeriod()
+
+  // Get translations
+  const t = getAdminPageTexts()
 
   const loadAnalytics = async (period: PeriodPreset) => {
     if (!currentWorkspace?.id) return
@@ -44,11 +47,11 @@ export function AnalyticsPage() {
       if (response.success) {
         setAnalytics(response.data)
       } else {
-        setError("Impossibile caricare i dati analytics")
+        setError(t.loadingError)
       }
     } catch (err) {
       logger.error("Analytics loading error:", err)
-      setError("Errore nel caricamento dei dati analytics")
+      setError(t.dataError)
     } finally {
       setLoading(false)
     }
@@ -74,7 +77,7 @@ export function AnalyticsPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">Nessun workspace selezionato</p>
+            <p className="text-gray-500">{t.noWorkspace}</p>
           </div>
         </div>
       </div>
@@ -89,7 +92,7 @@ export function AnalyticsPage() {
             <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
             <p className="text-red-500 mb-4">{error}</p>
             <Button onClick={handleRetry} variant="outline">
-              Riprova
+              {t.retry}
             </Button>
           </div>
         </div>
@@ -105,12 +108,10 @@ export function AnalyticsPage() {
           <div className="flex items-center gap-2 mb-6">
             <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <BarChart3 className="h-6 w-6 text-blue-600" />
-              Analytics Dashboard
+              {t.analyticsTitle}
             </h1>
           </div>
-          <p className="text-gray-600 mt-1">
-            Monitora le prestazioni e le metriche di crescita del tuo business
-          </p>
+          <p className="text-gray-600 mt-1">{t.analyticsSubtitle}</p>
         </div>
 
         {/* Period Selector */}
@@ -161,7 +162,7 @@ export function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-green-600" />
-                  Prodotti Top
+                  {t.topProducts}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -182,11 +183,11 @@ export function AnalyticsPage() {
                             </p>
                             {product.formato && (
                               <p className="text-sm text-blue-600 font-medium">
-                                Format: {product.formato}
+                                {t.format}: {product.formato}
                               </p>
                             )}
                             <p className="text-sm text-gray-500">
-                              {product.totalSold} venduti
+                              {product.totalSold} {t.sold}
                             </p>
                           </div>
                         </div>
@@ -199,7 +200,7 @@ export function AnalyticsPage() {
                             }).format(product.revenue)}
                           </p>
                           <p className="text-xs text-gray-500">
-                            Scorte: {product.stock}
+                            {t.stock}: {product.stock}
                           </p>
                         </div>
                       </div>
@@ -208,9 +209,7 @@ export function AnalyticsPage() {
                 ) : (
                   <div className="text-center py-8">
                     <TrendingUp className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">
-                      Nessun dato di vendita prodotti disponibile
-                    </p>
+                    <p className="text-gray-500">{t.noProductData}</p>
                   </div>
                 )}
               </CardContent>
@@ -221,7 +220,7 @@ export function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5 text-blue-600" />
-                  Clienti Top
+                  {t.topCustomers}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -261,10 +260,10 @@ export function AnalyticsPage() {
                               }).format(customer.totalSpent)}
                             </p>
                             <p className="text-xs text-gray-500">
-                              {customer.totalOrders} ordini
+                              {customer.totalOrders} {t.orders}
                             </p>
                             <p className="text-xs text-gray-400">
-                              Media:{" "}
+                              {t.average}:{" "}
                               {new Intl.NumberFormat("en-US", {
                                 style: "currency",
                                 currency: "EUR",
@@ -278,9 +277,7 @@ export function AnalyticsPage() {
                 ) : (
                   <div className="text-center py-8">
                     <Activity className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">
-                      Nessun dato cliente disponibile
-                    </p>
+                    <p className="text-gray-500">{t.noCustomerData}</p>
                   </div>
                 )}
               </CardContent>
@@ -295,7 +292,7 @@ export function AnalyticsPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">Nessun dato analytics disponibile</p>
+            <p className="text-gray-500">{t.noAnalyticsData}</p>
           </div>
         </div>
       )}

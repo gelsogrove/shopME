@@ -2027,7 +2027,7 @@ async function main() {
       name: "Curry in Polvere",
       ProductCode: "0608000021",
       description:
-        "Miscela di spezie curry tradizionale indiana. Blend aromatico per piatti etnici e fusion cuisine.",
+        "Traditional Indian curry spice mix. Aromatic blend for ethnic dishes and fusion cuisine.",
       formato: "810gr",
       price: 15.5,
       stock: 22,
@@ -2039,7 +2039,7 @@ async function main() {
       name: "Oregano Siciliano",
       ProductCode: "0608000037",
       description:
-        "Oregano siciliano essiccato, aroma intenso e persistente. Spezia essenziale per pizza, pasta e piatti mediterranei. Regione: Sicilia - Dalle colline dell'Etna, dove il sole mediterraneo concentra gli aromi nelle foglie di oregano selvatico.",
+        "Sicilian dried oregano, intense and lingering aroma. An essential spice for pizza, pasta, and Mediterranean dishes.Region: Sicily – From the hills of Mount Etna, where the Mediterranean sun concentrates the flavors in the leaves of wild oregano.",
       formato: "1kg",
       price: 18.9,
       stock: 20,
@@ -2051,7 +2051,7 @@ async function main() {
       name: "Pepe Nero in Grani",
       ProductCode: "0608000045",
       description:
-        "Pepe nero in grani di alta qualità, piccante e aromatico. Spezia fondamentale per ogni cucina professionale.",
+        "High-quality whole black pepper, spicy and aromatic. An essential spice for every professional kitchen",
       formato: "710gr",
       price: 16.8,
       stock: 30,
@@ -2063,7 +2063,7 @@ async function main() {
       name: "Basilico Essiccato",
       ProductCode: "0606000099",
       description:
-        "Basilico essiccato italiano, aroma mediterraneo autentico. Perfetto per sughi, pizza e piatti della tradizione. Regione: Liguria - Dalla riviera ligure, patria del basilico genovese DOP, dove cresce il basilico più profumato d'Italia.",
+        "Italian dried basil, authentic Mediterranean flavor. Perfect for sauces, pizza, and traditional dishes. Region: Liguria – From the Ligurian Riviera, homeland of Genoese PDO basil, where the most fragrant basil in Italy grows.  ",
       formato: "250gr",
       price: 9.8,
       stock: 40,
@@ -2419,41 +2419,11 @@ async function main() {
         "Hello! To place a new order, please click on this link: [LINK_CHECKOUT_WITH_TOKEN]",
     },
     {
-      question: "Factura de mi último pedido",
-      answer:
-        "¡Hola! Para ver la factura de tu último pedido, haz clic en este enlace: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
-    },
-    {
-      question: "Fatura do meu último pedido",
-      answer:
-        "Olá! Para visualizar a fatura do seu último pedido, clique neste link: [LINK_LAST_ORDER_INVOICE_WITH_TOKEN]",
-    },
-    {
       question: "What is your name?",
       answer:
         "Hello! I am SofIA, the digital assistant of L'Altra Italia. I'm here to help you with information about our Italian products, orders, and services. How can I assist you today?",
     },
     /* Rimosse FAQ con token non supportati - LIST_SERVICES sono gestiti dal prompt */
-    {
-      question: "What categories do you have?",
-      answer:
-        "Hello! We have the following product categories: [LIST_CATEGORIES]",
-    },
-    {
-      question: "What categories do you have?",
-      answer:
-        "Hello! We have the following product categories: [LIST_CATEGORIES]",
-    },
-    {
-      question: "¿Qué categorías tienen?",
-      answer:
-        "¡Hola! Tenemos las siguientes categorías de productos: [LIST_CATEGORIES]",
-    },
-    {
-      question: "Que categorias vocês têm?",
-      answer:
-        "Olá! Temos as seguintes categorias de produtos: [LIST_CATEGORIES]",
-    },
     {
       question: "I want to change my email",
       answer:

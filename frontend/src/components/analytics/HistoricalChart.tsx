@@ -1,43 +1,46 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DashboardAnalytics } from '@/services/analyticsApi';
-import { Euro, ShoppingCart, TrendingUp, Users } from 'lucide-react';
-import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { DashboardAnalytics } from "@/services/analyticsApi"
+import { Euro, ShoppingCart, TrendingUp, Users } from "lucide-react"
+import React from "react"
 import {
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Legend,
-    Line,
-    LineChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis
-} from 'recharts';
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
+import { getAdminPageTexts } from "../../utils/adminPageTranslations"
 
 interface HistoricalChartProps {
-  analytics: DashboardAnalytics;
-  chartType?: 'line' | 'bar';
+  analytics: DashboardAnalytics
+  chartType?: "line" | "bar"
 }
 
 export const HistoricalChart: React.FC<HistoricalChartProps> = ({
   analytics,
-  chartType = 'line'
+  chartType = "line",
 }) => {
+  const t = getAdminPageTexts()
+
   // Format data for charts
   const chartData = analytics.trends.orders.map((orderData, index) => {
-    const revenueData = analytics.trends.revenue[index];
-    const customerData = analytics.trends.customers[index];
-    const usageCostData = analytics.trends.usageCost[index];
-    
+    const revenueData = analytics.trends.revenue[index]
+    const customerData = analytics.trends.customers[index]
+    const usageCostData = analytics.trends.usageCost[index]
+
     return {
       month: orderData.month,
       orders: orderData.value,
       revenue: revenueData?.value || 0,
       customers: customerData?.value || 0,
-      usageCost: usageCostData?.value || 0
-    };
-  });
+      usageCost: usageCostData?.value || 0,
+    }
+  })
 
   // Custom tooltip formatter
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -47,28 +50,28 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
           <p className="font-semibold text-gray-900 mb-2">{label}</p>
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center gap-2 text-sm">
-              <div 
-                className="w-3 h-3 rounded-full" 
+              <div
+                className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: entry.color }}
               />
               <span className="text-gray-600">{entry.name}:</span>
               <span className="font-medium text-gray-900">
-                {entry.dataKey === 'revenue' || entry.dataKey === 'usageCost'
-                  ? new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'EUR',
-                      minimumFractionDigits: entry.dataKey === 'usageCost' ? 3 : 0
+                {entry.dataKey === "revenue" || entry.dataKey === "usageCost"
+                  ? new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: "EUR",
+                      minimumFractionDigits:
+                        entry.dataKey === "usageCost" ? 3 : 0,
                     }).format(entry.value)
-                  : entry.value.toLocaleString('en-US')
-                }
+                  : entry.value.toLocaleString("en-US")}
               </span>
             </div>
           ))}
         </div>
-      );
+      )
     }
-    return null;
-  };
+    return null
+  }
 
   if (!chartData || chartData.length === 0) {
     return (
@@ -84,131 +87,127 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
             <div className="text-center">
               <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-2" />
               <p className="text-gray-500">No historical data available</p>
-              <p className="text-sm text-gray-400">Data will appear here once you have more orders over time</p>
+              <p className="text-sm text-gray-400">
+                Data will appear here once you have more orders over time
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   const renderChart = () => {
     const commonProps = {
       data: chartData,
-      margin: { top: 20, right: 30, left: 20, bottom: 5 }
-    };
+      margin: { top: 20, right: 30, left: 20, bottom: 5 },
+    }
 
-    if (chartType === 'bar') {
+    if (chartType === "bar") {
       return (
         <BarChart {...commonProps}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis 
-            dataKey="month" 
-            tick={{ fontSize: 12, fill: '#666' }}
-            tickLine={{ stroke: '#e0e0e0' }}
+          <XAxis
+            dataKey="month"
+            tick={{ fontSize: 12, fill: "#666" }}
+            tickLine={{ stroke: "#e0e0e0" }}
           />
-          <YAxis 
-            tick={{ fontSize: 12, fill: '#666' }}
-            tickLine={{ stroke: '#e0e0e0' }}
+          <YAxis
+            tick={{ fontSize: 12, fill: "#666" }}
+            tickLine={{ stroke: "#e0e0e0" }}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend 
-            wrapperStyle={{ fontSize: '14px', fontWeight: '500' }}
-          />
-          <Bar 
-            dataKey="orders" 
-            name="Ordini"
-            fill="#22c55e" 
+          <Legend wrapperStyle={{ fontSize: "14px", fontWeight: "500" }} />
+          <Bar
+            dataKey="orders"
+            name={t.ordersLabel}
+            fill="#22c55e"
             radius={[4, 4, 0, 0]}
           />
-          <Bar 
-            dataKey="customers" 
+          <Bar
+            dataKey="customers"
             name="Clienti"
-            fill="#3b82f6" 
+            fill="#3b82f6"
             radius={[4, 4, 0, 0]}
           />
         </BarChart>
-      );
+      )
     }
 
     return (
       <LineChart {...commonProps}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-        <XAxis 
-          dataKey="month" 
-          tick={{ fontSize: 12, fill: '#666' }}
-          tickLine={{ stroke: '#e0e0e0' }}
+        <XAxis
+          dataKey="month"
+          tick={{ fontSize: 12, fill: "#666" }}
+          tickLine={{ stroke: "#e0e0e0" }}
         />
-        <YAxis 
+        <YAxis
           yAxisId="left"
-          tick={{ fontSize: 12, fill: '#666' }}
-          tickLine={{ stroke: '#e0e0e0' }}
+          tick={{ fontSize: 12, fill: "#666" }}
+          tickLine={{ stroke: "#e0e0e0" }}
         />
-        <YAxis 
-          yAxisId="right" 
+        <YAxis
+          yAxisId="right"
           orientation="right"
-          tick={{ fontSize: 12, fill: '#666' }}
-          tickLine={{ stroke: '#e0e0e0' }}
+          tick={{ fontSize: 12, fill: "#666" }}
+          tickLine={{ stroke: "#e0e0e0" }}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Legend 
-          wrapperStyle={{ fontSize: '14px', fontWeight: '500' }}
-        />
-        <Line 
+        <Legend wrapperStyle={{ fontSize: "14px", fontWeight: "500" }} />
+        <Line
           yAxisId="left"
-          type="monotone" 
-          dataKey="orders" 
-          name="Ordini"
-          stroke="#22c55e" 
+          type="monotone"
+          dataKey="orders"
+          name={t.ordersLabel}
+          stroke="#22c55e"
           strokeWidth={3}
-          dot={{ fill: '#22c55e', strokeWidth: 2, r: 6 }}
-          activeDot={{ r: 8, stroke: '#22c55e', strokeWidth: 2 }}
+          dot={{ fill: "#22c55e", strokeWidth: 2, r: 6 }}
+          activeDot={{ r: 8, stroke: "#22c55e", strokeWidth: 2 }}
         />
-        <Line 
+        <Line
           yAxisId="left"
-          type="monotone" 
-          dataKey="customers" 
+          type="monotone"
+          dataKey="customers"
           name="Clienti"
-          stroke="#3b82f6" 
+          stroke="#3b82f6"
           strokeWidth={3}
-          dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
-          activeDot={{ r: 8, stroke: '#3b82f6', strokeWidth: 2 }}
+          dot={{ fill: "#3b82f6", strokeWidth: 2, r: 6 }}
+          activeDot={{ r: 8, stroke: "#3b82f6", strokeWidth: 2 }}
         />
-        <Line 
+        <Line
           yAxisId="right"
-          type="monotone" 
-          dataKey="revenue" 
+          type="monotone"
+          dataKey="revenue"
           name="Ricavi (€)"
-          stroke="#f59e0b" 
+          stroke="#f59e0b"
           strokeWidth={3}
-          dot={{ fill: '#f59e0b', strokeWidth: 2, r: 6 }}
-          activeDot={{ r: 8, stroke: '#f59e0b', strokeWidth: 2 }}
+          dot={{ fill: "#f59e0b", strokeWidth: 2, r: 6 }}
+          activeDot={{ r: 8, stroke: "#f59e0b", strokeWidth: 2 }}
         />
-        <Line 
+        <Line
           yAxisId="right"
-          type="monotone" 
-          dataKey="usageCost" 
+          type="monotone"
+          dataKey="usageCost"
           name="Costi LLM (€)"
-          stroke="#f97316" 
+          stroke="#f97316"
           strokeWidth={2}
           strokeDasharray="5 5"
-          dot={{ fill: '#f97316', strokeWidth: 2, r: 4 }}
-          activeDot={{ r: 6, stroke: '#f97316', strokeWidth: 2 }}
+          dot={{ fill: "#f97316", strokeWidth: 2, r: 4 }}
+          activeDot={{ r: 6, stroke: "#f97316", strokeWidth: 2 }}
         />
       </LineChart>
-    );
-  };
+    )
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-green-600" />
-          Andamenti Storici - Ordini, Ricavi e Costi LLM
+          {t.historicalTrends}
         </CardTitle>
-        <p className="text-sm text-gray-500 mt-1">
-          Evoluzione delle prestazioni nel periodo selezionato incluso il monitoraggio dei costi AI
-        </p>
+        <p className="text-sm text-gray-500 mt-1">{t.historicalTrendsDesc}</p>
       </CardHeader>
       <CardContent>
         <div className="h-80">
@@ -216,7 +215,7 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
             {renderChart()}
           </ResponsiveContainer>
         </div>
-        
+
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200">
           <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
@@ -224,36 +223,42 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
               <ShoppingCart className="h-4 w-4 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-green-800 font-medium">Ordini Totali</p>
+              <p className="text-sm text-green-800 font-medium">
+                {t.totalOrdersLabel}
+              </p>
               <p className="text-lg font-bold text-green-900">
-                {analytics.overview.totalOrders.toLocaleString('en-US')}
+                {analytics.overview.totalOrders.toLocaleString("en-US")}
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
             <div className="p-2 bg-blue-100 rounded-full">
               <Users className="h-4 w-4 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-blue-800 font-medium">Clienti Attivi</p>
+              <p className="text-sm text-blue-800 font-medium">
+                {t.activeClients}
+              </p>
               <p className="text-lg font-bold text-blue-900">
-                {analytics.overview.totalCustomers.toLocaleString('en-US')}
+                {analytics.overview.totalCustomers.toLocaleString("en-US")}
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
             <div className="p-2 bg-orange-100 rounded-full">
               <Euro className="h-4 w-4 text-orange-600" />
             </div>
             <div>
-              <p className="text-sm text-orange-800 font-medium">Ricavi Totali</p>
+              <p className="text-sm text-orange-800 font-medium">
+                {t.totalRevenue}
+              </p>
               <p className="text-lg font-bold text-orange-900">
-                {new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'EUR',
-                  minimumFractionDigits: 0
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "EUR",
+                  minimumFractionDigits: 0,
                 }).format(analytics.overview.totalRevenue)}
               </p>
             </div>
@@ -261,5 +266,5 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
         </div>
       </CardContent>
     </Card>
-  );
-}; 
+  )
+}
