@@ -216,6 +216,7 @@ export function ChatPage() {
   const [isInputDisabled, setIsInputDisabled] = useState(false)
   const [activeChatbot, setActiveChatbot] = useState<boolean>(true)
   const [showActiveChatbotDialog, setShowActiveChatbotDialog] = useState(false)
+  const [showActiveChatbotNotifyDialog, setShowActiveChatbotNotifyDialog] = useState(false)
   const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
   const [isBlocking, setIsBlocking] = useState(false)
   const navigate = useNavigate()
@@ -404,18 +405,30 @@ export function ChatPage() {
       return
     }
 
+    // If turning on the chatbot, show notification confirmation dialog
+    if (checked) {
+      setShowActiveChatbotNotifyDialog(true)
+      return
+    }
+
     await updateActiveChatbotStatus(checked)
   }
 
-  // Function to confirm toggling the chatbot
+  // Function to confirm turning off the chatbot
   const handleActiveChatbotConfirm = async () => {
     setHasToggledChatbot(true)
     setShowActiveChatbotDialog(false)
     await updateActiveChatbotStatus(false)
   }
 
+  // Function to handle activation with or without notification
+  const handleActiveChatbotNotifyConfirm = async (shouldNotify: boolean) => {
+    setShowActiveChatbotNotifyDialog(false)
+    await updateActiveChatbotStatus(true, shouldNotify)
+  }
+
   // Function to update the activeChatbot status in the backend
-  const updateActiveChatbotStatus = async (status: boolean) => {
+  const updateActiveChatbotStatus = async (status: boolean, shouldNotify: boolean = false) => {
     if (!selectedChat?.customerId || !workspaceId) return
 
     try {
@@ -429,6 +442,19 @@ export function ChatPage() {
 
       if (response.status === 200) {
         setActiveChatbot(status)
+        // If enabling chatbot and notification is requested
+        if (status && shouldNotify) {
+          try {
+            // Send notification
+            await api.post(`/workspaces/${workspaceId}/push/chatbot-reactivated`, {
+              workspaceId,
+              customerIds: [selectedChat.customerId]
+            })
+          } catch (notifyError) {
+            logger.error("Error sending notification:", notifyError)
+            // Don't show error to user as the main action succeeded
+          }
+        }
         toast.success(
           `Chatbot ${status ? "enabled" : "disabled"} for ${
             selectedChat.customerName
@@ -1370,6 +1396,26 @@ export function ChatPage() {
         cancelLabel="Cancel"
         variant="destructive"
       />
+
+      {/* Chatbot Notification Confirmation Dialog */}
+      <AlertDialog open={showActiveChatbotNotifyDialog} onOpenChange={setShowActiveChatbotNotifyDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send Notification?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Would you like to notify {selectedChat?.customerName} that the chatbot is now active?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => handleActiveChatbotNotifyConfirm(false)}>
+              No, just enable
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleActiveChatbotNotifyConfirm(true)}>
+              Yes, notify user
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Block User Dialog */}
       <AlertDialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
