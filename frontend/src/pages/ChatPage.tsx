@@ -5,11 +5,11 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { MessageRenderer } from "@/components/shared/MessageRenderer"
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
-import { useWorkspace } from "@/hooks/use-workspace"
-import { useRecentChats } from "@/hooks/useRecentChats"
-import { useCurrentChatMessages } from "@/hooks/useCurrentChatMessages"
-import { useChatSync } from "@/hooks/useChatSync"
 import { useChat } from "@/contexts/ChatContext"
+import { useWorkspace } from "@/hooks/use-workspace"
+import { useChatSync } from "@/hooks/useChatSync"
+import { useCurrentChatMessages } from "@/hooks/useCurrentChatMessages"
+import { useRecentChats } from "@/hooks/useRecentChats"
 import { logger } from "@/lib/logger"
 import { toast } from "@/lib/toast"
 import { api } from "@/services/api"
@@ -141,19 +141,19 @@ const getLanguageFlag = (language?: string): string => {
 export function ChatPage() {
   logger.info("🟦 ChatPage component loaded - modifiche applicate!")
   const { workspace, loading: isWorkspaceLoading } = useWorkspace()
-  
+
   // Clean any stale locks on mount
   useEffect(() => {
-    const lockKey = 'chat-tab-lock'
+    const lockKey = "chat-tab-lock"
     localStorage.removeItem(lockKey) // ALWAYS clear lock on mount
-    logger.info('🧹 Cleared tab lock on mount')
+    logger.info("🧹 Cleared tab lock on mount")
   }, [])
-  
+
   // REMOVED: Tab blocking system is causing issues with React Strict Mode
   // const { isBlocked: isTabBlocked, hasLock } = useTabBlock()
   const isTabBlocked = false // Never block
   const hasLock = true // Always has lock
-  
+
   const { selectedChat, setSelectedChat } = useChat()
   const [messages, setMessages] = useState<Message[]>([])
   const [messageInput, setMessageInput] = useState("")
@@ -249,19 +249,22 @@ export function ChatPage() {
   }, [isWorkspaceLoading, workspace, navigate])
 
   // Callback when new message arrives - navigate to that chat
-  const handleNewMessage = useCallback((sessionId: string) => {
-    logger.info('🔔 New message arrived in session:', sessionId)
-    
-    // Update URL params
-    const newParams = new URLSearchParams(searchParams)
-    newParams.set('sessionId', sessionId)
-    setSearchParams(newParams)
-    
-    // Invalidate messages query to force refresh
-    queryClient.invalidateQueries({ queryKey: ['chat-messages', sessionId] })
-    
-    // Note: selectedChat will be updated by the useEffect that watches sessionId
-  }, [searchParams, setSearchParams, queryClient])
+  const handleNewMessage = useCallback(
+    (sessionId: string) => {
+      logger.info("🔔 New message arrived in session:", sessionId)
+
+      // Update URL params
+      const newParams = new URLSearchParams(searchParams)
+      newParams.set("sessionId", sessionId)
+      setSearchParams(newParams)
+
+      // Invalidate messages query to force refresh
+      queryClient.invalidateQueries({ queryKey: ["chat-messages", sessionId] })
+
+      // Note: selectedChat will be updated by the useEffect that watches sessionId
+    },
+    [searchParams, setSearchParams, queryClient]
+  )
 
   // POLLING ENABLED ALWAYS - no blocking
   const {
@@ -272,10 +275,8 @@ export function ChatPage() {
   } = useRecentChats(false, handleNewMessage, selectedChat?.sessionId) // Pass selected chat ID
 
   // Polling with messages
-  const {
-    data: polledMessages = [],
-    isLoading: isLoadingMessages,
-  } = useCurrentChatMessages(selectedChat?.sessionId || null, !!selectedChat)
+  const { data: polledMessages = [], isLoading: isLoadingMessages } =
+    useCurrentChatMessages(selectedChat?.sessionId || null, !!selectedChat)
 
   // Cross-tab sync disabled (using polling lock instead)
   const { notifyOtherTabs } = useChatSync()
@@ -381,7 +382,9 @@ export function ChatPage() {
         if (messagesEndRef.current) {
           const container = messagesEndRef.current.parentElement
           if (container) {
-            const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100
+            const isAtBottom =
+              container.scrollHeight - container.scrollTop <=
+              container.clientHeight + 100
             if (isAtBottom) {
               messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
             }
@@ -867,7 +870,7 @@ export function ChatPage() {
 
         // Update chat list to reflect new message
         refetchChats()
-        
+
         // Notify other tabs about the update
         notifyOtherTabs()
       }

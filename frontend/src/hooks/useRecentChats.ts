@@ -15,14 +15,14 @@ export function useRecentChats(
   // Listen for updates from other tabs via localStorage
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'chat-list-updated' && e.newValue) {
-        logger.info('📥 Received chat list update from another tab')
-        queryClient.invalidateQueries({ queryKey: ['chats'] })
+      if (e.key === "chat-list-updated" && e.newValue) {
+        logger.info("📥 Received chat list update from another tab")
+        queryClient.invalidateQueries({ queryKey: ["chats"] })
       }
     }
-    
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+
+    window.addEventListener("storage", handleStorageChange)
+    return () => window.removeEventListener("storage", handleStorageChange)
   }, [queryClient])
 
   return useQuery({
@@ -73,7 +73,7 @@ export function useRecentChats(
           }))
 
           // DEBUG: Log per vedere che lingue arrivano dal backend
-          transformedChats.forEach(chat => {
+          transformedChats.forEach((chat) => {
             console.log(`🔍 DEBUG - Customer: ${chat.customerName}`)
             console.log(`🔍 DEBUG - Language field:`, chat.language)
             console.log(`🔍 DEBUG - Raw chat object:`, chat)
@@ -84,8 +84,8 @@ export function useRecentChats(
 
           // Notify other tabs if this tab has the lock
           if (hasPollingLock) {
-            localStorage.setItem('chat-list-updated', Date.now().toString())
-            logger.info('📤 Notified other tabs about chat list update')
+            localStorage.setItem("chat-list-updated", Date.now().toString())
+            logger.info("📤 Notified other tabs about chat list update")
           }
 
           return transformedChats

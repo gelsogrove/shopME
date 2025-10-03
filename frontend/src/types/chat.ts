@@ -66,4 +66,4 @@ export interface Chat {
   isFavorite: boolean
   isBlacklisted?: boolean
   messages?: Message[]
-} 
+}

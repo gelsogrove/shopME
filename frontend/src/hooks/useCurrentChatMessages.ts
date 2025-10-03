@@ -20,7 +20,10 @@ interface Message {
  * Hook to fetch and poll messages for the currently selected chat
  * This keeps the message list up-to-date without losing user's scroll position
  */
-export function useCurrentChatMessages(sessionId: string | null, enabled: boolean = true) {
+export function useCurrentChatMessages(
+  sessionId: string | null,
+  enabled: boolean = true
+) {
   // SIMPLIFIED: No tab blocking, always poll when enabled
   const hasPollingLock = enabled // Can poll if enabled
   const queryClient = useQueryClient()
@@ -28,19 +31,24 @@ export function useCurrentChatMessages(sessionId: string | null, enabled: boolea
   // Listen for updates from other tabs via localStorage
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'chat-messages-updated' && e.newValue) {
+      if (e.key === "chat-messages-updated" && e.newValue) {
         const data = JSON.parse(e.newValue)
         if (data.sessionId === sessionId) {
-          logger.info('📥 Received chat messages update from another tab for session', sessionId)
-          queryClient.invalidateQueries({ queryKey: ['chat-messages', sessionId] })
+          logger.info(
+            "📥 Received chat messages update from another tab for session",
+            sessionId
+          )
+          queryClient.invalidateQueries({
+            queryKey: ["chat-messages", sessionId],
+          })
         }
       }
     }
-    
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+
+    window.addEventListener("storage", handleStorageChange)
+    return () => window.removeEventListener("storage", handleStorageChange)
   }, [queryClient, sessionId])
-  
+
   return useQuery({
     queryKey: ["chat-messages", sessionId],
     queryFn: async () => {
@@ -50,20 +58,24 @@ export function useCurrentChatMessages(sessionId: string | null, enabled: boolea
 
       try {
         logger.info(`Fetching messages for session: ${sessionId}`)
-        
+
         const response = await api.get(`/chat/${sessionId}/messages`)
 
         if (response.data.success) {
-          const messages: Message[] = response.data.data.map((message: any) => ({
-            id: message.id,
-            content: message.content,
-            sender: message.direction === "INBOUND" ? "customer" : "user",
-            timestamp: message.createdAt || new Date().toISOString(),
-            agentName: message.metadata?.agentName,
-            metadata: message.metadata,
-          }))
+          const messages: Message[] = response.data.data.map(
+            (message: any) => ({
+              id: message.id,
+              content: message.content,
+              sender: message.direction === "INBOUND" ? "customer" : "user",
+              timestamp: message.createdAt || new Date().toISOString(),
+              agentName: message.metadata?.agentName,
+              metadata: message.metadata,
+            })
+          )
 
-          logger.info(`Loaded ${messages.length} messages for session ${sessionId}`)
+          logger.info(
+            `Loaded ${messages.length} messages for session ${sessionId}`
+          )
           return messages
         }
 

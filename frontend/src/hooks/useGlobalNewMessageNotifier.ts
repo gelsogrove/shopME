@@ -1,10 +1,10 @@
+import { useChat } from "@/contexts/ChatContext"
 import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
 import { useQuery } from "@tanstack/react-query"
-import { useEffect, useRef } from "react"
-import { toast as sonnerToast } from "sonner"
-import { useChat } from "@/contexts/ChatContext"
+import { useRef } from "react"
 import { useNavigate } from "react-router-dom"
+import { toast as sonnerToast } from "sonner"
 
 /**
  * Global hook that runs in the background on every page
@@ -14,7 +14,9 @@ export function useGlobalNewMessageNotifier() {
   const { selectedChat } = useChat() // Get selected chat from context
   const navigate = useNavigate()
   // Track previous chats to detect new messages
-  const previousChatsRef = useRef<Map<string, { lastMessage: string, lastMessageTime: string }>>(new Map())
+  const previousChatsRef = useRef<
+    Map<string, { lastMessage: string; lastMessageTime: string }>
+  >(new Map())
 
   // Polling for chat list every 4 seconds
   const { data: allChats = [] } = useQuery({
@@ -69,48 +71,61 @@ export function useGlobalNewMessageNotifier() {
           transformedChats.forEach((chat: any) => {
             const chatId = chat.sessionId
             const previous = previousChatsRef.current.get(chatId)
-            
+
             // If we have a previous state and the message changed
-            if (previous && 
-                (previous.lastMessage !== chat.lastMessage || 
-                 previous.lastMessageTime !== chat.lastMessageTime)) {
-              
+            if (
+              previous &&
+              (previous.lastMessage !== chat.lastMessage ||
+                previous.lastMessageTime !== chat.lastMessageTime)
+            ) {
               // Skip toast if this is the currently selected chat
               if (selectedChat && selectedChat.sessionId === chat.sessionId) {
-                logger.info('🌍🔇 Skipping toast for selected chat:', chat.customerName)
+                logger.info(
+                  "🌍🔇 Skipping toast for selected chat:",
+                  chat.customerName
+                )
                 return
               }
-              
+
               // New message detected!
-              logger.info('🌍🔔 GLOBAL NEW MESSAGE DETECTED for', chat.customerName)
-              logger.info('Previous:', previous.lastMessage?.substring(0, 30))
-              logger.info('Current:', chat.lastMessage?.substring(0, 30))
-              
+              logger.info(
+                "🌍🔔 GLOBAL NEW MESSAGE DETECTED for",
+                chat.customerName
+              )
+              logger.info("Previous:", previous.lastMessage?.substring(0, 30))
+              logger.info("Current:", chat.lastMessage?.substring(0, 30))
+
               // Show toast for global notifications
-              const messagePreview = chat.lastMessage?.substring(0, 30) || 'New message'
-              const displayText = messagePreview + (chat.lastMessage && chat.lastMessage.length > 30 ? '...' : '')
-              
-              logger.info('🌍🎯 Showing GLOBAL toast:', displayText)
-              
+              const messagePreview =
+                chat.lastMessage?.substring(0, 30) || "New message"
+              const displayText =
+                messagePreview +
+                (chat.lastMessage && chat.lastMessage.length > 30 ? "..." : "")
+
+              logger.info("🌍🎯 Showing GLOBAL toast:", displayText)
+
               sonnerToast.success(`💬 ${chat.customerName}`, {
                 description: displayText,
                 duration: 3000,
                 action: {
                   label: "Open",
                   onClick: () => {
-                    logger.info('🌍🔗 Toast clicked, navigating to chat:', chat.sessionId)
+                    logger.info(
+                      "🌍🔗 Toast clicked, navigating to chat:",
+                      chat.sessionId
+                    )
                     navigate(`/chat?session=${chat.sessionId}`)
-                  }
-                }
+                  },
+                },
               })
-              
-              logger.info('🌍✅ Global toast created successfully!')
+
+              logger.info("🌍✅ Global toast created successfully!")
             }
-            
+
             // Update previous state
             previousChatsRef.current.set(chatId, {
-              lastMessage: chat.lastMessage || '',
-              lastMessageTime: chat.lastMessageTime || ''
+              lastMessage: chat.lastMessage || "",
+              lastMessageTime: chat.lastMessageTime || "",
             })
           })
 
