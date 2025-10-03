@@ -1,3 +1,4 @@
+import { ApiCallMonitor } from "@/components/ApiCallMonitor"
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useGlobalNewMessageNotifier } from "@/hooks/useGlobalNewMessageNotifier"
@@ -45,6 +46,9 @@ export function PageLayout({ children, selectedChat }: PageLayoutProps) {
         workspaceId={workspace?.id}
         selectedChat={selectedChat}
       />
+
+      {/* API Call Monitor (dev only) */}
+      <ApiCallMonitor />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 Chi sei?
 Che servizi offrite?
-Che prodotti vendete? NON VA
+Che prodotti vendete?  
 Dammi la lista dei prodotti.
 Posso vedere il catalogo?
 Che sconto ho sui prodotti?
@@ -52,6 +52,8 @@ POPUP NUOVO ORDINE
   -- link Localhost da rivedere per andare in produczione
 - togliere Swagger?
 - websocket su new order
+- puo' essere che dobbiamo fare DUAL LLM per tradurre tutto per bene
+  Senza harcodeare nulla..
 
 SICUREZZA:
 

@@ -16,71 +16,53 @@ export class PromptProcessorService {
    * @param customerData I dati del cliente per la sostituzione delle variabili.
    * @returns Il prompt processato.
    */
+  /**
+   * Pre-processa il prompt sostituendo i placeholder dinamici.
+   * @param promptContent Il contenuto del prompt da processare
+   * @param workspaceId L'ID del workspace
+   * @param customerData I dati del cliente
+   * @param dynamicContent Contenuti dinamici pre-recuperati (FAQ, prodotti, etc)
+   * @returns Il prompt processato
+   */
   public async preProcessPrompt(
     promptContent: string,
     workspaceId: string,
-    customerData: any
+    customerData: any,
+    dynamicContent: {
+      faqs: string;
+      products: string;
+      categories: string;
+      services: string;
+      offers: string;
+    }
   ): Promise<string> {
     let processedPrompt = promptContent
 
     // Sostituzione delle informazioni utente
     processedPrompt = this.replaceVariables(processedPrompt, customerData)
 
+    // Sostituzione contenuti dinamici
     if (processedPrompt.includes("{{FAQ}}")) {
-      console.log("🔧 DEBUG: Cerco FAQ per workspaceId:", workspaceId)
-      const faqs = await this.messageRepository.getActiveFaqs(workspaceId)
-      console.log(
-        "🔧 DEBUG: FAQ trovate:",
-        faqs ? `${faqs.length} chars` : "VUOTO"
-      )
-      processedPrompt = processedPrompt.replace("{{FAQ}}", faqs)
+      processedPrompt = processedPrompt.replace("{{FAQ}}", dynamicContent.faqs)
     }
 
     if (processedPrompt.includes("{{PRODUCTS}}")) {
-      console.log("🔧 DEBUG: Cerco PRODUCTS per workspaceId:", workspaceId)
-      const products = await this.messageRepository.getActiveProducts(
-        workspaceId,
-        0
-      ) // Default discount: 0 - lo sconto vero viene gestito dall'LLM service
-      console.log(
-        "🔧 DEBUG: PRODUCTS trovati:",
-        products ? `${products.length} chars` : "VUOTO"
-      )
-      processedPrompt = processedPrompt.replace("{{PRODUCTS}}", products)
+      processedPrompt = processedPrompt.replace("{{PRODUCTS}}", dynamicContent.products)
     }
 
     if (processedPrompt.includes("{{CATEGORIES}}")) {
-      console.log("🔧 DEBUG: Cerco CATEGORIES per workspaceId:", workspaceId)
-      const categories =
-        await this.messageRepository.getActiveCategories(workspaceId)
-      console.log(
-        "🔧 DEBUG: CATEGORIES trovate:",
-        categories ? `${categories.length} chars` : "VUOTO"
-      )
-      processedPrompt = processedPrompt.replace("{{CATEGORIES}}", categories)
+      processedPrompt = processedPrompt.replace("{{CATEGORIES}}", dynamicContent.categories)
     }
 
     if (processedPrompt.includes("{{SERVICES}}")) {
-      console.log("🔧 DEBUG: Cerco SERVICES per workspaceId:", workspaceId)
-      const services =
-        await this.messageRepository.getActiveServices(workspaceId)
-      console.log(
-        "🔧 DEBUG: SERVICES trovati:",
-        services ? `${services.length} chars` : "VUOTO"
-      )
-      processedPrompt = processedPrompt.replace("{{SERVICES}}", services)
+      processedPrompt = processedPrompt.replace("{{SERVICES}}", dynamicContent.services)
     }
 
-    if (processedPrompt.includes("{{CATEGORIES}}")) {
-      console.log("🔧 DEBUG: Cerco CATEGORIES per workspaceId:", workspaceId)
-      const categories =
-        await this.messageRepository.getActiveCategories(workspaceId)
-      console.log(
-        "🔧 DEBUG: CATEGORIES trovate:",
-        categories ? `${categories.length} chars` : "VUOTO"
-      )
-      processedPrompt = processedPrompt.replace("{{CATEGORIES}}", categories)
+    if (processedPrompt.includes("{{OFFERS}}")) {
+      processedPrompt = processedPrompt.replace("{{OFFERS}}", dynamicContent.offers)
     }
+
+    // Remove duplicate CATEGORIES check since it's already handled above
 
     // DEBUG: Salva il prompt finale per debugging
     await this.saveDebugPrompt(processedPrompt, workspaceId)

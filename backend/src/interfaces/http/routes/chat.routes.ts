@@ -1,8 +1,9 @@
-import express from 'express';
-import { ChatController } from '../controllers/chat.controller';
-import { asyncHandler } from '../middlewares/async.middleware';
-import { authMiddleware } from '../middlewares/auth.middleware';
-import { workspaceValidationMiddleware } from '../middlewares/workspace-validation.middleware';
+import express from "express"
+import { recentChatsRateLimiter } from "../../../middlewares/rateLimiter"
+import { ChatController } from "../controllers/chat.controller"
+import { asyncHandler } from "../middlewares/async.middleware"
+import { authMiddleware } from "../middlewares/auth.middleware"
+import { workspaceValidationMiddleware } from "../middlewares/workspace-validation.middleware"
 
 /**
  * @swagger
@@ -32,7 +33,7 @@ import { workspaceValidationMiddleware } from '../middlewares/workspace-validati
  *           type: string
  *           format: date-time
  *           description: When the chat session was last updated
- *     
+ *
  *     ChatMessage:
  *       type: object
  *       properties:
@@ -58,7 +59,7 @@ import { workspaceValidationMiddleware } from '../middlewares/workspace-validati
  */
 
 export const chatRouter = (chatController: ChatController): express.Router => {
-  const router = express.Router();
+  const router = express.Router()
 
   /**
    * @swagger
@@ -83,13 +84,16 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *       500:
    *         description: Server error
    */
-  router.get('/debug/:sessionId', asyncHandler(chatController.getChatSession.bind(chatController)));
+  router.get(
+    "/debug/:sessionId",
+    asyncHandler(chatController.getChatSession.bind(chatController))
+  )
 
   // Apply auth middleware to all remaining chat routes
-  router.use(authMiddleware);
-  
+  router.use(authMiddleware)
+
   // Apply workspace validation middleware to all routes
-  router.use(workspaceValidationMiddleware);
+  router.use(workspaceValidationMiddleware)
 
   /**
    * @swagger
@@ -128,7 +132,29 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *       500:
    *         description: Server error
    */
-  router.get('/recent', asyncHandler(chatController.getRecentChats.bind(chatController)));
+  router.get(
+    "/recent",
+    (req, res, next) => {
+      const identifier = req.ip || req.socket.remoteAddress || "unknown"
+      if (!recentChatsRateLimiter.isAllowed(identifier)) {
+        const timeToReset = recentChatsRateLimiter.getTimeToReset(identifier)
+        const currentCount = recentChatsRateLimiter.getCurrentCount(identifier)
+
+        console.log(
+          `🚫 Rate limit exceeded for ${identifier}: ${currentCount} requests, reset in ${Math.ceil(timeToReset / 1000)}s`
+        )
+
+        return res.status(429).json({
+          success: false,
+          error: "Too many requests to /chat/recent",
+          message: `Rate limit exceeded. Try again in ${Math.ceil(timeToReset / 1000)} seconds.`,
+          retryAfter: Math.ceil(timeToReset / 1000),
+        })
+      }
+      next()
+    },
+    asyncHandler(chatController.getRecentChats.bind(chatController))
+  )
 
   /**
    * @swagger
@@ -168,7 +194,10 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *       500:
    *         description: Server error
    */
-  router.get('/:sessionId', asyncHandler(chatController.getChatSession.bind(chatController)));
+  router.get(
+    "/:sessionId",
+    asyncHandler(chatController.getChatSession.bind(chatController))
+  )
 
   /**
    * @swagger
@@ -210,7 +239,10 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *       500:
    *         description: Server error
    */
-  router.get('/:sessionId/messages', asyncHandler(chatController.getChatMessages.bind(chatController)));
+  router.get(
+    "/:sessionId/messages",
+    asyncHandler(chatController.getChatMessages.bind(chatController))
+  )
 
   /**
    * @swagger
@@ -254,7 +286,10 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *       500:
    *         description: Server error
    */
-  router.post('/:sessionId/mark-read', asyncHandler(chatController.markAsRead.bind(chatController)));
+  router.post(
+    "/:sessionId/mark-read",
+    asyncHandler(chatController.markAsRead.bind(chatController))
+  )
 
   /**
    * @swagger
@@ -332,7 +367,10 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *       500:
    *         description: Server error
    */
-  router.post('/:sessionId/send', asyncHandler(chatController.sendMessage.bind(chatController)));
+  router.post(
+    "/:sessionId/send",
+    asyncHandler(chatController.sendMessage.bind(chatController))
+  )
 
   /**
    * @swagger
@@ -373,7 +411,10 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *       500:
    *         description: Server error
    */
-  router.delete('/:sessionId', asyncHandler(chatController.deleteChat.bind(chatController)));
+  router.delete(
+    "/:sessionId",
+    asyncHandler(chatController.deleteChat.bind(chatController))
+  )
 
   /**
    * @swagger
@@ -408,7 +449,10 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *       500:
    *         description: Server error
    */
-  router.delete('/test/:sessionId', asyncHandler(chatController.deleteChat.bind(chatController)));
+  router.delete(
+    "/test/:sessionId",
+    asyncHandler(chatController.deleteChat.bind(chatController))
+  )
 
-  return router;
-}; 
+  return router
+}

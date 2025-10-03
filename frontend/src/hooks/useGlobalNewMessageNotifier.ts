@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast as sonnerToast } from "sonner"
+import { pollingCoordinator } from "./usePollingCoordinator"
 
 /**
  * Global hook that runs in the background on every page
@@ -18,11 +19,24 @@ export function useGlobalNewMessageNotifier() {
     Map<string, { lastMessage: string; lastMessageTime: string }>
   >(new Map())
 
-  // Polling for chat list every 4 seconds
+  // Polling for chat list every 8 seconds
   const { data: allChats = [] } = useQuery({
     queryKey: ["global-chats"],
     queryFn: async () => {
       try {
+        // First check if we have cached data
+        const cachedData = pollingCoordinator.getCachedData()
+        if (cachedData) {
+          logger.info("📦 GlobalNotifier: Using cached data")
+          return cachedData
+        }
+
+        // Check if we can make the API call
+        if (!pollingCoordinator.canMakeCall("useGlobalNewMessageNotifier")) {
+          logger.info("🚫 GlobalNotifier: API call blocked by coordinator")
+          throw new Error("API call blocked by coordinator")
+        }
+
         // Get current workspace ID from session storage
         const workspaceData = sessionStorage.getItem("currentWorkspace")
         let workspaceId = null
@@ -37,8 +51,11 @@ export function useGlobalNewMessageNotifier() {
         }
 
         if (!workspaceId) {
+          pollingCoordinator.markCallCompleted("recent-chats")
           return [] // No workspace, no polling
         }
+
+        logger.info("📡 GlobalNotifier: Making API call to /chat/recent")
 
         // Make API request with explicit header
         const response = await api.get("/chat/recent", {
@@ -65,6 +82,9 @@ export function useGlobalNewMessageNotifier() {
             activeChatbot: chat.customer?.activeChatbot ?? true,
             isBlacklisted: chat.customer?.isBlacklisted ?? false,
           }))
+
+          // Mark call as completed and cache the data
+          pollingCoordinator.markCallCompleted("recent-chats", transformedChats)
 
           // Check for new messages and show toast
           logger.info(`🌍 GLOBAL: Total chats: ${transformedChats.length}`)
@@ -134,14 +154,16 @@ export function useGlobalNewMessageNotifier() {
 
         return []
       } catch (error) {
+        // Make sure to mark call as completed even on error
+        pollingCoordinator.markCallCompleted("recent-chats")
         logger.error("Error in global chat polling:", error)
         return []
       }
     },
     enabled: true, // Always enabled
-    refetchInterval: 4000, // Poll every 4 seconds
+    refetchInterval: 8000, // Poll every 8 seconds (increased from 4)
     refetchIntervalInBackground: true, // Allow background polling
-    staleTime: 1000, // Data is fresh for 1 second
+    staleTime: 3000, // Data is fresh for 3 seconds (increased from 1)
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     refetchOnWindowFocus: true, // Refetch on focus
   })

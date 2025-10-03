@@ -2,6 +2,7 @@ import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect } from "react"
+import { pollingCoordinator } from "./usePollingCoordinator"
 
 export function useRecentChats(
   isExternallyBlocked: boolean = false,
@@ -29,6 +30,19 @@ export function useRecentChats(
     queryKey: ["chats"],
     queryFn: async () => {
       try {
+        // First check if we have cached data
+        const cachedData = pollingCoordinator.getCachedData()
+        if (cachedData) {
+          logger.info("📦 useRecentChats: Using cached data")
+          return cachedData
+        }
+
+        // Check if we can make the API call
+        if (!pollingCoordinator.canMakeCall("useRecentChats")) {
+          logger.info("🚫 useRecentChats: API call blocked by coordinator")
+          throw new Error("API call blocked by coordinator")
+        }
+
         // Get current workspace ID from session storage
         const workspaceData = sessionStorage.getItem("currentWorkspace")
         let workspaceId = null
@@ -43,8 +57,11 @@ export function useRecentChats(
         }
 
         if (!workspaceId) {
+          pollingCoordinator.markCallCompleted("recent-chats")
           throw new Error("No workspace ID available")
         }
+
+        logger.info("📡 useRecentChats: Making API call to /chat/recent")
 
         // Make API request with explicit header
         const response = await api.get("/chat/recent", {
@@ -68,9 +85,12 @@ export function useRecentChats(
             unreadCount: chat.unreadCount || 0,
             isActive: true,
             isFavorite: false,
-            activeChatbot: chat.customer?.activeChatbot ?? true, // Include activeChatbot for chat list icon
+            activeChatbot: chat.customer?.activeChatbot ?? true,
             isBlacklisted: chat.customer?.isBlacklisted ?? false, // Include blacklist status
           }))
+
+          // Mark call as completed and cache the data
+          pollingCoordinator.markCallCompleted("recent-chats", transformedChats)
 
           // Note: Global toast notifications are now handled by useGlobalNewMessageNotifier
           // in PageLayout - no need to duplicate here
@@ -86,14 +106,16 @@ export function useRecentChats(
 
         throw new Error("Error loading chats - API response not successful")
       } catch (error) {
+        // Make sure to mark call as completed even on error
+        pollingCoordinator.markCallCompleted("recent-chats")
         logger.error("Error in useRecentChats:", error)
         throw error
       }
     },
     enabled: true, // Always enabled - polling is controlled by refetchInterval
-    refetchInterval: hasPollingLock ? 10000 : false, // Poll every 10 seconds if we have the lock
+    refetchInterval: hasPollingLock ? 15000 : false, // Poll every 15 seconds if we have the lock (increased from 10)
     refetchIntervalInBackground: true, // Allow background polling
-    staleTime: 2000, // Data is fresh for 2 seconds
+    staleTime: 5000, // Data is fresh for 5 seconds (increased from 2)
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     refetchOnWindowFocus: hasPollingLock, // Refetch on focus if we have lock
   })

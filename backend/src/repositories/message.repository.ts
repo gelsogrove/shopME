@@ -863,6 +863,17 @@ export class MessageRepository {
       logger.info(
         `saveMessage: Saved conversation pair for phone number: ${data.phoneNumber}`
       )
+
+      // Invalidate cache for this phone number since new messages were added
+      try {
+        const { messageCache } = await import("../utils/message-cache")
+        // Invalidate only entries for this specific phone number
+        messageCache.invalidateByPhoneNumber(data.phoneNumber)
+        logger.info(`[CACHE] Invalidated message cache for ${data.phoneNumber}`)
+      } catch (cacheError) {
+        logger.warn("Failed to invalidate message cache:", cacheError)
+      }
+
       return botResponse
     } catch (error) {
       logger.error("Error saving message pair:", error)
@@ -1855,34 +1866,64 @@ export class MessageRepository {
     workspaceId?: string
   ) {
     try {
-      // Find customer by phone - use workspaceId if provided, otherwise use empty string
-      const customer = await this.findCustomerByPhone(phoneNumber)
+      // Import cache
+      const { messageCache } = await import("../utils/message-cache")
 
-      if (!customer) return []
-
-      // Find active chat session
-      const session = await this.prisma.chatSession.findFirst({
-        where: {
-          customerId: customer.id,
-          status: "active",
-          ...(workspaceId ? { workspaceId } : {}),
-        },
-      })
-
-      if (!session) {
-        return []
+      // Check cache first
+      const cached = messageCache.get(phoneNumber, limit, workspaceId)
+      if (cached) {
+        logger.info(
+          `[CACHE] Retrieved ${cached.length} messages from cache for ${phoneNumber}`
+        )
+        return cached
       }
 
-      // Find messages for this session
-      const messages = await this.prisma.message.findMany({
-        where: {
-          chatSessionId: session.id,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: limit,
-      })
+      // Create cache key for debouncing
+      const cacheKey = `${phoneNumber}:${limit}:${workspaceId || "no-workspace"}`
+
+      // Use debouncing for concurrent queries
+      const messages = await messageCache.getOrSetPending(
+        cacheKey,
+        async () => {
+          logger.info(`[DB] Fetching messages from database for ${phoneNumber}`)
+
+          // Find customer by phone - use workspaceId if provided, otherwise use empty string
+          const customer = await this.findCustomerByPhone(phoneNumber)
+
+          if (!customer) return []
+
+          // Find active chat session
+          const session = await this.prisma.chatSession.findFirst({
+            where: {
+              customerId: customer.id,
+              status: "active",
+              ...(workspaceId ? { workspaceId } : {}),
+            },
+          })
+
+          if (!session) {
+            return []
+          }
+
+          // Find messages for this session
+          return await this.prisma.message.findMany({
+            where: {
+              chatSessionId: session.id,
+            },
+            orderBy: {
+              createdAt: "desc",
+            },
+            take: limit,
+          })
+        }
+      )
+
+      // Cache the result for 30 seconds
+      messageCache.set(phoneNumber, limit, messages, workspaceId, 30000)
+
+      logger.info(
+        `[CACHE] Stored ${messages.length} messages in cache for ${phoneNumber}`
+      )
 
       return messages
     } catch (error) {

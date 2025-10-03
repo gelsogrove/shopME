@@ -138,7 +138,10 @@ export class LLMService {
     const userLanguage = customer.language || workspace.language || "it"
     const faqs = await messageRepo.getActiveFaqs(workspace.id)
     const services = await messageRepo.getActiveServices(workspace.id)
-    const categories = await messageRepo.getActiveCategories(workspace.id)
+    const categories = await messageRepo.getActiveCategories(
+      workspace.id,
+      userLanguage
+    )
     const offers = await messageRepo.getActiveOffers(workspace.id, userLanguage)
     const customerDiscount = customer.discount || 0
     const products =
@@ -154,22 +157,19 @@ export class LLMService {
       languageUser: this.getLanguageDisplayName(userLanguage),
     }
 
-    if (!faqs && !products && !services && !categories) {
-      return {
-        success: false,
-        output:
-          "❌ Non ci sono FAQ, Prodotti, Servizi o Categorie disponibili.",
-        debugInfo: { stage: "no_faq_or_product_or_services_or_categories" },
+    // Process the prompt using promptProcessorService with pre-fetched content
+    const promptWithVars = await this.promptProcessorService.preProcessPrompt(
+      prompt,
+      workspace.id,
+      userInfo,
+      {
+        faqs,
+        products,
+        categories,
+        services,
+        offers,
       }
-    }
-
-    let promptWithVars = prompt
-      .replace("{{FAQ}}", faqs)
-      .replace("{{SERVICES}}", services)
-      .replace("{{PRODUCTS}}", products)
-      .replace("{{CATEGORIES}}", categories)
-      .replace("{{OFFERS}}", offers)
-    promptWithVars = replaceAllVariables(promptWithVars, userInfo)
+    )
 
     // 🔧 SALVA IL PROMPT FINALE PER DEBUG
     try {
