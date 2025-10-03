@@ -216,7 +216,8 @@ export function ChatPage() {
   const [isInputDisabled, setIsInputDisabled] = useState(false)
   const [activeChatbot, setActiveChatbot] = useState<boolean>(true)
   const [showActiveChatbotDialog, setShowActiveChatbotDialog] = useState(false)
-  const [showActiveChatbotNotifyDialog, setShowActiveChatbotNotifyDialog] = useState(false)
+  const [showActiveChatbotNotifyDialog, setShowActiveChatbotNotifyDialog] =
+    useState(false)
   const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
   const [isBlocking, setIsBlocking] = useState(false)
   const navigate = useNavigate()
@@ -428,7 +429,10 @@ export function ChatPage() {
   }
 
   // Function to update the activeChatbot status in the backend
-  const updateActiveChatbotStatus = async (status: boolean, shouldNotify: boolean = false) => {
+  const updateActiveChatbotStatus = async (
+    status: boolean,
+    shouldNotify: boolean = false
+  ) => {
     if (!selectedChat?.customerId || !workspaceId) return
 
     try {
@@ -446,10 +450,13 @@ export function ChatPage() {
         if (status && shouldNotify) {
           try {
             // Send notification
-            await api.post(`/workspaces/${workspaceId}/push/chatbot-reactivated`, {
-              workspaceId,
-              customerIds: [selectedChat.customerId]
-            })
+            await api.post(
+              `/workspaces/${workspaceId}/push/chatbot-reactivated`,
+              {
+                workspaceId,
+                customerIds: [selectedChat.customerId],
+              }
+            )
           } catch (notifyError) {
             logger.error("Error sending notification:", notifyError)
             // Don't show error to user as the main action succeeded
@@ -1398,19 +1405,27 @@ export function ChatPage() {
       />
 
       {/* Chatbot Notification Confirmation Dialog */}
-      <AlertDialog open={showActiveChatbotNotifyDialog} onOpenChange={setShowActiveChatbotNotifyDialog}>
+      <AlertDialog
+        open={showActiveChatbotNotifyDialog}
+        onOpenChange={setShowActiveChatbotNotifyDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Send Notification?</AlertDialogTitle>
             <AlertDialogDescription>
-              Would you like to notify {selectedChat?.customerName} that the chatbot is now active?
+              Would you like to notify {selectedChat?.customerName} that the
+              chatbot is now active?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => handleActiveChatbotNotifyConfirm(false)}>
+            <AlertDialogCancel
+              onClick={() => handleActiveChatbotNotifyConfirm(false)}
+            >
               No, just enable
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => handleActiveChatbotNotifyConfirm(true)}>
+            <AlertDialogAction
+              onClick={() => handleActiveChatbotNotifyConfirm(true)}
+            >
               Yes, notify user
             </AlertDialogAction>
           </AlertDialogFooter>

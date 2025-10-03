@@ -29,8 +29,6 @@ FASE 2
 
 SEED TUTTO IN ITALIANO
 
-- carrello deve poter avere anche i servizi (non scontati)
-- Attivare e disattivare la chatbot con messaggio vuoi inviare il messaggio all'utente ?
 - codice da pulire
 - sicurezza
 - togliere harcode categorie ?
@@ -46,6 +44,7 @@ SEED TUTTO IN ITALIANO
 - new user
 - forgot pwd
 - chathistory degli ultimi 100 messaggi
+  -- link Localhost da rivedere per andare in produczione
 
 SICUREZZA:
 
