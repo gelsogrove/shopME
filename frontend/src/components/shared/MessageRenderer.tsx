@@ -52,10 +52,6 @@ export function MessageRenderer({
       )
 
     // Debug: mostra il risultato della conversione
-    if (text.includes("localhost:3001/s/")) {
-      console.log("🔧 LINK DEBUG - Original:", text)
-      console.log("🔧 LINK DEBUG - Result:", result)
-    }
 
     return result
   }

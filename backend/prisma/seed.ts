@@ -52,7 +52,7 @@ const defaultAgent = {
   isRouter: true,
   department: null,
   promptName: "SofIA - Gusto Italiano Assistant",
-  model: "google/gemini-2.0-flash-001",
+  model: "anthropic/claude-3.5-haiku",
   temperature: 0.3,
 }
 

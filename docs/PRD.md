@@ -671,9 +671,9 @@ Il sistema checkout è ora **completamente funzionale e production-ready**. Tutt
 
 **A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
 
-- **LLM Response**: €0.10 (10 centesimi) per ogni risposta chatbot
-- **New Customer**: €1.00 (1 euro) per ogni nuovo cliente registrato
-- **New Order**: €1.50 (1 euro ordine + 50 centesimi push) per ordine completo
+- **LLM Response**: €0.15 (15 centesimi) per ogni risposta chatbot
+- **New Customer**: €1.50 (1.50 euro) per ogni nuovo cliente registrato
+- **New Order**: €1.50 (1.50 euro) per ordine completo
 - **Push Message**: €0.50 (50 centesimi) per notifiche push standalone
 - **Tracciamento automatico**: Integrato in tutti i controller con single point of truth
 - **Dashboard analytics**: Statistiche complete con grafici e export
@@ -780,8 +780,9 @@ Il sistema di tracciamento usage monitora automaticamente tutti i costi secondo 
 
 **Pricing List Ufficiale:**
 
-- **LLM Response**: €0.10 (10 centesimi)
-- **New Customer**: €1.00 (1 euro)
+- **Human Response**: €0.05 (5 centesimi)
+- **LLM Response**: €0.15 (15 centesimi)
+- **New Customer**: €1.50 (1.50 euro)
 - **New Order**: €1.50 (ordine completo con push)
 - **Push Message**: €0.50 (50 centesimi)
 
@@ -3277,7 +3278,7 @@ model RegistrationAttempts {
 
 - **Registrazione Nuovo Utente**: 1€ (aggiornato da 30 centesimi)
 - **Creazione Nuovo Ordine**: 1€ (sia via API che via chatbot)
-- **📱 Push Messaging**: €0.50 (nuovo servizio centralizzato)
+- **📱 Push Messaging**: €0.5 (nuovo servizio centralizzato)
 - **🤖 Messaggi LLM**: €0.005 (5 centesimi per risposta AI)
 
 ### **📍 Punti di Tracking**
@@ -3293,7 +3294,7 @@ model RegistrationAttempts {
 
 **🌍 Supporto Multilingua**: Template automatici in IT, EN, ES, FR, DE
 
-**💰 Tracking Automatico**: €0.50 per ogni push message inviato
+**💰 Tracking Automatico**: €0.5 per ogni push message inviato
 
 **🎯 Use Cases Supportati**:
 

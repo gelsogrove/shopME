@@ -161,7 +161,7 @@ export function createPushTestingRouter(): Router {
         Date.now() - Number(days) * 24 * 60 * 60 * 1000
       )
 
-      // Get push message usage records (€0.50 each)
+      // Get push message usage records (€0.5 each)
       const pushUsage = await prisma.usage.findMany({
         where: {
           workspaceId: workspaceId as string,

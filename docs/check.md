@@ -30,18 +30,17 @@ FASE 1
 - POPUP NUOVO ORDINE
 - -new tab va in loop
 - log di fe da pulire
-- togliere harcode categorie ?
 
 FASE 2
 
 POPUP NUOVO ORDINE
 
 - codice da pulire
+- 2AUYH
 - sicurezza
-- chi cancella la storia ?
 - wip services
 - GDPR deve essere in linuga
-- metterei i prezzo nella tabella della history
+- metterei i prezzo nella tabella della history e nel DEBUG
 - pulizia codice.
 - embedding da pulire e capire ?
 - new user

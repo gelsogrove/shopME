@@ -161,10 +161,6 @@ export function WorkspaceSelectionPage() {
               <CardContent
                 className="p-6 cursor-pointer"
                 onClick={(e) => {
-                  console.log(
-                    "🟡 Click registrato su workspace:",
-                    workspace.name
-                  )
                   e.preventDefault()
                   e.stopPropagation()
                   handleSelectWorkspace(workspace)

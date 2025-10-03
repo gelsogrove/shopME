@@ -8,9 +8,10 @@ Il sistema di fatturazione traccia automaticamente tutti i costi secondo la pric
 
 | Servizio         | Costo | Descrizione                           |
 | ---------------- | ----- | ------------------------------------- |
-| **LLM Response** | €0.10 | 10 centesimi per risposta chatbot     |
-| **New Customer** | €1.00 | 1 euro per nuovo cliente registrato   |
-| **New Order**    | €1.50 | 1 euro ordine + 50 centesimi push     |
+| **Human Response** | €0.05 | 5 centesimi per risposta operatore   |
+| **LLM Response** | €0.15 | 15 centesimi per risposta chatbot     |
+| **New Customer** | €1.50 | 1.50 euro per nuovo cliente registrato   |
+| **New Order**    | €1.50 | 1.50 euro per ordine completo     |
 | **Push Message** | €0.50 | 50 centesimi per notifiche standalone |
 
 ## 🏗️ Architettura
@@ -27,7 +28,7 @@ Il sistema di fatturazione traccia automaticamente tutti i costi secondo la pric
 
 - **File**: `backend/src/services/push-messaging.service.ts`
 - **Scopo**: Gestione push notifications con billing integrato
-- **Logica**: Traccia €0.50 solo per push NON-ORDER (evita double billing)
+- **Logica**: Traccia €0.5 solo per push NON-ORDER (evita double billing)
 
 ### Controller Integration
 
@@ -51,7 +52,7 @@ await prisma.usage.create({
 **File**: `customers.controller.ts`
 
 ```typescript
-// Tracks €0.50 for chatbot reactivation push
+// Tracks €0.5 for chatbot reactivation push
 await this.pushMessagingService.sendChatbotReactivated(...)
 ```
 
@@ -75,10 +76,10 @@ if (data.type !== PushMessageType.ORDER_CONFIRMED) {
 ```typescript
 export const config: Config = {
   llm: {
-    defaultPrice: 0.1, // €0.10 per LLM response
+    defaultPrice: 0.15, // €0.15 per LLM response
   },
   pushMessaging: {
-    price: 0.5, // €0.50 per push message
+    price: 0.5, // €0.5 per push message
   },
 }
 ```
@@ -86,7 +87,7 @@ export const config: Config = {
 ### Environment Variables
 
 ```env
-DEFAULT_LLM_PRICE=0.10
+DEFAULT_LLM_PRICE=0.15
 PUSH_MESSAGE_PRICE=0.50
 ```
 
@@ -116,14 +117,14 @@ CREATE TABLE usage (
 ### Push Standalone
 
 1. **Customer Controller**: Attiva chatbot
-2. **Push Service**: Invia notifica + traccia €0.50
-3. **Database**: Record usage con €0.50
+2. **Push Service**: Invia notifica + traccia €0.5
+3. **Database**: Record usage con €0.5
 
 ### LLM Response
 
 1. **Message Repository**: Salva risposta AI
-2. **Usage Service**: Traccia €0.10
-3. **Database**: Record usage con €0.10
+2. **Usage Service**: Traccia €0.15
+3. **Database**: Record usage con €0.15
 
 ## ✅ Vantaggi Sistema
 
@@ -138,8 +139,8 @@ CREATE TABLE usage (
 Per testare il sistema:
 
 1. **Ordine**: Deve aggiungere €1.50
-2. **Push Chatbot**: Deve aggiungere €0.50
-3. **LLM Response**: Deve aggiungere €0.10
+2. **Push Chatbot**: Deve aggiungere €0.5
+3. **LLM Response**: Deve aggiungere €0.15
 4. **Totali**: Verificare somme corrette nel dashboard
 
 ## 📝 Note Implementative

@@ -10,7 +10,7 @@ const prisma = new PrismaClient()
  *
  * Gestisce tutti i push messaging WhatsApp con:
  * - 🌍 Supporto multilingua automatico
- * - 💰 Tracking costi €0.50 per messaggio
+ * - 💰 Tracking costi €0.5 per messaggio
  * - 📊 Integrazione analytics
  * - 🔄 Template messaging unificati
  *
@@ -165,7 +165,7 @@ export const pushMessagingService = {
         whatsappResult.messageId
       )
 
-      // 7. 💰 Track usage cost solo per push NON-ORDER (€0.50 per push message)
+      // 7. 💰 Track usage cost solo per push NON-ORDER (€0.5 per push message)
       // ORDER_CONFIRMED è già tracciato nel cart controller come parte del costo ordine completo (€1.50)
       if (data.type !== PushMessageType.ORDER_CONFIRMED) {
         await this.trackPushCost(data.workspaceId, data.customerId)
@@ -291,7 +291,7 @@ export const pushMessagingService = {
   },
 
   /**
-   * 💰 Traccia costo push message (€0.50)
+   * 💰 Traccia costo push message (€0.5)
    */
   async trackPushCost(workspaceId: string, customerId: string) {
     try {

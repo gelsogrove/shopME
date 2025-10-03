@@ -138,9 +138,7 @@ const CheckoutPage: React.FC = () => {
         setCustomer(tokenData.customer)
 
         // � Instead of using static data from token, always refresh from backend to get current cart state
-        console.log(
-          "🔍 INITIAL: Refreshing cart from backend instead of using token data..."
-        )
+
         await refreshCartFromBackend()
 
         // 🔧 ALWAYS pre-fill basic customer data (name, phone, company) from token
@@ -419,13 +417,6 @@ const CheckoutPage: React.FC = () => {
       return
     }
 
-    console.log(
-      "🔍 Loading products for workspaceId:",
-      workspaceId,
-      "customerId:",
-      customer?.id
-    )
-
     setLoadingProducts(true)
     try {
       const response = await fetch("/api/internal/get-all-products", {
@@ -440,7 +431,6 @@ const CheckoutPage: React.FC = () => {
       const result = await response.json()
       if (result.success) {
         // 🔍 DEBUG: Log products data to understand the structure
-        console.log("🔍 Loaded products from API:", result.data.products)
 
         // 🔧 Clean up any products with missing names
         const cleanedProducts = (result.data.products || []).map((product) => ({
@@ -490,14 +480,6 @@ const CheckoutPage: React.FC = () => {
 
     try {
       // 🔍 DEBUG: Log product data to understand the structure
-      console.log("🔍 Adding product to cart:", {
-        id: product.id,
-        name: product.name,
-        ProductCode: product.ProductCode,
-        sku: product.sku,
-        price: product.price,
-        finalPrice: product.finalPrice,
-      })
 
       // 🚀 Call backend API to add product to cart
       const response = await fetch(`/api/cart/${token}/items`, {

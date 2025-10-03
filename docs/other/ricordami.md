@@ -45,9 +45,23 @@
 - **Se CF chiamata** → return diretto risultato CF (no seconda chiamata LLM)
 - **Se risposta normale** → return contenuto LLM
 
-### **7. Post-processing**
+### **7. Post-processing & Translation**
 
-- `FormatterService.formatToMarkdown()` per replace link tokens:
+- `FormatterService.formatToMarkdown()` per replace link tokens
+- **Translation Service (New! October 2025)**:
+  - Traduce automaticamente le risposte nella lingua del cliente
+  - Preserva i nomi dei prodotti italiani invariati:
+    ```
+    Mozzarella, Bufala, Arrabbiata, Bolognese, Burrata
+    Gorgonzola, Ricotta, Maggiorana, Bocconcino, Ciliegina
+    Campana, Fiordilatte, Scamorza, Stracciatella, Taleggio
+    Panna Cotta, Gran Moravia, Grana Padano, DOP, Emmental
+    Porchetta, Salame, Pancetta
+    ```
+  - Mantiene emoji e formattazione markdown
+  - Supporta tutte le lingue (IT, EN, ES, PT)
+  - Max tokens configurabile (default: 200, chatbot: 1000)
+  - Usa OpenRouter GPT-3.5 Turbo per traduzioni veloci
   - `[LINK_CHECKOUT_WITH_TOKEN]` → link carrello con token
   - `[LINK_PROFILE_WITH_TOKEN]` → link profilo con token
   - `[LINK_ORDERS_WITH_TOKEN]` → link ordini con token

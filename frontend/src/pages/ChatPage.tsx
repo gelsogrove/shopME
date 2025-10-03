@@ -172,16 +172,14 @@ export function ChatPage() {
 
   const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
   const [isBlocking, setIsBlocking] = useState(false)
-  const [isChatbotActive, setIsChatbotActive] = useState(
-    selectedChat?.activeChatbot ?? true
-  )
+  const { isChatbotActive, setIsChatbotActive } = useChatList()
 
-  // Keep local state in sync with selected chat
+  // Keep chatbot state in sync with selected chat
   useEffect(() => {
     if (selectedChat) {
       setIsChatbotActive(selectedChat.activeChatbot ?? true)
     }
-  }, [selectedChat])
+  }, [selectedChat, setIsChatbotActive])
   const [isInputDisabled, setIsInputDisabled] = useState(false)
   const [showActiveChatbotDialog, setShowActiveChatbotDialog] = useState(false)
   const [showActiveChatbotNotifyDialog, setShowActiveChatbotNotifyDialog] =

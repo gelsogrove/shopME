@@ -1234,7 +1234,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
     if (result.success && result.output) {
       try {
         // 💰 Calculate LLM cost for this response
-        const llmCost = config.llm.defaultPrice // €0.50 per LLM response
+        const llmCost = config.llm.defaultPrice // €0.15 per LLM response
 
         // Get current total usage for this workspace
         const usageSummary = await usageService.getUsageSummary(workspaceId, 30)

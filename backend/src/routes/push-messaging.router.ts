@@ -24,7 +24,7 @@ export function createPushMessagingRouter(): Router {
    * 2. Rate Limiting: 10 push/min (users), 50 push/min (admins)
    * 3. Workspace Validation: Users can only push to their customers
    * 4. Input Validation: All inputs sanitized in controllers
-   * 5. Cost Tracking: €0.50 per push logged and monitored
+   * 5. Cost Tracking: €0.5 per push logged and monitored
    */
 
   // POST /push/welcome - Invia messaggio di benvenuto

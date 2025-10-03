@@ -17,6 +17,8 @@ type ChatListContextType = {
   isLoading: boolean
   isError: boolean
   error: Error | null
+  isChatbotActive: boolean
+  setIsChatbotActive: (isActive: boolean) => void
 }
 
 const ChatListContext = createContext<ChatListContextType | undefined>(
@@ -25,6 +27,7 @@ const ChatListContext = createContext<ChatListContextType | undefined>(
 
 export function ChatListProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<Error | null>(null)
+  const [isChatbotActive, setIsChatbotActive] = useState<boolean>(true)
   const queryClient = useQueryClient()
 
   // Use React Query to handle chat list fetching
@@ -126,6 +129,8 @@ export function ChatListProvider({ children }: { children: ReactNode }) {
         isLoading,
         isError: !!error,
         error,
+        isChatbotActive,
+        setIsChatbotActive,
       }}
     >
       {children}

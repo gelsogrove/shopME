@@ -2889,7 +2889,6 @@ INSTRUCTIONS FOR LLM FORMATTER:
     workspaceId: string,
     language: string = "en"
   ): Promise<string> {
-    language = "en"
     try {
       console.log("🔧 DEBUG getActiveCategories: workspaceId:", workspaceId)
 

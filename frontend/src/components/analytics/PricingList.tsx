@@ -1,43 +1,82 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Euro, MessageSquare, Send, ShoppingCart, UserPlus } from "lucide-react"
+import {
+  Euro,
+  HelpCircle,
+  MessageSquare,
+  Package,
+  Send,
+  ShoppingCart,
+  Tag,
+  UserPlus,
+} from "lucide-react"
 
 export function PricingList() {
   const pricingItems = [
     {
+      icon: Send,
+      title: "Channel",
+      description: "Monthly cost",
+      price: "€19.00",
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
+    },
+    {
       icon: MessageSquare,
       title: "LLM Response",
       description: "For each chatbot response",
-      price: "€0.010",
-      priceDetail: "0.10 cents",
+      price: "€0.15",
       color: "text-blue-600",
       bgColor: "bg-blue-100",
     },
+
     {
       icon: UserPlus,
       title: "New Customer",
-      description: "For each new registered customer",
-      price: "€1.00",
-      priceDetail: "1 euro",
+      description: "For each new customer",
+      price: "€1.50",
       color: "text-green-600",
       bgColor: "bg-green-100",
     },
     {
       icon: ShoppingCart,
       title: "New Order",
-      description: "For each new confirmed order",
-      price: "€1.00",
-      priceDetail: "1 euro",
+      description: "For each new  order",
+      price: "€1.50",
       color: "text-purple-600",
       bgColor: "bg-purple-100",
     },
+
     {
-      icon: Send,
-      title: "Push Message",
-      description: "For each push message",
+      icon: MessageSquare,
+      title: "Human Support",
+      description: "For each Human request",
+      price: "€1.00",
+      color: "text-red-600",
+      bgColor: "bg-red-100",
+    },
+    {
+      icon: Package,
+      title: "Advertising Message",
+      description: "For each new product added",
+      price: "€1.00",
+      color: "text-cyan-600",
+      bgColor: "bg-cyan-100",
+    },
+    {
+      icon: HelpCircle,
+      title: "New FAQ",
+      description: "For each new FAQ added",
       price: "€0.50",
-      priceDetail: "50 cents",
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-100",
+    },
+    {
+      icon: Tag,
+      title: "Active Offers",
+      description: "For each active offer",
+      price: "€0.50",
+      color: "text-pink-600",
+      bgColor: "bg-pink-100",
     },
   ]
 
@@ -75,9 +114,6 @@ export function PricingList() {
                     <div className="flex items-baseline gap-1">
                       <span className="text-2xl font-bold text-gray-900">
                         {item.price}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        ({item.priceDetail})
                       </span>
                     </div>
                   </div>

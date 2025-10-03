@@ -43,7 +43,7 @@ export const config: Config = {
     process.env.DHL_TRACKING_BASE_URL ||
     "https://www.dhl.com/global-en/home/tracking/tracking-express.html",
   llm: {
-    defaultPrice: parseFloat(process.env.DEFAULT_LLM_PRICE || "0.10"),
+    defaultPrice: parseFloat(process.env.DEFAULT_LLM_PRICE || "0.15"),
   },
   pushMessaging: {
     price: parseFloat(process.env.PUSH_MESSAGE_PRICE || "0.50"),

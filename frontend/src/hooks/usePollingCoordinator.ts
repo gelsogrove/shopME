@@ -22,11 +22,6 @@ class PollingCoordinator {
 
     // If we have fresh cached data, don't make a call
     if (this.cachedData && now < this.cacheExpiry) {
-      console.log(
-        `🔄 ${hookId}: Using cached data (${Math.ceil(
-          (this.cacheExpiry - now) / 1000
-        )}s left)`
-      )
       return false
     }
 
@@ -37,19 +32,10 @@ class PollingCoordinator {
     ) {
       this.lastRecentChatsCall = now
       this.pendingCalls.add("recent-chats")
-      console.log(
-        `✅ ${hookId}: API call allowed (${Math.ceil(
-          timeSinceLastCall / 1000
-        )}s since last)`
-      )
+
       return true
     }
 
-    console.log(
-      `🚫 ${hookId}: API call blocked (${Math.ceil(
-        (this.MIN_INTERVAL - timeSinceLastCall) / 1000
-      )}s to wait)`
-    )
     return false
   }
 
@@ -63,7 +49,6 @@ class PollingCoordinator {
     if (data) {
       this.cachedData = data
       this.cacheExpiry = Date.now() + this.CACHE_DURATION
-      console.log(`💾 Cached data for ${this.CACHE_DURATION / 1000}s`)
     }
 
     // Notify all subscribers that data might be available
