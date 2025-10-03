@@ -767,4 +767,176 @@ router.put('/customer-profile/:token', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/internal/get-all-products:
+ *   post:
+ *     tags:
+ *       - Public Access
+ *     summary: Get all products with discounts applied for a customer
+ *     description: Returns all active products with customer-specific discounts applied
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               workspaceId:
+ *                 type: string
+ *                 description: Workspace ID
+ *               customerId:
+ *                 type: string
+ *                 description: Customer ID
+ *             required:
+ *               - workspaceId
+ *               - customerId
+ *     responses:
+ *       200:
+ *         description: List of products with discounts applied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 products:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       ProductCode:
+ *                         type: string
+ *                       price:
+ *                         type: number
+ *                       originalPrice:
+ *                         type: number
+ *                       finalPrice:
+ *                         type: number
+ *                       discount:
+ *                         type: number
+ *                       description:
+ *                         type: string
+ *                       category:
+ *                         type: object
+ *       400:
+ *         description: Missing required parameters
+ *       404:
+ *         description: Customer or workspace not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/get-all-products', async (req: Request, res: Response) => {
+  try {
+    const { workspaceId, customerId } = req.body;
+
+    if (!workspaceId || !customerId) {
+      return res.status(400).json({
+        success: false,
+        error: 'workspaceId and customerId are required'
+      });
+    }
+
+    logger.info('[GET-ALL-PRODUCTS] Request received:', { workspaceId, customerId });
+
+    // Get customer to fetch their discount
+    const customer = await prisma.customers.findFirst({
+      where: {
+        id: customerId,
+        workspaceId: workspaceId,
+        isActive: true
+      }
+    });
+
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        error: 'Customer not found'
+      });
+    }
+
+    const customerDiscount = customer.discount || 0;
+    logger.info('[GET-ALL-PRODUCTS] Customer discount:', customerDiscount);
+
+    // Get all active products for the workspace
+    const products = await prisma.products.findMany({
+      where: {
+        workspaceId: workspaceId,
+        isActive: true,
+        status: 'ACTIVE'
+      },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
+      orderBy: [
+        {
+          category: {
+            name: 'asc'
+          }
+        },
+        {
+          name: 'asc'
+        }
+      ]
+    });
+
+    // Apply customer discount to all products
+    const productsWithDiscounts = products.map(product => {
+      const originalPrice = product.price;
+      const discountAmount = originalPrice * (customerDiscount / 100);
+      const finalPrice = originalPrice - discountAmount;
+
+      return {
+        id: product.id,
+        name: product.name,
+        ProductCode: product.ProductCode,
+        description: product.description,
+        price: originalPrice,
+        originalPrice: originalPrice,
+        finalPrice: finalPrice,
+        discount: customerDiscount,
+        stock: product.stock,
+        isActive: product.isActive,
+        category: product.category ? {
+          id: product.category.id,
+          name: product.category.name
+        } : null,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt
+      };
+    });
+
+    logger.info('[GET-ALL-PRODUCTS] Returning products:', { 
+      count: productsWithDiscounts.length, 
+      customerDiscount 
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        products: productsWithDiscounts,
+        customerDiscount: customerDiscount,
+        totalProducts: productsWithDiscounts.length
+      }
+    });
+
+  } catch (error) {
+    logger.error('[GET-ALL-PRODUCTS] Error fetching products:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error while fetching products'
+    });
+  }
+});
+
 export default router;
