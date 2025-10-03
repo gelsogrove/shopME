@@ -124,7 +124,7 @@ The user's input is processed through a two-stage LLM workflow:
 - **DO NOT add new tasks** to the task list - only mark existing ones as completed or update their status
 - Keep track of progress and document changes properly
 - Get always the full context from @backend @frontend and @final
-- Get the context from the test unit, integration, integration for having a better understanding
+- Get the context from the test unit for having a better understanding
 - **DOPO OGNI MODIFICA API: aggiorna immediatamente swagger.json**
 - **PRIMA DI DIRE "FATTO": verifica che swagger sia aggiornato e funzionante**
 - **TEST DI INTEGRAZIONE: richiedono backend attivo (`npm run dev`)**
@@ -145,9 +145,7 @@ All project documentation is located under:
 - **DO NOT invent npm run commands!**
 - mocks have to stay inside **mocks** folder inside unit or integration folder
   AI4Devs-finalproject/backend/**tests**/unit/mock
-  AI4Devs-finalproject/backend/**tests**/integration/mock
-
-## 📁 Folder Structure Compliance
+      AI4Devs-finalproject/backend/**tests**/unit## 📁 Folder Structure Compliance
 
 - **ALWAYS** follow the folder structure defined below
 - **NEVER** create files outside the defined directory structure
@@ -194,9 +192,9 @@ backend/
 │   ├── 📁 unit/                    # Unit tests
 │   │   ├── 📁 __mocks__/           # Unit test mocks
 │   │   └── 📄 *.spec.ts            # Unit test files
-│   └── 📁 integration/             # Integration tests
-│       ├── 📁 __mocks__/           # Integration test mocks
-│       └── 📄 *.integration.spec.ts # Integration test files
+│   └── 📁 unit/                     # Unit tests
+│       ├── 📁 __mocks__/           # Test mocks
+│       └── 📄 *.spec.ts            # Unit test files
 ├── 📄 package.json                 # Dependencies and scripts
 ├── 📄 jest.config.js               # Jest testing configuration
 ├── 📄 tsconfig.json                # TypeScript configuration
@@ -249,7 +247,7 @@ frontend/
 - **Directories**: kebab-case (`document-service`, `user-controller`)
 - **TypeScript files**: camelCase (`userService.ts`, `documentController.ts`)
 - **React components**: PascalCase (`UserProfile.tsx`, `DocumentList.tsx`)
-- **Test files**: `*.spec.ts` (unit), `*.integration.spec.ts` (integration), `*.cy.js` (E2E)
+- **Test files**: `*.spec.ts` (unit), `*.cy.js` (E2E)
 - system has to be sync , swagger, seed code, test BE FE Readme prompts folder when you finish a job ask me do you need to update this section too ?
 - when i say PRD you have to consider this file `/docs/PRD.md`
 - write code comments always in English
@@ -269,7 +267,7 @@ frontend/
 - Nessun hardcode introdotto miraccomando !!
 - Layout non modificarlo senza il mio permesso
 - gli script devono essere sempre in /scripts/
-- test di BE vanno sotto /Users/gelso/workspace/AI/shop/backend/src/**tests** dentro unit o integration
+- test di BE vanno sotto /Users/gelso/workspace/AI/shop/backend/src/**tests** dentro unit
 - Rifletti ragione confronta leggi in ordine PRD test prima di effettuare un'azione se scrivo qualcosa che non e' in linea blocca l'utente
 - i server si riavviano da soli non c'e' bisogno di aprire mille terminali usa sempre lo stesso terminal
 - utilizzare la buona practica per BE usa DDD per Fe se necessario crea componenti riutilizzabili

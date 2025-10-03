@@ -1891,7 +1891,7 @@ async function main() {
       name: "Torta Sacher",
       ProductCode: "0420000107",
       description:
-        "Torta Sacher austriaca con cioccolato e marmellata di albicocche. Ricetta tradizionale viennese, formato surgelato.",
+        "Austrian Sacher cake with chocolate and apricot jam. Traditional Viennese recipe, frozen format.",
       formato: "800gr",
       price: 18.9,
       stock: 12,
@@ -1903,7 +1903,7 @@ async function main() {
       name: "Cannolo Siciliano",
       ProductCode: "0503000110",
       description:
-        "Cannoli siciliani tradizionali con ricotta fresca e gocce di cioccolato. Specialità dolciaria siciliana autentica. Regione: Sicilia - Dall'isola del sole, dove la tradizione pasticcera araba si fonde con la ricotta delle madonie.",
+        "Traditional Sicilian cannoli with fresh ricotta and chocolate chips. An authentic Sicilian pastry specialty. Region: Sicily - From the island of the sun, where Arab pastry tradition merges with the ricotta from the Madonie mountains.",
       formato: "10 pezzi",
       price: 12.8,
       stock: 20,
@@ -1915,7 +1915,7 @@ async function main() {
       name: "Sfogliatella Grande",
       ProductCode: "0420000073",
       description:
-        "Sfogliatella napoletana ripiena di ricotta e canditi. Pasta sfoglia croccante, dolce tradizionale campano. Regione: Campania - Dal cuore di Napoli, dove i maestri pasticceri creano questa meraviglia sfogliata da secoli.",
+        "Neapolitan sfogliatella filled with ricotta and candied fruit. Crispy puff pastry, a traditional Campanian dessert. Region: Campania - From the heart of Naples, where master pastry chefs have been creating this flaky wonder for centuries.",
       formato: "100gr x60",
       price: 2.8,
       stock: 50,
@@ -1927,7 +1927,7 @@ async function main() {
       name: "Croissant alla Crema",
       ProductCode: "0420000075",
       description:
-        "Croissant francesi ripieni di crema pasticcera. Pasta sfoglia burrosa e crema delicata, formato surgelato.",
+        "French croissants filled with pastry cream. Buttery puff pastry and delicate cream, frozen format.",
       formato: "95gr x50",
       price: 1.8,
       stock: 80,
@@ -1941,7 +1941,7 @@ async function main() {
       name: "Sugo al Pomodoro e Basilico",
       ProductCode: "0607000013",
       description:
-        "Sugo di pomodoro italiano con basilico fresco. Ricetta tradizionale della nonna, ideale per pasta e pizza.",
+        "Italian tomato sauce with fresh basil. Traditional grandmother's recipe, ideal for pasta and pizza.",
       formato: "370ml x12",
       price: 3.2,
       stock: 60,
@@ -1953,7 +1953,7 @@ async function main() {
       name: "Sugo alla Bolognese",
       ProductCode: "0607000014",
       description:
-        "Ragù alla bolognese tradizionale con carne di manzo e maiale. Ricetta emiliana autentica, cottura lenta.",
+        "Traditional Bolognese ragù with beef and pork. Authentic Emilian recipe, slow-cooked.",
       formato: "370ml x4",
       price: 5.8,
       stock: 40,
@@ -1965,7 +1965,7 @@ async function main() {
       name: "Sugo all'Arrabbiata",
       ProductCode: "0607000015",
       description:
-        "Sugo piccante all'arrabbiata con pomodoro, aglio e peperoncino. Specialità romana dal sapore deciso.",
+        "Spicy Arrabbiata sauce with tomato, garlic, and chili pepper. A Roman specialty with a strong flavor.",
       formato: "370ml x12",
       price: 3.5,
       stock: 45,
@@ -1977,7 +1977,7 @@ async function main() {
       name: "Salsa di Tartufo",
       ProductCode: "0607000005",
       description:
-        "Salsa gourmet al tartufo nero 5%, perfetta per pasta e risotti. Sapore intenso e aroma inconfondibile.",
+        "Gourmet sauce with 5% black truffle, perfect for pasta and risottos. Intense flavor and unmistakable aroma.",
       formato: "500gr x6",
       price: 15.9,
       stock: 25,
@@ -1989,7 +1989,7 @@ async function main() {
       name: "Olio di Oliva con Tartufo Bianco",
       ProductCode: "0602050490",
       description:
-        "Olio extravergine di oliva aromatizzato con tartufo bianco pregiato. Condimento gourmet per piatti raffinati.",
+        "Extra virgin olive oil flavored with precious white truffle. A gourmet condiment for refined dishes.",
       formato: "250ml x12",
       price: 22.5,
       stock: 18,
@@ -2003,7 +2003,7 @@ async function main() {
       name: "Aglio Granulato",
       ProductCode: "0608000043",
       description:
-        "Aglio granulato essiccato, pratico e sempre pronto. Aroma intenso per condimenti e preparazioni culinarie.",
+        "Dried granulated garlic, practical and always ready. Intense aroma for seasonings and culinary preparations.",
       formato: "850gr",
       price: 8.9,
       stock: 35,
@@ -2015,7 +2015,7 @@ async function main() {
       name: "Cannella in Polvere",
       ProductCode: "0608000036",
       description:
-        "Cannella in polvere di Ceylon, spezia dolce e aromatica. Perfetta per dolci, bevande calde e preparazioni orientali.",
+        "Ceylon cinnamon powder, a sweet and aromatic spice. Perfect for desserts, hot drinks, and oriental preparations.",
       formato: "550gr",
       price: 12.8,
       stock: 28,

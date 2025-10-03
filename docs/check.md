@@ -1,7 +1,7 @@
 Chi sei?
 Che servizi offrite?
 Che prodotti vendete? NON VA
-Dammi la lista dei prodotti. NONV VA
+Dammi la lista dei prodotti.
 Posso vedere il catalogo?
 Che sconto ho sui prodotti?
 Avete la mozzarella di bufala?

@@ -324,8 +324,8 @@ import createPromptsRouter from "./prompts.routes"
 import documentRoutes from "./documentRoutes"
 // Import analytics routes
 import analyticsRoutes from "./analytics.routes"
-// Import internal API routes
-import internalApiRoutes from "./internal-api.routes"
+// Import public orders routes (for secure token validation)
+import publicOrdersRoutes from "./public-orders.routes"
 
 // Simple logging middleware
 const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -1344,13 +1344,7 @@ router.get("/whatsapp/webhook", async (req, res) => {
   res.status(403).send("Verification failed")
 })
 
-logger.info(
-  "Registered WhatsApp webhook routes FIRST (public, no authentication)"
-)
-
-// Mount internal API routes (for N8N calling functions) - NO AUTHENTICATION REQUIRED
-router.use("/internal", internalApiRoutes)
-logger.info("Registered internal API routes for N8N integration (public)")
+logger.info("Registered WhatsApp webhook routes (public, no authentication)")
 
 // Debug middleware removed - TypeScript errors fixed
 
@@ -1502,6 +1496,10 @@ logger.info("Registered document router with workspace and upload endpoints")
 // Mount analytics routes
 router.use("/analytics", analyticsRoutes)
 logger.info("Registered analytics routes for dashboard metrics")
+
+// Mount public orders routes (for secure token validation and public access)
+router.use("/internal", publicOrdersRoutes)
+logger.info("Registered public orders routes for secure token validation")
 
 // Add special route for GDPR default content (to handle frontend request to /gdpr/default)
 router.get(

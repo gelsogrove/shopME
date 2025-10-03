@@ -891,10 +891,20 @@ export function ChatPage() {
                     className={`p-3 cursor-pointer rounded-lg mb-2 transition-all
                       ${
                         isSelected
-                          ? "border-l-4 border-green-600 bg-green-50 text-green-800 font-bold"
+                          ? chat.activeChatbot === false
+                            ? "border-l-4 border-orange-500 bg-orange-100 text-orange-800 font-bold"
+                            : "border-l-4 border-green-600 bg-green-50 text-green-800 font-bold"
+                          : chat.activeChatbot === false
+                          ? "border-l-4 border-orange-300 bg-orange-50 text-orange-700"
                           : "border-l-0 bg-white text-gray-900"
                       }
-                      ${!isSelected ? "hover:bg-gray-50" : ""}
+                      ${
+                        !isSelected
+                          ? chat.activeChatbot === false
+                            ? "hover:bg-orange-100"
+                            : "hover:bg-gray-50"
+                          : ""
+                      }
                       ${
                         loadingChat && isSelected
                           ? "opacity-70 pointer-events-none"

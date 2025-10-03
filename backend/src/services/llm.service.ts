@@ -6,7 +6,6 @@ import { LLMRequest } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
 import { PromptProcessorService } from "./prompt-processor.service"
 
-//todo non va il singoloo ordine
 export class LLMService {
   private callingFunctionsService: CallingFunctionsService
   private promptProcessorService: PromptProcessorService

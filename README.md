@@ -181,13 +181,16 @@ Customers can access their data via secure links:
 
 ## 🧪 Testing
 
+````bash
 ```bash
-# Backend tests
+# Run unit tests
 cd backend && npm run test:unit
-cd backend && npm run test:integration
+````
 
 # Frontend tests
+
 cd frontend && npm run test
+
 ```
 
 ## 📚 Documentation
@@ -215,3 +218,4 @@ For support and questions:
 - Check the documentation in `docs/`
 - Review the PRD for feature specifications
 - Contact the development team
+```
