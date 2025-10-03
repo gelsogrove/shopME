@@ -43,7 +43,7 @@ import { Input } from "../components/ui/input"
 import { Switch } from "../components/ui/switch"
 import { Textarea } from "../components/ui/textarea"
 
-import type { Chat, Customer, Message, ShippingAddress } from "@/types/chat"
+import type { Chat, Message } from "@/types/chat"
 
 const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) {
@@ -91,7 +91,7 @@ export function ChatPage() {
   // ChatPage loaded
   const { workspace, loading: isWorkspaceLoading } = useWorkspace()
 
-    // Clean any stale locks on mount
+  // Clean any stale locks on mount
   useEffect(() => {
     const lockKey = "chat-tab-lock"
     localStorage.removeItem(lockKey) // ALWAYS clear lock on mount
@@ -299,8 +299,6 @@ export function ChatPage() {
     queryFn: async () => getLanguages(),
     enabled: !!workspaceId,
   })
-
-
 
   // Sync polled messages with local state
   // This updates when the polling tab fetches new data
@@ -1165,10 +1163,6 @@ export function ChatPage() {
                       (message.metadata?.agentSelected === "MANUAL_OPERATOR" ||
                         message.metadata?.isOperatorMessage === true ||
                         message.metadata?.sentBy === "HUMAN_OPERATOR")
-
-
-
-
 
                     const isOperatorControl =
                       message.metadata?.isOperatorControl === true

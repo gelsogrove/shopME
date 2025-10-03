@@ -1,16 +1,15 @@
 import { Button } from "@/components/ui/button"
-import { logger } from "@/lib/logger"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
+  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
 import {
-    Sheet,
+  Sheet,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -19,6 +18,7 @@ import {
 } from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { logger } from "@/lib/logger"
 import { Client } from "@/pages/ClientsPage"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -67,10 +67,10 @@ function getWorkspaceId() {
 // Helper function to convert language code to name
 function convertLanguageCodeToName(code: string): string {
   const languageMap: { [key: string]: string } = {
-    'it': 'Italiano',
-    'en': 'English', 
-    'es': 'Español',
-    'pt': 'Português'
+    it: "Italiano",
+    en: "English",
+    es: "Español",
+    pt: "Português",
   }
   return languageMap[code] || code
 }
@@ -78,10 +78,10 @@ function convertLanguageCodeToName(code: string): string {
 // Helper function to convert language name to code
 function convertLanguageNameToCode(name: string): string {
   const languageMap: { [key: string]: string } = {
-    'Italiano': 'it',
-    'English': 'en',
-    'Español': 'es', 
-    'Português': 'pt'
+    Italiano: "it",
+    English: "en",
+    Español: "es",
+    Português: "pt",
   }
   return languageMap[name] || name
 }
@@ -138,11 +138,11 @@ export function ClientSheet({
       // Convert language code to name for display
       const languageCode = fetchedClient.language || ""
       const languageName = convertLanguageCodeToName(languageCode)
-      logger.info("🌐 Language conversion debug:", { 
+      logger.info("🌐 Language conversion debug:", {
         clientName: fetchedClient.name,
-        languageCode, 
+        languageCode,
         languageName,
-        availableLanguages
+        availableLanguages,
       })
       setLanguage(languageName)
       setDiscount(fetchedClient.discount?.toString() || "0")
