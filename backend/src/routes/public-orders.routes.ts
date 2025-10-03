@@ -1,10 +1,10 @@
-import { Request, Response, Router } from 'express';
-import { SecureTokenService } from '../application/services/secure-token.service';
-import { prisma } from '../lib/prisma';
-import logger from '../utils/logger';
+import { Request, Response, Router } from "express"
+import { SecureTokenService } from "../application/services/secure-token.service"
+import { prisma } from "../lib/prisma"
+import logger from "../utils/logger"
 
-const router = Router();
-const secureTokenService = new SecureTokenService();
+const router = Router()
+const secureTokenService = new SecureTokenService()
 
 /**
  * @swagger
@@ -46,53 +46,54 @@ const secureTokenService = new SecureTokenService();
  *       401:
  *         description: Invalid or expired token
  */
-router.post('/validate-secure-token', async (req: Request, res: Response) => {
+router.post("/validate-secure-token", async (req: Request, res: Response) => {
   try {
-    const { token, workspaceId } = req.body;
+    const { token, workspaceId } = req.body
 
     if (!token) {
       return res.status(400).json({
         valid: false,
-        error: 'Token is required'
-      });
+        error: "Token is required",
+      })
     }
 
-    logger.info(`[TOKEN-VALIDATION] Validating token for workspace: ${workspaceId || 'any'}`);
+    logger.info(
+      `[TOKEN-VALIDATION] Validating token for workspace: ${workspaceId || "any"}`
+    )
 
     // Use TOKEN-ONLY system - accept any valid token type
-    const validation = await secureTokenService.validateToken(token);
+    const validation = await secureTokenService.validateToken(token)
 
     if (!validation.valid) {
       return res.status(401).json({
         valid: false,
-        error: 'Invalid or expired token'
-      });
+        error: "Invalid or expired token",
+      })
     }
 
     // Optional workspace validation
     if (workspaceId && validation.data?.workspaceId !== workspaceId) {
       return res.status(403).json({
         valid: false,
-        error: 'Token not authorized for this workspace'
-      });
+        error: "Token not authorized for this workspace",
+      })
     }
 
-    logger.info('[TOKEN-VALIDATION] ✅ Token validated successfully');
+    logger.info("[TOKEN-VALIDATION] ✅ Token validated successfully")
 
     return res.json({
       valid: true,
       data: validation.data,
-      payload: validation.payload
-    });
-
+      payload: validation.payload,
+    })
   } catch (error) {
-    logger.error('[TOKEN-VALIDATION] Error validating token:', error);
+    logger.error("[TOKEN-VALIDATION] Error validating token:", error)
     return res.status(500).json({
       valid: false,
-      error: 'Error during token validation'
-    });
+      error: "Error during token validation",
+    })
   }
-});
+})
 
 /**
  * @swagger
@@ -139,94 +140,105 @@ router.post('/validate-secure-token', async (req: Request, res: Response) => {
  *       401:
  *         description: Invalid or expired token
  */
-router.get('/public/orders', async (req: Request, res: Response) => {
+router.get("/public/orders", async (req: Request, res: Response) => {
   try {
-    const { token, status, payment, from, to } = req.query;
+    const { token, status, payment, from, to } = req.query
 
     if (!token) {
       return res.status(400).json({
         success: false,
-        error: 'Token is required'
-      });
+        error: "Token is required",
+      })
     }
 
     // Validate token
-    const validation = await secureTokenService.validateToken(token as string);
+    const validation = await secureTokenService.validateToken(token as string)
     if (!validation.valid) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid or expired token'
-      });
+        error: "Invalid or expired token",
+      })
     }
 
-    const tokenData = validation.data;
-    const payload = validation.payload as any;
-    
+    const tokenData = validation.data
+    const payload = validation.payload as any
+
     // 🔧 CRITICAL FIX: Get customerId from payload first (like checkout), then fallback to tokenData
-    let customerId = payload?.customerId || tokenData?.customerId || tokenData?.userId;
-    const workspaceId = tokenData?.workspaceId;
-    
+    let customerId =
+      payload?.customerId || tokenData?.customerId || tokenData?.userId
+    const workspaceId = tokenData?.workspaceId
+
     // 🔧 ULTIMATE FALLBACK: If no customerId, try to find customer by phone number
     if (!customerId && tokenData?.phoneNumber && workspaceId) {
       const customer = await prisma.customers.findFirst({
         where: {
           phone: tokenData.phoneNumber,
-          workspaceId: workspaceId
-        }
-      });
+          workspaceId: workspaceId,
+        },
+      })
       if (customer) {
-        customerId = customer.id;
-        logger.info(`[PUBLIC-ORDERS] Found customer by phone fallback: ${customerId}`);
+        customerId = customer.id
+        logger.info(
+          `[PUBLIC-ORDERS] Found customer by phone fallback: ${customerId}`
+        )
       }
     }
-    
+
     if (!customerId || !workspaceId) {
       return res.status(401).json({
         success: false,
-        error: 'Token does not contain valid customer information'
-      });
+        error: "Token does not contain valid customer information",
+      })
     }
 
-    logger.info(`[PUBLIC-ORDERS] Getting orders list for customer: ${customerId}`);
+    logger.info(
+      `[PUBLIC-ORDERS] Getting orders list for customer: ${customerId}`
+    )
 
     // Build filters
     const whereClause: any = {
       customerId: customerId,
-      workspaceId: workspaceId
-    };
-
-    if (status && status !== 'ALL') {
-      whereClause.status = status;
+      workspaceId: workspaceId,
     }
 
-    if (payment && payment !== 'ALL') {
-      whereClause.paymentMethod = payment;
+    if (status && status !== "ALL") {
+      whereClause.status = status
+    }
+
+    if (payment && payment !== "ALL") {
+      whereClause.paymentMethod = payment
     }
 
     if (from || to) {
-      whereClause.createdAt = {};
-      if (from) whereClause.createdAt.gte = new Date(from as string);
-      if (to) whereClause.createdAt.lte = new Date(to as string);
+      whereClause.createdAt = {}
+      if (from) whereClause.createdAt.gte = new Date(from as string)
+      if (to) whereClause.createdAt.lte = new Date(to as string)
     }
 
     // Get customer info
     const customer = await prisma.customers.findUnique({
       where: { id: customerId },
-      select: { id: true, name: true, email: true, phone: true, language: true }
-    });
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        language: true,
+      },
+    })
 
     if (!customer) {
       return res.status(404).json({
         success: false,
-        error: 'Customer not found'
-      });
+        error: "Customer not found",
+      })
     }
 
     // Get workspace info
     const workspace = await prisma.workspace.findUnique({
       where: { id: workspaceId },
-      select: { id: true, name: true }
-    });
+      select: { id: true, name: true },
+    })
 
     // Get orders with items count
     const orders = await prisma.orders.findMany({
@@ -234,15 +246,15 @@ router.get('/public/orders', async (req: Request, res: Response) => {
       include: {
         items: {
           select: {
-            quantity: true
-          }
-        }
+            quantity: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
-    });
+      orderBy: { createdAt: "desc" },
+    })
 
     // Format orders for response
-    const formattedOrders = orders.map(order => ({
+    const formattedOrders = orders.map((order) => ({
       id: order.id,
       orderCode: order.orderCode,
       date: order.createdAt.toISOString(),
@@ -252,27 +264,26 @@ router.get('/public/orders', async (req: Request, res: Response) => {
       taxAmount: order.taxAmount,
       shippingAmount: order.shippingAmount,
       itemsCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
-      invoiceUrl: '',
-      ddtUrl: ''
-    }));
+      invoiceUrl: "",
+      ddtUrl: "",
+    }))
 
     return res.json({
       success: true,
       data: {
         customer,
         workspace,
-        orders: formattedOrders
-      }
-    });
-
+        orders: formattedOrders,
+      },
+    })
   } catch (error) {
-    logger.error('[PUBLIC-ORDERS] Error getting orders list:', error);
+    logger.error("[PUBLIC-ORDERS] Error getting orders list:", error)
     return res.status(500).json({
       success: false,
-      error: 'Error retrieving orders'
-    });
+      error: "Error retrieving orders",
+    })
   }
-});
+})
 
 /**
  * @swagger
@@ -303,63 +314,66 @@ router.get('/public/orders', async (req: Request, res: Response) => {
  *       404:
  *         description: Order not found
  */
-router.get('/public/orders/:orderCode', async (req: Request, res: Response) => {
+router.get("/public/orders/:orderCode", async (req: Request, res: Response) => {
   try {
-    const { orderCode } = req.params;
-    const { token } = req.query;
+    const { orderCode } = req.params
+    const { token } = req.query
 
     if (!token) {
       return res.status(400).json({
         success: false,
-        error: 'Token is required'
-      });
+        error: "Token is required",
+      })
     }
 
     // Validate token
-    const validation = await secureTokenService.validateToken(token as string);
+    const validation = await secureTokenService.validateToken(token as string)
     if (!validation.valid) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid or expired token'
-      });
+        error: "Invalid or expired token",
+      })
     }
 
-    const tokenData = validation.data;
-    const payload = validation.payload as any;
-    
+    const tokenData = validation.data
+    const payload = validation.payload as any
+
     // 🔧 CRITICAL FIX: Get customerId from payload first (like checkout), then fallback to tokenData
-    let customerId = payload?.customerId || tokenData?.customerId || tokenData?.userId;
-    const workspaceId = tokenData?.workspaceId;
-    
+    let customerId =
+      payload?.customerId || tokenData?.customerId || tokenData?.userId
+    const workspaceId = tokenData?.workspaceId
+
     // 🔧 ULTIMATE FALLBACK: If no customerId, try to find customer by phone number
     if (!customerId && tokenData?.phoneNumber && workspaceId) {
       const customer = await prisma.customers.findFirst({
         where: {
           phone: tokenData.phoneNumber,
-          workspaceId: workspaceId
-        }
-      });
+          workspaceId: workspaceId,
+        },
+      })
       if (customer) {
-        customerId = customer.id;
-        logger.info(`[PUBLIC-ORDERS] Found customer by phone fallback: ${customerId}`);
+        customerId = customer.id
+        logger.info(
+          `[PUBLIC-ORDERS] Found customer by phone fallback: ${customerId}`
+        )
       }
     }
-    
+
     if (!customerId || !workspaceId) {
       return res.status(401).json({
         success: false,
-        error: 'Token does not contain valid customer information'
-      });
+        error: "Token does not contain valid customer information",
+      })
     }
 
-    logger.info(`[PUBLIC-ORDERS] Getting order details for: ${orderCode}`);
+    logger.info(`[PUBLIC-ORDERS] Getting order details for: ${orderCode}`)
 
     // Get order with full details
     const order = await prisma.orders.findFirst({
       where: {
         orderCode,
         customerId: customerId,
-        workspaceId: workspaceId
+        workspaceId: workspaceId,
       },
       include: {
         items: {
@@ -367,74 +381,82 @@ router.get('/public/orders/:orderCode', async (req: Request, res: Response) => {
             product: {
               select: {
                 name: true,
-                ProductCode: true
-              }
+                ProductCode: true,
+              },
             },
             service: {
               select: {
                 name: true,
-                code: true
-              }
-            }
-          }
+                code: true,
+              },
+            },
+          },
         },
         customer: {
-          select: { 
-            id: true, 
-            name: true, 
-            email: true, 
-            phone: true, 
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
             language: true,
             address: true,
-            invoiceAddress: true
-          }
+            invoiceAddress: true,
+          },
         },
         workspace: {
-          select: { id: true, name: true }
-        }
-      }
-    });
+          select: { id: true, name: true },
+        },
+      },
+    })
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        error: 'Order not found'
-      });
+        error: "Order not found",
+      })
     }
 
     // Parse customer addresses if they're JSON strings
-    let parsedCustomer = { ...order.customer };
-    
+    let parsedCustomer = { ...order.customer }
+
     // Parse invoiceAddress if it's a JSON string
-    if (parsedCustomer.invoiceAddress && typeof parsedCustomer.invoiceAddress === 'string') {
+    if (
+      parsedCustomer.invoiceAddress &&
+      typeof parsedCustomer.invoiceAddress === "string"
+    ) {
       try {
-        parsedCustomer.invoiceAddress = JSON.parse(parsedCustomer.invoiceAddress);
+        parsedCustomer.invoiceAddress = JSON.parse(
+          parsedCustomer.invoiceAddress
+        )
       } catch (error) {
-        logger.warn('[PUBLIC-ORDERS] Failed to parse invoiceAddress JSON:', error);
-        parsedCustomer.invoiceAddress = null;
+        logger.warn(
+          "[PUBLIC-ORDERS] Failed to parse invoiceAddress JSON:",
+          error
+        )
+        parsedCustomer.invoiceAddress = null
       }
     }
-    
+
     // Parse address if it's a JSON string
-    if (parsedCustomer.address && typeof parsedCustomer.address === 'string') {
+    if (parsedCustomer.address && typeof parsedCustomer.address === "string") {
       try {
-        parsedCustomer.address = JSON.parse(parsedCustomer.address);
+        parsedCustomer.address = JSON.parse(parsedCustomer.address)
       } catch (error) {
-        logger.warn('[PUBLIC-ORDERS] Failed to parse address JSON:', error);
-        parsedCustomer.address = null;
+        logger.warn("[PUBLIC-ORDERS] Failed to parse address JSON:", error)
+        parsedCustomer.address = null
       }
     }
 
     // Format order items
-    const formattedItems = order.items.map(item => ({
+    const formattedItems = order.items.map((item) => ({
       id: item.id,
       itemType: item.itemType,
-      name: item.product?.name || item.service?.name || 'Unknown Item',
+      name: item.product?.name || item.service?.name || "Unknown Item",
       code: item.product?.ProductCode || item.service?.code || null,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
-      totalPrice: item.totalPrice
-    }));
+      totalPrice: item.totalPrice,
+    }))
 
     const formattedOrder = {
       id: order.id,
@@ -450,27 +472,26 @@ router.get('/public/orders/:orderCode', async (req: Request, res: Response) => {
       trackingNumber: order.trackingNumber,
       totalAmount: order.totalAmount,
       items: formattedItems,
-      invoiceUrl: '',
-      ddtUrl: ''
-    };
+      invoiceUrl: "",
+      ddtUrl: "",
+    }
 
     return res.json({
       success: true,
       data: {
         order: formattedOrder,
         customer: parsedCustomer,
-        workspace: order.workspace
-      }
-    });
-
+        workspace: order.workspace,
+      },
+    })
   } catch (error) {
-    logger.error('[PUBLIC-ORDERS] Error getting order details:', error);
+    logger.error("[PUBLIC-ORDERS] Error getting order details:", error)
     return res.status(500).json({
       success: false,
-      error: 'Error retrieving order details'
-    });
+      error: "Error retrieving order details",
+    })
   }
-});
+})
 
 /**
  * @swagger
@@ -495,62 +516,65 @@ router.get('/public/orders/:orderCode', async (req: Request, res: Response) => {
  *       404:
  *         description: Customer not found
  */
-router.get('/customer-profile/:token', async (req: Request, res: Response) => {
+router.get("/customer-profile/:token", async (req: Request, res: Response) => {
   try {
-    const { token } = req.params;
+    const { token } = req.params
 
     if (!token) {
       return res.status(400).json({
         success: false,
-        error: 'Token is required'
-      });
+        error: "Token is required",
+      })
     }
 
     // Validate token
-    const validation = await secureTokenService.validateToken(token);
+    const validation = await secureTokenService.validateToken(token)
     if (!validation.valid) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid or expired token'
-      });
+        error: "Invalid or expired token",
+      })
     }
 
-    const tokenData = validation.data;
-    const payloadData = validation.payload;
-    
+    const tokenData = validation.data
+    const payloadData = validation.payload
+
     // 🔧 CRITICAL FIX: Get customerId from payload first (like checkout), then fallback to tokenData
-    let customerId = payloadData?.customerId || tokenData?.customerId || tokenData?.userId;
-    const workspaceId = tokenData?.workspaceId;
-    
+    let customerId =
+      payloadData?.customerId || tokenData?.customerId || tokenData?.userId
+    const workspaceId = tokenData?.workspaceId
+
     // 🔧 ULTIMATE FALLBACK: If no customerId, try to find customer by phone number
     if (!customerId && tokenData?.phoneNumber && workspaceId) {
       const customer = await prisma.customers.findFirst({
         where: {
           phone: tokenData.phoneNumber,
-          workspaceId: workspaceId
-        }
-      });
+          workspaceId: workspaceId,
+        },
+      })
       if (customer) {
-        customerId = customer.id;
-        logger.info(`[PUBLIC-PROFILE] Found customer by phone fallback: ${customerId}`);
+        customerId = customer.id
+        logger.info(
+          `[PUBLIC-PROFILE] Found customer by phone fallback: ${customerId}`
+        )
       }
     }
-    
+
     if (!customerId || !workspaceId) {
       return res.status(401).json({
         success: false,
-        error: 'Token does not contain valid customer information'
-      });
+        error: "Token does not contain valid customer information",
+      })
     }
 
-    logger.info(`[PUBLIC-PROFILE] Getting profile for customer: ${customerId}`);
+    logger.info(`[PUBLIC-PROFILE] Getting profile for customer: ${customerId}`)
 
     // Get customer profile
     const customer = await prisma.customers.findFirst({
       where: {
         id: customerId,
         workspaceId: workspaceId,
-        isActive: true
+        isActive: true,
       },
       select: {
         id: true,
@@ -564,43 +588,51 @@ router.get('/customer-profile/:token', async (req: Request, res: Response) => {
         discount: true,
         invoiceAddress: true,
         createdAt: true,
-        updatedAt: true
-      }
-    });
+        updatedAt: true,
+      },
+    })
 
     if (!customer) {
       return res.status(404).json({
         success: false,
-        error: 'Customer not found'
-      });
+        error: "Customer not found",
+      })
     }
 
     // Get workspace info
     const workspace = await prisma.workspace.findUnique({
       where: { id: workspaceId },
-      select: { id: true, name: true }
-    });
+      select: { id: true, name: true },
+    })
 
     // Parse invoiceAddress and address if they're JSON strings
-    let parsedCustomer = { ...customer };
-    
+    let parsedCustomer = { ...customer }
+
     // Parse invoiceAddress if it's a JSON string
-    if (parsedCustomer.invoiceAddress && typeof parsedCustomer.invoiceAddress === 'string') {
+    if (
+      parsedCustomer.invoiceAddress &&
+      typeof parsedCustomer.invoiceAddress === "string"
+    ) {
       try {
-        parsedCustomer.invoiceAddress = JSON.parse(parsedCustomer.invoiceAddress);
+        parsedCustomer.invoiceAddress = JSON.parse(
+          parsedCustomer.invoiceAddress
+        )
       } catch (error) {
-        logger.warn('[PUBLIC-PROFILE] Failed to parse invoiceAddress JSON:', error);
-        parsedCustomer.invoiceAddress = null;
+        logger.warn(
+          "[PUBLIC-PROFILE] Failed to parse invoiceAddress JSON:",
+          error
+        )
+        parsedCustomer.invoiceAddress = null
       }
     }
-    
+
     // Parse address if it's a JSON string
-    if (parsedCustomer.address && typeof parsedCustomer.address === 'string') {
+    if (parsedCustomer.address && typeof parsedCustomer.address === "string") {
       try {
-        parsedCustomer.address = JSON.parse(parsedCustomer.address);
+        parsedCustomer.address = JSON.parse(parsedCustomer.address)
       } catch (error) {
-        logger.warn('[PUBLIC-PROFILE] Failed to parse address JSON:', error);
-        parsedCustomer.address = null;
+        logger.warn("[PUBLIC-PROFILE] Failed to parse address JSON:", error)
+        parsedCustomer.address = null
       }
     }
 
@@ -608,18 +640,17 @@ router.get('/customer-profile/:token', async (req: Request, res: Response) => {
       success: true,
       data: {
         ...parsedCustomer,
-        workspace
-      }
-    });
-
+        workspace,
+      },
+    })
   } catch (error) {
-    logger.error('[PUBLIC-PROFILE] Error getting customer profile:', error);
+    logger.error("[PUBLIC-PROFILE] Error getting customer profile:", error)
     return res.status(500).json({
       success: false,
-      error: 'Error retrieving profile'
-    });
+      error: "Error retrieving profile",
+    })
   }
-});
+})
 
 /**
  * @swagger
@@ -659,48 +690,48 @@ router.get('/customer-profile/:token', async (req: Request, res: Response) => {
  *       404:
  *         description: Customer not found
  */
-router.put('/customer-profile/:token', async (req: Request, res: Response) => {
+router.put("/customer-profile/:token", async (req: Request, res: Response) => {
   try {
-    const { token } = req.params;
-    const updateData = req.body;
+    const { token } = req.params
+    const updateData = req.body
 
     if (!token) {
       return res.status(400).json({
         success: false,
-        error: 'Token is required'
-      });
+        error: "Token is required",
+      })
     }
 
     // Validate token
-    const validation = await secureTokenService.validateToken(token);
+    const validation = await secureTokenService.validateToken(token)
     if (!validation.valid) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid or expired token'
-      });
+        error: "Invalid or expired token",
+      })
     }
 
-    const tokenData = validation.data;
-    const payloadData = validation.payload;
-    
+    const tokenData = validation.data
+    const payloadData = validation.payload
+
     // Get customer ID from either data or payload
-    const customerId = tokenData?.customerId || payloadData?.customerId;
-    const workspaceId = tokenData?.workspaceId || payloadData?.workspaceId;
-    
+    const customerId = tokenData?.customerId || payloadData?.customerId
+    const workspaceId = tokenData?.workspaceId || payloadData?.workspaceId
+
     if (!customerId || !workspaceId) {
       return res.status(401).json({
         success: false,
-        error: 'Token does not contain valid customer information'
-      });
+        error: "Token does not contain valid customer information",
+      })
     }
 
-    logger.info(`[PUBLIC-PROFILE] Updating profile for customer: ${customerId}`);
+    logger.info(`[PUBLIC-PROFILE] Updating profile for customer: ${customerId}`)
 
     // Update customer profile
     const updatedCustomer = await prisma.customers.update({
       where: {
         id: customerId,
-        workspaceId: workspaceId
+        workspaceId: workspaceId,
       },
       data: {
         ...(updateData.name && { name: updateData.name }),
@@ -710,8 +741,10 @@ router.put('/customer-profile/:token', async (req: Request, res: Response) => {
         ...(updateData.company && { company: updateData.company }),
         ...(updateData.language && { language: updateData.language }),
         ...(updateData.currency && { currency: updateData.currency }),
-        ...(updateData.invoiceAddress && { invoiceAddress: updateData.invoiceAddress }),
-        updatedAt: new Date()
+        ...(updateData.invoiceAddress && {
+          invoiceAddress: updateData.invoiceAddress,
+        }),
+        updatedAt: new Date(),
       },
       select: {
         id: true,
@@ -725,47 +758,57 @@ router.put('/customer-profile/:token', async (req: Request, res: Response) => {
         discount: true,
         invoiceAddress: true,
         createdAt: true,
-        updatedAt: true
-      }
-    });
+        updatedAt: true,
+      },
+    })
 
     // Parse invoiceAddress and address if they're JSON strings
-    let parsedCustomer = { ...updatedCustomer };
-    
+    let parsedCustomer = { ...updatedCustomer }
+
     // Parse invoiceAddress if it's a JSON string
-    if (parsedCustomer.invoiceAddress && typeof parsedCustomer.invoiceAddress === 'string') {
+    if (
+      parsedCustomer.invoiceAddress &&
+      typeof parsedCustomer.invoiceAddress === "string"
+    ) {
       try {
-        parsedCustomer.invoiceAddress = JSON.parse(parsedCustomer.invoiceAddress);
+        parsedCustomer.invoiceAddress = JSON.parse(
+          parsedCustomer.invoiceAddress
+        )
       } catch (error) {
-        logger.warn('[PUBLIC-PROFILE] Failed to parse invoiceAddress JSON after update:', error);
-        parsedCustomer.invoiceAddress = null;
+        logger.warn(
+          "[PUBLIC-PROFILE] Failed to parse invoiceAddress JSON after update:",
+          error
+        )
+        parsedCustomer.invoiceAddress = null
       }
     }
-    
+
     // Parse address if it's a JSON string
-    if (parsedCustomer.address && typeof parsedCustomer.address === 'string') {
+    if (parsedCustomer.address && typeof parsedCustomer.address === "string") {
       try {
-        parsedCustomer.address = JSON.parse(parsedCustomer.address);
+        parsedCustomer.address = JSON.parse(parsedCustomer.address)
       } catch (error) {
-        logger.warn('[PUBLIC-PROFILE] Failed to parse address JSON after update:', error);
-        parsedCustomer.address = null;
+        logger.warn(
+          "[PUBLIC-PROFILE] Failed to parse address JSON after update:",
+          error
+        )
+        parsedCustomer.address = null
       }
     }
 
     return res.json({
       success: true,
       data: parsedCustomer,
-      message: 'Profile updated successfully'
-    });
-
+      message: "Profile updated successfully",
+    })
   } catch (error) {
-    logger.error('[PUBLIC-PROFILE] Error updating customer profile:', error);
+    logger.error("[PUBLIC-PROFILE] Error updating customer profile:", error)
     return res.status(500).json({
       success: false,
-      error: 'Error updating profile'
-    });
+      error: "Error updating profile",
+    })
   }
-});
+})
 
 /**
  * @swagger
@@ -831,70 +874,73 @@ router.put('/customer-profile/:token', async (req: Request, res: Response) => {
  *       500:
  *         description: Internal server error
  */
-router.post('/get-all-products', async (req: Request, res: Response) => {
+router.post("/get-all-products", async (req: Request, res: Response) => {
   try {
-    const { workspaceId, customerId } = req.body;
+    const { workspaceId, customerId } = req.body
 
     if (!workspaceId || !customerId) {
       return res.status(400).json({
         success: false,
-        error: 'workspaceId and customerId are required'
-      });
+        error: "workspaceId and customerId are required",
+      })
     }
 
-    logger.info('[GET-ALL-PRODUCTS] Request received:', { workspaceId, customerId });
+    logger.info("[GET-ALL-PRODUCTS] Request received:", {
+      workspaceId,
+      customerId,
+    })
 
     // Get customer to fetch their discount
     const customer = await prisma.customers.findFirst({
       where: {
         id: customerId,
         workspaceId: workspaceId,
-        isActive: true
-      }
-    });
+        isActive: true,
+      },
+    })
 
     if (!customer) {
       return res.status(404).json({
         success: false,
-        error: 'Customer not found'
-      });
+        error: "Customer not found",
+      })
     }
 
-    const customerDiscount = customer.discount || 0;
-    logger.info('[GET-ALL-PRODUCTS] Customer discount:', customerDiscount);
+    const customerDiscount = customer.discount || 0
+    logger.info("[GET-ALL-PRODUCTS] Customer discount:", customerDiscount)
 
     // Get all active products for the workspace
     const products = await prisma.products.findMany({
       where: {
         workspaceId: workspaceId,
         isActive: true,
-        status: 'ACTIVE'
+        status: "ACTIVE",
       },
       include: {
         category: {
           select: {
             id: true,
-            name: true
-          }
-        }
+            name: true,
+          },
+        },
       },
       orderBy: [
         {
           category: {
-            name: 'asc'
-          }
+            name: "asc",
+          },
         },
         {
-          name: 'asc'
-        }
-      ]
-    });
+          name: "asc",
+        },
+      ],
+    })
 
     // Apply customer discount to all products
-    const productsWithDiscounts = products.map(product => {
-      const originalPrice = product.price;
-      const discountAmount = originalPrice * (customerDiscount / 100);
-      const finalPrice = originalPrice - discountAmount;
+    const productsWithDiscounts = products.map((product) => {
+      const originalPrice = product.price
+      const discountAmount = originalPrice * (customerDiscount / 100)
+      const finalPrice = originalPrice - discountAmount
 
       return {
         id: product.id,
@@ -907,36 +953,37 @@ router.post('/get-all-products', async (req: Request, res: Response) => {
         discount: customerDiscount,
         stock: product.stock,
         isActive: product.isActive,
-        category: product.category ? {
-          id: product.category.id,
-          name: product.category.name
-        } : null,
+        category: product.category
+          ? {
+              id: product.category.id,
+              name: product.category.name,
+            }
+          : null,
         createdAt: product.createdAt,
-        updatedAt: product.updatedAt
-      };
-    });
+        updatedAt: product.updatedAt,
+      }
+    })
 
-    logger.info('[GET-ALL-PRODUCTS] Returning products:', { 
-      count: productsWithDiscounts.length, 
-      customerDiscount 
-    });
+    logger.info("[GET-ALL-PRODUCTS] Returning products:", {
+      count: productsWithDiscounts.length,
+      customerDiscount,
+    })
 
     return res.json({
       success: true,
       data: {
         products: productsWithDiscounts,
         customerDiscount: customerDiscount,
-        totalProducts: productsWithDiscounts.length
-      }
-    });
-
+        totalProducts: productsWithDiscounts.length,
+      },
+    })
   } catch (error) {
-    logger.error('[GET-ALL-PRODUCTS] Error fetching products:', error);
+    logger.error("[GET-ALL-PRODUCTS] Error fetching products:", error)
     return res.status(500).json({
       success: false,
-      error: 'Internal server error while fetching products'
-    });
+      error: "Internal server error while fetching products",
+    })
   }
-});
+})
 
-export default router;
+export default router
