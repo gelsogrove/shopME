@@ -25,32 +25,31 @@ Non e' possibile che ogni volta che ricevo la merce e' danneggiata sono stufo !
 ho 4 prodotti che sono arrivati scaduti cosa devo fare?
 Voglio parlare con un operatore.
 
+FASE 1
+
+- POPUP NUOVO ORDINE
+- -new tab va in loop
+- log di fe da pulire
+- togliere harcode categorie ?
+
 FASE 2
 
 POPUP NUOVO ORDINE
--new tab va in loop
 
 - codice da pulire
-- log di fe da pulire
 - sicurezza
-- togliere harcode categorie ?
-- chat history deve ritornare non tutta la storia
 - chi cancella la storia ?
 - wip services
 - GDPR deve essere in linuga
-- cateogorie si possoon tigliere?
 - metterei i prezzo nella tabella della history
-- i link vengono cancellati ?
 - pulizia codice.
 - embedding da pulire e capire ?
 - new user
 - forgot pwd
-- chathistory degli ultimi 100 messaggi
-  -- link Localhost da rivedere per andare in produczione
-- togliere Swagger?
+- link Localhost da rivedere per andare in produczione
 - websocket su new order
-- puo' essere che dobbiamo fare DUAL LLM per tradurre tutto per bene
-  Senza harcodeare nulla..
+- cateogorie si possoon tigliere?
+- rate LImit
 
 SICUREZZA:
 
