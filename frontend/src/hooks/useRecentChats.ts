@@ -1,9 +1,9 @@
+import { useChatList } from "@/contexts/ChatListContext"
 import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect } from "react"
 import { pollingCoordinator } from "./usePollingCoordinator"
-import { useChatList } from "@/contexts/ChatListContext"
 
 export function useRecentChats(
   isExternallyBlocked: boolean = false,

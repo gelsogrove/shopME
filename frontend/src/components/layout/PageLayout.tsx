@@ -45,7 +45,6 @@ export function PageLayout({ children, selectedChat }: PageLayoutProps) {
         workspaceId={workspace?.id}
         selectedChat={selectedChat}
       />
-
     </div>
   )
 }

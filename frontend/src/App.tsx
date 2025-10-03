@@ -42,8 +42,8 @@ import { LanguagesPage } from "./pages/settings/LanguagesPage"
 import { ProductsPage as SettingsProductsPage } from "./pages/settings/ProductsPage"
 
 import { Suspense, lazy } from "react"
-import { WorkspaceProvider } from "./contexts/WorkspaceContext"
 import { ChatListProvider } from "./contexts/ChatListContext"
+import { WorkspaceProvider } from "./contexts/WorkspaceContext"
 import SurveysPage from "./pages/SurveysPage"
 import { VerifyOtpPage } from "./pages/VerifyOtpPage"
 import { WorkspacePage } from "./pages/WorkspacePage"
@@ -60,220 +60,229 @@ export function App() {
       <ChatProvider>
         <ChatListProvider>
           <BrowserRouter>
-          <Toaster position="top-right" duration={800} />
-          <Routes>
-            {/* Auth Routes - accessibili senza autenticazione */}
-            <Route path="/auth">
-              <Route path="login" element={<LoginPage />} />
-              <Route path="signup" element={<SignupPage />} />
-              <Route path="forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="reset-password" element={<ResetPasswordPage />} />
-              <Route path="verify-otp" element={<VerifyOtpPage />} />
-            </Route>
-            {/* Direct route for /forgot-password to avoid 404 */}
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Toaster position="top-right" duration={800} />
+            <Routes>
+              {/* Auth Routes - accessibili senza autenticazione */}
+              <Route path="/auth">
+                <Route path="login" element={<LoginPage />} />
+                <Route path="signup" element={<SignupPage />} />
+                <Route
+                  path="forgot-password"
+                  element={<ForgotPasswordPage />}
+                />
+                <Route path="reset-password" element={<ResetPasswordPage />} />
+                <Route path="verify-otp" element={<VerifyOtpPage />} />
+              </Route>
+              {/* Direct route for /forgot-password to avoid 404 */}
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-            {/* Development/Test Routes */}
-            <Route path="/message-test" element={<MessageTestPage />} />
+              {/* Development/Test Routes */}
+              <Route path="/message-test" element={<MessageTestPage />} />
 
-            {/* Protected Routes - richiedono autenticazione */}
-            <Route element={<ProtectedRoute />}>
-              {/* Workspace Selection */}
+              {/* Protected Routes - richiedono autenticazione */}
+              <Route element={<ProtectedRoute />}>
+                {/* Workspace Selection */}
+                <Route
+                  path="/workspace-selection"
+                  element={<WorkspaceSelectionPage />}
+                />
+
+                {/* Layout con sidebar */}
+                <Route path="/chat" element={<Layout />}>
+                  <Route index element={<ChatPage />} />
+                </Route>
+                <Route path="/chat-test" element={<Layout />}>
+                  <Route index element={<ChatTestPage />} />
+                </Route>
+                <Route path="/analytics" element={<Layout />}>
+                  <Route index element={<AnalyticsPage />} />
+                </Route>
+                <Route path="/agent" element={<Layout />}>
+                  <Route index element={<AgentPage />} />
+                </Route>
+                <Route path="/clients" element={<Layout />}>
+                  <Route index element={<ClientsPage />} />
+                  <Route path=":id" element={<ClientsPage />} />
+                </Route>
+                <Route path="/admin/orders" element={<Layout />}>
+                  <Route index element={<OrdersPage />} />
+                </Route>
+                <Route path="/cart" element={<Layout />}>
+                  <Route index element={<CheckoutPage />} />
+                </Route>
+                <Route path="/documents" element={<Layout />}>
+                  <Route index element={<DocumentsPage />} />
+                </Route>
+                <Route path="/products" element={<Layout />}>
+                  <Route index element={<ProductsPage />} />
+                </Route>
+                <Route path="/categories" element={<Layout />}>
+                  <Route index element={<CategoriesPage />} />
+                </Route>
+
+                <Route path="/services" element={<Layout />}>
+                  <Route index element={<ServicesPage />} />
+                </Route>
+                <Route path="/faq" element={<Layout />}>
+                  <Route index element={<FAQPage />} />
+                </Route>
+
+                <Route path="/surveys" element={<Layout />}>
+                  <Route index element={<SurveysPage />} />
+                </Route>
+                <Route path="/notifications" element={<Layout />}>
+                  <Route index element={<NotificationsPage />} />
+                </Route>
+                <Route path="/profile" element={<Layout />}>
+                  <Route index element={<ProfilePage />} />
+                </Route>
+
+                <Route path="/settings" element={<Layout />}>
+                  <Route index element={<SettingsPage />} />
+                  <Route path="languages" element={<LanguagesPage />} />
+                  <Route path="channel-types" element={<ChannelTypesPage />} />
+                  <Route
+                    path="categories"
+                    element={<SettingsCategoriesPage />}
+                  />
+                  <Route path="products" element={<SettingsProductsPage />} />
+                </Route>
+                <Route path="/gdpr" element={<Layout />}>
+                  <Route index element={<GdprPage />} />
+                </Route>
+                <Route path="/workspace" element={<Layout />}>
+                  <Route index element={<WorkspacePage />} />
+                </Route>
+
+                {/* Modifico la route per offers per usare Layout e OffersPage */}
+                <Route path="/offers" element={<Layout />}>
+                  <Route index element={<OffersPage />} />
+                </Route>
+              </Route>
+
+              {/* Public Orders pages via secure token (external, no platform layout) */}
               <Route
-                path="/workspace-selection"
-                element={<WorkspaceSelectionPage />}
+                path="/orders"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                      </div>
+                    }
+                  >
+                    <OrdersPublicPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/orders/:orderCode"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                      </div>
+                    }
+                  >
+                    <OrdersPublicPage />
+                  </Suspense>
+                }
               />
 
-              {/* Layout con sidebar */}
-              <Route path="/chat" element={<Layout />}>
-                <Route index element={<ChatPage />} />
-              </Route>
-              <Route path="/chat-test" element={<Layout />}>
-                <Route index element={<ChatTestPage />} />
-              </Route>
-              <Route path="/analytics" element={<Layout />}>
-                <Route index element={<AnalyticsPage />} />
-              </Route>
-              <Route path="/agent" element={<Layout />}>
-                <Route index element={<AgentPage />} />
-              </Route>
-              <Route path="/clients" element={<Layout />}>
-                <Route index element={<ClientsPage />} />
-                <Route path=":id" element={<ClientsPage />} />
-              </Route>
-              <Route path="/admin/orders" element={<Layout />}>
-                <Route index element={<OrdersPage />} />
-              </Route>
-              <Route path="/cart" element={<Layout />}>
-                <Route index element={<CheckoutPage />} />
-              </Route>
-              <Route path="/documents" element={<Layout />}>
-                <Route index element={<DocumentsPage />} />
-              </Route>
-              <Route path="/products" element={<Layout />}>
-                <Route index element={<ProductsPage />} />
-              </Route>
-              <Route path="/categories" element={<Layout />}>
-                <Route index element={<CategoriesPage />} />
-              </Route>
+              {/* Public Orders pages via orders-public URL (backend generated links) */}
+              <Route
+                path="/orders-public"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                      </div>
+                    }
+                  >
+                    <OrdersPublicPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/orders-public/:orderCode"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                      </div>
+                    }
+                  >
+                    <OrdersPublicPage />
+                  </Suspense>
+                }
+              />
 
-              <Route path="/services" element={<Layout />}>
-                <Route index element={<ServicesPage />} />
-              </Route>
-              <Route path="/faq" element={<Layout />}>
-                <Route index element={<FAQPage />} />
-              </Route>
+              {/* Public Customer Profile page via secure token (external, no platform layout) */}
+              <Route
+                path="/customer-profile"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                      </div>
+                    }
+                  >
+                    <CustomerProfilePublicPage />
+                  </Suspense>
+                }
+              />
 
-              <Route path="/surveys" element={<Layout />}>
-                <Route index element={<SurveysPage />} />
-              </Route>
-              <Route path="/notifications" element={<Layout />}>
-                <Route index element={<NotificationsPage />} />
-              </Route>
-              <Route path="/profile" element={<Layout />}>
-                <Route index element={<ProfilePage />} />
-              </Route>
+              {/* Root redirect to login */}
+              <Route path="/" element={<Navigate to="/auth/login" replace />} />
 
-              <Route path="/settings" element={<Layout />}>
-                <Route index element={<SettingsPage />} />
-                <Route path="languages" element={<LanguagesPage />} />
-                <Route path="channel-types" element={<ChannelTypesPage />} />
-                <Route path="categories" element={<SettingsCategoriesPage />} />
-                <Route path="products" element={<SettingsProductsPage />} />
-              </Route>
-              <Route path="/gdpr" element={<Layout />}>
-                <Route index element={<GdprPage />} />
-              </Route>
-              <Route path="/workspace" element={<Layout />}>
-                <Route index element={<WorkspacePage />} />
-              </Route>
+              {/* Legacy login redirect */}
+              <Route
+                path="/login"
+                element={<Navigate to="/auth/login" replace />}
+              />
 
-              {/* Modifico la route per offers per usare Layout e OffersPage */}
-              <Route path="/offers" element={<Layout />}>
-                <Route index element={<OffersPage />} />
-              </Route>
-            </Route>
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/signup" element={<RegisterPage />} />
+              <Route
+                path="/registration-success"
+                element={<RegistrationSuccess />}
+              />
+              {/* Public Checkout page via secure token (external, no platform layout) */}
+              <Route
+                path="/checkout"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                      </div>
+                    }
+                  >
+                    <CheckoutPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/checkout-success"
+                element={<CheckoutSuccessPage />}
+              />
+              <Route
+                path="/order-summary/:token"
+                element={<OrderSummaryPage />}
+              />
+              <Route path="/data-protection" element={<DataProtectionPage />} />
 
-            {/* Public Orders pages via secure token (external, no platform layout) */}
-            <Route
-              path="/orders"
-              element={
-                <Suspense
-                  fallback={
-                    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-                      <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-                    </div>
-                  }
-                >
-                  <OrdersPublicPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/orders/:orderCode"
-              element={
-                <Suspense
-                  fallback={
-                    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-                      <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-                    </div>
-                  }
-                >
-                  <OrdersPublicPage />
-                </Suspense>
-              }
-            />
+              {/* Error pages */}
+              <Route path="/expired" element={<ExpiredPage />} />
+              <Route path="/not-found" element={<NotFoundPage />} />
 
-            {/* Public Orders pages via orders-public URL (backend generated links) */}
-            <Route
-              path="/orders-public"
-              element={
-                <Suspense
-                  fallback={
-                    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-                      <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-                    </div>
-                  }
-                >
-                  <OrdersPublicPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/orders-public/:orderCode"
-              element={
-                <Suspense
-                  fallback={
-                    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-                      <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-                    </div>
-                  }
-                >
-                  <OrdersPublicPage />
-                </Suspense>
-              }
-            />
-
-            {/* Public Customer Profile page via secure token (external, no platform layout) */}
-            <Route
-              path="/customer-profile"
-              element={
-                <Suspense
-                  fallback={
-                    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-                      <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-                    </div>
-                  }
-                >
-                  <CustomerProfilePublicPage />
-                </Suspense>
-              }
-            />
-
-            {/* Root redirect to login */}
-            <Route path="/" element={<Navigate to="/auth/login" replace />} />
-
-            {/* Legacy login redirect */}
-            <Route
-              path="/login"
-              element={<Navigate to="/auth/login" replace />}
-            />
-
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/signup" element={<RegisterPage />} />
-            <Route
-              path="/registration-success"
-              element={<RegistrationSuccess />}
-            />
-            {/* Public Checkout page via secure token (external, no platform layout) */}
-            <Route
-              path="/checkout"
-              element={
-                <Suspense
-                  fallback={
-                    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-                      <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-                    </div>
-                  }
-                >
-                  <CheckoutPage />
-                </Suspense>
-              }
-            />
-            <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
-            <Route
-              path="/order-summary/:token"
-              element={<OrderSummaryPage />}
-            />
-            <Route path="/data-protection" element={<DataProtectionPage />} />
-
-            {/* Error pages */}
-            <Route path="/expired" element={<ExpiredPage />} />
-            <Route path="/not-found" element={<NotFoundPage />} />
-
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </BrowserRouter>
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </BrowserRouter>
         </ChatListProvider>
       </ChatProvider>
     </WorkspaceProvider>

@@ -11,8 +11,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { useWorkspace } from "@/hooks/use-workspace"
 import { useChatList } from "@/contexts/ChatListContext"
+import { useWorkspace } from "@/hooks/use-workspace"
 import { logger } from "@/lib/logger"
 import { toast } from "@/lib/toast"
 import { api } from "@/services/api"

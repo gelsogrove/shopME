@@ -1,27 +1,35 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
-import { Chat } from '@/types/chat'
-import { useQueryClient, useQuery } from '@tanstack/react-query'
-import { logger } from '@/lib/logger'
-import { api } from '@/services/api'
+import { logger } from "@/lib/logger"
+import { api } from "@/services/api"
+import { Chat } from "@/types/chat"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useState,
+} from "react"
 
 type ChatListContextType = {
-  chats: Chat[];
-  updateChat: (chatId: string, updates: Partial<Chat>) => void;
-  updateActiveChatbot: (chatId: string, isActive: boolean) => void;
-  isLoading: boolean;
-  isError: boolean;
-  error: Error | null;
+  chats: Chat[]
+  updateChat: (chatId: string, updates: Partial<Chat>) => void
+  updateActiveChatbot: (chatId: string, isActive: boolean) => void
+  isLoading: boolean
+  isError: boolean
+  error: Error | null
 }
 
-const ChatListContext = createContext<ChatListContextType | undefined>(undefined)
+const ChatListContext = createContext<ChatListContextType | undefined>(
+  undefined
+)
 
 export function ChatListProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<Error | null>(null)
   const queryClient = useQueryClient()
-  
+
   // Use React Query to handle chat list fetching
   const { data: chats = [], isLoading } = useQuery({
-    queryKey: ['chats'],
+    queryKey: ["chats"],
     queryFn: async () => {
       try {
         // Get current workspace ID from session storage
@@ -79,39 +87,47 @@ export function ChatListProvider({ children }: { children: ReactNode }) {
     },
     refetchInterval: 15000, // Poll every 15 seconds
     // Enable or disable polling based on window focus
-    refetchIntervalInBackground: false
+    refetchIntervalInBackground: false,
   })
 
-  const updateChat = useCallback((chatId: string, updates: Partial<Chat>) => {
-    const currentChats = queryClient.getQueryData<Chat[]>(['chats']) || []
-    const newChats = currentChats.map(chat => {
-      if (chat.id === chatId || chat.sessionId === chatId) {
-        return { ...chat, ...updates }
-      }
-      return chat
-    })
-    
-    // Update React Query cache
-    queryClient.setQueryData(['chats'], newChats)
-    
-    // Log per debug
-    logger.info(`📝 Chat ${chatId} updated:`, updates)
-  }, [queryClient])
+  const updateChat = useCallback(
+    (chatId: string, updates: Partial<Chat>) => {
+      const currentChats = queryClient.getQueryData<Chat[]>(["chats"]) || []
+      const newChats = currentChats.map((chat) => {
+        if (chat.id === chatId || chat.sessionId === chatId) {
+          return { ...chat, ...updates }
+        }
+        return chat
+      })
 
-  const updateActiveChatbot = useCallback((chatId: string, isActive: boolean) => {
-    updateChat(chatId, { activeChatbot: isActive })
-    logger.info(`🤖 Chatbot status for ${chatId} set to: ${isActive}`)
-  }, [updateChat])
+      // Update React Query cache
+      queryClient.setQueryData(["chats"], newChats)
+
+      // Log per debug
+      logger.info(`📝 Chat ${chatId} updated:`, updates)
+    },
+    [queryClient]
+  )
+
+  const updateActiveChatbot = useCallback(
+    (chatId: string, isActive: boolean) => {
+      updateChat(chatId, { activeChatbot: isActive })
+      logger.info(`🤖 Chatbot status for ${chatId} set to: ${isActive}`)
+    },
+    [updateChat]
+  )
 
   return (
-    <ChatListContext.Provider value={{ 
-      chats: chats || [], 
-      updateChat, 
-      updateActiveChatbot,
-      isLoading,
-      isError: !!error,
-      error
-    }}>
+    <ChatListContext.Provider
+      value={{
+        chats: chats || [],
+        updateChat,
+        updateActiveChatbot,
+        isLoading,
+        isError: !!error,
+        error,
+      }}
+    >
       {children}
     </ChatListContext.Provider>
   )
@@ -120,7 +136,7 @@ export function ChatListProvider({ children }: { children: ReactNode }) {
 export function useChatList() {
   const context = useContext(ChatListContext)
   if (!context) {
-    throw new Error('useChatList must be used within a ChatListProvider')
+    throw new Error("useChatList must be used within a ChatListProvider")
   }
   return context
 }

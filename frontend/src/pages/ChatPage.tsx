@@ -10,7 +10,6 @@ import { useChatList } from "@/contexts/ChatListContext"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useChatSync } from "@/hooks/useChatSync"
 import { useCurrentChatMessages } from "@/hooks/useCurrentChatMessages"
-import { useRecentChats } from "@/hooks/useRecentChats"
 import { logger } from "@/lib/logger"
 import { toast } from "@/lib/toast"
 import { api } from "@/services/api"
@@ -168,13 +167,15 @@ export function ChatPage() {
   const {
     chats,
     isLoading: isLoadingChats,
-    updateActiveChatbot
+    updateActiveChatbot,
   } = useChatList()
-  
+
   const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
   const [isBlocking, setIsBlocking] = useState(false)
-  const [isChatbotActive, setIsChatbotActive] = useState(selectedChat?.activeChatbot ?? true)
-  
+  const [isChatbotActive, setIsChatbotActive] = useState(
+    selectedChat?.activeChatbot ?? true
+  )
+
   // Keep local state in sync with selected chat
   useEffect(() => {
     if (selectedChat) {
@@ -212,7 +213,7 @@ export function ChatPage() {
     [searchParams, setSearchParams, queryClient]
   )
 
-  // Polling with messages  
+  // Polling with messages
   const { data: polledMessages = [], isLoading: isLoadingMessages } =
     useCurrentChatMessages(selectedChat?.sessionId || null, !!selectedChat)
 
@@ -473,17 +474,22 @@ export function ChatPage() {
         // Log error for debugging
         logger.error("Failed to update chatbot status:", {
           status: response.status,
-          data: response.data
+          data: response.data,
         })
-        toast.error(response.data.error || "Failed to update chatbot status", { 
-          duration: 1000 
+        toast.error(response.data.error || "Failed to update chatbot status", {
+          duration: 1000,
         })
       }
     } catch (error) {
       logger.error("Error updating chatbot status:", error)
-      toast.error(error instanceof Error ? error.message : "Failed to update chatbot status", { 
-        duration: 1000 
-      })
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to update chatbot status",
+        {
+          duration: 1000,
+        }
+      )
     } finally {
       setLoading(false)
     }
