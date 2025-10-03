@@ -399,13 +399,16 @@ export class CheckoutController {
           data: {
             workspaceId: workspaceId,
             clientId: customerId,
-            price: 1.50 // Complete order cost including push notification
-          }
-        });
+            price: 1.5, // Complete order cost including push notification
+          },
+        })
 
-        logger.info(`Order cost tracked: €1.50 for customer ${customerId}`);
+        logger.info(`Order cost tracked: €1.50 for customer ${customerId}`)
       } catch (error) {
-        logger.error(`Error tracking order cost for customer ${customerId}:`, error);
+        logger.error(
+          `Error tracking order cost for customer ${customerId}:`,
+          error
+        )
       }
 
       // Send notifications

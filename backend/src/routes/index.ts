@@ -9,6 +9,7 @@ import { SpamDetectionService } from "../application/services/spam-detection.ser
 import { UserService } from "../application/services/user.service"
 import { config } from "../config"
 import { AuthController } from "../interfaces/http/controllers/auth.controller"
+import { CartTokenController } from "../interfaces/http/controllers/cart-token.controller"
 import { CategoryController } from "../interfaces/http/controllers/category.controller"
 import { ChatController } from "../interfaces/http/controllers/chat.controller"
 import { CustomersController } from "../interfaces/http/controllers/customers.controller"
@@ -354,6 +355,10 @@ const router = Router()
 
 // Add logging middleware
 router.use(loggingMiddleware)
+
+// 🛒 Cart Token Routes (for support interface)
+router.post("/cart-tokens", (req, res) => cartTokenController.getCartToken(req, res))
+router.get("/cart-tokens/:token/validate", (req, res) => cartTokenController.validateCartToken(req, res))
 
 // WhatsApp webhook routes (must be FIRST, before any authentication middleware)
 import { LLMService } from "../services/llm.service"
@@ -1354,6 +1359,7 @@ const otpService = new OtpService(prisma)
 const passwordResetService = new PasswordResetService(prisma)
 
 // Create controllers in advance
+const cartTokenController = new CartTokenController()
 const customersController = new CustomersController()
 const servicesController = new ServicesController()
 

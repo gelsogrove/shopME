@@ -649,7 +649,7 @@ Il sistema checkout è ora **completamente funzionale e production-ready**. Tutt
 **A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
 
 - **LLM Response**: €0.10 (10 centesimi) per ogni risposta chatbot
-- **New Customer**: €1.00 (1 euro) per ogni nuovo cliente registrato  
+- **New Customer**: €1.00 (1 euro) per ogni nuovo cliente registrato
 - **New Order**: €1.50 (1 euro ordine + 50 centesimi push) per ordine completo
 - **Push Message**: €0.50 (50 centesimi) per notifiche push standalone
 - **Tracciamento automatico**: Integrato in tutti i controller con single point of truth
@@ -756,8 +756,9 @@ Il sistema checkout è ora **completamente funzionale e production-ready**. Tutt
 Il sistema di tracciamento usage monitora automaticamente tutti i costi secondo la pricing list ufficiale e fornisce dashboard analytics complete per business intelligence.
 
 **Pricing List Ufficiale:**
+
 - **LLM Response**: €0.10 (10 centesimi)
-- **New Customer**: €1.00 (1 euro)  
+- **New Customer**: €1.00 (1 euro)
 - **New Order**: €1.50 (ordine completo con push)
 - **Push Message**: €0.50 (50 centesimi)
 

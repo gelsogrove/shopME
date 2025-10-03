@@ -270,14 +270,15 @@ export class CustomersController {
 
         // Only send push notification if chatbot was reactivated (false -> true)
         if (!originalCustomer.activeChatbot && updatedCustomer.activeChatbot) {
-          const pushResult = await this.pushMessagingService.sendChatbotReactivated(
-            updatedCustomer.id,
-            updatedCustomer.phone,
-            updatedCustomer.workspaceId
-          )
-          
+          const pushResult =
+            await this.pushMessagingService.sendChatbotReactivated(
+              updatedCustomer.id,
+              updatedCustomer.phone,
+              updatedCustomer.workspaceId
+            )
+
           logger.info(
-            `Push notification ${pushResult ? 'sent successfully' : 'failed'} for customer ${updatedCustomer.id}`
+            `Push notification ${pushResult ? "sent successfully" : "failed"} for customer ${updatedCustomer.id}`
           )
         }
       }

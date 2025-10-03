@@ -83,11 +83,12 @@ export class SecureTokenService {
           }
         })
       } else if (customerId) {
-        // For other tokens, search by customerId
+        // For other tokens, search by customerId AND type
         existingToken = await this.prisma.secureToken.findFirst({
           where: {
             customerId,
             workspaceId,
+            type, // 🔧 FIX: Filtra anche per tipo di token!
             expiresAt: {
               gt: new Date() // NON scaduto
             }
@@ -114,24 +115,23 @@ export class SecureTokenService {
       // 3. Nessun token valido → CREA NUOVO
       logger.info(`[KISS-TOKEN] 🆕 Creo nuovo token (nessun token valido trovato)`)
       
-      // Pulisci token scaduti
+      // Pulisci token scaduti + elimina token esistenti dello stesso tipo per evitare conflitti
       if (type === 'registration' && phoneNumber) {
         // For registration tokens, clean by phoneNumber
         await this.prisma.secureToken.deleteMany({
           where: {
             phoneNumber,
             workspaceId,
-            type: 'registration',
-            expiresAt: { lte: new Date() }
+            type: 'registration'
           }
         })
       } else if (customerId) {
-        // For other tokens, clean by customerId
+        // For other tokens, clean by customerId AND type (inclusi quelli non scaduti)
         await this.prisma.secureToken.deleteMany({
           where: {
             customerId,
             workspaceId,
-            expiresAt: { lte: new Date() }
+            type // 🔧 FIX: Elimina tutti i token dello stesso tipo per evitare conflitti
           }
         })
       }
@@ -142,11 +142,11 @@ export class SecureTokenService {
       const hours = parseInt(expiresIn.replace('h', '')) || 1
       expiresAt.setHours(expiresAt.getHours() + hours)
 
-      // Crea token universale
+      // Crea token del tipo specificato
       await this.prisma.secureToken.create({
         data: {
           token,
-          type: 'universal', // 🎯 Tipo fisso 'universal'
+          type, // 🔧 FIX: Usa il tipo passato come parametro invece di 'universal'
           workspaceId,
           customerId,
           userId,
@@ -157,12 +157,12 @@ export class SecureTokenService {
         }
       })
 
-      logger.info(`[KISS-TOKEN] ✅ NUOVO token universale creato - scade: ${expiresAt}`)
+      logger.info(`[KISS-TOKEN] ✅ NUOVO token di tipo '${type}' creato - scade: ${expiresAt}`)
       return token
       
     } catch (error) {
       logger.error(`[KISS-TOKEN] ❌ Errore creazione token:`, error)
-      throw new Error('Errore creazione token universale')
+      throw new Error(`Errore creazione token di tipo '${type}'`)
     }
   }
 

@@ -1,3 +1,4 @@
+import { CartIframePopup } from "@/components/CartIframePopup"
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ClientSheet } from "@/components/shared/ClientSheet"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
@@ -18,7 +19,7 @@ import {
   Lock,
   Pencil,
   Send,
-  ShoppingBag,
+  ShoppingCart,
   Trash2,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -151,8 +152,56 @@ export function ChatPage() {
   const initialLoadRef = useRef(true)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showBlockDialog, setShowBlockDialog] = useState(false)
-  const [showOrdersDialog, setShowOrdersDialog] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
+  const [showCartPopup, setShowCartPopup] = useState(false)
+  const [cartToken, setCartToken] = useState<string>("")
+  const [isLoadingCartToken, setIsLoadingCartToken] = useState(false)
+
+  // Function to get cart token for current customer
+  const getCartToken = async (customerId: string, workspaceId: string): Promise<string> => {
+    try {
+      setIsLoadingCartToken(true)
+      
+      // Debug logging
+      console.log(`[FRONTEND] 🔍 Getting cart token for customerId: "${customerId}", workspaceId: "${workspaceId}"`)
+      console.log(`[FRONTEND] 🔍 selectedChat:`, selectedChat)
+      
+      const response = await api.post('/cart-tokens', {
+        customerId,
+        workspaceId
+      })
+      
+      if (response.data.success) {
+        const token = response.data.data.token
+        console.log(`[FRONTEND] ✅ Token ricevuto: ${token.substring(0, 10)}...${token.substring(-10)} (length: ${token.length})`)
+        return token
+      } else {
+        throw new Error(response.data.error || 'Failed to get cart token')
+      }
+    } catch (error) {
+      logger.error('Error getting cart token:', error)
+      toast.error("Failed to load customer cart", { duration: 1000 })
+      throw error
+    } finally {
+      setIsLoadingCartToken(false)
+    }
+  }
+
+  // Handle View Cart click
+  const handleViewCart = async () => {
+    if (!selectedChat || !workspace?.id) {
+      toast.error("No customer or workspace selected", { duration: 1000 })
+      return
+    }
+
+    try {
+      const token = await getCartToken(selectedChat.customerId, workspace.id)
+      setCartToken(token)
+      setShowCartPopup(true)
+    } catch (error) {
+      // Error already handled in getCartToken
+    }
+  }
   const [chats, setChats] = useState<Chat[]>([])
   const [isInputDisabled, setIsInputDisabled] = useState(false)
   const [activeChatbot, setActiveChatbot] = useState<boolean>(true)
@@ -543,14 +592,6 @@ export function ChatPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  // Show orders dialog
-  const handleViewOrders = () => {
-    if (!selectedChat?.customerName) return
-    navigate(
-      `/admin/orders?search=${encodeURIComponent(selectedChat.customerName)}`
-    )
   }
 
   // Format date for display
@@ -1013,12 +1054,16 @@ export function ChatPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleViewOrders}
-                    className="hover:bg-blue-50 h-7 px-2 py-0"
-                    title="View Customer Orders"
+                    onClick={handleViewCart}
+                    className="hover:bg-green-50 h-10 w-10 p-0"
+                    title="View Customer Cart"
+                    disabled={isLoadingCartToken}
                   >
-                    <ShoppingBag className="h-3 w-3 text-blue-600 mr-1" />
-                    <span className="text-blue-600 text-xs">View orders</span>
+                    {isLoadingCartToken ? (
+                      <Loader2 className="h-5 w-5 text-green-600 animate-spin" />
+                    ) : (
+                      <ShoppingCart className="h-5 w-5 text-green-600" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"
@@ -1026,8 +1071,8 @@ export function ChatPage() {
                     onClick={() => setShowBlockDialog(true)}
                     className={
                       selectedChat?.isBlacklisted
-                        ? "hover:bg-green-50 h-7 px-2 py-0"
-                        : "hover:bg-orange-50 h-7 px-2 py-0"
+                        ? "hover:bg-green-50 h-10 w-10 p-0"
+                        : "hover:bg-orange-50 h-10 w-10 p-0"
                     }
                     title={
                       selectedChat?.isBlacklisted
@@ -1036,19 +1081,9 @@ export function ChatPage() {
                     }
                   >
                     {selectedChat?.isBlacklisted ? (
-                      <>
-                        <Lock className="h-3 w-3 text-green-600 mr-1" />
-                        <span className="text-green-600 text-xs">
-                          Unblock user
-                        </span>
-                      </>
+                      <Lock className="h-5 w-5 text-green-600" />
                     ) : (
-                      <>
-                        <Ban className="h-3 w-3 text-orange-600 mr-1" />
-                        <span className="text-orange-600 text-xs">
-                          Block user
-                        </span>
-                      </>
+                      <Ban className="h-5 w-5 text-orange-600" />
                     )}
                   </Button>
                   <Button
@@ -1056,10 +1091,10 @@ export function ChatPage() {
                     variant="ghost"
                     size="sm"
                     onClick={handleDeleteChat}
-                    className="hover:bg-red-50 h-7 px-2 py-0"
+                    className="hover:bg-red-50 h-10 w-10 p-0"
+                    title="Delete Chat"
                   >
-                    <Trash2 className="h-3 w-3 text-red-600 mr-1" />
-                    <span className="text-red-600 text-xs">Delete</span>
+                    <Trash2 className="h-5 w-5 text-red-600" />
                   </Button>
                 </div>
               </div>
@@ -1357,22 +1392,6 @@ export function ChatPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* View Orders Dialog */}
-      <AlertDialog open={showOrdersDialog} onOpenChange={setShowOrdersDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>View Customer Orders</AlertDialogTitle>
-            <AlertDialogDescription>
-              This functionality is currently under development and will be
-              available soon.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction key="orders-dialog-action">OK</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       {/* Customer Edit Sheet */}
       <ClientSheet
         client={selectedChat ? selectedChat.customerId : null}
@@ -1407,6 +1426,16 @@ export function ChatPage() {
         workspaceId={workspace?.id}
         selectedChat={selectedChat as any}
       />
+
+      {/* Cart Iframe Popup */}
+      {selectedChat && cartToken && (
+        <CartIframePopup
+          isOpen={showCartPopup}
+          onClose={() => setShowCartPopup(false)}
+          iframeSrc={`http://localhost:3000/checkout?token=${cartToken}`}
+          customerName={selectedChat.customerName}
+        />
+      )}
     </PageLayout>
   )
 }

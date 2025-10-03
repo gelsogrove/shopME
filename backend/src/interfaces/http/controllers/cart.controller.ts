@@ -985,13 +985,16 @@ export class CartController {
           data: {
             workspaceId: validation.data.workspaceId,
             clientId: cart.customerId,
-            price: 1.50 // Complete order cost including push notification
-          }
-        });
+            price: 1.5, // Complete order cost including push notification
+          },
+        })
 
-        logger.info(`Order cost tracked: €1.50 for customer ${cart.customerId}`);
+        logger.info(`Order cost tracked: €1.50 for customer ${cart.customerId}`)
       } catch (error) {
-        logger.error(`Error tracking order cost for customer ${cart.customerId}:`, error);
+        logger.error(
+          `Error tracking order cost for customer ${cart.customerId}:`,
+          error
+        )
       }
 
       // Invalidate token (optional since user might want to create new orders)

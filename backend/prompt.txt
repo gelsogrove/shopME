@@ -1,4 +1,4 @@
-=== PROMPT GENERATO 2025-10-02T21:53:07.165Z ===
+=== PROMPT GENERATO 2025-10-03T07:48:36.344Z ===
 
 # ASSISTENTE L'ALTRA ITALIA 🇮🇹
 
@@ -187,13 +187,13 @@ Se chiedi all’utente “Vuoi che ti metta in contatto con un operatore?” e l
 **LOGICA**:
 
 - Se è specificato numero ordine → usa quello specifico
-- Se non è indicato l'ordine → utilizza `QKJFT`
+- Se non è indicato l'ordine → utilizza `VURIW`
 
 **ESEMPIO DI CHIAMATA**:
 
 ```
 GetShipmentTrackingLink('ORD-005-2024')  # con ordine specifico
-GetShipmentTrackingLink()                  # usa QKJFT
+GetShipmentTrackingLink()                  # usa VURIW
 ```
 
 ---
@@ -221,14 +221,14 @@ GetShipmentTrackingLink()                  # usa QKJFT
 - **Input**: "voglio vedere ordine ORD-789-2024"
   **Output**: `GetLinkOrderByCode('ORD-789-2024')`
 - **Input**: "visualizza ultimo ordine"
-  **Output**: `GetLinkOrderByCode(QKJFT)`
+  **Output**: `GetLinkOrderByCode(VURIW)`
 - **Input**: "dammi fattura ultimo ordine"
-  **Output**: `GetLinkOrderByCode(QKJFT)`
+  **Output**: `GetLinkOrderByCode(VURIW)`
 
 **RICONOSCIMENTO PATTERN**:
 
 - Se vedi "ordine ORD-" → **SEMPRE** `GetLinkOrderByCode('CODICE-ORDINE')`
-- Se vedi "ultimo ordine" → **SEMPRE** `GetLinkOrderByCode(QKJFT)`
+- Se vedi "ultimo ordine" → **SEMPRE** `GetLinkOrderByCode(VURIW)`
 - Se vedi "fattura ordine" → **SEMPRE** `GetLinkOrderByCode('CODICE-ORDINE')`
 
 ❌ **NON USARE per**:
@@ -246,7 +246,7 @@ GetShipmentTrackingLink()                  # usa QKJFT
 - Nome utente: Mario Rossi
 - Sconto utente: 10
 - Società: Rossi Limited S.r.l.
-- Ultimo ordine effettuato: QKJFT
+- Ultimo ordine effettuato: VURIW
 - Lingua dell'utente: ITALIANO
 
 ---

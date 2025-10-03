@@ -2,7 +2,6 @@ import cookieParser from "cookie-parser"
 import cors from "cors"
 import express from "express"
 import helmet from "helmet"
-import OpenAI from "openai"
 import path from "path"
 import swaggerUi from "swagger-ui-express"
 import { swaggerSpec } from "./config/swagger"
@@ -130,45 +129,38 @@ app.use(
   })
 )
 
-// Log that we're about to mount the API router
-logger.info("Mounting API router at /api prefix")
+// Endpoint di catch-all specifico per bloccare clienti
+app.post("/api/workspaces/:workspaceId/customers/:id/block", (req, res) => {
+  const { id, workspaceId } = req.params
+  logger.info(
+    `🔥 HOTFIX: Block customer catch-all endpoint chiamato per workspace ${workspaceId}, customer ${id}`
+  )
+  logger.info(
+    `⚠️ Questo è un hotfix temporaneo per risolvere il problema del 404 su questo endpoint.`
+  )
 
-// Hotfix solo per gli ambienti non di test
-if (process.env.NODE_ENV !== "test") {
-  // Endpoint di catch-all specifico per bloccare clienti
-  // HOTFIX: Risolve il problema del 404 su block customer
-  app.post("/api/workspaces/:workspaceId/customers/:id/block", (req, res) => {
-    const { id, workspaceId } = req.params
-    logger.info(
-      `🔥 HOTFIX: Block customer catch-all endpoint chiamato per workspace ${workspaceId}, customer ${id}`
-    )
-    logger.info(
-      `⚠️ Questo è un hotfix temporaneo per risolvere il problema del 404 su questo endpoint.`
-    )
+  // Import customerService on-demand
+  const {
+    default: customerService,
+  } = require("./application/services/customer.service")
 
-    // Import customerService on-demand
-    const {
-      default: customerService,
-    } = require("./application/services/customer.service")
-
-    // Try to block the customer
-    customerService
-      .blockCustomer(id, workspaceId)
-      .then((customer) => {
-        return res.status(200).json({
-          message: "Customer blocked successfully via HOTFIX",
-          customer,
-        })
+  // Try to block the customer
+  customerService
+    .blockCustomer(id, workspaceId)
+    .then((customer) => {
+      return res.status(200).json({
+        message: "Customer blocked successfully via HOTFIX",
+        customer,
       })
-      .catch((error) => {
-        logger.error("Error in HOTFIX route:", error)
-        return res.status(404).json({
-          message: error.message || "Failed to block customer",
-          error: true,
-        })
+    })
+    .catch((error) => {
+      logger.error("Error in HOTFIX route:", error)
+      return res.status(404).json({
+        message: error.message || "Failed to block customer",
+        error: true,
       })
-  })
-}
+    })
+})
 
 // Short URL routes (must be before API routes to handle /s/:shortCode)
 import { shortUrlRoutes } from "./interfaces/http/routes/short-url.routes"
@@ -183,70 +175,6 @@ app.use("/api", apiRouter)
 // Mount workspace routes directly at root for legacy compatibility
 import workspaceRoutesRoot from "./routes/workspace.routes"
 app.use("/workspaces", workspaceRoutesRoot)
-
-// Endpoint di test per OpenAI
-app.get("/api/test/openai", async (req, res) => {
-  try {
-    // Check if OpenAI is properly configured
-    const apiKey = process.env.OPENAI_API_KEY
-    const isConfigured =
-      apiKey && apiKey.length > 10 && apiKey !== "your-api-key-here"
-
-    if (!isConfigured) {
-      logger.error("OpenAI API key not configured properly for test")
-      return res.status(500).json({
-        status: "error",
-        message: "OpenAI API key not properly configured",
-      })
-    }
-
-    // Initialize OpenAI client
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || "",
-      baseURL: "https://openrouter.ai/api/v1",
-      defaultHeaders: {
-        "HTTP-Referer": "https://laltroitalia.shop",
-        "X-Title": "L'Altra Italia Shop",
-        "Content-Type": "application/json",
-      },
-    })
-
-    // Make a simple request to test the connection
-    const completion = await openai.chat.completions.create({
-      model: "openai/gpt-4o-mini",
-      messages: [{ role: "user", content: "Hello! This is a test message." }],
-      max_tokens: 5,
-    })
-
-    logger.info(
-      `Test OpenAI successful - model: ${completion.model}, response: ${completion.choices[0]?.message?.content}`
-    )
-
-    // Return success response with completion info
-    return res.status(200).json({
-      status: "ok",
-      message: "OpenAI API connection successful",
-      model: completion.model,
-      response: completion.choices[0]?.message?.content,
-      apiKeyPrefix: apiKey ? apiKey.substring(0, 10) + "..." : "missing",
-    })
-  } catch (error) {
-    logger.error("OpenAI API connection error:", error)
-
-    // Prepare detailed error response
-    const errorResponse = {
-      status: "error",
-      message: "Failed to connect to OpenAI API",
-      error: {
-        name: error.name,
-        message: error.message,
-        status: error.status || "unknown",
-      },
-    }
-
-    return res.status(500).json(errorResponse)
-  }
-})
 
 // Error handling should be last
 app.use(errorMiddleware)

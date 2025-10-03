@@ -14,6 +14,7 @@ import { createOrderRouter } from './order.routes';
 import productsRouter from './products.routes';
 import { servicesRouter } from './services.routes';
 import { settingsRouter } from './settings.routes';
+import { createCartTokenRouter } from './cart-token.routes';
 
 import { createUserRouter } from './user.routes';
 // Removed whatsappRouter import
@@ -94,6 +95,9 @@ export const apiRouter = (): Router => {
   // Orders routes
   router.use('/orders', createOrderRouter());
   router.use('/workspaces/:workspaceId/orders', createOrderRouter());
+  
+  // Cart token routes
+  router.use('/cart-tokens', createCartTokenRouter());
   
   // Mount document routes
   router.use('/workspaces/:workspaceId/documents', documentRoutes);
