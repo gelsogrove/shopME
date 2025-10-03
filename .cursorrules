@@ -145,7 +145,7 @@ All project documentation is located under:
 - **DO NOT invent npm run commands!**
 - mocks have to stay inside **mocks** folder inside unit or integration folder
   AI4Devs-finalproject/backend/**tests**/unit/mock
-      AI4Devs-finalproject/backend/**tests**/unit## 📁 Folder Structure Compliance
+  AI4Devs-finalproject/backend/**tests**/unit## 📁 Folder Structure Compliance
 
 - **ALWAYS** follow the folder structure defined below
 - **NEVER** create files outside the defined directory structure
@@ -277,8 +277,9 @@ frontend/
 - quando fai uno script per aggiornare temporaneo poi va cencellato
 
 ## 🚨 FILE PROTETTI - NON TOCCARE MAI
+
 - **ricordati.md** - Solo Andrea può modificarlo
-- **docs/other/prompt_agent.md** - Solo Andrea può modificarlo  
+- **docs/other/prompt_agent.md** - Solo Andrea può modificarlo
 - **backend/src/repositories/message.repository.ts** - Solo Andrea può modificarlo
 
 . usa /Users/gelso/workspace/AI/shop/ricordati.md per ricordarti la struttura e le regole del gioco
