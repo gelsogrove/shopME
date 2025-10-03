@@ -158,28 +158,38 @@ export function ChatPage() {
   const [isLoadingCartToken, setIsLoadingCartToken] = useState(false)
 
   // Function to get cart token for current customer
-  const getCartToken = async (customerId: string, workspaceId: string): Promise<string> => {
+  const getCartToken = async (
+    customerId: string,
+    workspaceId: string
+  ): Promise<string> => {
     try {
       setIsLoadingCartToken(true)
-      
+
       // Debug logging
-      console.log(`[FRONTEND] 🔍 Getting cart token for customerId: "${customerId}", workspaceId: "${workspaceId}"`)
+      console.log(
+        `[FRONTEND] 🔍 Getting cart token for customerId: "${customerId}", workspaceId: "${workspaceId}"`
+      )
       console.log(`[FRONTEND] 🔍 selectedChat:`, selectedChat)
-      
-      const response = await api.post('/cart-tokens', {
+
+      const response = await api.post("/cart-tokens", {
         customerId,
-        workspaceId
+        workspaceId,
       })
-      
+
       if (response.data.success) {
         const token = response.data.data.token
-        console.log(`[FRONTEND] ✅ Token ricevuto: ${token.substring(0, 10)}...${token.substring(-10)} (length: ${token.length})`)
+        console.log(
+          `[FRONTEND] ✅ Token ricevuto: ${token.substring(
+            0,
+            10
+          )}...${token.substring(-10)} (length: ${token.length})`
+        )
         return token
       } else {
-        throw new Error(response.data.error || 'Failed to get cart token')
+        throw new Error(response.data.error || "Failed to get cart token")
       }
     } catch (error) {
-      logger.error('Error getting cart token:', error)
+      logger.error("Error getting cart token:", error)
       toast.error("Failed to load customer cart", { duration: 1000 })
       throw error
     } finally {

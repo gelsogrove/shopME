@@ -39,8 +39,12 @@ export class CartTokenController {
       )
 
       // Debug: log customer details
-      logger.info(`[CART-TOKEN] 🔍 DEBUG - customerId ricevuto: "${customerId}", tipo: ${typeof customerId}`)
-      logger.info(`[CART-TOKEN] 🔍 DEBUG - workspaceId ricevuto: "${workspaceId}", tipo: ${typeof workspaceId}`)
+      logger.info(
+        `[CART-TOKEN] 🔍 DEBUG - customerId ricevuto: "${customerId}", tipo: ${typeof customerId}`
+      )
+      logger.info(
+        `[CART-TOKEN] 🔍 DEBUG - workspaceId ricevuto: "${workspaceId}", tipo: ${typeof workspaceId}`
+      )
 
       // Utilizza SecureTokenService con strategia KISS
       // Se esiste token valido lo riutilizza, altrimenti ne crea uno nuovo
@@ -60,7 +64,9 @@ export class CartTokenController {
       )
 
       // Debug: log token details
-      logger.info(`[CART-TOKEN] 🔍 DEBUG - Token generato: ${token.substring(0, 10)}...${token.substring(-10)} (length: ${token.length})`)
+      logger.info(
+        `[CART-TOKEN] 🔍 DEBUG - Token generato: ${token.substring(0, 10)}...${token.substring(-10)} (length: ${token.length})`
+      )
 
       res.status(200).json({
         success: true,

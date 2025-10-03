@@ -16,17 +16,18 @@ export class SecureTokenService {
    * Generate a secure token
    */
   private generateSecureToken(): string {
-    return crypto.randomBytes(32).toString('hex')
+    return crypto.randomBytes(32).toString("hex")
   }
 
   /**
    * Encrypt sensitive payload data
    */
   private encryptPayload(payload: any): string {
-    const key = process.env.TOKEN_ENCRYPTION_KEY || 'default-key-change-in-production'
-    const cipher = crypto.createCipher('aes-256-cbc', key)
-    let encrypted = cipher.update(JSON.stringify(payload), 'utf8', 'hex')
-    encrypted += cipher.final('hex')
+    const key =
+      process.env.TOKEN_ENCRYPTION_KEY || "default-key-change-in-production"
+    const cipher = crypto.createCipher("aes-256-cbc", key)
+    let encrypted = cipher.update(JSON.stringify(payload), "utf8", "hex")
+    encrypted += cipher.final("hex")
     return encrypted
   }
 
@@ -35,13 +36,14 @@ export class SecureTokenService {
    */
   private decryptPayload(encryptedPayload: string): any {
     try {
-      const key = process.env.TOKEN_ENCRYPTION_KEY || 'default-key-change-in-production'
-      const decipher = crypto.createDecipher('aes-256-cbc', key)
-      let decrypted = decipher.update(encryptedPayload, 'hex', 'utf8')
-      decrypted += decipher.final('utf8')
+      const key =
+        process.env.TOKEN_ENCRYPTION_KEY || "default-key-change-in-production"
+      const decipher = crypto.createDecipher("aes-256-cbc", key)
+      let decrypted = decipher.update(encryptedPayload, "hex", "utf8")
+      decrypted += decipher.final("utf8")
       return JSON.parse(decrypted)
     } catch (error) {
-      logger.error('Error decrypting payload:', error)
+      logger.error("Error decrypting payload:", error)
       return null
     }
   }
@@ -51,10 +53,20 @@ export class SecureTokenService {
    * Genera nuovo token SOLO se scaduto per cliente+workspace
    */
   async createToken(
-    type: 'registration' | 'checkout' | 'invoice' | 'cart' | 'password_reset' | 'email_verification' | 'orders' | 'profile' | 'any' | 'universal',
+    type:
+      | "registration"
+      | "checkout"
+      | "invoice"
+      | "cart"
+      | "password_reset"
+      | "email_verification"
+      | "orders"
+      | "profile"
+      | "any"
+      | "universal",
     workspaceId: string,
     payload?: any,
-    expiresIn: string = '1h',
+    expiresIn: string = "1h",
     userId?: string,
     phoneNumber?: string,
     ipAddress?: string,
@@ -62,25 +74,27 @@ export class SecureTokenService {
   ): Promise<string> {
     try {
       // Special case: registration tokens don't need customerId (customer doesn't exist yet)
-      if (!customerId && type !== 'registration') {
-        throw new Error('KISS TOKEN: customerId è obbligatorio')
+      if (!customerId && type !== "registration") {
+        throw new Error("KISS TOKEN: customerId è obbligatorio")
       }
 
-      logger.info(`[KISS-TOKEN] 🔍 Controllo token per customerId="${customerId}", phoneNumber="${phoneNumber}", workspaceId="${workspaceId}"`)
-      
+      logger.info(
+        `[KISS-TOKEN] 🔍 Controllo token per customerId="${customerId}", phoneNumber="${phoneNumber}", workspaceId="${workspaceId}"`
+      )
+
       // 1. Cerca token esistente NON SCADUTO per questo cliente+workspace
-      let existingToken;
-      if (type === 'registration' && phoneNumber) {
+      let existingToken
+      if (type === "registration" && phoneNumber) {
         // For registration tokens, search by phoneNumber
         existingToken = await this.prisma.secureToken.findFirst({
           where: {
             phoneNumber,
             workspaceId,
-            type: 'registration',
+            type: "registration",
             expiresAt: {
-              gt: new Date() // NON scaduto
-            }
-          }
+              gt: new Date(), // NON scaduto
+            },
+          },
         })
       } else if (customerId) {
         // For other tokens, search by customerId AND type
@@ -90,40 +104,47 @@ export class SecureTokenService {
             workspaceId,
             type, // 🔧 FIX: Filtra anche per tipo di token!
             expiresAt: {
-              gt: new Date() // NON scaduto
-            }
-          }
+              gt: new Date(), // NON scaduto
+            },
+          },
         })
       }
 
       // 2. Se esiste token valido → RIUTILIZZA
       if (existingToken) {
-        logger.info(`[KISS-TOKEN] ✅ RIUTILIZZO token esistente: ${existingToken.token.substring(0, 10)}... (scade: ${existingToken.expiresAt})`)
-        
+        logger.info(
+          `[KISS-TOKEN] ✅ RIUTILIZZO token esistente: ${existingToken.token.substring(0, 10)}... (scade: ${existingToken.expiresAt})`
+        )
+
         // Aggiorna payload se necessario
-        if (payload && JSON.stringify(payload) !== JSON.stringify(existingToken.payload)) {
+        if (
+          payload &&
+          JSON.stringify(payload) !== JSON.stringify(existingToken.payload)
+        ) {
           await this.prisma.secureToken.update({
             where: { id: existingToken.id },
-            data: { payload: payload }
+            data: { payload: payload },
           })
           logger.info(`[KISS-TOKEN] 🔄 Payload aggiornato`)
         }
-        
+
         return existingToken.token
       }
 
       // 3. Nessun token valido → CREA NUOVO
-      logger.info(`[KISS-TOKEN] 🆕 Creo nuovo token (nessun token valido trovato)`)
-      
+      logger.info(
+        `[KISS-TOKEN] 🆕 Creo nuovo token (nessun token valido trovato)`
+      )
+
       // Pulisci token scaduti + elimina token esistenti dello stesso tipo per evitare conflitti
-      if (type === 'registration' && phoneNumber) {
+      if (type === "registration" && phoneNumber) {
         // For registration tokens, clean by phoneNumber
         await this.prisma.secureToken.deleteMany({
           where: {
             phoneNumber,
             workspaceId,
-            type: 'registration'
-          }
+            type: "registration",
+          },
         })
       } else if (customerId) {
         // For other tokens, clean by customerId AND type (inclusi quelli non scaduti)
@@ -131,15 +152,15 @@ export class SecureTokenService {
           where: {
             customerId,
             workspaceId,
-            type // 🔧 FIX: Elimina tutti i token dello stesso tipo per evitare conflitti
-          }
+            type, // 🔧 FIX: Elimina tutti i token dello stesso tipo per evitare conflitti
+          },
         })
       }
 
       // Genera nuovo token
       const token = this.generateSecureToken()
       const expiresAt = new Date()
-      const hours = parseInt(expiresIn.replace('h', '')) || 1
+      const hours = parseInt(expiresIn.replace("h", "")) || 1
       expiresAt.setHours(expiresAt.getHours() + hours)
 
       // Crea token del tipo specificato
@@ -154,12 +175,13 @@ export class SecureTokenService {
           payload: payload,
           expiresAt,
           ipAddress,
-        }
+        },
       })
 
-      logger.info(`[KISS-TOKEN] ✅ NUOVO token di tipo '${type}' creato - scade: ${expiresAt}`)
+      logger.info(
+        `[KISS-TOKEN] ✅ NUOVO token di tipo '${type}' creato - scade: ${expiresAt}`
+      )
       return token
-      
     } catch (error) {
       logger.error(`[KISS-TOKEN] ❌ Errore creazione token:`, error)
       throw new Error(`Errore creazione token di tipo '${type}'`)
@@ -175,24 +197,30 @@ export class SecureTokenService {
     workspaceId?: string
   ): Promise<{ valid: boolean; data?: any; payload?: any }> {
     try {
-      logger.info(`[KISS-TOKEN] 🔍 Validazione token: ${token.substring(0, 10)}... per workspace: ${workspaceId}`)
-      
+      logger.info(
+        `[KISS-TOKEN] 🔍 Validazione token: ${token.substring(0, 10)}... per workspace: ${workspaceId}`
+      )
+
       // KISS: Cerca token ESISTENTE + NON SCADUTO + WORKSPACE CORRETTO
       const secureToken = await this.prisma.secureToken.findFirst({
         where: {
           token,
           expiresAt: { gt: new Date() }, // NON scaduto
-          ...(workspaceId && { workspaceId }) // Workspace se specificato
-        }
+          ...(workspaceId && { workspaceId }), // Workspace se specificato
+        },
       })
 
       if (!secureToken) {
-        logger.warn(`[KISS-TOKEN] ❌ Token non valido o scaduto: ${token.substring(0, 10)}...`)
+        logger.warn(
+          `[KISS-TOKEN] ❌ Token non valido o scaduto: ${token.substring(0, 10)}...`
+        )
         return { valid: false }
       }
 
-      logger.info(`[KISS-TOKEN] ✅ Token valido per customer: ${secureToken.customerId}, workspace: ${secureToken.workspaceId}`)
-      
+      logger.info(
+        `[KISS-TOKEN] ✅ Token valido per customer: ${secureToken.customerId}, workspace: ${secureToken.workspaceId}`
+      )
+
       return {
         valid: true,
         data: {
@@ -208,7 +236,7 @@ export class SecureTokenService {
         payload: secureToken.payload,
       }
     } catch (error) {
-      logger.error('[KISS-TOKEN] ❌ Errore validazione token:', error)
+      logger.error("[KISS-TOKEN] ❌ Errore validazione token:", error)
       return { valid: false }
     }
   }
@@ -219,7 +247,9 @@ export class SecureTokenService {
    */
   async markTokenAsUsed(token: string): Promise<boolean> {
     // Tokens should not be marked as used - they remain valid until expiration
-    logger.info(`Token marking disabled - token ${token.substring(0, 10)}... remains valid until expiration`)
+    logger.info(
+      `Token marking disabled - token ${token.substring(0, 10)}... remains valid until expiration`
+    )
     return true
   }
 
@@ -236,7 +266,7 @@ export class SecureTokenService {
       logger.info(`Revoked token: ${token.substring(0, 10)}...`)
       return true
     } catch (error) {
-      logger.error('Error revoking token:', error)
+      logger.error("Error revoking token:", error)
       return false
     }
   }
@@ -260,8 +290,8 @@ export class SecureTokenService {
       logger.info(`Cleaned up ${result.count} expired secure tokens`)
       return result.count
     } catch (error) {
-      logger.error('Error cleaning up expired tokens:', error)
-      throw new Error('Failed to clean up expired tokens')
+      logger.error("Error cleaning up expired tokens:", error)
+      throw new Error("Failed to clean up expired tokens")
     }
   }
 
@@ -271,25 +301,28 @@ export class SecureTokenService {
   async getTokenStats(workspaceId: string): Promise<any> {
     try {
       const stats = await this.prisma.secureToken.groupBy({
-        by: ['type'],
+        by: ["type"],
         where: {
           workspaceId,
           expiresAt: {
             gt: new Date(),
-          }
+          },
         },
         _count: {
           id: true,
         },
       })
 
-      return stats.reduce((acc, stat) => {
-        acc[stat.type] = stat._count.id
-        return acc
-      }, {} as Record<string, number>)
+      return stats.reduce(
+        (acc, stat) => {
+          acc[stat.type] = stat._count.id
+          return acc
+        },
+        {} as Record<string, number>
+      )
     } catch (error) {
-      logger.error('Error getting token stats:', error)
+      logger.error("Error getting token stats:", error)
       return {}
     }
   }
-} 
+}

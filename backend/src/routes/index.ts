@@ -357,8 +357,12 @@ const router = Router()
 router.use(loggingMiddleware)
 
 // 🛒 Cart Token Routes (for support interface)
-router.post("/cart-tokens", (req, res) => cartTokenController.getCartToken(req, res))
-router.get("/cart-tokens/:token/validate", (req, res) => cartTokenController.validateCartToken(req, res))
+router.post("/cart-tokens", (req, res) =>
+  cartTokenController.getCartToken(req, res)
+)
+router.get("/cart-tokens/:token/validate", (req, res) =>
+  cartTokenController.validateCartToken(req, res)
+)
 
 // WhatsApp webhook routes (must be FIRST, before any authentication middleware)
 import { LLMService } from "../services/llm.service"
