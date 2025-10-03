@@ -5,11 +5,13 @@
 Lo Scheduler Service è un sistema di manutenzione automatica che gestisce:
 
 1. **Pulizia Chat**
+
    - Mantiene solo gli ultimi 50 messaggi per sessione
    - Pulizia automatica ogni 12 ore
    - Ottimizzazione performance database
 
 2. **Gestione Offerte**
+
    - Disattivazione automatica offerte scadute
    - Controllo ogni 5 minuti
    - Solo offerte valide visibili ai clienti

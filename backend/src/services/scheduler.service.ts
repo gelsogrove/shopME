@@ -24,10 +24,10 @@ export class SchedulerService {
           customerId: true,
           messages: {
             orderBy: {
-              createdAt: 'desc'
-            }
-          }
-        }
+              createdAt: "desc",
+            },
+          },
+        },
       })
 
       for (const session of chatSessions) {
@@ -36,19 +36,21 @@ export class SchedulerService {
           // Ottiene gli ID dei messaggi da eliminare
           const messagesToDelete = session.messages
             .slice(this.MESSAGE_LIMIT)
-            .map(msg => msg.id)
+            .map((msg) => msg.id)
 
           // Elimina i messaggi più vecchi
           const result = await this.prisma.message.deleteMany({
             where: {
               id: {
-                in: messagesToDelete
-              }
-            }
+                in: messagesToDelete,
+              },
+            },
           })
 
           if (result.count > 0) {
-            logger.info(`🧹 Removed ${result.count} old messages for chat session ${session.id}`)
+            logger.info(
+              `🧹 Removed ${result.count} old messages for chat session ${session.id}`
+            )
           }
         }
       }
@@ -68,11 +70,11 @@ export class SchedulerService {
       const result = await this.prisma.offers.updateMany({
         where: {
           isActive: true,
-          endDate: { lt: now }
+          endDate: { lt: now },
         },
         data: {
-          isActive: false
-        }
+          isActive: false,
+        },
       })
 
       if (result.count > 0) {
@@ -110,7 +112,9 @@ export class SchedulerService {
       })
 
       if (result.count > 0) {
-        logger.info(`🧹 Scheduled cleanup: removed ${result.count} old/expired short URLs`)
+        logger.info(
+          `🧹 Scheduled cleanup: removed ${result.count} old/expired short URLs`
+        )
       }
     } catch (error) {
       logger.error("Error cleaning up URLs:", error)
@@ -139,6 +143,8 @@ export class SchedulerService {
       this.cleanupChatHistory()
     }, this.CHAT_CLEANUP_INTERVAL)
 
-    logger.info("Scheduler service started - managing offers, URLs and chat history cleanup")
+    logger.info(
+      "Scheduler service started - managing offers, URLs and chat history cleanup"
+    )
   }
 }
