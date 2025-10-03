@@ -162,6 +162,8 @@ RISPONDI SEMPRE OVVIMANETE IN : **{{languageUser}}**
 
 {{CATEGORIES}}
 
+⚠️ **IMPORTANTE**: Anche se sono in INGLESE queste CATEGORIE tu le devi sempre SEMPRE tradurre in : **{{languageUser}}**
+
 ### LISTA PRODOTTI
 
 {{PRODUCTS}}
