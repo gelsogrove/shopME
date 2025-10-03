@@ -305,7 +305,7 @@ export class AgentService {
         type: typeof data.temperature,
         isDefined: data.temperature !== undefined,
         isNull: data.temperature === null,
-        isZero: data.temperature === 0
+        isZero: data.temperature === 0,
       })
 
       // Ensure required data is present
@@ -346,7 +346,7 @@ export class AgentService {
       logger.info("🌡️  Temperature in updateData:", {
         temperature: updateData.temperature,
         type: typeof updateData.temperature,
-        willUpdate: updateData.temperature !== undefined
+        willUpdate: updateData.temperature !== undefined,
       })
 
       // Update the agentConfig

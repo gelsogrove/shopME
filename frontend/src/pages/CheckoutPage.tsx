@@ -693,19 +693,19 @@ const CheckoutPage: React.FC = () => {
         // Redirect to success page after 2 seconds with token and customer language
         setTimeout(() => {
           const params = new URLSearchParams({
-            orderCode: result.orderCode
+            orderCode: result.orderCode,
           })
-          
+
           // Add token if available
           if (token) {
-            params.append('token', token)
+            params.append("token", token)
           }
-          
+
           // Add customer language if available
           if (customer?.language) {
-            params.append('lang', customer.language)
+            params.append("lang", customer.language)
           }
-          
+
           window.location.href = `/checkout-success?${params.toString()}`
         }, 2000)
       } else {

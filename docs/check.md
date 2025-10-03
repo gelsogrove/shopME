@@ -25,33 +25,32 @@ Non e' possibile che ogni volta che ricevo la merce e' danneggiata sono stufo !
 ho 4 prodotti che sono arrivati scaduti cosa devo fare?
 Voglio parlare con un operatore.
 
-SEED TUTTO IN ITALIANO
-
 FASE 2
 
-- welcome messge non e' dinamic
+SEED TUTTO IN ITALIANO
+
 - carrello deve poter avere anche i servizi (non scontati)
-- cateogorie si possoon tigliere?
-- anche nel promto differenza di lingua si puo' togiere?
-- devmode
 - Attivare e disattivare la chatbot con messaggio vuoi inviare il messaggio all'utente ?
-- chathistory degli ultimi 100 messaggi
-- wip services
-- metterei i prezzo nella tabella della history
-- pulizia codice.
-- la strtttura puo' tenere diversi dati ?
-- i link vengono cancellati ?
-- siamo sicuri che passiamo sempre il workspceID
-- i trigger dovrebbero avere una conferma dall'uetnte operatore
-- login di sicurezza
-- new user
-- forgot pwd
-- embedding da pulire e capire ?
 - codice da pulire
 - sicurezza
 - togliere harcode categorie ?
 - chat history deve ritornare non tutta la storia
 - chi cancella la storia ?
+- wip services
+- GDPR deve essere in linuga
+- cateogorie si possoon tigliere?
+- metterei i prezzo nella tabella della history
+- i link vengono cancellati ?
+- pulizia codice.
+- embedding da pulire e capire ?
+- new user
+- forgot pwd
+- chathistory degli ultimi 100 messaggi
+
+SICUREZZA:
+
+- siamo sicuri che passiamo sempre il workspceID
+- login di sicurezza
 
 > > TODO <<
 > > DEPLOY

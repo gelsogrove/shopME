@@ -40,36 +40,34 @@ const RegisterPage = () => {
     company: "",
     email: "",
     language: "ENG", // Default, will be updated based on lang parameter
-    currency: "EUR",
+    currency: "EUR", // Always EUR by default
     gdprConsent: false,
     pushNotificationsConsent: false,
   })
 
-  // Set initial language and currency based on lang parameter
+  // Set initial language based on lang parameter
   useEffect(() => {
-    const langMapping: Record<string, { language: string; currency: string }> =
-      {
-        it: { language: "IT", currency: "EUR" }, // Italy
-        en: { language: "ENG", currency: "USD" }, // English (default to USD)
-        es: { language: "ESP", currency: "EUR" }, // Spain
-        pt: { language: "PRT", currency: "EUR" }, // Portugal
-      }
-
-    const mapping = langMapping[langParam] || {
-      language: "ENG",
-      currency: "USD",
+    const langMapping: Record<string, string> = {
+      it: "IT",     // Italy
+      en: "ENG",    // English
+      es: "ESP",    // Spain
+      pt: "PRT",    // Portugal
     }
+
+    const language = langMapping[langParam] || "ENG"
+    
     setFormData((prev) => ({
       ...prev,
-      language: mapping.language,
-      currency: mapping.currency,
+      language,
+      // Always use EUR as currency regardless of language
+      currency: "EUR"
     }))
 
     logger.info(
-      "[Register] Language and currency set from URL parameter:",
+      "[Register] Language set from URL parameter:",
       langParam,
       "->",
-      mapping
+      language
     )
   }, [langParam])
 
@@ -525,28 +523,8 @@ const RegisterPage = () => {
             </select>
           </div>
 
-          {/* Currency */}
-          <div>
-            <label
-              className="block text-sm font-medium text-gray-700"
-              htmlFor="currency"
-            >
-              {texts.currency}
-            </label>
-            <select
-              id="currency"
-              name="currency"
-              value={formData.currency}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              {currencies.map((curr) => (
-                <option key={curr.code} value={curr.code}>
-                  {curr.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Currency is now hardcoded to EUR */}
+          <input type="hidden" name="currency" value="EUR" />
 
           {/* Push notifications */}
           <div className="flex items-start">

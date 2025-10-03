@@ -113,14 +113,28 @@ export function AgentSheet({
                     <span className="font-bold">
                       {agent?.temperature || 0.3}
                     </span>
-                    <InfoTooltip content={
-                      <div>
-                        <p><strong>Temperature</strong> controls the randomness of the AI's responses.</p>
-                        <p className="mt-1"><strong>Lower values (0.1-0.3):</strong> More focused, deterministic, and consistent responses.</p>
-                        <p className="mt-1"><strong>Higher values (0.7-1.0):</strong> More creative, diverse, and unpredictable responses.</p>
-                        <p className="mt-1"><strong>Example:</strong> Use low temperature for factual responses and higher for creative writing.</p>
-                      </div>
-                    } />
+                    <InfoTooltip
+                      content={
+                        <div>
+                          <p>
+                            <strong>Temperature</strong> controls the randomness
+                            of the AI's responses.
+                          </p>
+                          <p className="mt-1">
+                            <strong>Lower values (0.1-0.3):</strong> More
+                            focused, deterministic, and consistent responses.
+                          </p>
+                          <p className="mt-1">
+                            <strong>Higher values (0.7-1.0):</strong> More
+                            creative, diverse, and unpredictable responses.
+                          </p>
+                          <p className="mt-1">
+                            <strong>Example:</strong> Use low temperature for
+                            factual responses and higher for creative writing.
+                          </p>
+                        </div>
+                      }
+                    />
                   </Label>
                   <Input
                     type="range"
@@ -140,14 +154,30 @@ export function AgentSheet({
                   <Label htmlFor="top_p">
                     Top P:{" "}
                     <span className="font-bold">{agent?.top_p || 0.95}</span>
-                    <InfoTooltip content={
-                      <div>
-                        <p><strong>Top P (Nucleus Sampling)</strong> controls diversity by selecting from tokens whose cumulative probability exceeds the top_p value.</p>
-                        <p className="mt-1"><strong>Lower values (0.1-0.5):</strong> More focused on highly probable tokens.</p>
-                        <p className="mt-1"><strong>Higher values (0.7-1.0):</strong> Considers a wider range of tokens, increasing diversity.</p>
-                        <p className="mt-1"><strong>Example:</strong> A value of 0.9 means the AI will only consider tokens that make up the top 90% of probability mass.</p>
-                      </div>
-                    } />
+                    <InfoTooltip
+                      content={
+                        <div>
+                          <p>
+                            <strong>Top P (Nucleus Sampling)</strong> controls
+                            diversity by selecting from tokens whose cumulative
+                            probability exceeds the top_p value.
+                          </p>
+                          <p className="mt-1">
+                            <strong>Lower values (0.1-0.5):</strong> More
+                            focused on highly probable tokens.
+                          </p>
+                          <p className="mt-1">
+                            <strong>Higher values (0.7-1.0):</strong> Considers
+                            a wider range of tokens, increasing diversity.
+                          </p>
+                          <p className="mt-1">
+                            <strong>Example:</strong> A value of 0.9 means the
+                            AI will only consider tokens that make up the top
+                            90% of probability mass.
+                          </p>
+                        </div>
+                      }
+                    />
                   </Label>
                   <Input
                     type="range"
@@ -167,14 +197,29 @@ export function AgentSheet({
                   <Label htmlFor="top_k">
                     Top K:{" "}
                     <span className="font-bold">{agent?.top_k || 40}</span>
-                    <InfoTooltip content={
-                      <div>
-                        <p><strong>Top K</strong> limits the model to consider only the top K most likely tokens at each step.</p>
-                        <p className="mt-1"><strong>Lower values (5-20):</strong> More focused and conservative responses.</p>
-                        <p className="mt-1"><strong>Higher values (40-100):</strong> Considers more options, potentially more creative.</p>
-                        <p className="mt-1"><strong>Example:</strong> A value of 40 means the AI will only consider the 40 most likely next tokens at each step.</p>
-                      </div>
-                    } />
+                    <InfoTooltip
+                      content={
+                        <div>
+                          <p>
+                            <strong>Top K</strong> limits the model to consider
+                            only the top K most likely tokens at each step.
+                          </p>
+                          <p className="mt-1">
+                            <strong>Lower values (5-20):</strong> More focused
+                            and conservative responses.
+                          </p>
+                          <p className="mt-1">
+                            <strong>Higher values (40-100):</strong> Considers
+                            more options, potentially more creative.
+                          </p>
+                          <p className="mt-1">
+                            <strong>Example:</strong> A value of 40 means the AI
+                            will only consider the 40 most likely next tokens at
+                            each step.
+                          </p>
+                        </div>
+                      }
+                    />
                   </Label>
                   <Input
                     type="range"

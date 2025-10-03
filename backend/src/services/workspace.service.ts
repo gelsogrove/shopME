@@ -115,10 +115,14 @@ export const workspaceService = {
     })
 
     // 🚨 CRITICAL DEBUG: Log what we found
-    console.log(`🔍 WORKSPACE.SERVICE: Loading AgentConfigs for workspace ${id}`)
+    console.log(
+      `🔍 WORKSPACE.SERVICE: Loading AgentConfigs for workspace ${id}`
+    )
     console.log(`📋 Found ${agentConfigs.length} active AgentConfigs:`)
     agentConfigs.forEach((config, index) => {
-      console.log(`  [${index}] ID: ${config.id?.substring(0, 8)}..., Model: ${config.model}, Temp: ${config.temperature}, Updated: ${config.updatedAt}`)
+      console.log(
+        `  [${index}] ID: ${config.id?.substring(0, 8)}..., Model: ${config.model}, Temp: ${config.temperature}, Updated: ${config.updatedAt}`
+      )
     })
 
     // 3. Combina i risultati
