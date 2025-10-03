@@ -48,19 +48,19 @@ const RegisterPage = () => {
   // Set initial language based on lang parameter
   useEffect(() => {
     const langMapping: Record<string, string> = {
-      it: "IT",     // Italy
-      en: "ENG",    // English
-      es: "ESP",    // Spain
-      pt: "PRT",    // Portugal
+      it: "IT", // Italy
+      en: "ENG", // English
+      es: "ESP", // Spain
+      pt: "PRT", // Portugal
     }
 
     const language = langMapping[langParam] || "ENG"
-    
+
     setFormData((prev) => ({
       ...prev,
       language,
       // Always use EUR as currency regardless of language
-      currency: "EUR"
+      currency: "EUR",
     }))
 
     logger.info(

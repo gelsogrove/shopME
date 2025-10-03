@@ -832,17 +832,18 @@ export class LLMService {
       en: "Welcome! You need to register first to use our services.",
       es: "¡Bienvenido! Debes registrarte primero para usar nuestros servicios.",
       it: "👋 Benvenuto! Devi prima registrarti per utilizzare i nostri servizi.",
-      pt: "Bem-vindo! Você precisa se registrar primeiro para usar nossos serviços."
+      pt: "Bem-vindo! Você precisa se registrar primeiro para usar nossos serviços.",
     }
 
     // Get user language or workspace default language or fallback to it
     const language = workspace.language?.toLowerCase() || "it"
-    
+
     // Get message in correct language or fallback
-    let welcomeMessage = welcomeMessages[language] || 
-                        welcomeMessages["it"] || 
-                        welcomeMessages["en"] ||
-                        "👋 Welcome! You need to register first to use our services."
+    let welcomeMessage =
+      welcomeMessages[language] ||
+      welcomeMessages["it"] ||
+      welcomeMessages["en"] ||
+      "👋 Welcome! You need to register first to use our services."
 
     const output = await this.newUserLink(
       llmRequest.phone,
