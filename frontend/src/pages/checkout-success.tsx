@@ -1,8 +1,8 @@
+import { logger } from "@/lib/logger"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { useTokenValidation } from "../hooks/useTokenValidation"
 import { getPublicPageTexts } from "../utils/publicPageTranslations"
-import { logger } from "@/lib/logger"
 
 const CheckoutSuccessPage = () => {
   const [searchParams] = useSearchParams()
