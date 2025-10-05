@@ -7,6 +7,7 @@ import { SearchBar, useProductSearch } from "../components/ui/SearchBar"
 import { TokenError } from "../components/ui/TokenError"
 import UnifiedLoading from "../components/ui/UnifiedLoading"
 import { useCheckoutTokenValidation } from "../hooks/useTokenValidation"
+import { getProductIcon } from "../utils/productIcons"
 import { getPublicPageTexts } from "../utils/publicPageTranslations"
 
 interface Product {
@@ -1519,8 +1520,11 @@ const CheckoutPage: React.FC = () => {
                                   key={product.id}
                                   className="border rounded-lg p-3 hover:shadow-md transition-shadow"
                                 >
-                                  <h5 className="font-semibold text-sm mb-1">
-                                    {product.name}
+                                  <h5 className="font-semibold text-sm mb-1 flex items-center gap-2">
+                                    <span className="text-2xl">
+                                      {getProductIcon(product.name, product.categoria)}
+                                    </span>
+                                    <span>{product.name}</span>
                                   </h5>
                                   {product.formato && (
                                     <div className="text-xs text-blue-600 mb-1 font-medium">
