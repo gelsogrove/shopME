@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { useTokenValidation } from "../hooks/useTokenValidation"
 import { getPublicPageTexts } from "../utils/publicPageTranslations"
+import { logger } from "@/lib/logger"
 
 const CheckoutSuccessPage = () => {
   const [searchParams] = useSearchParams()
@@ -51,7 +52,7 @@ const CheckoutSuccessPage = () => {
         const code = searchParams.get("orderCode")
         setOrderCode(code)
       } catch (error) {
-        console.error("Error loading translations:", error)
+        logger.error("Error loading translations:", error)
         // Fallback to default texts if translation loading fails
         setTexts({
           orderConfirmed: "Order Confirmed!",

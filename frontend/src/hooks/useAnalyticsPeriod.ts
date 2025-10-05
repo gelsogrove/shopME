@@ -1,5 +1,6 @@
 import { PeriodPreset } from '@/components/analytics/DateRangeSelector'
 import { useEffect, useState } from 'react'
+import { logger } from '@/lib/logger'
 
 const STORAGE_KEY = 'analytics_period'
 const DEFAULT_PERIOD: PeriodPreset = '1year'
@@ -20,7 +21,7 @@ export function useAnalyticsPeriod() {
         setSelectedPeriod(storedPeriod as PeriodPreset)
       }
     } catch (error) {
-      console.warn('Failed to load analytics period from sessionStorage:', error)
+      logger.warn('Failed to load analytics period from sessionStorage:', error)
     } finally {
       setIsInitialized(true)
     }
@@ -32,7 +33,7 @@ export function useAnalyticsPeriod() {
       sessionStorage.setItem(STORAGE_KEY, period)
       setSelectedPeriod(period)
     } catch (error) {
-      console.warn('Failed to save analytics period to sessionStorage:', error)
+      logger.warn('Failed to save analytics period to sessionStorage:', error)
       // Still update the state even if storage fails
       setSelectedPeriod(period)
     }

@@ -120,7 +120,7 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
         const workspace = JSON.parse(cachedWorkspace)
         setCurrentWorkspace(workspace)
       } catch (error) {
-        console.error("Error parsing workspace from localStorage:", error)
+        logger.error("Error parsing workspace from localStorage:", error)
       }
     }
   }, [])

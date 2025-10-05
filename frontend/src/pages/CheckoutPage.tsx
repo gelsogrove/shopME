@@ -441,7 +441,7 @@ const CheckoutPage: React.FC = () => {
         setAvailableProducts(cleanedProducts)
       }
     } catch (error) {
-      console.error("Error loading products:", error)
+      logger.error("Error loading products:", error)
     } finally {
       setLoadingProducts(false)
     }
@@ -513,7 +513,7 @@ const CheckoutPage: React.FC = () => {
       // Show success message
       toast.success(`${product.name || "Prodotto"} aggiunto al carrello!`)
     } catch (error) {
-      console.error("❌ Error adding product to cart:", error)
+      logger.error("❌ Error adding product to cart:", error)
       toast.error("Errore nell'aggiungere il prodotto al carrello")
     }
   }
