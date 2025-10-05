@@ -1522,7 +1522,10 @@ const CheckoutPage: React.FC = () => {
                                 >
                                   <h5 className="font-semibold text-sm mb-1 flex items-center gap-2">
                                     <span className="text-2xl">
-                                      {getProductIcon(product.name, product.categoria)}
+                                      {getProductIcon(
+                                        product.name,
+                                        product.categoria
+                                      )}
                                     </span>
                                     <span>{product.name}</span>
                                   </h5>
