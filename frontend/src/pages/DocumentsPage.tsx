@@ -35,18 +35,14 @@ export default function DocumentsPage() {
     logger.info("Workspace ID:", workspace?.id)
     logger.info("Is loading:", isLoading)
 
-    // Check sessionStorage directly
-    const sessionWorkspace = sessionStorage.getItem("currentWorkspace")
-    logger.info("SessionStorage workspace:", sessionWorkspace)
-
-    // Check localStorage as fallback
-    const localWorkspace = localStorage.getItem("currentWorkspace")
-    logger.info("LocalStorage workspace:", localWorkspace)
+    // Check localStorage directly
+    const sessionWorkspace = localStorage.getItem("currentWorkspace")
+    logger.info("LocalStorage workspace:", sessionWorkspace)
 
     if (sessionWorkspace) {
       try {
         const parsed = JSON.parse(sessionWorkspace)
-        logger.info("Parsed sessionStorage workspace:", parsed)
+        logger.info("Parsed localStorage workspace:", parsed)
       } catch (e) {
         logger.error("Error parsing sessionStorage workspace:", e)
       }

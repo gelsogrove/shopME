@@ -45,8 +45,8 @@ export function useRecentChats(
           throw new Error("API call blocked by coordinator")
         }
 
-        // Get current workspace ID from session storage
-        const workspaceData = sessionStorage.getItem("currentWorkspace")
+        // Get current workspace ID from local storage
+        const workspaceData = localStorage.getItem("currentWorkspace")
         let workspaceId = null
 
         if (workspaceData) {

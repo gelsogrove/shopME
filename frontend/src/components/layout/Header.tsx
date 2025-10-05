@@ -40,12 +40,12 @@ export function Header() {
   // Load workspace and user data from storage
   useEffect(() => {
     // Load workspace
-    const cachedWorkspace = sessionStorage.getItem("currentWorkspace")
+    const cachedWorkspace = localStorage.getItem("currentWorkspace")
     if (cachedWorkspace) {
       try {
         setWorkspace(JSON.parse(cachedWorkspace))
       } catch (error) {
-        logger.error("Error parsing workspace from sessionStorage:", error)
+        logger.error("Error parsing workspace from localStorage:", error)
       }
     }
 

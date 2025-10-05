@@ -20,7 +20,7 @@ export function ChatTestPage() {
       logger.info("🧪 TEST 1: Workspace check", {
         workspace: workspace,
         workspaceId: workspace?.id,
-        sessionStorage: sessionStorage.getItem("currentWorkspace"),
+        localStorage: localStorage.getItem("currentWorkspace"),
       })
 
       if (!workspace?.id) {
@@ -28,9 +28,9 @@ export function ChatTestPage() {
         return
       }
 
-      // Test 2: Check sessionStorage
-      const storedWorkspace = sessionStorage.getItem("currentWorkspace")
-      logger.info("🧪 TEST 2: SessionStorage check", storedWorkspace)
+      // Test 2: Check localStorage
+      const storedWorkspace = localStorage.getItem("currentWorkspace")
+      logger.info("🧪 TEST 2: LocalStorage check", storedWorkspace)
 
       // Test 3: Manual API call with detailed logging
       const sessionId = "test-session-123"
@@ -112,7 +112,7 @@ export function ChatTestPage() {
             {JSON.stringify(
               {
                 workspace: workspace,
-                sessionStorage: sessionStorage.getItem("currentWorkspace"),
+                localStorage: localStorage.getItem("currentWorkspace"),
               },
               null,
               2

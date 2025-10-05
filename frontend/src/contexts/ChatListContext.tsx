@@ -35,8 +35,8 @@ export function ChatListProvider({ children }: { children: ReactNode }) {
     queryKey: ["chats"],
     queryFn: async () => {
       try {
-        // Get current workspace ID from session storage
-        const workspaceData = sessionStorage.getItem("currentWorkspace")
+        // Get current workspace ID from local storage (shared across tabs)
+        const workspaceData = localStorage.getItem("currentWorkspace")
         let workspaceId = null
 
         if (workspaceData) {

@@ -44,9 +44,9 @@ interface WorkspaceProviderProps {
 export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
   const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(
     () => {
-      // Initialize from sessionStorage
+      // Initialize from localStorage (shared across tabs)
       try {
-        const stored = sessionStorage.getItem("currentWorkspace")
+        const stored = localStorage.getItem("currentWorkspace")
         return stored ? JSON.parse(stored) : null
       } catch (error) {
         return null
@@ -62,9 +62,9 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
         const user = localStorage.getItem("user")
         const authenticated = user !== null
 
-        // If authenticated but no workspace, try to get from sessionStorage
+        // If authenticated but no workspace, try to get from localStorage
         if (authenticated && !currentWorkspace) {
-          const stored = sessionStorage.getItem("currentWorkspace")
+          const stored = localStorage.getItem("currentWorkspace")
           if (stored) {
             const workspace = JSON.parse(stored)
             setCurrentWorkspace(workspace)
@@ -104,29 +104,29 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
   const isLoading = false
   const error = null
 
-  // Salva il workspace nel sessionStorage quando cambia
+  // Salva il workspace nel localStorage quando cambia
   useEffect(() => {
     if (currentWorkspace) {
-      sessionStorage.setItem(
+      localStorage.setItem(
         "currentWorkspace",
         JSON.stringify(currentWorkspace)
       )
       logger.info(
-        "🏢 Workspace saved to sessionStorage:",
+        "🏢 Workspace saved to localStorage:",
         currentWorkspace.name
       )
     }
   }, [currentWorkspace])
 
-  // Carica il workspace dal sessionStorage all'avvio
+  // Carica il workspace dal localStorage all'avvio
   useEffect(() => {
-    const cachedWorkspace = sessionStorage.getItem("currentWorkspace")
+    const cachedWorkspace = localStorage.getItem("currentWorkspace")
     if (cachedWorkspace) {
       try {
         const workspace = JSON.parse(cachedWorkspace)
         setCurrentWorkspace(workspace)
       } catch (error) {
-        console.error("Error parsing workspace from sessionStorage:", error)
+        console.error("Error parsing workspace from localStorage:", error)
       }
     }
   }, [])
@@ -140,8 +140,8 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
 
   const handleSetCurrentWorkspace = (workspace: Workspace) => {
     setCurrentWorkspace(workspace)
-    // Salva nel sessionStorage
-    sessionStorage.setItem("currentWorkspace", JSON.stringify(workspace))
+    // Salva nel localStorage
+    localStorage.setItem("currentWorkspace", JSON.stringify(workspace))
   }
 
   const value: WorkspaceContextType = {

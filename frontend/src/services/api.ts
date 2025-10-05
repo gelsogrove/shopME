@@ -8,9 +8,9 @@ export const api = axios.create({
   withCredentials: true, // Importante: invia i cookie con le richieste
 })
 
-// Helper function to get current workspace ID from session storage
+// Helper function to get current workspace ID from local storage
 const getCurrentWorkspaceId = (): string | null => {
-  const workspaceData = sessionStorage.getItem("currentWorkspace")
+  const workspaceData = localStorage.getItem("currentWorkspace")
   if (workspaceData) {
     try {
       const workspace = JSON.parse(workspaceData)
@@ -45,7 +45,7 @@ api.interceptors.request.use(
         logger.info(`🔧 Adding x-workspace-id header: ${workspaceId}`)
         config.headers["x-workspace-id"] = workspaceId
       } else {
-        logger.warn(`⚠️ No workspace ID found in sessionStorage for request to ${config.url}`)
+        logger.warn(`⚠️ No workspace ID found in localStorage for request to ${config.url}`)
       }
     }
 

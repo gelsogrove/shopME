@@ -60,7 +60,7 @@ const workspaceApi = {
 
 // Language functions
 export const getLanguages = async (): Promise<Language[]> => {
-  const workspaceStr = sessionStorage.getItem("currentWorkspace")
+  const workspaceStr = localStorage.getItem("currentWorkspace")
   if (!workspaceStr) {
     throw new Error("No workspace selected")
   }

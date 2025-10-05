@@ -52,9 +52,9 @@ interface ClientSheetProps {
   availableLanguages: string[]
 }
 
-// Helper to get workspaceId from sessionStorage
+// Helper to get workspaceId from localStorage
 function getWorkspaceId() {
-  const workspaceData = sessionStorage.getItem("currentWorkspace")
+  const workspaceData = localStorage.getItem("currentWorkspace")
   if (workspaceData) {
     try {
       const workspace = JSON.parse(workspaceData)

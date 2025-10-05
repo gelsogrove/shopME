@@ -25,17 +25,17 @@ export function Layout() {
     }
   }, [location.pathname, setSelectedChat])
 
-  // Get workspace from sessionStorage instead of API call
+  // Get workspace from localStorage instead of API call
   const [workspace, setWorkspace] = useState<any>(null)
 
-  // Load workspace from sessionStorage
+  // Load workspace from localStorage
   useEffect(() => {
-    const cachedWorkspace = sessionStorage.getItem("currentWorkspace")
+    const cachedWorkspace = localStorage.getItem("currentWorkspace")
     if (cachedWorkspace) {
       try {
         setWorkspace(JSON.parse(cachedWorkspace))
       } catch (error) {
-        logger.error("Error parsing workspace from sessionStorage:", error)
+        logger.error("Error parsing workspace from localStorage:", error)
       }
     }
   }, [])

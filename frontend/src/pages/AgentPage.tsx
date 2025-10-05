@@ -44,15 +44,15 @@ export function AgentPage() {
     logger.info("Workspace name:", workspace?.name)
     logger.info("Workspace isActive:", workspace?.isActive)
 
-    // Check sessionStorage
-    const sessionWorkspace = sessionStorage.getItem("currentWorkspace")
-    logger.info("SessionStorage workspace:", sessionWorkspace)
+    // Check localStorage
+    const sessionWorkspace = localStorage.getItem("currentWorkspace")
+    logger.info("LocalStorage workspace:", sessionWorkspace)
     if (sessionWorkspace) {
       try {
         const parsedWorkspace = JSON.parse(sessionWorkspace)
-        logger.info("Parsed sessionStorage workspace:", parsedWorkspace)
+        logger.info("Parsed localStorage workspace:", parsedWorkspace)
       } catch (e) {
-        logger.error("Error parsing sessionStorage workspace:", e)
+        logger.error("Error parsing localStorage workspace:", e)
       }
     }
   }, [workspace])
