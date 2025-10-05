@@ -27,21 +27,20 @@ Voglio parlare con un operatore.
 
 FASE 1
 
-- POPUP NUOVO ORDINE
-- -new tab va in loop
-- log di fe da pulire
+- chat history tab
 
 FASE 2
 
 POPUP NUOVO ORDINE
 
-- codice da pulire
+- pulire il DB
+- system log come possiamo migliorarlo ? o spostarlo?
 - 2AUYH
 - sicurezza
 - wip services
 - GDPR deve essere in linuga
 - metterei i prezzo nella tabella della history e nel DEBUG
-- pulizia codice.
+- pulizia codice di FE
 - embedding da pulire e capire ?
 - new user
 - forgot pwd

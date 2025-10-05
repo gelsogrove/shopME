@@ -1,5 +1,6 @@
 import { OrderStatus } from "@prisma/client"
 import { Request, Response } from "express"
+import { BillingService } from "../../../application/services/billing.service"
 import { OrderService } from "../../../application/services/order.service"
 import { prisma } from "../../../lib/prisma"
 import logger from "../../../utils/logger"
@@ -15,9 +16,11 @@ interface JWTPayload {
 
 export class OrderController {
   private orderService: OrderService
+  private billingService: BillingService
 
   constructor(orderService?: OrderService) {
     this.orderService = orderService || new OrderService()
+    this.billingService = new BillingService(prisma)
   }
 
   getAllOrders = async (req: Request, res: Response): Promise<Response> => {
@@ -228,8 +231,8 @@ export class OrderController {
 
       const order = await this.orderService.createOrder(orderData)
 
-      // Track order cost (1€) in usage table
-      await this.trackOrderCost(workspaceId, orderData.customerId)
+      // 💰 BILLING: Order cost (€1.50) will be tracked when status becomes CONFIRMED
+      // This happens in order.service.ts -> updateOrderStatus()
 
       return res.status(201).json(order)
     } catch (error) {
@@ -485,28 +488,4 @@ export class OrderController {
     }
   }
 
-  /**
-   * Track order cost (€1.50) in usage table
-   */
-  private async trackOrderCost(
-    workspaceId: string,
-    customerId: string
-  ): Promise<void> {
-    try {
-      await prisma.usage.create({
-        data: {
-          workspaceId: workspaceId,
-          clientId: customerId,
-          price: 1.5, // Complete order cost including push notification
-        },
-      })
-
-      logger.info(`Order cost tracked: €1.50 for customer ${customerId}`)
-    } catch (error) {
-      logger.error(
-        `Error tracking order cost for customer ${customerId}:`,
-        error
-      )
-    }
-  }
 }

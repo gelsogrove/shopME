@@ -1,4 +1,5 @@
 import { Request, Response } from "express"
+import { BillingService } from "../../../application/services/billing.service"
 import { EmailService } from "../../../application/services/email.service"
 import { PriceCalculationService } from "../../../application/services/price-calculation.service"
 import { SecureTokenService } from "../../../application/services/secure-token.service"
@@ -7,6 +8,7 @@ import { pushMessagingService } from "../../../services/push-messaging.service"
 import logger from "../../../utils/logger"
 
 export class CheckoutController {
+  private billingService = new BillingService(prisma)
   private emailService = new EmailService()
   private secureTokenService = new SecureTokenService()
   private priceCalculationService = new PriceCalculationService(prisma)
@@ -266,7 +268,7 @@ export class CheckoutController {
       const order = await prisma.orders.create({
         data: {
           orderCode,
-          status: "PENDING",
+          status: "CONFIRMED", // 💰 Create as CONFIRMED to trigger billing
           totalAmount,
           shippingAmount: 0,
           taxAmount: 0,
@@ -393,22 +395,22 @@ export class CheckoutController {
         `[CHECKOUT] Order created: ${orderCode} for customer ${customerId}`
       )
 
-      // Track complete order cost (€1.50: order + push notification)
+      // 💰 BILLING: Track NEW_ORDER (€1.50) - order created as CONFIRMED
       try {
-        await prisma.usage.create({
-          data: {
-            workspaceId: workspaceId,
-            clientId: customerId,
-            price: 1.5, // Complete order cost including push notification
-          },
-        })
-
-        logger.info(`Order cost tracked: €1.50 for customer ${customerId}`)
-      } catch (error) {
-        logger.error(
-          `Error tracking order cost for customer ${customerId}:`,
-          error
+        await this.billingService.trackNewOrder(
+          workspaceId,
+          customerId,
+          `Order ${orderCode} confirmed via checkout`
         )
+        logger.info(
+          `[BILLING] 💰 New order confirmed via checkout: €1.50 charged for order ${orderCode} (customer: ${customerId})`
+        )
+      } catch (billingError) {
+        logger.error(
+          `[BILLING] ❌ Failed to track new order billing for order ${orderCode}:`,
+          billingError
+        )
+        // Don't fail the order if billing fails
       }
 
       // Send notifications

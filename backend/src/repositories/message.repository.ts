@@ -6,7 +6,6 @@ import {
 } from "@prisma/client"
 import * as dotenv from "dotenv"
 import OpenAI from "openai"
-import { config } from "../config"
 import logger from "../utils/logger"
 
 // Load environment variables
@@ -187,11 +186,39 @@ export class MessageRepository {
         },
       })
 
-      // Parse debugInfo from JSON string to object for better frontend handling
+      // Get billing records for this customer to attach to messages
+      const billingRecords = await this.prisma.billing.findMany({
+        where: {
+          customerId: session.customerId,
+          ...(workspaceId ? { workspaceId } : {}),
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      })
+
+      // 💰 NEW: Use the saved progressive totals from database
+      const billingMap = new Map()
+
+      billingRecords.forEach((record) => {
+        billingMap.set(record.id, {
+          currentTotal: Number(record.previousTotal),
+          messageCharge: record.type === "MESSAGE" ? Number(record.amount) : 0,
+          humanSupportCharge:
+            record.type === "HUMAN_SUPPORT" ? Number(record.amount) : 0,
+          newTotal: Number(record.newTotal),
+          userQuery: record.userQuery,
+        })
+      })
+
+      // Parse debugInfo and attach billing data
       const parsedMessages = messages.map((message) => {
+        let parsed = message
+
+        // Parse debugInfo
         if (message.debugInfo) {
           try {
-            return {
+            parsed = {
               ...message,
               debugInfo: JSON.parse(message.debugInfo as string),
             }
@@ -200,10 +227,47 @@ export class MessageRepository {
               `Failed to parse debugInfo for message ${message.id}:`,
               parseError
             )
-            return message
           }
         }
-        return message
+
+        // Find matching billing record (within 5 seconds of message)
+        // 💰 IMPORTANT: Only match billing to the correct message direction:
+        // - MESSAGE (€0.15) → INBOUND (customer message)
+        // - PUSH_MESSAGE (€1.00) → OUTBOUND (bot message with push)
+        // - HUMAN_SUPPORT (€1.00) → OUTBOUND (when chatbot is reactivated)
+        const matchingBilling = billingRecords.find((billing) => {
+          const timeDiff = Math.abs(
+            new Date(billing.createdAt).getTime() -
+              new Date(message.createdAt).getTime()
+          )
+          
+          // Check time proximity (5 seconds tolerance)
+          if (timeDiff >= 5000) return false
+          
+          // Match billing type to message direction
+          const isInbound = message.direction === "INBOUND"
+          const isOutbound = message.direction === "OUTBOUND"
+          
+          // MESSAGE billing should only attach to INBOUND messages
+          if (billing.type === "MESSAGE" && !isInbound) return false
+          
+          // PUSH_MESSAGE and HUMAN_SUPPORT should only attach to OUTBOUND messages
+          if ((billing.type === "PUSH_MESSAGE" || billing.type === "HUMAN_SUPPORT") && !isOutbound) return false
+          
+          return true
+        })
+
+        // Attach billing data if found
+        if (matchingBilling && billingMap.has(matchingBilling.id)) {
+          return {
+            ...parsed,
+            billing: billingMap.get(matchingBilling.id),
+            messageCost: Number(matchingBilling.amount), // 💰 Add message cost for frontend
+            billingType: matchingBilling.type, // 💰 Add billing type (MESSAGE, PUSH_MESSAGE, etc.)
+          }
+        }
+
+        return parsed
       })
 
       return parsedMessages
@@ -798,24 +862,57 @@ export class MessageRepository {
             })
 
             if (!(workspace?.debugMode ?? true)) {
-              // debugMode is false, track usage normally
-              const { usageService } = await import("../services/usage.service")
-              logger.info(
-                `[DEBUG-TRACKING] 🔍 usageService imported successfully`
-              )
+              // debugMode is false AND customer not blacklisted, track usage normally
+              // 💰 UNIFIED BILLING: €0.15 per message in BOTH systems
+              const messagePrice = 0.15
 
+              // Track in legacy usage system (for Analytics)
+              const { usageService } = await import("../services/usage.service")
               await usageService.trackUsage({
                 clientId: customer.id,
                 workspaceId: workspaceId,
-                price: config.llm.defaultPrice,
+                price: messagePrice,
               })
 
-              logger.info(
-                `[DEBUG-TRACKING] ✅ usageService.trackUsage called successfully`
+              // Track in new billing system (same price!)
+              const { BillingService } = await import(
+                "../application/services/billing.service"
               )
-              logger.info(
-                `[USAGE-TRACKING] 💰 €${config.llm.defaultPrice} tracked before saving AI response for customer ${customer.name} (${data.phoneNumber})`
-              )
+              const billingService = new BillingService(this.prisma)
+
+              // Check if this is a human support interaction
+              const isHumanSupport =
+                data.agentSelected?.includes("OPERATOR") ||
+                data.agentSelected?.includes("MANUAL") ||
+                data.agentSelected === "HUMAN_SUPPORT"
+
+              if (isHumanSupport) {
+                // Track ONLY human support (€1.00) - no double charging with message
+                await usageService.trackUsage({
+                  clientId: customer.id,
+                  workspaceId: workspaceId,
+                  price: 1.0, // Human support cost
+                })
+                await billingService.trackHumanSupport(
+                  workspaceId,
+                  customer.id,
+                  `Human support for: "${data.message?.substring(0, 50)}..."` // Include user query in description
+                )
+                logger.info(
+                  `[BILLING] 💰 €1.00 human support cost tracked for ${data.phoneNumber}`
+                )
+              } else {
+                // Only track regular message cost when not human support
+                await billingService.trackMessage(
+                  workspaceId,
+                  customer.id,
+                  `Message from ${data.phoneNumber}`,
+                  data.message // User's question
+                )
+                logger.info(
+                  `[BILLING] 💰 €0.15 message cost tracked for ${data.phoneNumber}`
+                )
+              }
             } else {
               // debugMode is true, skip tracking
               logger.info(

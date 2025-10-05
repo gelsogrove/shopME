@@ -1,10 +1,11 @@
 import { RequestHandler, Router } from "express"
 import { WorkspaceService } from "../application/services/workspace.service"
-import { workspaceController } from "../controllers/workspace.controller"
+import { WorkspaceController } from "../interfaces/http/controllers/workspace.controller"
 import { wrapController } from "../utils/controller-wrapper"
 import logger from "../utils/logger"
 
 const router = Router()
+const workspaceController = new WorkspaceController()
 const workspaceService = new WorkspaceService()
 
 /**
@@ -137,7 +138,7 @@ const getCurrentWorkspace: RequestHandler = async (req, res): Promise<void> => {
  *               items:
  *                 $ref: '#/components/schemas/Workspace'
  */
-router.get("/", wrapController(workspaceController.getAll))
+router.get("/", wrapController(workspaceController.getAllWorkspaces))
 
 // IMPORTANT: /current must come BEFORE /:id to avoid conflict
 router.get("/current", getCurrentWorkspace)
@@ -165,7 +166,7 @@ router.get("/current", getCurrentWorkspace)
  *       404:
  *         description: Workspace not found
  */
-router.get("/:id", wrapController(workspaceController.getById))
+router.get("/:id", wrapController(workspaceController.getWorkspaceById))
 
 /**
  * @swagger
@@ -203,7 +204,7 @@ router.get("/:id", wrapController(workspaceController.getById))
  *             schema:
  *               $ref: '#/components/schemas/Workspace'
  */
-router.post("/", wrapController(workspaceController.create))
+router.post("/", wrapController(workspaceController.createWorkspace))
 
 /**
  * @swagger
@@ -247,7 +248,7 @@ router.post("/", wrapController(workspaceController.create))
  *       404:
  *         description: Workspace not found
  */
-router.put("/:id", wrapController(workspaceController.update))
+router.put("/:id", wrapController(workspaceController.updateWorkspace))
 
 /**
  * @swagger
@@ -282,6 +283,6 @@ router.put("/:id", wrapController(workspaceController.update))
  *       500:
  *         description: Error during deletion process
  */
-router.delete("/:id", wrapController(workspaceController.delete))
+router.delete("/:id", wrapController(workspaceController.deleteWorkspace))
 
 export default router

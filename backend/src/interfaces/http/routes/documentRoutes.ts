@@ -1,12 +1,12 @@
-import logger from "../utils/logger"
-import { Router } from 'express';
-import { documentController, upload } from '../controllers/documentController';
-import { workspaceValidationMiddleware } from '../interfaces/http/middlewares/workspace-validation.middleware';
+import { Router } from "express"
+import logger from "../../../utils/logger"
+import { documentController, upload } from "../controllers/documentController"
+import { workspaceValidationMiddleware } from "../middlewares/workspace-validation.middleware"
 
-const router = Router({ mergeParams: true });
+const router = Router({ mergeParams: true })
 
 // Apply workspace validation middleware to all routes that have workspaceId in path
-router.use(workspaceValidationMiddleware);
+router.use(workspaceValidationMiddleware)
 
 /**
  * @swagger
@@ -48,7 +48,7 @@ router.use(workspaceValidationMiddleware);
  *           type: string
  *           format: date-time
  *           description: Last update timestamp
- *     
+ *
  *     DocumentSearchResult:
  *       type: object
  *       properties:
@@ -107,7 +107,11 @@ router.use(workspaceValidationMiddleware);
  *       500:
  *         description: Internal server error
  */
-router.post('/upload', upload.single('file'), documentController.uploadDocument.bind(documentController));
+router.post(
+  "/upload",
+  upload.single("file"),
+  documentController.uploadDocument.bind(documentController)
+)
 
 /**
  * @swagger
@@ -146,7 +150,10 @@ router.post('/upload', upload.single('file'), documentController.uploadDocument.
  *       500:
  *         description: Internal server error
  */
-router.post('/:id/process', documentController.processDocument.bind(documentController));
+router.post(
+  "/:id/process",
+  documentController.processDocument.bind(documentController)
+)
 
 /**
  * @swagger
@@ -182,7 +189,10 @@ router.post('/:id/process', documentController.processDocument.bind(documentCont
  *       500:
  *         description: Internal server error
  */
-router.get('/', documentController.getDocumentsByWorkspace.bind(documentController));
+router.get(
+  "/",
+  documentController.getDocumentsByWorkspace.bind(documentController)
+)
 
 /**
  * @swagger
@@ -218,7 +228,7 @@ router.get('/', documentController.getDocumentsByWorkspace.bind(documentControll
  *       500:
  *         description: Internal server error
  */
-router.get('/legacy', documentController.getDocuments.bind(documentController));
+router.get("/legacy", documentController.getDocuments.bind(documentController))
 
 /**
  * @swagger
@@ -274,14 +284,21 @@ router.get('/legacy', documentController.getDocuments.bind(documentController));
  *       500:
  *         description: Internal server error
  */
-router.post('/search', documentController.searchDocuments.bind(documentController));
+router.post(
+  "/search",
+  documentController.searchDocuments.bind(documentController)
+)
 
 // Test endpoint for debugging
-router.post('/test-embedding', (req, res) => {
-  logger.info('Test endpoint called!');
-  logger.info('req.params:', req.params);
-  res.json({ success: true, message: 'Test endpoint works', params: req.params });
-});
+router.post("/test-embedding", (req, res) => {
+  logger.info("Test endpoint called!")
+  logger.info("req.params:", req.params)
+  res.json({
+    success: true,
+    message: "Test endpoint works",
+    params: req.params,
+  })
+})
 
 /**
  * @swagger
@@ -326,7 +343,10 @@ router.post('/test-embedding', (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.post('/generate-embeddings', documentController.generateEmbeddings.bind(documentController));
+router.post(
+  "/generate-embeddings",
+  documentController.generateEmbeddings.bind(documentController)
+)
 
 /**
  * @swagger
@@ -382,8 +402,11 @@ router.post('/generate-embeddings', documentController.generateEmbeddings.bind(d
  *       500:
  *         description: Internal server error
  */
-router.get('/:id', documentController.getDocumentById.bind(documentController));
-router.delete('/:id', documentController.deleteDocument.bind(documentController));
+router.get("/:id", documentController.getDocumentById.bind(documentController))
+router.delete(
+  "/:id",
+  documentController.deleteDocument.bind(documentController)
+)
 
 /**
  * @swagger
@@ -411,7 +434,10 @@ router.delete('/:id', documentController.deleteDocument.bind(documentController)
  *       500:
  *         description: Internal server error
  */
-router.get('/:id/download', documentController.downloadDocument.bind(documentController));
+router.get(
+  "/:id/download",
+  documentController.downloadDocument.bind(documentController)
+)
 
 /**
  * @swagger
@@ -459,6 +485,6 @@ router.get('/:id/download', documentController.downloadDocument.bind(documentCon
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', documentController.updateDocument.bind(documentController));
+router.put("/:id", documentController.updateDocument.bind(documentController))
 
-export default router; 
+export default router

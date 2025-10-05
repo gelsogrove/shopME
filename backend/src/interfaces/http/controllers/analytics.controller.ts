@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
-import { AnalyticsService } from "../application/services/analytics.service"
-import logger from "../utils/logger"
+import { AnalyticsService } from "../../../application/services/analytics.service"
+import logger from "../../../utils/logger"
 
 export class AnalyticsController {
   private analyticsService: AnalyticsService

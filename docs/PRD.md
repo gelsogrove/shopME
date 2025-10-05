@@ -227,13 +227,57 @@ const secureToken = await prisma.secureToken.findFirst({
 
 ## 🚀 Recent Changes & Roadmap (2025-09)
 
-### 🔄 Code Architecture & Standards
+### 🔄 Clean Architecture Implementation
 
-- **Standardized File Naming**: All service files now follow `.service.ts` naming pattern
-- **Removed Duplications**: Eliminated backup files and cleaned up redundant routes
-- **Unified Code Style**: Consistent naming conventions across backend and frontend
-- **Optimized Imports**: Updated import paths to match new standardized file names
-- **PRD Updates**: Kept documentation in sync with latest code changes
+The backend follows a clean architecture pattern with clear separation of concerns:
+
+#### Architecture Layers
+
+1. **Interfaces Layer** (`src/interfaces/`)
+
+   - **HTTP Controllers** (`/http/controllers/`): Handle HTTP requests and responses
+   - **HTTP Routes** (`/http/routes/`): Define API endpoints and routing
+   - **Middlewares**: Handle cross-cutting concerns like authentication and logging
+
+2. **Application Layer** (`src/application/`)
+
+   - **Services**: Implement business logic and orchestrate use cases
+   - **DTOs**: Define data transfer objects for input/output
+   - **Validators**: Validate input data
+
+3. **Domain Layer** (`src/domain/`)
+
+   - **Entities**: Core business objects and logic
+   - **Value Objects**: Immutable objects that model domain concepts
+   - **Repositories Interfaces**: Define data access contracts
+
+4. **Infrastructure Layer** (`src/infrastructure/`)
+   - **Repository Implementations**: Concrete implementations of repository interfaces
+   - **External Services**: Integrations with third-party services
+   - **Database Access**: Prisma client and database operations
+
+#### Key Principles
+
+- **Dependency Rule**: Dependencies only point inward (interfaces → application → domain)
+- **Isolation**: Each layer is isolated and can be changed independently
+- **Interface Segregation**: Clean interfaces between layers
+- **Single Responsibility**: Each component has one clear purpose
+
+#### File Naming Standards
+
+- **Standardized Patterns**:
+  - Controllers: `*.controller.ts`
+  - Services: `*.service.ts`
+  - Routes: `*.routes.ts`
+  - Repositories: `*.repository.ts`
+  - DTOs: `*.dto.ts`
+
+#### Development Standards
+
+- **Clean Code**: Following SOLID principles and clean code practices
+- **Type Safety**: Strict TypeScript usage throughout the codebase
+- **Error Handling**: Consistent error handling patterns
+- **Testing**: Unit tests for each layer independently
 
 ### ✅ Completed & In Progress
 
@@ -776,103 +820,124 @@ Il sistema checkout è ora **completamente funzionale e production-ready**. Tutt
 
 ### **🎯 Overview**
 
-Il sistema di tracciamento usage monitora automaticamente tutti i costi secondo la pricing list ufficiale e fornisce dashboard analytics complete per business intelligence.
+Il sistema di billing traccia automaticamente tutti i costi secondo la pricing list ufficiale. Tutti i costi vengono registrati nel database con dettagli progressivi (previous/current/new total), permettendo di visualizzare una cronologia completa delle transazioni.
 
-**Pricing List Ufficiale:**
+**Pricing List Ufficiale (Ottobre 2025):**
 
-- **Human Response**: €0.05 (5 centesimi)
-- **LLM Response**: €0.15 (15 centesimi)
-- **New Customer**: €1.50 (1.50 euro)
-- **New Order**: €1.50 (ordine completo con push)
-- **Push Message**: €0.50 (50 centesimi)
+| Servizio | Costo | Descrizione |
+|----------|-------|-------------|
+| **MONTHLY_CHANNEL** | €19.00 | Costo fisso mensile per workspace |
+| **MESSAGE** | €0.15 | Costo per messaggio/interazione |
+| **NEW_CUSTOMER** | €1.50 | Costo per nuovo cliente (alla registrazione) |
+| **NEW_ORDER** | €1.50 | Costo per nuovo ordine |
+| **HUMAN_SUPPORT** | €1.00 | Costo per riattivazione chatbot dopo supporto umano |
+| **PUSH_MESSAGE** | €1.00 | Costo per notifica push (cambio sconto) |
+| **NEW_FAQ** | €0.50 | Costo per creazione nuova FAQ |
+| **ACTIVE_OFFER** | €0.50 | Costo per attivazione offerta |
 
 ### **✅ Architettura Implementata**
 
-#### **🔄 Single Point of Truth**
+#### **🔄 BillingService - Single Point of Truth**
 
-```typescript
-// In saveMessage method - chiamato da N8N
-if (response && response.trim()) {
-  const customer = await prisma.customers.findFirst({
-    where: {
-      phone: phoneNumber,
-      workspaceId: workspaceId,
-      activeChatbot: true, // Solo clienti registrati e attivi
-    },
-  })
+Il servizio `BillingService` centralizza tutti gli addebiti con metodi dedicati:
 
-  if (customer) {
-    await prisma.usage.create({
-      data: {
-        workspaceId: workspaceId,
-        clientId: customer.id,
-        price: 0.005, // 0.5 centesimi come richiesto
-      },
-    })
+- `chargeMonthlyChannelCost(workspaceId)` - Costo mensile (€19.00)
+- `trackMessage(workspaceId, customerId, description, userQuery)` - Messaggio (€0.15)
+- `trackNewCustomer(workspaceId, customerId)` - Nuovo cliente (€1.50)
+- `trackNewOrder(workspaceId, customerId, description)` - Nuovo ordine (€1.50)
+- `trackHumanSupport(workspaceId, customerId, description)` - Supporto umano (€1.00)
+- `trackPushMessage(workspaceId, customerId, description)` - Push notification (€1.00)
+- `trackNewFAQ(workspaceId, customerId, description)` - Nuova FAQ (€0.50)
+- `trackActiveOffer(workspaceId, offerId, offerTitle)` - Offerta attiva (€0.50)
 
-    logger.info(`💰 €0.005 tracked for ${customer.name}`)
-  }
-}
-```
+Ogni metodo calcola automaticamente i totali progressivi (previousTotal + currentCharge = newTotal).
 
 #### **📊 Database Schema**
 
 ```sql
-CREATE TABLE usage (
-  id VARCHAR(255) PRIMARY KEY,
-  workspace_id VARCHAR(255) NOT NULL,
-  client_id VARCHAR(255) NOT NULL,
-  price DECIMAL(10,3) DEFAULT 0.005,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE Billing (
+  id UUID PRIMARY KEY,
+  workspaceId UUID NOT NULL,
+  customerId UUID,
+  type BillingType NOT NULL,
+  description TEXT,
+  userQuery TEXT,
+  amount DECIMAL(10,2) NOT NULL,
+  previousTotal DECIMAL(10,2) NOT NULL,
+  currentCharge DECIMAL(10,2) NOT NULL,
+  newTotal DECIMAL(10,2) NOT NULL,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
   FOREIGN KEY (workspace_id) REFERENCES workspaces(id),
   FOREIGN KEY (client_id) REFERENCES customers(id)
 );
 
 -- Indici per performance
-CREATE INDEX idx_usage_workspace_date ON usage(workspace_id, created_at DESC);
-CREATE INDEX idx_usage_client_date ON usage(client_id, created_at DESC);
+CREATE INDEX idx_billing_workspace_date ON Billing(workspaceId, createdAt DESC);
+CREATE INDEX idx_billing_customer_date ON Billing(customerId, createdAt DESC);
+CREATE INDEX idx_billing_type ON Billing(type);
 ```
 
-#### **🔄 Flusso Completo**
+#### **🎯 Trigger di Billing Automatici**
+
+| Quando | Cosa viene addebitato | Dove |
+|--------|----------------------|------|
+| Utente si registra | NEW_CUSTOMER (€1.50) | `registration.controller.ts` |
+| Messaggio chatbot | MESSAGE (€0.15) | `message.repository.ts` |
+| Ordine confermato | NEW_ORDER (€1.50) | `order.service.ts` |
+| Riattivazione chatbot | HUMAN_SUPPORT (€1.00) | `customers.controller.ts` |
+| Cambio sconto | PUSH_MESSAGE (€1.00) | `customers.controller.ts` |
+| Creazione FAQ | NEW_FAQ (€0.50) | `faq.controller.ts` |
+| Attivazione offerta | ACTIVE_OFFER (€0.50) | `offer.controller.ts` |
+| Inizio mese | MONTHLY_CHANNEL (€19.00) | `scheduler.service.ts` |
+
+#### **🔄 Flusso Esempio - Messaggio**
 
 ```
-📱 Cliente: "ciao mozzarella"
+📱 Cliente: "ciao, vorrei info sui prodotti"
          ↓
-🤖 N8N Workflow → LLM Response
+🤖 LLM Response generata
          ↓
-💾 /internal/save-message con response
+💾 message.repository.ts - saveMessage()
          ↓
-💰 AUTOMATIC Usage Tracking (€0.005)
+✅ Verifica: activeChatbot=true, debugMode=false
          ↓
-📊 Dashboard Analytics Update
+💰 billingService.trackMessage() → €0.15
+         ↓
+📊 Dashboard Analytics aggiornata automaticamente
 ```
 
-### **📈 Dashboard Analytics**
+### **📈 Dashboard Analytics (System Logs)**
 
 #### **API Endpoints**
 
 ```typescript
-// Dashboard completa
-GET /api/usage/dashboard/{workspaceId}?period=30
+// Analytics completa con logs di billing
+GET /api/analytics/dashboard/{workspaceId}?startDate=...&endDate=...
 
-// Statistiche dettagliate
-GET /api/usage/stats/{workspaceId}?startDate=2024-01-01&endDate=2024-01-31
-
-// Export CSV/JSON
-GET /api/usage/export/{workspaceId}?format=csv
+// Ritorna:
+// - metrics: Metriche aggregate (revenue, customers, orders)
+// - logs: Array di transazioni billing con totali progressivi
+// - topProducts: Prodotti più venduti
+// - topCustomers: Clienti top per spesa
 ```
 
-#### **Metriche Fornite**
+#### **Visualizzazione Frontend**
 
-- **Total Cost**: €0.125 (esempio 25 messaggi)
-- **Top Client**: Mario Rossi - 9 messaggi, €0.045
-- **Peak Hour**: 14:00 (2 PM) - 8 messaggi
-- **Growth**: +31.58% vs mese precedente
-- **Daily Usage Trends**: Grafici linea per analisi temporale
-- **Customer Segmentation**: Top spenders per targeting
+- **System Logs Tab**: Tabella completa di tutte le transazioni billing
+- **Filtro per Cliente**: Dropdown per filtrare per singolo cliente
+- **Colonne**: Data/Ora, Tipo, Cliente, Dettagli, Costo, Formula (previous + current = new)
+- **Grand Total**: Somma totale con conteggio operazioni
+- **Progressive Totals**: Ogni riga mostra il calcolo progressivo
 
-#### **Business Intelligence**
+#### **Metriche Business Intelligence**
+
+- **Total Revenue**: Somma di tutti i costi nel periodo
+- **Per Customer**: Breakdown dei costi per cliente
+- **Per Type**: Distribuzione dei costi per tipo di operazione
+- **Trends**: Grafici di andamento giornaliero/mensile
+- **Top Spenders**: Clienti che generano più costi
 
 - Clienti più attivi per targeting marketing
 - Ore di punta per ottimizzare staff

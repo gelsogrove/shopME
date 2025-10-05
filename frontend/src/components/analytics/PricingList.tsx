@@ -56,8 +56,8 @@ export function PricingList() {
     },
     {
       icon: Package,
-      title: "Advertising Message",
-      description: "For each new product added",
+      title: "Push Message",
+      description: "For each adverticing message",
       price: "€1.00",
       color: "text-cyan-600",
       bgColor: "bg-cyan-100",

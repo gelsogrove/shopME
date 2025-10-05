@@ -7,18 +7,15 @@
  */
 
 import { Request, Response, Router } from "express"
-import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"
-import { pushRateLimitMiddleware } from "../interfaces/http/middlewares/push-rate-limit.middleware"
-import {
-  hasRole,
-  UserRole,
-} from "../interfaces/http/middlewares/rbac.middleware"
-import { prisma } from "../lib/prisma"
+import { prisma } from "../../../lib/prisma"
 import {
   PushMessageType,
   pushMessagingService,
-} from "../services/push-messaging.service"
-import logger from "../utils/logger"
+} from "../../../services/push-messaging.service"
+import logger from "../../../utils/logger"
+import { authMiddleware } from "../middlewares/auth.middleware"
+import { pushRateLimitMiddleware } from "../middlewares/push-rate-limit.middleware"
+import { hasRole, UserRole } from "../middlewares/rbac.middleware"
 
 export function createPushTestingRouter(): Router {
   const router = Router()

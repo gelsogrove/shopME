@@ -27,6 +27,7 @@ export function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null)
   const { selectedPeriod, setSelectedPeriod, isInitialized } =
     useAnalyticsPeriod()
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("all")
 
   // Get translations
   const t = getAdminPageTexts()
@@ -284,8 +285,237 @@ export function AnalyticsPage() {
             </Card>
           </div>
 
-          {/* Pricing List - Moved to bottom */}
+          {/* Pricing List - Moved to top */}
           <PricingList />
+
+          {/* System Logs - Full Width */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  📋 System Logs
+                </CardTitle>
+                {analytics.logs &&
+                  analytics.logs.length > 0 &&
+                  (() => {
+                    // Extract unique customers
+                    const uniqueCustomers = Array.from(
+                      new Map(
+                        analytics.logs
+                          .filter((log) => log.customerId && log.customerName)
+                          .map((log) => [
+                            log.customerId,
+                            {
+                              id: log.customerId!,
+                              name: log.customerName!,
+                              email: log.customerEmail!,
+                            },
+                          ])
+                      ).values()
+                    )
+
+                    return (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">
+                          Filter by customer:
+                        </span>
+                        <select
+                          value={selectedCustomerId}
+                          onChange={(e) =>
+                            setSelectedCustomerId(e.target.value)
+                          }
+                          className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                        >
+                          <option value="all">
+                            🌐 All customers ({analytics.logs.length})
+                          </option>
+                          {uniqueCustomers.map((customer) => {
+                            const customerLogsCount = analytics.logs.filter(
+                              (log) => log.customerId === customer.id
+                            ).length
+                            return (
+                              <option key={customer.id} value={customer.id}>
+                                👤 {customer.name} ({customerLogsCount})
+                              </option>
+                            )
+                          })}
+                        </select>
+                      </div>
+                    )
+                  })()}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {analytics.logs && analytics.logs.length > 0 ? (
+                (() => {
+                  // Filter logs based on selected customer
+                  const filteredLogs =
+                    selectedCustomerId === "all"
+                      ? analytics.logs
+                      : analytics.logs.filter(
+                          (log) => log.customerId === selectedCustomerId
+                        )
+
+                  // Recalculate progressive totals for filtered logs
+                  let logsWithRecalculatedTotals
+                  if (selectedCustomerId === "all") {
+                    // Use totals from backend (already calculated correctly)
+                    logsWithRecalculatedTotals = filteredLogs
+                  } else {
+                    // For filtered customer, recalculate totals in chronological order
+                    const sortedByDateAsc = [...filteredLogs].sort(
+                      (a, b) =>
+                        new Date(a.timestamp).getTime() -
+                        new Date(b.timestamp).getTime()
+                    )
+                    let runningTotal = 0
+                    const recalculated = sortedByDateAsc.map((log) => {
+                      const previousTotal = runningTotal
+                      runningTotal += log.amount
+                      return { ...log, previousTotal, newTotal: runningTotal }
+                    })
+                    // Return in DESC order for display (most recent first)
+                    logsWithRecalculatedTotals = recalculated.reverse()
+                  }
+
+                  return (
+                    <div>
+                      {selectedCustomerId !== "all" && (
+                        <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+                          ℹ️ Showing <strong>{filteredLogs.length}</strong>{" "}
+                          records for this customer. Formula is recalculated for
+                          their records only.
+                        </div>
+                      )}
+                      <div className="overflow-x-auto max-h-[600px] overflow-y-auto border border-gray-200 rounded-lg">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50 border-b sticky top-0 z-10">
+                            <tr>
+                              <th className="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50">
+                                Date/Time
+                              </th>
+                              <th className="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50">
+                                Type
+                              </th>
+                              <th className="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50">
+                                Customer
+                              </th>
+                              <th className="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50">
+                                Details
+                              </th>
+                              <th className="px-4 py-3 text-right font-semibold text-gray-700 bg-gray-50">
+                                Cost
+                              </th>
+                              <th className="px-4 py-3 text-right font-semibold text-gray-700 bg-gray-50">
+                                Formula
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {logsWithRecalculatedTotals.map((log) => (
+                              <tr key={log.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-gray-600">
+                                  {new Date(log.timestamp).toLocaleString(
+                                    "it-IT",
+                                    {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {log.typeLabel}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3">
+                                  {log.customerName ? (
+                                    <div>
+                                      <p className="font-medium text-gray-900">
+                                        {log.customerName}
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        {log.customerEmail}
+                                      </p>
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-400 text-xs">
+                                      -
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 max-w-md">
+                                  <p className="text-gray-700">
+                                    {log.description}
+                                  </p>
+                                  {log.userQuery && (
+                                    <p className="text-xs text-gray-500 mt-1 italic truncate">
+                                      "{log.userQuery}"
+                                    </p>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-right font-semibold text-green-600">
+                                  €{log.amount.toFixed(2)}
+                                </td>
+                                <td className="px-4 py-3 text-right font-mono text-xs text-gray-600">
+                                  €{log.previousTotal.toFixed(2)} + €
+                                  {log.amount.toFixed(2)} = €
+                                  {log.newTotal.toFixed(2)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot className="bg-gradient-to-r from-green-50 to-blue-50 border-t-2 border-green-600 sticky bottom-0 z-10">
+                            <tr>
+                              <td
+                                colSpan={4}
+                                className="px-4 py-4 text-right font-bold text-gray-900 text-base bg-gradient-to-r from-green-50 to-blue-50"
+                              >
+                                💰 GRAND TOTAL:
+                              </td>
+                              <td className="px-4 py-4 text-right bg-gradient-to-r from-green-50 to-blue-50">
+                                <span className="text-xl font-bold text-green-600">
+                                  €
+                                  {filteredLogs
+                                    .reduce((sum, log) => sum + log.amount, 0)
+                                    .toFixed(2)}
+                                </span>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {filteredLogs.length}{" "}
+                                  {filteredLogs.length === 1
+                                    ? "operation"
+                                    : "operations"}
+                                </p>
+                              </td>
+                              <td className="px-4 py-4 text-right bg-gradient-to-r from-green-50 to-blue-50">
+                                <span className="text-base font-bold text-blue-600 font-mono">
+                                  = €
+                                  {logsWithRecalculatedTotals[
+                                    logsWithRecalculatedTotals.length - 1
+                                  ]?.newTotal.toFixed(2) || "0.00"}
+                                </span>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Final total
+                                </p>
+                              </td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    </div>
+                  )
+                })()
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-2">📋</div>
+                  <p className="text-gray-500">No logs available</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       ) : (
         // No Data State

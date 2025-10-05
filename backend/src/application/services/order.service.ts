@@ -1,18 +1,22 @@
-import { OrderStatus } from "@prisma/client"
+import { OrderStatus, PrismaClient } from "@prisma/client"
 import { Order } from "../../domain/entities/order.entity"
 import {
-    IOrderRepository,
-    OrderFilters,
+  IOrderRepository,
+  OrderFilters,
 } from "../../domain/repositories/order.repository.interface"
 import { OrderRepository } from "../../repositories/order.repository"
 import logger from "../../utils/logger"
+import { BillingService } from "./billing.service"
 import { CustomerService } from "./customer.service"
 import { StockService } from "./stock.service"
+
+const prisma = new PrismaClient()
 
 export class OrderService {
   private orderRepository: IOrderRepository
   private stockService: StockService
   private customerService: CustomerService
+  private billingService: BillingService
 
   constructor(
     orderRepository?: IOrderRepository,
@@ -22,6 +26,7 @@ export class OrderService {
     this.orderRepository = orderRepository || new OrderRepository()
     this.stockService = stockService || new StockService()
     this.customerService = customerService || new CustomerService()
+    this.billingService = new BillingService(prisma)
   }
 
   async getAllOrders(workspaceId: string, filters?: OrderFilters) {
@@ -166,7 +171,29 @@ export class OrderService {
       // Create a proper domain entity
       const order = new Order(orderData)
 
-      return await this.orderRepository.create(order)
+      const createdOrder = await this.orderRepository.create(order)
+
+      // 💰 BILLING: If order is created as CONFIRMED, track NEW_ORDER billing (€1.50)
+      if (createdOrder.status === OrderStatus.CONFIRMED) {
+        try {
+          await this.billingService.trackNewOrder(
+            createdOrder.workspaceId,
+            createdOrder.customerId,
+            `Order ${createdOrder.orderCode} confirmed at creation`
+          )
+          logger.info(
+            `[BILLING] 💰 New order created as CONFIRMED: €1.50 charged for order ${createdOrder.orderCode} (customer: ${createdOrder.customerId})`
+          )
+        } catch (billingError) {
+          logger.error(
+            `[BILLING] ❌ Failed to track new order billing for order ${createdOrder.id}:`,
+            billingError
+          )
+          // Don't fail the order creation if billing fails
+        }
+      }
+
+      return createdOrder
     } catch (error) {
       logger.error("Error in order service createOrder:", error)
       throw new Error(`Failed to create order: ${(error as Error).message}`)
@@ -206,7 +233,7 @@ export class OrderService {
       if (!order) {
         throw new Error("Order not found")
       }
-      
+
       // Allow deletion of all orders regardless of status
       await this.orderRepository.delete(id, workspaceId)
     } catch (error) {
@@ -250,6 +277,36 @@ export class OrderService {
       // Handle stock management and notifications
       if (updatedOrder) {
         await this.stockService.handleOrderStatusChange(id, oldStatus, status)
+
+        // 💰 BILLING: Track NEW_ORDER when status becomes CONFIRMED (€1.50)
+        if (
+          status === OrderStatus.CONFIRMED &&
+          oldStatus !== OrderStatus.CONFIRMED
+        ) {
+          try {
+            const customerId = updatedOrder.customerId
+            if (customerId) {
+              await this.billingService.trackNewOrder(
+                workspaceId,
+                customerId,
+                `Order ${updatedOrder.orderCode} confirmed`
+              )
+              logger.info(
+                `[BILLING] 💰 New order confirmed: €1.50 charged for order ${updatedOrder.orderCode} (customer: ${customerId})`
+              )
+            } else {
+              logger.warn(
+                `[BILLING] ⚠️ Cannot track order billing: no customer ID for order ${updatedOrder.orderCode}`
+              )
+            }
+          } catch (billingError) {
+            logger.error(
+              `[BILLING] ❌ Failed to track new order billing for order ${id}:`,
+              billingError
+            )
+            // Don't fail the order status update if billing fails
+          }
+        }
       }
 
       return updatedOrder
@@ -321,13 +378,13 @@ export class OrderService {
 
   private generateOrderCode(): string {
     // Generate 5 random uppercase letters
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    let orderCode = ''
-    
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    let orderCode = ""
+
     for (let i = 0; i < 5; i++) {
       orderCode += letters.charAt(Math.floor(Math.random() * letters.length))
     }
-    
+
     return orderCode
   }
 

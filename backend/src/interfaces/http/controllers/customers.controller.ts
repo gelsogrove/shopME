@@ -1,14 +1,20 @@
+import { PrismaClient } from "@prisma/client"
 import { NextFunction, Request, Response } from "express"
+import { BillingService } from "../../../application/services/billing.service"
 import { CustomerService } from "../../../application/services/customer.service"
 import { pushMessagingService } from "../../../services/push-messaging.service"
 import logger from "../../../utils/logger"
 
+const prisma = new PrismaClient()
+
 export class CustomersController {
   private customerService: CustomerService
+  private billingService: BillingService
   private pushMessagingService = pushMessagingService
 
   constructor() {
     this.customerService = new CustomerService()
+    this.billingService = new BillingService(prisma)
   }
 
   async getCustomersForWorkspace(
@@ -250,6 +256,24 @@ export class CustomersController {
           }
         )
 
+        // 💰 BILLING: Track PUSH_MESSAGE when discount changes (€1.00)
+        try {
+          await this.billingService.trackPushMessage(
+            updatedCustomer.workspaceId,
+            updatedCustomer.id,
+            `Discount changed from ${originalCustomer.discount}% to ${updatedCustomer.discount}%`
+          )
+          logger.info(
+            `[BILLING] 💰 Push message cost for discount change: €1.00 charged for customer-${updatedCustomer.id}`
+          )
+        } catch (billingError) {
+          logger.error(
+            `[BILLING] ❌ Failed to track push message billing for customer-${updatedCustomer.id}:`,
+            billingError
+          )
+          // Don't fail the update operation if billing fails
+        }
+
         await this.pushMessagingService.sendDiscountUpdate(
           updatedCustomer.id,
           updatedCustomer.phone,
@@ -270,6 +294,24 @@ export class CustomersController {
 
         // Only send push notification if chatbot was reactivated (false -> true)
         if (!originalCustomer.activeChatbot && updatedCustomer.activeChatbot) {
+          // 💰 BILLING: Track human support when chatbot is reactivated (€1.00)
+          try {
+            await this.billingService.trackHumanSupport(
+              updatedCustomer.workspaceId,
+              updatedCustomer.id,
+              "Chatbot reactivated after human support"
+            )
+            logger.info(
+              `[BILLING] 💰 Human support cost for customer-${updatedCustomer.id}: €1.00 charged`
+            )
+          } catch (billingError) {
+            logger.error(
+              `[BILLING] ❌ Failed to track human support for customer-${updatedCustomer.id}:`,
+              billingError
+            )
+            // Don't fail the request if billing fails
+          }
+
           const pushResult =
             await this.pushMessagingService.sendChatbotReactivated(
               updatedCustomer.id,
@@ -387,6 +429,9 @@ export class CustomersController {
           workspaceId
         )
 
+        // Note: NEW_CUSTOMER billing (€1.50) is now tracked at registration time
+        // not when admin unblocks, since new users are no longer blocked by default
+
         logger.info("Customer unblocked successfully")
         return res.status(200).json({
           message: "Customer unblocked successfully",
@@ -479,6 +524,26 @@ export class CustomersController {
         workspaceId,
         updateData
       )
+
+      // 💰 BILLING: Track human support when chatbot is reactivated (€1.00)
+      if (activeChatbot === true && existingCustomer.activeChatbot === false) {
+        try {
+          await this.billingService.trackHumanSupport(
+            workspaceId,
+            customerId,
+            "Chatbot reactivated after human support"
+          )
+          logger.info(
+            `[BILLING] 💰 Human support cost for customer-${customerId}: €1.00 - Reason: ${reason || "Chatbot reactivated after human support"}`
+          )
+        } catch (billingError) {
+          logger.error(
+            `[BILLING] ❌ Failed to track human support for customer-${customerId}:`,
+            billingError
+          )
+          // Don't fail the request if billing fails
+        }
+      }
 
       // Logging dettagliato per audit
       logger.info(

@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express"
-import { SecureTokenService } from "../application/services/secure-token.service"
-import { prisma } from "../lib/prisma"
-import logger from "../utils/logger"
+import { SecureTokenService } from "../../../application/services/secure-token.service"
+import { prisma } from "../../../lib/prisma"
+import logger from "../../../utils/logger"
 
 const router = Router()
 const secureTokenService = new SecureTokenService()

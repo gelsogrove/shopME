@@ -1,10 +1,10 @@
 import { Router } from "express"
-import { PushMessagingController } from "../interfaces/http/controllers/push-messaging.controller"
-import { asyncHandler } from "../interfaces/http/middlewares/async.middleware"
-import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"
-import { pushInputValidationMiddleware } from "../interfaces/http/middlewares/push-input-validation.middleware"
-import { pushRateLimitMiddleware } from "../interfaces/http/middlewares/push-rate-limit.middleware"
-import { workspaceAccessMiddleware } from "../interfaces/http/middlewares/workspace-access.middleware"
+import { PushMessagingController } from "../controllers/push-messaging.controller"
+import { asyncHandler } from "../middlewares/async.middleware"
+import { authMiddleware } from "../middlewares/auth.middleware"
+import { pushInputValidationMiddleware } from "../middlewares/push-input-validation.middleware"
+import { pushRateLimitMiddleware } from "../middlewares/push-rate-limit.middleware"
+import { workspaceAccessMiddleware } from "../middlewares/workspace-access.middleware"
 
 export function createPushMessagingRouter(): Router {
   const router = Router()

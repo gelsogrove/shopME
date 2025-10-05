@@ -1,0 +1,18 @@
+// Add after the last model in schema.prisma
+
+model Billing {
+  id          String    @id @default(cuid())
+  workspaceId String
+  customerId  String?
+  amount      Float
+  type        String    // MONTHLY_CHANNEL, LLM_RESPONSE, NEW_CUSTOMER, etc.
+  description String
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  customer    Customers? @relation(fields: [customerId], references: [id])
+
+  @@index([workspaceId])
+  @@index([customerId])
+  @@index([type])
+  @@index([createdAt])
+}

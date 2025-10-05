@@ -1,11 +1,11 @@
 import * as express from "express"
 import { Router } from "express"
-import documentRoutes from "../../../routes/documentRoutes"
 import { AuthController } from "../controllers/auth.controller"
 import { createAuthRouter } from "./auth.routes"
 import { categoriesRouter } from "./categories.routes"
 import { chatRouter } from "./chat.routes"
 import { customersRouter } from "./customers.routes"
+import documentRoutes from "./documentRoutes"
 
 import { createCartTokenRouter } from "./cart-token.routes"
 import { faqsRouter } from "./faqs.routes"

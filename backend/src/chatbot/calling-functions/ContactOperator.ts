@@ -1,3 +1,4 @@
+import { BillingService } from "../../application/services/billing.service"
 import { prisma } from "../../lib/prisma"
 import logger from "../../utils/logger"
 
@@ -6,9 +7,11 @@ import logger from "../../utils/logger"
  *
  * This function handles operator intervention requests from users.
  * It sets the 'activeChatbot' field to false for the customer and returns a confirmation message.
+ * Now also tracks billing for human support at €1.00
  *
  * KISS Principle: Keep It Simple
  * - Just disable chatbot
+ * - Track billing for human support
  * - Return confirmation message
  * - No emails, no AI summaries
  */
@@ -26,6 +29,9 @@ export async function ContactOperator({
   }
 
   try {
+    // Initialize billing service
+    const billingService = new BillingService(prisma)
+
     // Find customer
     const customer = await prisma.customers.findFirst({
       where: customerId
@@ -42,6 +48,17 @@ export async function ContactOperator({
       where: { id: customer.id },
       data: { activeChatbot: false },
     })
+
+    // 💰 Track billing for human support (€1.00)
+    try {
+      await billingService.trackHumanSupport(workspaceId, customer.id)
+      logger.info(
+        `💰 Human support billed €1.00 for workspace ${workspaceId}, customer ${customer.id}`
+      )
+    } catch (billingError) {
+      logger.error("Failed to track human support billing:", billingError)
+      // Don't fail the whole operation if billing fails
+    }
 
     // Risposte multilingua
     const escalationMessages: Record<string, string> = {

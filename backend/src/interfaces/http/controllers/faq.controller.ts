@@ -1,7 +1,11 @@
+import { PrismaClient } from "@prisma/client"
 import { Request, Response } from "express"
+import { BillingService } from "../../../application/services/billing.service"
 import { FaqService } from "../../../application/services/faq.service"
 import { embeddingService } from "../../../services/embeddingService"
 import logger from "../../../utils/logger"
+
+const prisma = new PrismaClient()
 
 /**
  * FaqController class
@@ -9,9 +13,11 @@ import logger from "../../../utils/logger"
  */
 export class FaqController {
   private faqService: FaqService
+  private billingService: BillingService
 
   constructor() {
     this.faqService = new FaqService()
+    this.billingService = new BillingService(prisma)
   }
 
   /**
@@ -160,6 +166,25 @@ export class FaqController {
       }
 
       const faq = await this.faqService.create(faqData)
+
+      // 💰 BILLING: Track NEW_FAQ (€0.50)
+      try {
+        await this.billingService.trackNewFAQ(
+          workspaceId,
+          null, // FAQ created by admin, no specific customer
+          `FAQ created: ${question.substring(0, 50)}...`
+        )
+        logger.info(
+          `[BILLING] 💰 New FAQ created: €0.50 charged (workspace: ${workspaceId})`
+        )
+      } catch (billingError) {
+        logger.error(
+          `[BILLING] ❌ Failed to track new FAQ billing:`,
+          billingError
+        )
+        // Don't fail FAQ creation if billing fails
+      }
+
       // Fire-and-forget: trigger embedding regeneration for FAQs
       embeddingService
         .generateFAQEmbeddings(workspaceId)

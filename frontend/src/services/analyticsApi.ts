@@ -1,5 +1,20 @@
 import { api } from "./api"
 
+export interface LogEntry {
+  id: string
+  type: string // MESSAGE, CUSTOMER, HUMAN_SUPPORT
+  typeLabel: string // Translated label
+  customerId: string | null
+  customerName: string | null
+  customerEmail: string | null
+  description: string
+  userQuery: string | null
+  amount: number // Current charge
+  previousTotal: number
+  newTotal: number
+  timestamp: string
+}
+
 export interface DashboardAnalytics {
   overview: {
     totalOrders: number
@@ -28,6 +43,7 @@ export interface DashboardAnalytics {
     lastOrderDate?: string
     averageOrderValue: number
   }[]
+  logs: LogEntry[] // System logs with all billing details
 }
 
 export interface MonthlyData {

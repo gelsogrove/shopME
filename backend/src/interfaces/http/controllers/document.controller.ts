@@ -1,7 +1,7 @@
-import logger from "../utils/logger"
 import { Request, Response } from "express"
 import { v4 as uuidv4 } from "uuid"
-import { documentService } from "../services/documentService"
+import { documentService } from "../../../services/documentService"
+import logger from "../../../utils/logger"
 import multer = require("multer")
 
 // Configure multer for file upload

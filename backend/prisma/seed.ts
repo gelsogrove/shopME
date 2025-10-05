@@ -214,6 +214,10 @@ async function main() {
     await prisma.secureToken.deleteMany({})
     console.log("✅ Deleted all secure tokens")
 
+    // Delete billing records before workspaces (foreign key)
+    await prisma.billing.deleteMany({})
+    console.log("✅ Deleted all billing records")
+
     // Delete workspaces and users
     await prisma.workspace.deleteMany({})
     await prisma.user.deleteMany({})
@@ -2710,6 +2714,212 @@ async function main() {
   console.log(
     `✅ Portuguese customer created: ${testCustomer4.name} (${testCustomer4.email})`
   )
+
+  // 💰 CREATE BILLING TRANSACTIONS FOR CUSTOMERS
+  console.log("💰 Creating billing transactions...")
+
+  const now = new Date()
+  const minutesAgo = (mins: number) => new Date(now.getTime() - mins * 60000)
+
+  // Mario Rossi transactions
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: testCustomer.id,
+      type: "NEW_CUSTOMER",
+      description: "New customer registration",
+      amount: 1.5,
+      previousTotal: 0,
+      currentCharge: 1.5,
+      newTotal: 1.5,
+      createdAt: minutesAgo(60), // 1 hour ago
+    },
+  })
+
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: testCustomer.id,
+      type: "MESSAGE",
+      description: "Message from +390212345678",
+      userQuery: "Ciao, vorrei informazioni sui prodotti",
+      amount: 0.15,
+      previousTotal: 1.5,
+      currentCharge: 0.15,
+      newTotal: 1.65,
+      createdAt: minutesAgo(55),
+    },
+  })
+
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: testCustomer.id,
+      type: "MESSAGE",
+      description: "Message from +390212345678",
+      userQuery: "Quali sono i vostri orari?",
+      amount: 0.15,
+      previousTotal: 1.65,
+      currentCharge: 0.15,
+      newTotal: 1.8,
+      createdAt: minutesAgo(50),
+    },
+  })
+
+  // João Silva transactions
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: testCustomer4.id,
+      type: "NEW_CUSTOMER",
+      description: "New customer registration",
+      amount: 1.5,
+      previousTotal: 1.8,
+      currentCharge: 1.5,
+      newTotal: 3.3,
+      createdAt: minutesAgo(45),
+    },
+  })
+
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: testCustomer4.id,
+      type: "MESSAGE",
+      description: "Message from +351123456789",
+      userQuery: "Olá, gostaria de saber mais sobre os produtos",
+      amount: 0.15,
+      previousTotal: 3.3,
+      currentCharge: 0.15,
+      newTotal: 3.45,
+      createdAt: minutesAgo(40),
+    },
+  })
+
+  // María García transactions
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: testCustomer2.id,
+      type: "NEW_CUSTOMER",
+      description: "New customer registration",
+      amount: 1.5,
+      previousTotal: 3.45,
+      currentCharge: 1.5,
+      newTotal: 4.95,
+      createdAt: minutesAgo(30),
+    },
+  })
+
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: testCustomer2.id,
+      type: "MESSAGE",
+      description: "Message from +34612345678",
+      userQuery: "Hola, ¿tienen envío a España?",
+      amount: 0.15,
+      previousTotal: 4.95,
+      currentCharge: 0.15,
+      newTotal: 5.1,
+      createdAt: minutesAgo(25),
+    },
+  })
+
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: testCustomer2.id,
+      type: "MESSAGE",
+      description: "Message from +34612345678",
+      userQuery: "¿Cuánto tarda el envío?",
+      amount: 0.15,
+      previousTotal: 5.1,
+      currentCharge: 0.15,
+      newTotal: 5.25,
+      createdAt: minutesAgo(20),
+    },
+  })
+
+  // Pierre Dupont transactions
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: testCustomerMCP.id,
+      type: "NEW_CUSTOMER",
+      description: "New customer registration",
+      amount: 1.5,
+      previousTotal: 5.25,
+      currentCharge: 1.5,
+      newTotal: 6.75,
+      createdAt: minutesAgo(15),
+    },
+  })
+
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: testCustomerMCP.id,
+      type: "MESSAGE",
+      description: "Message from +33612345678",
+      userQuery: "Bonjour, avez-vous des produits bio?",
+      amount: 0.15,
+      previousTotal: 6.75,
+      currentCharge: 0.15,
+      newTotal: 6.9,
+      createdAt: minutesAgo(10),
+    },
+  })
+
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: testCustomer.id,
+      type: "HUMAN_SUPPORT",
+      description: "Customer requested human support",
+      userQuery: "Vorrei parlare con un operatore",
+      amount: 1.0,
+      previousTotal: 6.9,
+      currentCharge: 1.0,
+      newTotal: 7.9,
+      createdAt: minutesAgo(5),
+    },
+  })
+
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: null, // Admin created FAQ
+      type: "NEW_FAQ",
+      description: "FAQ created: Come posso tracciare il mio ordine?",
+      userQuery: null,
+      amount: 0.5,
+      previousTotal: 7.9,
+      currentCharge: 0.5,
+      newTotal: 8.4,
+      createdAt: minutesAgo(3),
+    },
+  })
+
+  await prisma.billing.create({
+    data: {
+      workspaceId: mainWorkspaceId,
+      customerId: null, // System activated offer
+      type: "ACTIVE_OFFER",
+      description: "Offer activated: Offerta primaverile",
+      userQuery: null,
+      amount: 0.5,
+      previousTotal: 8.4,
+      currentCharge: 0.5,
+      newTotal: 8.9,
+      createdAt: minutesAgo(2),
+    },
+  })
+
+  console.log(
+    "✅ Created 13 billing transactions (4 registrations + 6 messages + 1 human support + 1 FAQ + 1 offer)"
+  )
+  console.log("   💰 Total billing: €8.90")
 
   // Create chat sessions and welcome messages for each customer
   console.log("🔄 Creating chat sessions and welcome messages...")

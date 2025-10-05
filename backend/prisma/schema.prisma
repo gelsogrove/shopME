@@ -12,7 +12,7 @@ model Workspace {
   name                      String
   slug                      String            @unique
   whatsappPhoneNumber       String?
-  whatsappApiKey            String?
+  whatsappApiKey           String?
   notificationEmail         String?
   webhookUrl                String?
   isActive                  Boolean           @default(true)
@@ -47,6 +47,7 @@ model Workspace {
   products                  Products[]
   secureTokens              SecureToken[]
   services                  Services[]
+  billings                  Billing[]
   shortUrls                 ShortUrls[]
   usage                     Usage[]
   whatsappSettings          WhatsappSettings?
@@ -137,6 +138,7 @@ model Customers {
   workspace                     Workspace     @relation(fields: [workspaceId], references: [id])
   orders                        Orders[]
   usage                         Usage[]
+  billings                      Billing[]
 
   @@map("customers")
 }
@@ -709,4 +711,36 @@ enum BusinessType {
 enum ItemType {
   PRODUCT
   SERVICE
+}
+
+model Billing {
+  id            String      @id @default(cuid())
+  workspaceId   String
+  customerId    String?
+  amount        Float       // Current charge amount (e.g., €0.15 or €1.50)
+  type          BillingType
+  description   String
+  userQuery     String?     // User's original question/message
+  previousTotal Float       @default(0) // Total before this charge
+  currentCharge Float       @default(0) // Same as amount (for clarity in formula)
+  newTotal      Float       @default(0) // previousTotal + currentCharge = newTotal
+  createdAt     DateTime    @default(now())
+  workspace     Workspace   @relation(fields: [workspaceId], references: [id])
+  customer      Customers?  @relation(fields: [customerId], references: [id])
+
+  @@index([workspaceId])
+  @@index([customerId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum BillingType {
+  MONTHLY_CHANNEL
+  MESSAGE           // Simplified: ogni messaggio costa €0.15
+  NEW_CUSTOMER
+  NEW_ORDER
+  HUMAN_SUPPORT
+  PUSH_MESSAGE
+  NEW_FAQ
+  ACTIVE_OFFER
 }

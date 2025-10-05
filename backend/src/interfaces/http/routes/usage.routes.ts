@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { usageController } from "../controllers/usage.controller";
+import { Router } from "express"
+import { usageController } from "../../../controllers/usage.controller"
 
-const router = Router();
+const router = Router()
 
 /**
  * Usage Dashboard Routes (Read-Only)
@@ -10,12 +10,12 @@ const router = Router();
  */
 
 // GET /api/usage/dashboard/:workspaceId - Get comprehensive dashboard data
-router.get("/dashboard/:workspaceId", usageController.getDashboardData);
+router.get("/dashboard/:workspaceId", usageController.getDashboardData)
 
 // GET /api/usage/stats/:workspaceId - Get usage statistics for dashboard
-router.get("/stats/:workspaceId", usageController.getStats);
+router.get("/stats/:workspaceId", usageController.getStats)
 
 // GET /api/usage/export/:workspaceId - Export usage data (CSV/JSON)
-router.get("/export/:workspaceId", usageController.exportData);
+router.get("/export/:workspaceId", usageController.exportData)
 
-export default router;
+export default router

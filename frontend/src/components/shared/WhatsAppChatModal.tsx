@@ -29,8 +29,10 @@ interface Message {
   agentName?: string
   translatedQuery?: string
   processedPrompt?: string
-  debugInfo?: string | any // 🔧 NEW: Debug information
-  processingSource?: string // 🔧 NEW: Source of the response (LLM/function name)
+  debugInfo?: string | any // 🔧 Debug information
+  processingSource?: string // 🔧 Source of the response (LLM/function name)
+  messageCost?: number // 💰 Cost of this message from Billing table
+  billingType?: string // 💰 Type of billing (MESSAGE, PUSH_MESSAGE, HUMAN_SUPPORT, etc.)
   functionCalls?: Array<{
     functionName: string
     toolCall?: {
@@ -163,7 +165,7 @@ export function WhatsAppChatModal({
       setChatStarted(true)
       fetchMessagesForSelectedChat(localSelectedChat)
     }
-  }, [isOpen, localSelectedChat])
+  }, [isOpen, localSelectedChat, currentWorkspaceId])
 
   // Reset state when modal closes
   useEffect(() => {
@@ -229,6 +231,8 @@ export function WhatsAppChatModal({
           translatedQuery: message.translatedQuery,
           processedPrompt: message.processedPrompt,
           processingSource: message.processingSource, // 🔧 NEW: Source information
+          messageCost: message.messageCost, // 💰 NEW: Message cost from billing
+          billingType: message.billingType, // 💰 NEW: Billing type (MESSAGE, PUSH_MESSAGE, etc.)
           functionCalls: message.functionCallsDebug
             ? (() => {
                 try {
@@ -313,6 +317,9 @@ export function WhatsAppChatModal({
 
     return formattedText
   }
+
+  // 💰 NEW: Fetch current billing totals
+  // Rimosso fetchBillingTotals - ora gestito dal sistema Analytics
 
   const startChat = async () => {
     if (!isValidPhoneNumber(userPhoneNumber)) return
@@ -581,6 +588,8 @@ export function WhatsAppChatModal({
         }
 
         if (botResponse && botResponse.trim() !== "") {
+          // La logica di billing è ora gestita dal backend e visualizzata in Analytics
+
           // Create the bot message from the API response
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
@@ -1281,6 +1290,40 @@ export function WhatsAppChatModal({
                                 </div>
                               </div>
                             )}
+
+                            {/* 💰 NEW: Billing Cost in DEBUG */}
+                            {showFunctionCalls && message.messageCost !== undefined && message.messageCost > 0 && (
+                              <div className="bg-green-50 border border-green-200 rounded p-2">
+                                <div className="text-xs font-semibold text-green-800 mb-1">
+                                  {(() => {
+                                    switch (message.billingType) {
+                                      case 'MESSAGE':
+                                        return '� Message Cost:'
+                                      case 'PUSH_MESSAGE':
+                                        return '📱 Push Notification Cost:'
+                                      case 'HUMAN_SUPPORT':
+                                        return '🤝 Human Support Cost:'
+                                      case 'NEW_CUSTOMER':
+                                        return '👤 New Customer Cost:'
+                                      case 'NEW_ORDER':
+                                        return '📦 New Order Cost:'
+                                      default:
+                                        return '💰 Billing Cost:'
+                                    }
+                                  })()}
+                                </div>
+                                <div className="text-xs text-green-700 font-mono font-bold">
+                                  €{message.messageCost.toFixed(2)}
+                                  {message.billingType && (
+                                    <span className="ml-2 text-gray-500 font-normal">
+                                      ({message.billingType})
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Rimossa sezione pricing information in debug */}
                           </div>
                         )}
 

@@ -180,7 +180,7 @@ app.use("/api/v1", apiRouter)
 app.use("/api", apiRouter)
 
 // Mount workspace routes directly at root for legacy compatibility
-import workspaceRoutesRoot from "./routes/workspace.routes"
+import { workspaceRoutes as workspaceRoutesRoot } from "./interfaces/http/routes/workspace.routes"
 app.use("/workspaces", workspaceRoutesRoot)
 
 // Error handling should be last

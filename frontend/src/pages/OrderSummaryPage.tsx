@@ -188,6 +188,7 @@ const OrderSummaryPage: React.FC = () => {
         body: JSON.stringify({
           workspaceId: orderData?.workspaceId,
           customerId: orderData?.customerId,
+          status: 'CONFIRMED', // 💰 Create order as CONFIRMED to trigger billing
           items: items.map(item => ({
             itemType: item.itemType.toLowerCase(),
             id: item.itemType === 'PRODUCT' ? item.productId : item.serviceId,

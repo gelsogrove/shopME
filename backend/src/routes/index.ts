@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { NextFunction, Request, Response, Router } from "express"
+// BillingService import removed - billing handled by message.repository.ts
 import { linkGeneratorService } from "../application/services/link-generator.service"
 import { OtpService } from "../application/services/otp.service"
 import { PasswordResetService } from "../application/services/password-reset.service"
@@ -8,13 +9,14 @@ import { SecureTokenService } from "../application/services/secure-token.service
 import { SpamDetectionService } from "../application/services/spam-detection.service"
 import { UserService } from "../application/services/user.service"
 import { config } from "../config"
+// BillingPrices import removed - billing handled by message.repository.ts
 import { AuthController } from "../interfaces/http/controllers/auth.controller"
 import { CartTokenController } from "../interfaces/http/controllers/cart-token.controller"
 import { CategoryController } from "../interfaces/http/controllers/category.controller"
 import { ChatController } from "../interfaces/http/controllers/chat.controller"
 import { CustomersController } from "../interfaces/http/controllers/customers.controller"
 import { MessageRepository } from "../repositories/message.repository"
-import { usageService } from "../services/usage.service"
+// usageService import removed - usage tracking handled by message.repository.ts
 import logger from "../utils/logger"
 
 /**
@@ -303,11 +305,11 @@ import { createLanguagesRouter } from "../interfaces/http/routes/languages.route
 // Removed messagesRouter import
 import { offersRouter } from "../interfaces/http/routes/offers.routes"
 import { createOrderRouter } from "../interfaces/http/routes/order.routes"
+import { createPushMessagingRouter } from "../interfaces/http/routes/push-messaging.router"
+import { createPushTestingRouter } from "../interfaces/http/routes/push-testing.router"
 import createRegistrationRouter from "../interfaces/http/routes/registration.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
-import { createPushMessagingRouter } from "./push-messaging.router"
-import { createPushTestingRouter } from "./push-testing.router"
 
 import { checkoutRouter } from "../interfaces/http/routes/checkout.routes"
 // Removed whatsappRouter import
@@ -315,17 +317,17 @@ import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
 // Import the legacy workspace routes that has the /current endpoint
 import workspaceRoutesLegacy from "./workspace.routes"
 // Add these imports for backward compatibility during migration
-import { PromptsController } from "../controllers/prompts.controller"
+import { PromptsController } from "../interfaces/http/controllers/prompts.controller"
 import { SettingsController } from "../interfaces/http/controllers/settings.controller"
 import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"
+import createPromptsRouter from "../interfaces/http/routes/prompts.routes"
 import { createUserRouter } from "../interfaces/http/routes/user.routes"
-import createPromptsRouter from "./prompts.routes"
 // Import document routes
-import documentRoutes from "./documentRoutes"
+import documentRoutes from "../interfaces/http/routes/documentRoutes"
 // Import analytics routes
-import analyticsRoutes from "./analytics.routes"
+import analyticsRoutes from "../interfaces/http/routes/analytics.routes"
 // Import public orders routes (for secure token validation)
-import publicOrdersRoutes from "./public-orders.routes"
+import publicOrdersRoutes from "../interfaces/http/routes/public-orders.routes"
 
 // Simple logging middleware
 const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -1230,17 +1232,10 @@ router.post("/whatsapp/webhook", async (req, res) => {
       })
     }
 
-    // Save message and track usage
+    // Save message and track usage/billing
     if (result.success && result.output) {
       try {
-        // 💰 Calculate LLM cost for this response
-        const llmCost = config.llm.defaultPrice // €0.15 per LLM response
-
-        // Get current total usage for this workspace
-        const usageSummary = await usageService.getUsageSummary(workspaceId, 30)
-        const currentTotalUsage = usageSummary.totalCost
-        const newTotalUsage = currentTotalUsage + llmCost
-
+        // � Save message with response
         await messageRepository.saveMessage({
           workspaceId: workspaceId,
           phoneNumber: phoneNumber,
@@ -1255,29 +1250,13 @@ router.post("/whatsapp/webhook", async (req, res) => {
           processingSource: result.functionCalls?.[0]?.source || "unknown",
           debugInfo: JSON.stringify({
             ...(result.debugInfo || {}),
-            // 💰 Cost tracking info
-            currentCallCost: llmCost,
-            previousTotalUsage: currentTotalUsage,
-            newTotalUsage: newTotalUsage,
             costTimestamp: new Date().toISOString(),
           }),
         })
 
-        // 💰 Track usage for registered customers only
-        if (customerId && customerId !== "unknown") {
-          await usageService.trackUsage({
-            workspaceId: workspaceId,
-            clientId: customerId,
-            price: llmCost,
-          })
-          console.log(
-            `💰 Usage tracked: €${llmCost} for customer ${customerId} (Total: €${newTotalUsage.toFixed(2)})`
-          )
-        } else {
-          console.log(
-            `💰 Usage not tracked: customer not registered (Cost would be: €${llmCost})`
-          )
-        }
+        // 💰 Billing tracking is handled by messageRepository.saveMessage()
+        // (removed duplicate tracking to avoid double billing)
+        console.log(`💰 Billing will be tracked by message.repository.ts`)
 
         // 💾 SAVE MESSAGE RESPONSE - handled by messageRepository.saveMessage() above
         // Assistant response is already saved by messageRepository.saveMessage()
@@ -1355,6 +1334,7 @@ const prisma = new PrismaClient()
 const userService = new UserService(prisma)
 const otpService = new OtpService(prisma)
 const passwordResetService = new PasswordResetService(prisma)
+// billingService removed - billing is now handled by message.repository.ts
 
 // Create controllers in advance
 const cartTokenController = new CartTokenController()
@@ -1460,6 +1440,11 @@ logger.info("Registered FAQs router with workspace routes")
 
 router.use("/settings", createSettingsRouter())
 router.use("/languages", createLanguagesRouter())
+
+// Mount billing routes
+import { billingRouter } from "../interfaces/http/routes/billing.routes"
+router.use("/billing", billingRouter)
+logger.info("Registered billing routes for usage tracking")
 
 // Mount offers routes
 const offersRouterInstance = offersRouter()

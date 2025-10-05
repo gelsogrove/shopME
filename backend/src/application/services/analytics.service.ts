@@ -19,6 +19,7 @@ export interface DashboardAnalytics {
   }
   topProducts: ProductAnalytics[]
   topCustomers: CustomerAnalytics[]
+  logs: LogEntry[] // System logs with all billing details
 }
 
 export interface MonthlyData {
@@ -49,6 +50,21 @@ export interface CustomerAnalytics {
   averageOrderValue: number
 }
 
+export interface LogEntry {
+  id: string
+  type: string // MESSAGE, CUSTOMER, HUMAN_SUPPORT
+  typeLabel: string // Translated label
+  customerId: string | null
+  customerName: string | null
+  customerEmail: string | null
+  description: string
+  userQuery: string | null
+  amount: number // Current charge
+  previousTotal: number
+  newTotal: number
+  timestamp: Date
+}
+
 export class AnalyticsService {
   private prisma: PrismaClient
 
@@ -62,12 +78,12 @@ export class AnalyticsService {
     endDate: Date
   ): Promise<DashboardAnalytics> {
     try {
-      // Get basic data
-      const [orders, customers, messages, usageRecords] = await Promise.all([
+      // Get basic data - NOW USING BILLING TABLE INSTEAD OF USAGE
+      const [orders, customers, messages, billingRecords] = await Promise.all([
         this.getOrdersInDateRange(workspaceId, startDate, endDate),
         this.getCustomersInDateRange(workspaceId, startDate, endDate),
         this.getMessagesInDateRange(workspaceId, startDate, endDate),
-        this.getUsageInDateRange(workspaceId, startDate, endDate),
+        this.getBillingInDateRange(workspaceId, startDate, endDate),
       ])
 
       // Calculate overview metrics
@@ -79,9 +95,15 @@ export class AnalyticsService {
         0
       )
       const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
-      const usageCost = usageRecords.reduce(
-        (sum, record) => sum + (record.price || 0),
+
+      // 💰 NEW: Calculate from Billing table with progressive totals
+      const usageCost = billingRecords.reduce(
+        (sum, record) => sum + (record.amount || 0),
         0
+      )
+
+      logger.info(
+        `[ANALYTICS] 💰 Total cost from Billing: €${usageCost.toFixed(2)} (from ${billingRecords.length} records)`
       )
 
       // Generate historical trends - REAL DATA
@@ -99,10 +121,11 @@ export class AnalyticsService {
         this.generateUsageCostTrends(workspaceId, startDate, endDate),
       ])
 
-      // Get top products and top customers
-      const [topProducts, topCustomers] = await Promise.all([
+      // Get top products, top customers, and system logs
+      const [topProducts, topCustomers, logs] = await Promise.all([
         this.getTopProducts(workspaceId, startDate, endDate),
         this.getTopCustomers(workspaceId, startDate, endDate),
+        this.getSystemLogs(workspaceId, startDate, endDate),
       ])
 
       return {
@@ -123,6 +146,7 @@ export class AnalyticsService {
         },
         topProducts,
         topCustomers,
+        logs,
       }
     } catch (error) {
       logger.error("Analytics error:", error)
@@ -224,7 +248,7 @@ export class AnalyticsService {
     return this.formatMonthlyData(monthlyData)
   }
 
-  // Generate monthly trends for usage cost
+  // Generate monthly trends for usage cost - NOW FROM BILLING TABLE
   private async generateUsageCostTrends(
     workspaceId: string,
     startDate: Date,
@@ -232,14 +256,14 @@ export class AnalyticsService {
   ): Promise<MonthlyData[]> {
     const monthlyData = (await this.prisma.$queryRaw`
       SELECT 
-        EXTRACT(YEAR FROM u."createdAt") as year,
-        EXTRACT(MONTH FROM u."createdAt") as month,
-        COALESCE(SUM(u.price), 0) as total_cost
-      FROM "usage" u
-      WHERE u."workspaceId" = ${workspaceId}
-        AND u."createdAt" >= ${startDate}
-        AND u."createdAt" <= ${endDate}
-      GROUP BY EXTRACT(YEAR FROM u."createdAt"), EXTRACT(MONTH FROM u."createdAt")
+        EXTRACT(YEAR FROM b."createdAt") as year,
+        EXTRACT(MONTH FROM b."createdAt") as month,
+        COALESCE(SUM(b.amount), 0) as total_cost
+      FROM "Billing" b
+      WHERE b."workspaceId" = ${workspaceId}
+        AND b."createdAt" >= ${startDate}
+        AND b."createdAt" <= ${endDate}
+      GROUP BY EXTRACT(YEAR FROM b."createdAt"), EXTRACT(MONTH FROM b."createdAt")
       ORDER BY year, month
     `) as { year: number; month: number; total_cost: number }[]
 
@@ -469,6 +493,94 @@ export class AnalyticsService {
     })
   }
 
+  // 💰 NEW: Get billing records instead of usage
+  private async getBillingInDateRange(
+    workspaceId: string,
+    startDate: Date,
+    endDate: Date
+  ) {
+    return await this.prisma.billing.findMany({
+      where: {
+        workspaceId,
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    })
+  }
+
+  // 📋 NEW: Get system logs with full details and translations
+  private async getSystemLogs(
+    workspaceId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<LogEntry[]> {
+    const billingRecords = await this.prisma.billing.findMany({
+      where: {
+        workspaceId,
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc", // Most recent first
+      },
+    })
+
+    // Translate type labels
+    const typeLabels: Record<string, string> = {
+      MESSAGE: "💬 Message",
+      CUSTOMER: "👤 New Customer",
+      HUMAN_SUPPORT: "🤝 Human Support",
+      NEW_CUSTOMER: "👤 New Customer",
+    }
+
+    // 💰 RECALCULATE progressive totals for WORKSPACE (not per customer)
+    // Sort by createdAt ASC for calculation, then reverse to DESC for display
+    const sortedForCalculation = [...billingRecords].sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+    )
+
+    let runningTotal = 0
+    const withProgressiveTotals = sortedForCalculation.map((record) => {
+      const previousWorkspaceTotal = runningTotal
+      runningTotal += record.amount
+
+      return {
+        id: record.id,
+        type: record.type,
+        typeLabel: typeLabels[record.type] || record.type,
+        customerId: record.customerId,
+        customerName: record.customer?.name || null,
+        customerEmail: record.customer?.email || null,
+        description: record.description,
+        userQuery: record.userQuery,
+        amount: record.amount,
+        previousTotal: previousWorkspaceTotal, // WORKSPACE total, not customer total
+        newTotal: runningTotal, // WORKSPACE cumulative total
+        timestamp: record.createdAt,
+      }
+    })
+
+    // Return in DESC order (most recent first)
+    return withProgressiveTotals.reverse()
+  }
+
+  // Keep old method for backward compatibility (deprecated)
   private async getUsageInDateRange(
     workspaceId: string,
     startDate: Date,
