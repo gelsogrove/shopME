@@ -107,14 +107,8 @@ export const WorkspaceProvider = ({ children }: WorkspaceProviderProps) => {
   // Salva il workspace nel localStorage quando cambia
   useEffect(() => {
     if (currentWorkspace) {
-      localStorage.setItem(
-        "currentWorkspace",
-        JSON.stringify(currentWorkspace)
-      )
-      logger.info(
-        "🏢 Workspace saved to localStorage:",
-        currentWorkspace.name
-      )
+      localStorage.setItem("currentWorkspace", JSON.stringify(currentWorkspace))
+      logger.info("🏢 Workspace saved to localStorage:", currentWorkspace.name)
     }
   }, [currentWorkspace])
 

@@ -1,4 +1,4 @@
-import { api } from './api'
+import { api } from "./api"
 
 export interface Language {
   id: string
@@ -29,12 +29,12 @@ export interface UpdateWorkspaceData {
 
 const workspaceApi = {
   async getAll(): Promise<Workspace[]> {
-    const response = await api.get('/workspaces')
+    const response = await api.get("/workspaces")
     return response.data
   },
 
   async getCurrent(): Promise<Workspace> {
-    const response = await api.get('/workspaces/current')
+    const response = await api.get("/workspaces/current")
     return response.data
   },
 
@@ -44,7 +44,7 @@ const workspaceApi = {
   },
 
   async create(data: CreateWorkspaceData): Promise<Workspace> {
-    const response = await api.post('/workspaces', data)
+    const response = await api.post("/workspaces", data)
     return response.data
   },
 

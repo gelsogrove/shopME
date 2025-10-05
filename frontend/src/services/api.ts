@@ -30,7 +30,7 @@ api.interceptors.request.use(
       {
         data: config.data || {},
         headers: config.headers,
-        baseURL: config.baseURL
+        baseURL: config.baseURL,
       }
     )
 
@@ -45,7 +45,9 @@ api.interceptors.request.use(
         logger.info(`🔧 Adding x-workspace-id header: ${workspaceId}`)
         config.headers["x-workspace-id"] = workspaceId
       } else {
-        logger.warn(`⚠️ No workspace ID found in localStorage for request to ${config.url}`)
+        logger.warn(
+          `⚠️ No workspace ID found in localStorage for request to ${config.url}`
+        )
       }
     }
 
@@ -68,7 +70,7 @@ api.interceptors.response.use(
       {
         data: response.data,
         status: response.status,
-        headers: response.headers
+        headers: response.headers,
       }
     )
     return response
@@ -79,7 +81,7 @@ api.interceptors.response.use(
       status: error.response?.status,
       data: error.response?.data,
       config: error.config,
-      message: error.message
+      message: error.message,
     })
 
     // Handle authentication errors (401)
