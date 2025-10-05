@@ -69,16 +69,16 @@ Ogni metodo:
 
 Il sistema addebita automaticamente i costi in base a specifici trigger:
 
-| Trigger                   | Tipo di Billing               | Descrizione                                            | Implementazione                                           |
-| ------------------------- | ----------------------------- | ------------------------------------------------------ | --------------------------------------------------------- |
-| Registrazione utente      | NEW_CUSTOMER (€1.50)          | Quando un nuovo utente completa la registrazione       | `registration.controller.ts` - `trackRegistrationCost()`  |
+| Trigger                   | Tipo di Billing               | Descrizione                                            | Implementazione                                              |
+| ------------------------- | ----------------------------- | ------------------------------------------------------ | ------------------------------------------------------------ |
+| Registrazione utente      | NEW_CUSTOMER (€1.50)          | Quando un nuovo utente completa la registrazione       | `registration.controller.ts` - `trackRegistrationCost()`     |
 | Conferma ordine           | NEW_ORDER (€1.50)             | Quando un ordine viene confermato (status=CONFIRMED)   | `order.service.ts` - `createOrder()` + `updateOrderStatus()` |
-| Riattivazione chatbot     | HUMAN_SUPPORT (€1.00)         | Quando l'admin riattiva il chatbot dopo supporto umano | `customers.controller.ts` - `handleAutomaticPushMessages()` |
-| Creazione FAQ             | NEW_FAQ (€0.50)               | Quando viene creata una nuova FAQ                      | `faq.controller.ts` - `createFaq()`                       |
-| Attivazione offerta       | ACTIVE_OFFER (€0.50)          | Quando un'offerta viene attivata                       | `offer.controller.ts` - `updateOffer()`                   |
-| Messaggio chatbot         | MESSAGE (€0.15)               | Quando un messaggio viene inviato al chatbot           | `message.repository.ts` - `saveMessage()`                 |
-| Cambio percentuale sconto | PUSH_MESSAGE (€1.00)          | Quando si modifica la % di sconto di un cliente        | `customers.controller.ts` - `handleAutomaticPushMessages()` |
-| Primo giorno di ogni mese | MONTHLY_CHANNEL_COST (€19.00) | Canone mensile fisso per il canale di comunicazione    | `scheduler.service.ts` - `trackMonthlyChannelCost()`      |
+| Riattivazione chatbot     | HUMAN_SUPPORT (€1.00)         | Quando l'admin riattiva il chatbot dopo supporto umano | `customers.controller.ts` - `handleAutomaticPushMessages()`  |
+| Creazione FAQ             | NEW_FAQ (€0.50)               | Quando viene creata una nuova FAQ                      | `faq.controller.ts` - `createFaq()`                          |
+| Attivazione offerta       | ACTIVE_OFFER (€0.50)          | Quando un'offerta viene attivata                       | `offer.controller.ts` - `updateOffer()`                      |
+| Messaggio chatbot         | MESSAGE (€0.15)               | Quando un messaggio viene inviato al chatbot           | `message.repository.ts` - `saveMessage()`                    |
+| Cambio percentuale sconto | PUSH_MESSAGE (€1.00)          | Quando si modifica la % di sconto di un cliente        | `customers.controller.ts` - `handleAutomaticPushMessages()`  |
+| Primo giorno di ogni mese | MONTHLY_CHANNEL_COST (€19.00) | Canone mensile fisso per il canale di comunicazione    | `scheduler.service.ts` - `trackMonthlyChannelCost()`         |
 
 ### Prevenzione Double Charging
 
@@ -95,10 +95,7 @@ if (createdOrder.status === OrderStatus.CONFIRMED) {
 
 // OPZIONE B: Ordine che passa da PENDING → CONFIRMED
 // In order.service.ts -> updateOrderStatus()
-if (
-  status === OrderStatus.CONFIRMED &&
-  oldStatus !== OrderStatus.CONFIRMED
-) {
+if (status === OrderStatus.CONFIRMED && oldStatus !== OrderStatus.CONFIRMED) {
   await this.billingService.trackNewOrder(workspaceId, customerId, orderCode)
 }
 ```

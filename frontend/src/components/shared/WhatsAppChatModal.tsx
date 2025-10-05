@@ -1292,36 +1292,38 @@ export function WhatsAppChatModal({
                             )}
 
                             {/* 💰 NEW: Billing Cost in DEBUG */}
-                            {showFunctionCalls && message.messageCost !== undefined && message.messageCost > 0 && (
-                              <div className="bg-green-50 border border-green-200 rounded p-2">
-                                <div className="text-xs font-semibold text-green-800 mb-1">
-                                  {(() => {
-                                    switch (message.billingType) {
-                                      case 'MESSAGE':
-                                        return '� Message Cost:'
-                                      case 'PUSH_MESSAGE':
-                                        return '📱 Push Notification Cost:'
-                                      case 'HUMAN_SUPPORT':
-                                        return '🤝 Human Support Cost:'
-                                      case 'NEW_CUSTOMER':
-                                        return '👤 New Customer Cost:'
-                                      case 'NEW_ORDER':
-                                        return '📦 New Order Cost:'
-                                      default:
-                                        return '💰 Billing Cost:'
-                                    }
-                                  })()}
+                            {showFunctionCalls &&
+                              message.messageCost !== undefined &&
+                              message.messageCost > 0 && (
+                                <div className="bg-green-50 border border-green-200 rounded p-2">
+                                  <div className="text-xs font-semibold text-green-800 mb-1">
+                                    {(() => {
+                                      switch (message.billingType) {
+                                        case "MESSAGE":
+                                          return "� Message Cost:"
+                                        case "PUSH_MESSAGE":
+                                          return "📱 Push Notification Cost:"
+                                        case "HUMAN_SUPPORT":
+                                          return "🤝 Human Support Cost:"
+                                        case "NEW_CUSTOMER":
+                                          return "👤 New Customer Cost:"
+                                        case "NEW_ORDER":
+                                          return "📦 New Order Cost:"
+                                        default:
+                                          return "💰 Billing Cost:"
+                                      }
+                                    })()}
+                                  </div>
+                                  <div className="text-xs text-green-700 font-mono font-bold">
+                                    €{message.messageCost.toFixed(2)}
+                                    {message.billingType && (
+                                      <span className="ml-2 text-gray-500 font-normal">
+                                        ({message.billingType})
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="text-xs text-green-700 font-mono font-bold">
-                                  €{message.messageCost.toFixed(2)}
-                                  {message.billingType && (
-                                    <span className="ml-2 text-gray-500 font-normal">
-                                      ({message.billingType})
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                              )}
 
                             {/* Rimossa sezione pricing information in debug */}
                           </div>

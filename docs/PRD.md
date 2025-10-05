@@ -824,16 +824,16 @@ Il sistema di billing traccia automaticamente tutti i costi secondo la pricing l
 
 **Pricing List Ufficiale (Ottobre 2025):**
 
-| Servizio | Costo | Descrizione |
-|----------|-------|-------------|
-| **MONTHLY_CHANNEL** | €19.00 | Costo fisso mensile per workspace |
-| **MESSAGE** | €0.15 | Costo per messaggio/interazione |
-| **NEW_CUSTOMER** | €1.50 | Costo per nuovo cliente (alla registrazione) |
-| **NEW_ORDER** | €1.50 | Costo per nuovo ordine |
-| **HUMAN_SUPPORT** | €1.00 | Costo per riattivazione chatbot dopo supporto umano |
-| **PUSH_MESSAGE** | €1.00 | Costo per notifica push (cambio sconto) |
-| **NEW_FAQ** | €0.50 | Costo per creazione nuova FAQ |
-| **ACTIVE_OFFER** | €0.50 | Costo per attivazione offerta |
+| Servizio            | Costo  | Descrizione                                         |
+| ------------------- | ------ | --------------------------------------------------- |
+| **MONTHLY_CHANNEL** | €19.00 | Costo fisso mensile per workspace                   |
+| **MESSAGE**         | €0.15  | Costo per messaggio/interazione                     |
+| **NEW_CUSTOMER**    | €1.50  | Costo per nuovo cliente (alla registrazione)        |
+| **NEW_ORDER**       | €1.50  | Costo per nuovo ordine                              |
+| **HUMAN_SUPPORT**   | €1.00  | Costo per riattivazione chatbot dopo supporto umano |
+| **PUSH_MESSAGE**    | €1.00  | Costo per notifica push (cambio sconto)             |
+| **NEW_FAQ**         | €0.50  | Costo per creazione nuova FAQ                       |
+| **ACTIVE_OFFER**    | €0.50  | Costo per attivazione offerta                       |
 
 ### **✅ Architettura Implementata**
 
@@ -881,16 +881,16 @@ CREATE INDEX idx_billing_type ON Billing(type);
 
 #### **🎯 Trigger di Billing Automatici**
 
-| Quando | Cosa viene addebitato | Dove |
-|--------|----------------------|------|
-| Utente si registra | NEW_CUSTOMER (€1.50) | `registration.controller.ts` |
-| Messaggio chatbot | MESSAGE (€0.15) | `message.repository.ts` |
-| Ordine confermato | NEW_ORDER (€1.50) | `order.service.ts` |
-| Riattivazione chatbot | HUMAN_SUPPORT (€1.00) | `customers.controller.ts` |
-| Cambio sconto | PUSH_MESSAGE (€1.00) | `customers.controller.ts` |
-| Creazione FAQ | NEW_FAQ (€0.50) | `faq.controller.ts` |
-| Attivazione offerta | ACTIVE_OFFER (€0.50) | `offer.controller.ts` |
-| Inizio mese | MONTHLY_CHANNEL (€19.00) | `scheduler.service.ts` |
+| Quando                | Cosa viene addebitato    | Dove                         |
+| --------------------- | ------------------------ | ---------------------------- |
+| Utente si registra    | NEW_CUSTOMER (€1.50)     | `registration.controller.ts` |
+| Messaggio chatbot     | MESSAGE (€0.15)          | `message.repository.ts`      |
+| Ordine confermato     | NEW_ORDER (€1.50)        | `order.service.ts`           |
+| Riattivazione chatbot | HUMAN_SUPPORT (€1.00)    | `customers.controller.ts`    |
+| Cambio sconto         | PUSH_MESSAGE (€1.00)     | `customers.controller.ts`    |
+| Creazione FAQ         | NEW_FAQ (€0.50)          | `faq.controller.ts`          |
+| Attivazione offerta   | ACTIVE_OFFER (€0.50)     | `offer.controller.ts`        |
+| Inizio mese           | MONTHLY_CHANNEL (€19.00) | `scheduler.service.ts`       |
 
 #### **🔄 Flusso Esempio - Messaggio**
 

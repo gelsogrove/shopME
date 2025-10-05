@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Label } from "../components/ui/label"
 
 interface OrderItem {
-  itemType: 'PRODUCT' | 'SERVICE'
+  itemType: "PRODUCT" | "SERVICE"
   productId?: string
   serviceId?: string
   productCode?: string
@@ -30,7 +30,7 @@ interface OrderSummaryData {
 const OrderSummaryPage: React.FC = () => {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
-  
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [orderData, setOrderData] = useState<OrderSummaryData | null>(null)
@@ -43,26 +43,27 @@ const OrderSummaryPage: React.FC = () => {
     const loadOrderData = async () => {
       try {
         setLoading(true)
-        
+
         const response = await fetch(`/api/internal/checkout/${token}`, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         })
 
         if (!response.ok) {
-          throw new Error('Token non valido o scaduto')
+          throw new Error("Token non valido o scaduto")
         }
 
         const data = await response.json()
         setOrderData(data)
         setItems(data.items || [])
         setTotalAmount(data.totalAmount || 0)
-        
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Errore nel caricamento ordine')
-        toast.error('Errore nel caricamento dell\'ordine')
+        setError(
+          err instanceof Error ? err.message : "Errore nel caricamento ordine"
+        )
+        toast.error("Errore nel caricamento dell'ordine")
       } finally {
         setLoading(false)
       }
@@ -82,12 +83,12 @@ const OrderSummaryPage: React.FC = () => {
   // Update item quantity
   const updateQuantity = (index: number, newQuantity: number) => {
     if (newQuantity < 1) return
-    
+
     const updatedItems = [...items]
     updatedItems[index] = {
       ...updatedItems[index],
       quantity: newQuantity,
-      totalPrice: updatedItems[index].unitPrice * newQuantity
+      totalPrice: updatedItems[index].unitPrice * newQuantity,
     }
     setItems(updatedItems)
   }
@@ -96,7 +97,7 @@ const OrderSummaryPage: React.FC = () => {
   const removeItem = (index: number) => {
     const updatedItems = items.filter((_, i) => i !== index)
     setItems(updatedItems)
-    toast.success('Elemento rimosso dall\'ordine')
+    toast.success("Elemento rimosso dall'ordine")
   }
 
   // Add product from catalog
@@ -106,19 +107,19 @@ const OrderSummaryPage: React.FC = () => {
       const product = await showProductCatalog()
       if (product) {
         const newItem: OrderItem = {
-          itemType: 'PRODUCT',
+          itemType: "PRODUCT",
           productId: product.id,
           productCode: product.code,
           name: product.name,
           quantity: 1,
           unitPrice: product.price,
-          totalPrice: product.price
+          totalPrice: product.price,
         }
         setItems([...items, newItem])
         toast.success(`${product.name} aggiunto all'ordine`)
       }
     } catch (err) {
-      toast.error('Errore nell\'aggiunta del prodotto')
+      toast.error("Errore nell'aggiunta del prodotto")
     }
   }
 
@@ -129,19 +130,19 @@ const OrderSummaryPage: React.FC = () => {
       const service = await showServiceCatalog()
       if (service) {
         const newItem: OrderItem = {
-          itemType: 'SERVICE',
+          itemType: "SERVICE",
           serviceId: service.id,
           serviceCode: service.code,
           name: service.name,
           quantity: 1,
           unitPrice: service.price,
-          totalPrice: service.price
+          totalPrice: service.price,
         }
         setItems([...items, newItem])
         toast.success(`${service.name} aggiunto all'ordine`)
       }
     } catch (err) {
-      toast.error('Errore nell\'aggiunta del servizio')
+      toast.error("Errore nell'aggiunta del servizio")
     }
   }
 
@@ -152,10 +153,10 @@ const OrderSummaryPage: React.FC = () => {
     return new Promise((resolve) => {
       // Mock implementation - in real app this would be a modal
       resolve({
-        id: 'mock-product',
-        code: 'MOCK001',
-        name: 'Prodotto di Test',
-        price: 10.00
+        id: "mock-product",
+        code: "MOCK001",
+        name: "Prodotto di Test",
+        price: 10.0,
       })
     })
   }
@@ -167,10 +168,10 @@ const OrderSummaryPage: React.FC = () => {
     return new Promise((resolve) => {
       // Mock implementation - in real app this would be a modal
       resolve({
-        id: 'mock-service',
-        code: 'SERV001',
-        name: 'Servizio di Test',
-        price: 15.00
+        id: "mock-service",
+        code: "SERV001",
+        name: "Servizio di Test",
+        price: 15.0,
       })
     })
   }
@@ -179,40 +180,39 @@ const OrderSummaryPage: React.FC = () => {
   const confirmOrder = async () => {
     try {
       setIsConfirmed(true)
-      
-      const response = await fetch('/api/internal/create-order', {
-        method: 'POST',
+
+      const response = await fetch("/api/internal/create-order", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           workspaceId: orderData?.workspaceId,
           customerId: orderData?.customerId,
-          status: 'CONFIRMED', // 💰 Create order as CONFIRMED to trigger billing
-          items: items.map(item => ({
+          status: "CONFIRMED", // 💰 Create order as CONFIRMED to trigger billing
+          items: items.map((item) => ({
             itemType: item.itemType.toLowerCase(),
-            id: item.itemType === 'PRODUCT' ? item.productId : item.serviceId,
+            id: item.itemType === "PRODUCT" ? item.productId : item.serviceId,
             name: item.name,
             quantity: item.quantity,
-            unitPrice: item.unitPrice
+            unitPrice: item.unitPrice,
           })),
-          notes: 'Order confirmed via WhatsApp - OrderSummaryPage'
-        })
+          notes: "Order confirmed via WhatsApp - OrderSummaryPage",
+        }),
       })
 
       if (!response.ok) {
-        throw new Error('Errore nella creazione dell\'ordine')
+        throw new Error("Errore nella creazione dell'ordine")
       }
 
       const result = await response.json()
-              toast.success('Order confirmed successfully!')
-      
+      toast.success("Order confirmed successfully!")
+
       // Redirect to order confirmation
       navigate(`/orders/${result.orderCode}`)
-      
     } catch (err) {
       setIsConfirmed(false)
-              toast.error('Error confirming order')
+      toast.error("Error confirming order")
     }
   }
 
@@ -256,7 +256,8 @@ const OrderSummaryPage: React.FC = () => {
               Riepilogo Ordine
             </CardTitle>
             <p className="text-gray-600">
-              Verify the selected products and services before confirming the order
+              Verify the selected products and services before confirming the
+              order
             </p>
           </CardHeader>
         </Card>
@@ -295,58 +296,82 @@ const OrderSummaryPage: React.FC = () => {
                   <div className="text-center py-8 text-gray-500">
                     <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No products or services selected</p>
-                    <p className="text-sm">Add products or services from the catalog</p>
+                    <p className="text-sm">
+                      Add products or services from the catalog
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {items.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-4 border rounded-lg"
+                      >
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2">
-                            {item.itemType === 'PRODUCT' ? (
+                            {item.itemType === "PRODUCT" ? (
                               <Package className="h-5 w-5 text-blue-600" />
                             ) : (
                               <Truck className="h-5 w-5 text-green-600" />
                             )}
-                            <Badge variant={item.itemType === 'PRODUCT' ? 'default' : 'secondary'}>
-                              {item.itemType === 'PRODUCT' ? 'Product' : 'Service'}
+                            <Badge
+                              variant={
+                                item.itemType === "PRODUCT"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {item.itemType === "PRODUCT"
+                                ? "Product"
+                                : "Service"}
                             </Badge>
                           </div>
                           <div>
                             <h4 className="font-medium">{item.name}</h4>
                             <p className="text-sm text-gray-500">
-                              Code: {item.itemType === 'PRODUCT' ? item.productCode : item.serviceCode}
+                              Code:{" "}
+                              {item.itemType === "PRODUCT"
+                                ? item.productCode
+                                : item.serviceCode}
                             </p>
                             <p className="text-sm text-gray-600">
                               €{item.unitPrice.toFixed(2)} cad.
                             </p>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => updateQuantity(index, item.quantity - 1)}
+                              onClick={() =>
+                                updateQuantity(index, item.quantity - 1)
+                              }
                               disabled={item.quantity <= 1}
                             >
                               <Minus className="h-4 w-4" />
                             </Button>
-                            <Label className="w-12 text-center">{item.quantity}</Label>
+                            <Label className="w-12 text-center">
+                              {item.quantity}
+                            </Label>
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => updateQuantity(index, item.quantity + 1)}
+                              onClick={() =>
+                                updateQuantity(index, item.quantity + 1)
+                              }
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
                           </div>
-                          
+
                           <div className="text-right">
-                            <p className="font-medium">€{item.totalPrice.toFixed(2)}</p>
+                            <p className="font-medium">
+                              €{item.totalPrice.toFixed(2)}
+                            </p>
                           </div>
-                          
+
                           <Button
                             variant="outline"
                             size="sm"
@@ -374,28 +399,27 @@ const OrderSummaryPage: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span>Total ({items.length} items)</span>
-                    <span className="font-bold text-lg">€{totalAmount.toFixed(2)}</span>
+                    <span className="font-bold text-lg">
+                      €{totalAmount.toFixed(2)}
+                    </span>
                   </div>
-                  
-                  
+
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">
                       ⏰ Link valid for 1 hour
                     </p>
-                    <p className="text-sm text-gray-600">
-                      🔐 Secure checkout
-                    </p>
+                    <p className="text-sm text-gray-600">🔐 Secure checkout</p>
                   </div>
-                  
+
                   <Button
                     onClick={confirmOrder}
                     disabled={items.length === 0 || isConfirmed}
                     className="w-full"
                     size="lg"
                   >
-                    {isConfirmed ? 'Confirming...' : 'Confirm Order'}
+                    {isConfirmed ? "Confirming..." : "Confirm Order"}
                   </Button>
-                  
+
                   <p className="text-xs text-gray-500 text-center">
                     Once confirmed, the order cannot be modified
                   </p>

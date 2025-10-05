@@ -240,20 +240,25 @@ export class MessageRepository {
             new Date(billing.createdAt).getTime() -
               new Date(message.createdAt).getTime()
           )
-          
+
           // Check time proximity (5 seconds tolerance)
           if (timeDiff >= 5000) return false
-          
+
           // Match billing type to message direction
           const isInbound = message.direction === "INBOUND"
           const isOutbound = message.direction === "OUTBOUND"
-          
+
           // MESSAGE billing should only attach to INBOUND messages
           if (billing.type === "MESSAGE" && !isInbound) return false
-          
+
           // PUSH_MESSAGE and HUMAN_SUPPORT should only attach to OUTBOUND messages
-          if ((billing.type === "PUSH_MESSAGE" || billing.type === "HUMAN_SUPPORT") && !isOutbound) return false
-          
+          if (
+            (billing.type === "PUSH_MESSAGE" ||
+              billing.type === "HUMAN_SUPPORT") &&
+            !isOutbound
+          )
+            return false
+
           return true
         })
 
