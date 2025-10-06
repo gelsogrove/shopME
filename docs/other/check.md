@@ -27,17 +27,15 @@ Voglio parlare con un operatore.
 
 FASE 1
 
-- chat history tab
-
 FASE 2
 
-- servizi add
-- unformare migration.sql?
-- fociuxd on the link
+- test genearale
 - recent troppo frequenti
+- il seed cancella tabella link?
 
 POPUP NUOVO ORDINE
 
+- unformare migration.sql?
 - pulire il DB
 - system log come possiamo migliorarlo ? o spostarlo?
 - 2AUYH
@@ -54,11 +52,8 @@ POPUP NUOVO ORDINE
 - websocket su new order
 - cateogorie si possoon tigliere?
 - rate LImit
-
-SICUREZZA:
-
 - siamo sicuri che passiamo sempre il workspceID
-- login di sicurezza
+- login in sicurezza
 
 > > TODO <<
 

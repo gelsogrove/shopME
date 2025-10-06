@@ -264,24 +264,9 @@ export class LLMService {
         customerId: customer.id,
         workspaceId: workspace.id,
       })
-      let linkUrl = checkoutLink?.linkUrl || ""
+      const linkUrl = checkoutLink?.linkUrl || ""
 
-      // Create short URL if we have a valid long URL
-      if (linkUrl) {
-        try {
-          const shortResult = await urlShortenerService.createShortUrl(
-            linkUrl,
-            workspace.id
-          )
-          linkUrl = `http://localhost:3001${shortResult.shortUrl}`
-          console.log(`📎 LLMService: Created short checkout link: ${linkUrl}`)
-        } catch (error) {
-          console.warn(
-            "⚠️ LLMService: Failed to create short URL, using long URL:",
-            error
-          )
-        }
-      }
+      console.log(`📎 LLMService: Using checkout link: ${linkUrl}`)
 
       finalResponse = finalResponse.replace(
         "[LINK_CHECKOUT_WITH_TOKEN]",
@@ -294,19 +279,20 @@ export class LLMService {
 
     // Replace profile link token
     if (finalResponse.includes("[LINK_PROFILE_WITH_TOKEN]")) {
-      const profileResult =
-        await this.callingFunctionsService.replaceLinkWithToken(
-          finalResponse,
-          "profile",
-          customer.id,
-          workspace.id
-        )
+      const profileLink = await this.callingFunctionsService.getProfileLink({
+        customerId: customer.id,
+        workspaceId: workspace.id,
+      })
+      let linkUrl = profileLink?.linkUrl || ""
+
+      console.log(`📎 LLMService: Created short profile link: ${linkUrl}`)
+
       finalResponse = finalResponse.replace(
         "[LINK_PROFILE_WITH_TOKEN]",
-        profileResult?.message?.match(/https?:\/\/[^\s)]+/)?.[0] || ""
+        linkUrl
       )
       tokenReplacements.push(
-        "REPLACE LINK_PROFILE_WITH_TOKEN with replaceLinkWithToken"
+        "REPLACE LINK_PROFILE_WITH_TOKEN with getProfileLink"
       )
     }
 
@@ -316,24 +302,9 @@ export class LLMService {
         customerId: customer.id,
         workspaceId: workspace.id,
       })
-      let linkUrl = ordersLink?.linkUrl || ""
+      const linkUrl = ordersLink?.linkUrl || ""
 
-      // Create short URL if we have a valid long URL
-      if (linkUrl) {
-        try {
-          const shortResult = await urlShortenerService.createShortUrl(
-            linkUrl,
-            workspace.id
-          )
-          linkUrl = `http://localhost:3001${shortResult.shortUrl}`
-          console.log(`📎 LLMService: Created short orders link: ${linkUrl}`)
-        } catch (error) {
-          console.warn(
-            "⚠️ LLMService: Failed to create short URL for orders, using long URL:",
-            error
-          )
-        }
-      }
+      console.log(`📎 LLMService: Using orders link: ${linkUrl}`)
 
       finalResponse = finalResponse.replace("[LINK_ORDERS_WITH_TOKEN]", linkUrl)
       tokenReplacements.push(
@@ -379,14 +350,14 @@ export class LLMService {
         function: {
           name: "GetShipmentTrackingLink",
           description:
-            "Fornisce il link per tracciare la spedizione dell'ordine dell'utente. Usare quando l'utente vuole sapere dove si trova fisicamente il pacco o lo stato di spedizione. Se specificato un numero d'ordine, usa quello; altrimenti usa l'ultimo ordine.",
+            "⚠️ USA QUESTA FUNZIONE quando l'utente chiede 'DOV'È' o 'DOVE' (= dove si trova FISICAMENTE il pacco). Esempi: 'dov'è il mio ordine?', 'dov'è il mio ultimo ordine?', 'dove l'ordine XXX?', 'quando arriva?', 'tracking'. Fornisce link per tracciare la SPEDIZIONE FISICA del pacco con corriere.",
           parameters: {
             type: "object",
             properties: {
               orderCode: {
                 type: "string",
                 description:
-                  "Il codice dell'ordine da tracciare. Se l'utente specifica un numero d'ordine (es. 'dove ordine ORD-123'), usa quello. Se dice 'ultimo ordine' usa lastordercode. Opzionale.",
+                  "Il codice dell'ordine da tracciare (es. 'ORD-2025-001'). LASCIA VUOTO se l'utente dice 'ultimo ordine' o 'mio ordine' senza specificare codice. OPZIONALE.",
               },
             },
             required: [],
@@ -398,17 +369,17 @@ export class LLMService {
         function: {
           name: "GetLinkOrderByCode",
           description:
-            "Fornisce il link per visualizzare un ordine specifico tramite codice ordine. Usare quando l'utente vuole vedere un ordine specifico, la fattura, o dice 'ultimo ordine'.",
+            "⚠️ USA QUESTA FUNZIONE (NON il token LINK_ORDERS_WITH_TOKEN) quando l'utente chiede di vedere UN SINGOLO ORDINE SPECIFICO o l'ULTIMO ORDINE. Esempi: 'dov'è il mio ultimo ordine?', 'mostrami ultimo ordine', 'voglio vedere l'ordine ORD-123', 'dammi la fattura dell'ultimo ordine'. Fornisce il link per visualizzare i dettagli completi di un ordine.",
           parameters: {
             type: "object",
             properties: {
               orderCode: {
                 type: "string",
                 description:
-                  "Il codice dell'ordine da visualizzare. Se l'utente dice 'ultimo ordine' usa il lastordercode.",
+                  "Il codice dell'ordine da visualizzare (es. 'ORD-2025-001'). Se l'utente dice 'ultimo ordine' o 'mio ultimo ordine' LASCIA VUOTO questo campo e il sistema userà automaticamente lastordercode. OPZIONALE.",
               },
             },
-            required: ["orderCode"],
+            required: [],
           },
         },
       },

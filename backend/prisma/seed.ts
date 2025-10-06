@@ -53,7 +53,7 @@ const defaultAgent = {
   department: null,
   promptName: "SofIA - Gusto Italiano Assistant",
   model: "anthropic/claude-3.5-haiku",
-  temperature: 0.3,
+  temperature: 0, // ✅ Set to 0 for deterministic checkout link behavior
 }
 
 // Andrea's Two-LLM Architecture - LLM 1 RAG Processor Prompt (Agent Settings)

@@ -241,7 +241,15 @@ export class CallingFunctionsService {
       )
       console.log("🔧 Token created successfully:", token)
 
-      const linkUrl = `${config.frontendUrl}/checkout?token=${token}`
+      // Use centralized link generator for consistent URL shortening
+      const {
+        linkGeneratorService,
+      } = require("../application/services/link-generator.service")
+
+      const linkUrl = await linkGeneratorService.generateCheckoutLink(
+        token,
+        request.workspaceId
+      )
 
       return {
         success: true,
@@ -253,6 +261,48 @@ export class CallingFunctionsService {
       }
     } catch (error) {
       return this.createErrorResponse(error, "getCartLink") as TokenResponse
+    }
+  }
+
+  public async getProfileLink(
+    request: GetCartLinkRequest
+  ): Promise<TokenResponse> {
+    try {
+      console.log("🔧 Calling getProfileLink with:", request)
+
+      console.log("🔧 About to create token...")
+      const token = await this.secureTokenService.createToken(
+        "profile",
+        request.workspaceId,
+        { customerId: request.customerId },
+        "1h",
+        undefined,
+        undefined,
+        undefined,
+        request.customerId
+      )
+      console.log("🔧 Token created successfully:", token)
+
+      // Use centralized link generator for consistent URL shortening
+      const {
+        linkGeneratorService,
+      } = require("../application/services/link-generator.service")
+
+      const linkUrl = await linkGeneratorService.generateProfileLink(
+        token,
+        request.workspaceId
+      )
+
+      return {
+        success: true,
+        token: token,
+        linkUrl: linkUrl,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        action: "profile",
+        timestamp: new Date().toISOString(),
+      }
+    } catch (error) {
+      return this.createErrorResponse(error, "getProfileLink") as TokenResponse
     }
   }
 
