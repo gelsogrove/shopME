@@ -3,6 +3,7 @@
 ## 📋 Problema Risolto
 
 L'LLM confondeva quando usare:
+
 - `GetShipmentTrackingLink` (tracking fisico della spedizione)
 - `GetLinkOrderByCode` (dettagli/fattura ordine)
 - `[LINK_ORDERS_WITH_TOKEN]` (lista completa ordini)
@@ -12,11 +13,13 @@ L'LLM confondeva quando usare:
 ### 1. Distinzione Chiara dei Casi d'Uso
 
 #### `GetShipmentTrackingLink` - Tracking Fisico
+
 **QUANDO**: Utente chiede **DOVE SI TROVA FISICAMENTE** il pacco
 
 **TRIGGER KEYWORDS**: "dov'è", "dove", "tracking", "quando arriva"
 
 **ESEMPI**:
+
 - ✅ "dov'è il mio ordine?"
 - ✅ "dov'è il mio ultimo ordine?"
 - ✅ "dove l'ordine XXX?"
@@ -24,16 +27,19 @@ L'LLM confondeva quando usare:
 - ✅ "tracking ordine ORD-123"
 
 **PARAMETRI**:
+
 - `orderCode` (optional): se non specificato usa `{{lastordercode}}`
 
 ---
 
 #### `GetLinkOrderByCode` - Dettagli Ordine
+
 **QUANDO**: Utente vuole **VEDERE DETTAGLI/FATTURA** di un ordine specifico
 
 **TRIGGER KEYWORDS**: "dammi", "mostrami", "voglio vedere", "fattura"
 
 **ESEMPI**:
+
 - ✅ "dammi ultimo ordine"
 - ✅ "dammi ordine ORD-123"
 - ✅ "mostrami ultimo ordine"
@@ -41,16 +47,19 @@ L'LLM confondeva quando usare:
 - ✅ "voglio la fattura dell'ordine XXX"
 
 **PARAMETRI**:
+
 - `orderCode` (optional): se non specificato usa `{{lastordercode}}`
 
 ---
 
 #### `[LINK_ORDERS_WITH_TOKEN]` - Lista Completa
+
 **QUANDO**: Utente vuole vedere la **LISTA DI TUTTI** gli ordini
 
 **TRIGGER KEYWORDS**: "tutti", "lista", "storico"
 
 **ESEMPI**:
+
 - ✅ "voglio vedere tutti i miei ordini"
 - ✅ "mostrami la lista degli ordini"
 - ✅ "storico ordini"
@@ -64,6 +73,7 @@ L'LLM confondeva quando usare:
 #### File: `backend/src/services/llm.service.ts`
 
 **GetShipmentTrackingLink**:
+
 ```typescript
 {
   type: "function",
@@ -85,6 +95,7 @@ L'LLM confondeva quando usare:
 ```
 
 **GetLinkOrderByCode**:
+
 ```typescript
 {
   type: "function",
@@ -110,12 +121,14 @@ L'LLM confondeva quando usare:
 #### File: `docs/other/prompt_agent.md`
 
 **Sezione GetShipmentTrackingLink**:
+
 ```markdown
 ## 📦 GetShipmentTrackingLink(orderCode)
 
 **QUANDO USARE**: Quando l'utente chiede **DOVE SI TROVA FISICAMENTE** il pacco/ordine (tracking della spedizione)
 
 **TRIGGER SEMANTICI con "DOV'È" o "DOVE"**:
+
 - "dov'è il mio ordine?"
 - "dov'è il mio ultimo ordine?"
 - "dove è il mio ordine?"
@@ -123,6 +136,7 @@ L'LLM confondeva quando usare:
 - "dove l'ordine XXX?"
 
 **TRIGGER SEMANTICI per TRACKING/ARRIVO**:
+
 - "tracking del mio ordine"
 - "quando arriva il mio ordine?"
 - "tracking ordine ORD-123-2024"
@@ -132,12 +146,14 @@ L'LLM confondeva quando usare:
 ```
 
 **Sezione GetLinkOrderByCode**:
+
 ```markdown
 ## 📄 GetLinkOrderByCode(ordine)
 
 **QUANDO USARE**: L'utente vuole **vedere un ordine specifico**, **dettagli** o **fattura** di UN SINGOLO ORDINE.
 
 **TRIGGER SEMANTICI**:
+
 - Dammi la fattura dell'ordine ORD-123-2024
 - Dammi ordine ORD-123-2024
 - Dammi ultimo ordine
@@ -152,10 +168,12 @@ L'LLM confondeva quando usare:
 ```
 
 **Sezione FAQ**:
+
 ```markdown
 🚨 **REGOLE CRITICHE PER LE FAQ**:
 
 **⚠️ PRIORITÀ DELLE FAQ**:
+
 - Le FAQ hanno PRIORITÀ GENERALE sulle calling functions
 - **ECCEZIONI** (le calling functions hanno priorità):
   - "dov'è il mio ordine" / "dov'è ultimo ordine" → usa `GetShipmentTrackingLink()`
@@ -170,6 +188,7 @@ L'LLM confondeva quando usare:
 #### Flusso Completo
 
 **GetShipmentTrackingLink**:
+
 ```
 User: "dov'è il mio ordine?"
   ↓
@@ -189,6 +208,7 @@ Response: http://localhost:3001/s/ABC123
 ```
 
 **GetLinkOrderByCode**:
+
 ```
 User: "dammi ultimo ordine"
   ↓
@@ -212,6 +232,7 @@ Response: http://localhost:3001/s/XYZ789
 ## 🧪 Test Validazione
 
 ### Test Case 1: Tracking Fisico
+
 ```bash
 Input: "dov'è il mio ultimo ordine"
 Expected Function: GetShipmentTrackingLink
@@ -219,6 +240,7 @@ Status: ✅ PASS
 ```
 
 ### Test Case 2: Dettagli Ordine
+
 ```bash
 Input: "dammi ultimo ordine"
 Expected Function: GetLinkOrderByCode
@@ -226,6 +248,7 @@ Status: ✅ PASS
 ```
 
 ### Test Case 3: Lista Completa
+
 ```bash
 Input: "voglio vedere tutti i miei ordini"
 Expected: [LINK_ORDERS_WITH_TOKEN] token
@@ -265,11 +288,13 @@ Status: ✅ PASS (da FAQ)
 ## 👤 Note Finali
 
 Questa soluzione risolve la confusione dell'LLM distinguendo chiaramente:
+
 - **Posizione fisica** (tracking con corriere)
 - **Dettagli ordine** (fattura, bolla, info ordine)
 - **Lista ordini** (storico completo)
 
 La chiave è stata:
+
 1. Keywords differenti ("dov'è" vs "dammi")
 2. Descriptions esplicite nelle function definitions
 3. Priorità corretta tra FAQ e calling functions

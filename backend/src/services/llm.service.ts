@@ -1,7 +1,6 @@
 import * as fs from "fs"
 import * as path from "path"
 import { TokenService } from "../application/services/token.service"
-import { urlShortenerService } from "../application/services/url-shortener.service"
 import { LLMRequest } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
 import { PromptProcessorService } from "./prompt-processor.service"
