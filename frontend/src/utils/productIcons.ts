@@ -247,6 +247,59 @@ export function getProductIcon(
   return "📦"
 }
 
+// Service icon mappings
+const SERVICE_ICONS: ProductIconMap = {
+  // Installation & Technical
+  installazione: "🔧",
+  montaggio: "🔧",
+  riparazione: "🔨",
+  manutenzione: "🛠️",
+  assistenza: "👷",
+  consulenza: "💼",
+
+  // Delivery & Transport
+  consegna: "🚚",
+  trasporto: "🚛",
+  spedizione: "📦",
+
+  // Cleaning & Maintenance
+  pulizia: "🧹",
+  lavaggio: "💧",
+  sanificazione: "🧼",
+
+  // Design & Planning
+  progettazione: "📐",
+  design: "🎨",
+  planning: "📋",
+
+  // Training & Support
+  formazione: "📚",
+  training: "🎓",
+  supporto: "🆘",
+  help: "❓",
+
+  // Default
+  servizio: "🛠️",
+  service: "🛠️",
+}
+
+/**
+ * Get icon for a service based on its name
+ */
+export function getServiceIcon(serviceName: string): string {
+  const normalizedName = serviceName.toLowerCase().trim()
+
+  // Try to match service keywords
+  for (const [keyword, icon] of Object.entries(SERVICE_ICONS)) {
+    if (normalizedName.includes(keyword)) {
+      return icon
+    }
+  }
+
+  // Default service icon
+  return "🛠️"
+}
+
 /**
  * Get all available icons (for testing/preview)
  */

@@ -7,43 +7,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { logger } from "@/lib/logger"
 import { clientsApi } from "@/services/clientsApi"
 import {
-    ordersApi,
-    type ItemType,
-    type Order,
-    type OrderStatus,
-    type PaymentMethod,
+  ordersApi,
+  type ItemType,
+  type Order,
+  type OrderStatus,
+  type PaymentMethod,
 } from "@/services/ordersApi"
 import { productsApi } from "@/services/productsApi"
 import { servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
+import { getProductIcon, getServiceIcon } from "@/utils/productIcons"
 import {
-    Download,
-    FileText,
-    Package,
-    Pencil,
-    Plus,
-    ShoppingCart,
-    Trash2,
-    Truck,
-    Wrench,
+  Download,
+  FileText,
+  Package,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  Truck,
+  Wrench,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -98,9 +99,7 @@ function CartItemEditSheet({
   const [trackingNumber, setTrackingNumber] = useState<string>(
     order?.trackingNumber || ""
   )
-  const [notes, setNotes] = useState<string>(
-    order?.notes || ""
-  )
+  const [notes, setNotes] = useState<string>(order?.notes || "")
 
   useEffect(() => {
     if (open && order) {
@@ -500,14 +499,22 @@ function CartItemEditSheet({
                 <div className="text-gray-700 leading-relaxed">
                   {order.shippingAddress ? (
                     <div className="space-y-1">
-                      {(order.shippingAddress.street || order.shippingAddress.address) && (
-                        <div>{order.shippingAddress.street || order.shippingAddress.address}</div>
+                      {(order.shippingAddress.street ||
+                        order.shippingAddress.address) && (
+                        <div>
+                          {order.shippingAddress.street ||
+                            order.shippingAddress.address}
+                        </div>
                       )}
                       {order.shippingAddress.city && (
                         <div>{order.shippingAddress.city}</div>
                       )}
-                      {(order.shippingAddress.zipCode || order.shippingAddress.postalCode) && (
-                        <div>{order.shippingAddress.zipCode || order.shippingAddress.postalCode}</div>
+                      {(order.shippingAddress.zipCode ||
+                        order.shippingAddress.postalCode) && (
+                        <div>
+                          {order.shippingAddress.zipCode ||
+                            order.shippingAddress.postalCode}
+                        </div>
                       )}
                       {order.shippingAddress.province && (
                         <div>{order.shippingAddress.province}</div>
@@ -516,7 +523,9 @@ function CartItemEditSheet({
                         <div>{order.shippingAddress.country}</div>
                       )}
                       {order.shippingAddress.phone && (
-                        <div className="text-sm text-gray-600">📞 {order.shippingAddress.phone}</div>
+                        <div className="text-sm text-gray-600">
+                          📞 {order.shippingAddress.phone}
+                        </div>
                       )}
                     </div>
                   ) : (
@@ -606,8 +615,20 @@ function CartItemEditSheet({
                       item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT")
                     const itemName =
                       itemType === "PRODUCT"
-                        ? item.product?.name || (item.productId ? `Product ${item.productId}` : "Unknown Product")
-                        : item.service?.name || (item.serviceId ? `Service ${item.serviceId}` : "Unknown Service")
+                        ? item.product?.name ||
+                          (item.productId
+                            ? `Product ${item.productId}`
+                            : "Unknown Product")
+                        : item.service?.name ||
+                          (item.serviceId
+                            ? `Service ${item.serviceId}`
+                            : "Unknown Service")
+
+                    // Get icon
+                    const icon =
+                      itemType === "PRODUCT"
+                        ? getProductIcon(itemName, item.product?.categoria)
+                        : getServiceIcon(itemName)
 
                     return (
                       <div
@@ -617,6 +638,7 @@ function CartItemEditSheet({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4 flex-1">
                             <div className="flex items-center gap-2">
+                              <span className="text-2xl">{icon}</span>
                               {itemType === "PRODUCT" ? (
                                 <Package className="h-5 w-5 text-blue-600" />
                               ) : (
@@ -1402,8 +1424,23 @@ function OrderCrudSheet({
                       serviceName ||
                       productName ||
                       (itemType === "SERVICE"
-                        ? (item.serviceId ? `Service ${item.serviceId}` : "Unknown Service")
-                        : (item.productId ? `Product ${item.productId}` : "Unknown Product"))
+                        ? item.serviceId
+                          ? `Service ${item.serviceId}`
+                          : "Unknown Service"
+                        : item.productId
+                        ? `Product ${item.productId}`
+                        : "Unknown Product")
+
+                    // Get icon
+                    const icon =
+                      itemType === "PRODUCT"
+                        ? getProductIcon(
+                            productName || item.product?.name || "",
+                            item.product?.categoria
+                          )
+                        : getServiceIcon(
+                            serviceName || item.service?.name || ""
+                          )
 
                     return (
                       <div
@@ -1412,6 +1449,7 @@ function OrderCrudSheet({
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
+                            <span className="text-lg">{icon}</span>
                             <Badge variant="outline" className="text-xs">
                               {itemType === "PRODUCT" ? "Product" : "Service"}
                             </Badge>
@@ -1799,7 +1837,6 @@ export default function OrdersPage() {
     toast.info(`Edit customer: ${customer.name} (Feature coming soon)`)
   }
 
-
   const handleCustomerNavigation = (customer: any) => {
     if (!customer?.id) {
       toast.error("Customer information not available")
@@ -1812,60 +1849,60 @@ export default function OrdersPage() {
   const handleDownloadInvoice = async (order: Order) => {
     try {
       const response = await fetch(`/api/orders/${order.orderCode}/invoice`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       })
 
       if (!response.ok) {
-        throw new Error('Failed to download invoice')
+        throw new Error("Failed to download invoice")
       }
 
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
+      const a = document.createElement("a")
       a.href = url
       a.download = `invoice-${order.orderCode}.pdf`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-      
-      toast.success('Invoice downloaded successfully')
+
+      toast.success("Invoice downloaded successfully")
     } catch (error) {
-      logger.error('Error downloading invoice:', error)
-      toast.error('Failed to download invoice')
+      logger.error("Error downloading invoice:", error)
+      toast.error("Failed to download invoice")
     }
   }
 
   const handleDownloadDdt = async (order: Order) => {
     try {
       const response = await fetch(`/api/orders/${order.orderCode}/ddt`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       })
 
       if (!response.ok) {
-        throw new Error('Failed to download delivery note')
+        throw new Error("Failed to download delivery note")
       }
 
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
+      const a = document.createElement("a")
       a.href = url
       a.download = `delivery-note-${order.orderCode}.pdf`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-      
-      toast.success('Delivery note downloaded successfully')
+
+      toast.success("Delivery note downloaded successfully")
     } catch (error) {
-      logger.error('Error downloading delivery note:', error)
-      toast.error('Failed to download delivery note')
+      logger.error("Error downloading delivery note:", error)
+      toast.error("Failed to download delivery note")
     }
   }
 
@@ -1943,8 +1980,10 @@ export default function OrdersPage() {
       cell: ({ row }: { row: { original: Order } }) => {
         const customerName = row.original.customer?.name || "Unknown Customer"
         const companyName = row.original.customer?.company || ""
-        const displayText = companyName ? `${customerName} (${companyName})` : customerName
-        
+        const displayText = companyName
+          ? `${customerName} (${companyName})`
+          : customerName
+
         return (
           <span
             className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
@@ -2084,7 +2123,7 @@ export default function OrdersPage() {
     logger.info(`[DELETE ORDER] Attempting to delete order:`, {
       orderId: selectedOrder.id,
       orderCode: selectedOrder.orderCode,
-      workspaceId: workspace.id
+      workspaceId: workspace.id,
     })
 
     try {

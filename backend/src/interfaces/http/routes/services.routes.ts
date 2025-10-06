@@ -54,12 +54,50 @@ import { WorkspaceRequest } from "../types/workspace-request"
 export const servicesRouter = (controller: ServicesController): Router => {
   const router = Router({ mergeParams: true })
 
-  // All routes require authentication
+  // PUBLIC ENDPOINT: Get services by workspace ID (no auth required for checkout page)
+  // This must be BEFORE authMiddleware to remain public
+  /**
+   * @swagger
+   * /api/services:
+   *   get:
+   *     summary: Get all services for a workspace (public endpoint)
+   *     tags: [Services]
+   *     parameters:
+   *       - in: header
+   *         name: x-workspace-id
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: ID of the workspace
+   *     responses:
+   *       200:
+   *         description: List of services
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/Service'
+   */
+  router.get(
+    "/public",
+    workspaceValidationMiddleware,
+    (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+      controller.getServicesForWorkspace(req, res).catch(next)
+    }
+  )
+
+  // All other routes require authentication
   router.use(authMiddleware)
-  
+
   // All routes require workspace validation
   router.use(workspaceValidationMiddleware)
-  
+
   /**
    * @swagger
    * /api/workspaces/{workspaceId}/services:
@@ -86,10 +124,14 @@ export const servicesRouter = (controller: ServicesController): Router => {
    *                 $ref: '#/components/schemas/Service'
    */
   // @ts-ignore
-  router.get("/", workspaceContextMiddleware, (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
-    controller.getServicesForWorkspace(req, res).catch(next);
-  })
-  
+  router.get(
+    "/",
+    workspaceContextMiddleware,
+    (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+      controller.getServicesForWorkspace(req, res).catch(next)
+    }
+  )
+
   /**
    * @swagger
    * /api/workspaces/{workspaceId}/services:
@@ -144,9 +186,13 @@ export const servicesRouter = (controller: ServicesController): Router => {
    *               $ref: '#/components/schemas/Service'
    */
   // @ts-ignore
-  router.post("/", workspaceContextMiddleware, (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
-    controller.createService(req, res).catch(next);
-  })
+  router.post(
+    "/",
+    workspaceContextMiddleware,
+    (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+      controller.createService(req, res).catch(next)
+    }
+  )
 
   /**
    * @swagger
@@ -180,10 +226,14 @@ export const servicesRouter = (controller: ServicesController): Router => {
    *         description: Service not found
    */
   // @ts-ignore
-  router.get("/:id", workspaceContextMiddleware, (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
-    controller.getServiceById(req, res).catch(next);
-  })
-  
+  router.get(
+    "/:id",
+    workspaceContextMiddleware,
+    (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+      controller.getServiceById(req, res).catch(next)
+    }
+  )
+
   /**
    * @swagger
    * /api/workspaces/{workspaceId}/services/{id}:
@@ -241,10 +291,14 @@ export const servicesRouter = (controller: ServicesController): Router => {
    *         description: Service not found
    */
   // @ts-ignore
-  router.put("/:id", workspaceContextMiddleware, (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
-    controller.updateService(req, res).catch(next);
-  })
-  
+  router.put(
+    "/:id",
+    workspaceContextMiddleware,
+    (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+      controller.updateService(req, res).catch(next)
+    }
+  )
+
   /**
    * @swagger
    * /api/workspaces/{workspaceId}/services/{id}:
@@ -273,9 +327,13 @@ export const servicesRouter = (controller: ServicesController): Router => {
    *         description: Service not found
    */
   // @ts-ignore
-  router.delete("/:id", workspaceContextMiddleware, (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
-    controller.deleteService(req, res).catch(next);
-  })
+  router.delete(
+    "/:id",
+    workspaceContextMiddleware,
+    (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+      controller.deleteService(req, res).catch(next)
+    }
+  )
 
   /**
    * @swagger
@@ -323,9 +381,13 @@ export const servicesRouter = (controller: ServicesController): Router => {
    *         description: Failed to generate service embeddings
    */
   // @ts-ignore
-  router.post("/generate-embeddings", workspaceContextMiddleware, (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
-    controller.generateEmbeddings(req, res).catch(next);
-  })
+  router.post(
+    "/generate-embeddings",
+    workspaceContextMiddleware,
+    (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+      controller.generateEmbeddings(req, res).catch(next)
+    }
+  )
 
   return router
-} 
+}

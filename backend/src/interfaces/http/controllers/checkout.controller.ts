@@ -71,7 +71,7 @@ export class CheckoutController {
 
       logger.info(`[CHECKOUT] Token validated for customer ${customer.id}`)
 
-      // Get customer cart products from database
+      // Get customer cart products AND services from database
       const cart = await prisma.carts.findFirst({
         where: {
           customerId: customer.id,
@@ -81,13 +81,18 @@ export class CheckoutController {
           items: {
             include: {
               product: true,
+              service: true,
             },
           },
         },
       })
 
       // Calculate prices with discounts applied
-      const productIds = cart?.items.map((item) => item.productId) || []
+      // 🎯 Filter out null productIds (from SERVICE items)
+      const productIds =
+        cart?.items
+          .filter((item) => item.productId !== null)
+          .map((item) => item.productId) || []
       const priceResult =
         await this.priceCalculationService.calculatePricesWithDiscounts(
           secureToken.workspaceId,
@@ -111,9 +116,42 @@ export class CheckoutController {
       let totalAmount = 0
       const cartItems =
         cart?.items.map((item) => {
+          // Handle SERVICE items
+          if (item.itemType === "SERVICE" && item.service) {
+            const originalPrice = item.service.price || 0
+            const customerDiscount = customer.discount || 0
+            const discountAmount =
+              customerDiscount > 0
+                ? (originalPrice * customerDiscount) / 100
+                : 0
+            const finalPrice = originalPrice - discountAmount
+            const itemTotal = finalPrice * item.quantity
+            totalAmount += itemTotal
+
+            return {
+              id: item.id,
+              itemType: "SERVICE",
+              serviceId: item.serviceId,
+              codice: item.service.code || "N/A",
+              descrizione: item.service.name,
+              formato: null,
+              duration: item.service.duration,
+              notes: item.notes,
+              prezzo: finalPrice,
+              prezzoOriginale: originalPrice,
+              scontoApplicato: customerDiscount,
+              fonteSconto: customerDiscount > 0 ? "customer" : undefined,
+              nomeSconto:
+                customerDiscount > 0 ? "Customer Discount" : undefined,
+              qty: item.quantity,
+              total: itemTotal,
+            }
+          }
+
+          // Handle PRODUCT items
           const priceInfo = productPriceMap.get(item.productId) || {
-            finalPrice: item.product.price,
-            originalPrice: item.product.price,
+            finalPrice: item.product?.price || 0,
+            originalPrice: item.product?.price || 0,
             appliedDiscount: 0,
             discountSource: undefined,
             discountName: undefined,
@@ -124,10 +162,11 @@ export class CheckoutController {
 
           return {
             id: item.id,
+            itemType: "PRODUCT",
             productId: item.productId,
-            codice: item.product.ProductCode || item.product.sku || "N/A",
-            descrizione: item.product.name,
-            formato: item.product.formato,
+            codice: item.product?.ProductCode || item.product?.sku || "N/A",
+            descrizione: item.product?.name || "Unknown Product",
+            formato: item.product?.formato,
             prezzo: priceInfo.finalPrice,
             prezzoOriginale: priceInfo.originalPrice,
             scontoApplicato: priceInfo.appliedDiscount,
@@ -249,8 +288,16 @@ export class CheckoutController {
       // Generate order code
       const orderCode = await this.generateOrderCode()
 
+      // Separate products from services
+      const productItems = prodotti.filter(
+        (item: any) => item.itemType === "PRODUCT" || !item.serviceId
+      )
+      const serviceItems = prodotti.filter(
+        (item: any) => item.itemType === "SERVICE" && item.serviceId
+      )
+
       // Find products by code to get productId
-      const productCodes = prodotti.map((item: any) => item.codice)
+      const productCodes = productItems.map((item: any) => item.codice)
       const products = await prisma.products.findMany({
         where: {
           ProductCode: { in: productCodes },
@@ -262,6 +309,23 @@ export class CheckoutController {
       const productMap = new Map()
       products.forEach((product) => {
         productMap.set(product.ProductCode, product.id)
+      })
+
+      // Find services by serviceId
+      const serviceIds = serviceItems
+        .map((item: any) => item.serviceId)
+        .filter(Boolean)
+      const services = await prisma.services.findMany({
+        where: {
+          id: { in: serviceIds },
+          workspaceId: workspaceId,
+        },
+      })
+
+      // Create a map of serviceId -> service
+      const serviceMap = new Map()
+      services.forEach((service) => {
+        serviceMap.set(service.id, service)
       })
 
       // Create order
@@ -278,17 +342,38 @@ export class CheckoutController {
           customerId,
           workspaceId,
           items: {
-            create: prodotti.map((item: any) => ({
-              itemType: "PRODUCT",
-              quantity: item.qty,
-              unitPrice: item.prezzo,
-              totalPrice: item.prezzo * item.qty,
-              productId: productMap.get(item.codice), // ✅ CORRECT: Save productId from productCode lookup
-              productVariant: {
-                codice: item.codice,
-                descrizione: item.descrizione,
-              },
-            })),
+            create: [
+              // PRODUCT items
+              ...productItems.map((item: any) => ({
+                itemType: "PRODUCT",
+                quantity: item.qty,
+                unitPrice: item.prezzo,
+                totalPrice: item.prezzo * item.qty,
+                productId: productMap.get(item.codice), // ✅ CORRECT: Save productId from productCode lookup
+                productVariant: {
+                  codice: item.codice,
+                  descrizione: item.descrizione,
+                  formato: item.formato,
+                },
+              })),
+              // SERVICE items
+              ...serviceItems.map((item: any) => {
+                const service = serviceMap.get(item.serviceId)
+                return {
+                  itemType: "SERVICE",
+                  quantity: item.qty || 1,
+                  unitPrice: item.prezzo,
+                  totalPrice: item.prezzo * (item.qty || 1),
+                  serviceId: item.serviceId,
+                  productVariant: {
+                    codice: item.codice || service?.code || "N/A",
+                    descrizione: item.descrizione,
+                    duration: item.duration,
+                    notes: item.notes,
+                  },
+                }
+              }),
+            ],
           },
         },
         include: {

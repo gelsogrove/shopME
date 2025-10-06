@@ -17,6 +17,7 @@ export interface PublicPageTexts {
   // Common actions
   save: string
   cancel: string
+  close: string
   edit: string
   delete: string
   confirm: string
@@ -39,12 +40,18 @@ export interface PublicPageTexts {
 
   // Cart labels
   product: string
+  service: string
+  productBadge: string
+  serviceBadge: string
   quantity: string
   price: string
   total: string
   discount: string
   originalPrice: string
   finalPrice: string
+  format: string
+  duration: string
+  notes: string
 
   // Order labels
   orderCode: string
@@ -73,6 +80,7 @@ export interface PublicPageTexts {
   // Checkout specific
   yourProducts: string
   addProducts: string
+  addServices: string
   emptyCart: string
   addProductsToContinue: string
   confirmOrder: string
@@ -159,6 +167,7 @@ export const publicPageTranslations: Record<
     // Common actions
     save: "Salva",
     cancel: "Annulla",
+    close: "Chiudi",
     edit: "Modifica",
     delete: "Elimina",
     confirm: "Conferma",
@@ -181,12 +190,18 @@ export const publicPageTranslations: Record<
 
     // Cart labels
     product: "Prodotto",
+    service: "Servizio",
+    productBadge: "PRODOTTO",
+    serviceBadge: "SERVIZIO",
     quantity: "Quantità",
     price: "Prezzo",
     total: "Totale",
     discount: "Sconto",
     originalPrice: "Prezzo Originale",
     finalPrice: "Prezzo Finale",
+    format: "Formato",
+    duration: "Durata",
+    notes: "Note",
 
     // Order labels
     orderCode: "Codice Ordine",
@@ -214,7 +229,8 @@ export const publicPageTranslations: Record<
 
     // Checkout specific
     yourProducts: "I Tuoi Prodotti",
-    addProducts: "+ Aggiungi",
+    addProducts: "Aggiungi Prodotti",
+    addServices: "Aggiungi Servizi",
     emptyCart: "Il tuo carrello è vuoto",
     addProductsToContinue: "Aggiungi prodotti per continuare",
     confirmOrder: "Conferma Ordine",
@@ -299,6 +315,7 @@ export const publicPageTranslations: Record<
     // Common actions
     save: "Save",
     cancel: "Cancel",
+    close: "Close",
     edit: "Edit",
     delete: "Delete",
     confirm: "Confirm",
@@ -321,12 +338,18 @@ export const publicPageTranslations: Record<
 
     // Cart labels
     product: "Product",
+    service: "Service",
+    productBadge: "PRODUCT",
+    serviceBadge: "SERVICE",
     quantity: "Quantity",
     price: "Price",
     total: "Total",
     discount: "Discount",
     originalPrice: "Original Price",
     finalPrice: "Final Price",
+    format: "Format",
+    duration: "Duration",
+    notes: "Notes",
 
     // Order labels
     orderCode: "Order Code",
@@ -354,7 +377,8 @@ export const publicPageTranslations: Record<
 
     // Checkout specific
     yourProducts: "Your Products",
-    addProducts: "+ Add",
+    addProducts: "Add Products",
+    addServices: "Add Services",
     emptyCart: "Your cart is empty",
     addProductsToContinue: "Add products to continue",
     confirmOrder: "Confirm Order",
@@ -439,6 +463,7 @@ export const publicPageTranslations: Record<
     // Common actions
     save: "Guardar",
     cancel: "Cancelar",
+    close: "Cerrar",
     edit: "Editar",
     delete: "Eliminar",
     confirm: "Confirmar",
@@ -461,12 +486,18 @@ export const publicPageTranslations: Record<
 
     // Cart labels
     product: "Producto",
+    service: "Servicio",
+    productBadge: "PRODUCTO",
+    serviceBadge: "SERVICIO",
     quantity: "Cantidad",
     price: "Precio",
     total: "Total",
     discount: "Descuento",
     originalPrice: "Precio Original",
     finalPrice: "Precio Final",
+    format: "Formato",
+    duration: "Duración",
+    notes: "Notas",
 
     // Order labels
     orderCode: "Código de Pedido",
@@ -494,7 +525,8 @@ export const publicPageTranslations: Record<
 
     // Checkout specific
     yourProducts: "Tus Productos",
-    addProducts: "+ Agregar",
+    addProducts: "Agregar Productos",
+    addServices: "Agregar Servicios",
     emptyCart: "Tu carrito está vacío",
     addProductsToContinue: "Agrega productos para continuar",
     confirmOrder: "Confirmar Pedido",
@@ -579,6 +611,7 @@ export const publicPageTranslations: Record<
     // Common actions
     save: "Salvar",
     cancel: "Cancelar",
+    close: "Fechar",
     edit: "Editar",
     delete: "Excluir",
     confirm: "Confirmar",
@@ -601,12 +634,18 @@ export const publicPageTranslations: Record<
 
     // Cart labels
     product: "Produto",
+    service: "Serviço",
+    productBadge: "PRODUTO",
+    serviceBadge: "SERVIÇO",
     quantity: "Quantidade",
     price: "Preço",
     total: "Total",
     discount: "Desconto",
     originalPrice: "Preço Original",
     finalPrice: "Preço Final",
+    format: "Formato",
+    duration: "Duração",
+    notes: "Notas",
 
     // Order labels
     orderCode: "Código do Pedido",
@@ -634,7 +673,8 @@ export const publicPageTranslations: Record<
 
     // Checkout specific
     yourProducts: "Seus Produtos",
-    addProducts: "+ Adicionar",
+    addProducts: "Adicionar Produtos",
+    addServices: "Adicionar Serviços",
     emptyCart: "Seu carrinho está vazio",
     addProductsToContinue: "Adicione produtos para continuar",
     confirmOrder: "Confirmar Pedido",

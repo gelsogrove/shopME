@@ -7,21 +7,35 @@ export class CartController {
   private secureTokenService = new SecureTokenService()
 
   /**
-   * 🎯 TASK: Clean up orphaned cart items (items with missing products)
+   * 🎯 TASK: Clean up orphaned cart items (items with missing products OR services)
    */
   private async cleanupOrphanedCartItems(workspaceId: string): Promise<void> {
     try {
-      // Find cart items that reference non-existent products
-      const orphanedItems = await prisma.cartItems.findMany({
+      // Find ALL cart items for this workspace with relations loaded
+      const allItems = await prisma.cartItems.findMany({
         where: {
           cart: {
             workspaceId: workspaceId,
           },
-          product: null,
         },
         include: {
           cart: true,
+          product: true,
+          service: true,
         },
+      })
+
+      // Filter orphaned items in memory
+      const orphanedItems = allItems.filter((item) => {
+        // PRODUCT items without a product are orphaned
+        if (item.itemType === "PRODUCT" && !item.product) {
+          return true
+        }
+        // SERVICE items without a service are orphaned
+        if (item.itemType === "SERVICE" && !item.service) {
+          return true
+        }
+        return false
       })
 
       if (orphanedItems.length > 0) {
@@ -42,6 +56,7 @@ export class CartController {
       }
     } catch (error) {
       console.error("❌ Error cleaning up orphaned cart items:", error)
+      // Don't throw - we don't want cleanup to break the request
     }
   }
 
@@ -87,6 +102,7 @@ export class CartController {
           items: {
             include: {
               product: true,
+              service: true,
             },
           },
         },
@@ -102,6 +118,7 @@ export class CartController {
             items: {
               include: {
                 product: true,
+                service: true,
               },
             },
           },
@@ -110,7 +127,11 @@ export class CartController {
 
       // Calculate total amount
       const totalAmount = cart.items.reduce((sum, item) => {
-        return sum + item.product.price * item.quantity
+        const price =
+          item.itemType === "PRODUCT"
+            ? item.product?.price || 0
+            : item.service?.price || 0
+        return sum + price * item.quantity
       }, 0)
 
       // Generate token
@@ -200,6 +221,7 @@ export class CartController {
             items: {
               include: {
                 product: true,
+                service: true,
               },
             },
             customer: true,
@@ -216,6 +238,7 @@ export class CartController {
             items: {
               include: {
                 product: true,
+                service: true,
               },
             },
             customer: true,
@@ -236,6 +259,7 @@ export class CartController {
               items: {
                 include: {
                   product: true,
+                  service: true,
                 },
               },
               customer: true,
@@ -252,6 +276,16 @@ export class CartController {
         return
       }
 
+      logger.info(
+        `🛒 Cart found with ${cart.items.length} items:`,
+        cart.items.map((item) => ({
+          id: item.id,
+          itemType: item.itemType,
+          productId: item.productId,
+          serviceId: item.serviceId,
+        }))
+      )
+
       // 🚀 KISS: Apply same price calculation logic as viewCart (Cloud Function)
       const { PriceCalculationService } = await import(
         "../../../application/services/price-calculation.service"
@@ -266,57 +300,118 @@ export class CartController {
       const items = []
 
       for (const item of cart.items) {
-        // 🎯 TASK: Handle missing product gracefully
-        if (!item.product) {
-          console.warn(
-            `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
+        // Handle PRODUCT items
+        if (item.itemType === "PRODUCT") {
+          // 🎯 TASK: Handle missing product gracefully
+          if (!item.product) {
+            console.warn(
+              `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
+            )
+            items.push({
+              id: item.id,
+              type: "product",
+              itemType: "PRODUCT",
+              productId: item.productId,
+              productCode: "N/A",
+              name: `Product ${item.productId} (Not Found)`,
+              originalPrice: 0,
+              finalPrice: 0,
+              discountAmount: 0,
+              appliedDiscount: 0,
+              quantity: item.quantity,
+              total: 0,
+            })
+            continue
+          }
+
+          // 🚀 KISS: Apply same discount calculation as viewCart
+          const itemPrices = await priceService.calculatePricesWithDiscounts(
+            validation.data.workspaceId,
+            [item.productId],
+            customerDiscount
           )
+
+          const originalPrice = item.product.price || 0
+          const finalPrice = itemPrices.products[0]?.finalPrice || originalPrice
+          const discountInfo = itemPrices.products[0]
+          const appliedDiscount = discountInfo?.appliedDiscount || 0
+          const discountAmount =
+            appliedDiscount > 0 ? (originalPrice * appliedDiscount) / 100 : 0
+          const itemTotal = finalPrice * item.quantity
+          totalAmount += itemTotal
+
           items.push({
             id: item.id,
             type: "product",
+            itemType: "PRODUCT",
             productId: item.productId,
-            productCode: "N/A",
-            name: `Product ${item.productId} (Not Found)`,
-            originalPrice: 0,
-            finalPrice: 0,
-            discountAmount: 0,
-            appliedDiscount: 0,
+            productCode: item.product.ProductCode || item.productId,
+            name: item.product.name || `Product ${item.productId}`,
+            formato: item.product.formato || null,
+            originalPrice: originalPrice,
+            finalPrice: finalPrice,
+            discountAmount: discountAmount,
+            appliedDiscount: appliedDiscount,
             quantity: item.quantity,
-            total: 0,
+            total: itemTotal,
           })
-          continue
         }
 
-        // 🚀 KISS: Apply same discount calculation as viewCart
-        const itemPrices = await priceService.calculatePricesWithDiscounts(
-          validation.data.workspaceId,
-          [item.productId],
-          customerDiscount
-        )
+        // Handle SERVICE items
+        else if (item.itemType === "SERVICE") {
+          if (!item.service) {
+            console.warn(
+              `⚠️ Cart item ${item.id} has missing service (serviceId: ${item.serviceId})`
+            )
+            items.push({
+              id: item.id,
+              type: "service",
+              itemType: "SERVICE",
+              serviceId: item.serviceId,
+              serviceCode: "N/A",
+              name: `Service ${item.serviceId} (Not Found)`,
+              originalPrice: 0,
+              finalPrice: 0,
+              discountAmount: 0,
+              appliedDiscount: 0,
+              quantity: item.quantity,
+              notes: item.notes || null,
+              total: 0,
+            })
+            continue
+          }
 
-        const originalPrice = item.product.price || 0
-        const finalPrice = itemPrices.products[0]?.finalPrice || originalPrice
-        const discountInfo = itemPrices.products[0]
-        const appliedDiscount = discountInfo?.appliedDiscount || 0
-        const discountAmount =
-          appliedDiscount > 0 ? (originalPrice * appliedDiscount) / 100 : 0
-        const itemTotal = finalPrice * item.quantity
-        totalAmount += itemTotal
+          // 🎯 Services: use direct price (no complex discount calculation for now)
+          // TODO: Implement service-specific discount logic if needed
+          const originalPrice = item.service.price || 0
 
-        items.push({
-          id: item.id,
-          type: "product",
-          productId: item.productId,
-          productCode: item.product.ProductCode || item.productId,
-          name: item.product.name || `Product ${item.productId}`,
-          formato: item.product.formato || null,
-          originalPrice: originalPrice,
-          finalPrice: finalPrice,
-          discountAmount: discountAmount,
-          appliedDiscount: appliedDiscount,
-          quantity: item.quantity,
-          total: itemTotal,
-        })
+          // Apply customer discount if present
+          const appliedDiscount = customerDiscount || 0
+          const discountAmount =
+            appliedDiscount > 0 ? (originalPrice * appliedDiscount) / 100 : 0
+          const finalPrice = originalPrice - discountAmount
+
+          const itemTotal = finalPrice * item.quantity
+          totalAmount += itemTotal
+
+          items.push({
+            id: item.id,
+            type: "service",
+            itemType: "SERVICE",
+            serviceId: item.serviceId,
+            serviceCode: item.service.code || item.serviceId,
+            name: item.service.name || `Service ${item.serviceId}`,
+            description: item.service.description || null,
+            duration: item.service.duration || null,
+            originalPrice: originalPrice,
+            finalPrice: finalPrice,
+            discountAmount: discountAmount,
+            appliedDiscount: appliedDiscount,
+            quantity: item.quantity,
+            notes: item.notes || null,
+            total: itemTotal,
+          })
+        }
       }
 
       // 🚀 KISS: Return format compatible with CheckoutPage frontend
@@ -345,9 +440,16 @@ export class CartController {
           language: cart.customer.language, // 🌐 Include language for translations
         },
         prodotti: items.map((item) => ({
-          codice: item.productCode, // 🎯 Use product code, not ID
+          id: item.id,
+          itemType: item.itemType, // 🎯 CRITICAL: Include itemType (PRODUCT or SERVICE)
+          productId: item.productId || null,
+          serviceId: item.serviceId || null,
+          codice:
+            item.itemType === "PRODUCT" ? item.productCode : item.serviceCode, // Use correct code based on type
           descrizione: item.name,
-          formato: item.formato, // 🧀 Include formato field
+          formato: item.formato || null, // Only products have formato
+          duration: item.duration || null, // Only services have duration
+          notes: item.notes || null, // Only services have notes
           quantita: item.quantity,
           prezzo: item.originalPrice,
           prezzoScontato: item.finalPrice,
@@ -370,12 +472,36 @@ export class CartController {
   async addItemToCart(req: Request, res: Response): Promise<void> {
     try {
       const token = req.params.token
-      const { productId, quantity = 1 } = req.body
+      const {
+        productId,
+        serviceId,
+        quantity = 1,
+        notes,
+        itemType = "PRODUCT",
+      } = req.body
 
-      if (!productId) {
+      // Validate that either productId or serviceId is provided
+      if (!productId && !serviceId) {
         res.status(400).json({
           success: false,
-          error: "productId is required",
+          error: "Either productId or serviceId is required",
+        })
+        return
+      }
+
+      // Validate itemType matches the provided ID
+      if (itemType === "PRODUCT" && !productId) {
+        res.status(400).json({
+          success: false,
+          error: "productId is required when itemType is PRODUCT",
+        })
+        return
+      }
+
+      if (itemType === "SERVICE" && !serviceId) {
+        res.status(400).json({
+          success: false,
+          error: "serviceId is required when itemType is SERVICE",
         })
         return
       }
@@ -426,28 +552,48 @@ export class CartController {
         }
       }
 
-      // Verify product exists
-      const product = await prisma.products.findFirst({
-        where: {
-          id: productId,
-          workspaceId: validation.data.workspaceId,
-          isActive: true,
-        },
-      })
-
-      if (!product) {
-        res.status(400).json({
-          success: false,
-          error: "Product not found",
+      // Verify product or service exists
+      if (itemType === "PRODUCT" && productId) {
+        const product = await prisma.products.findFirst({
+          where: {
+            id: productId,
+            workspaceId: validation.data.workspaceId,
+            isActive: true,
+          },
         })
-        return
+
+        if (!product) {
+          res.status(400).json({
+            success: false,
+            error: "Product not found",
+          })
+          return
+        }
+      } else if (itemType === "SERVICE" && serviceId) {
+        const service = await prisma.services.findFirst({
+          where: {
+            id: serviceId,
+            workspaceId: validation.data.workspaceId,
+          },
+        })
+
+        if (!service) {
+          res.status(400).json({
+            success: false,
+            error: "Service not found",
+          })
+          return
+        }
       }
 
       // Check if item already exists in cart
       const existingCartItem = await prisma.cartItems.findFirst({
         where: {
           cartId: cart.id,
-          productId: productId,
+          ...(itemType === "PRODUCT"
+            ? { productId: productId }
+            : { serviceId: serviceId }),
+          itemType: itemType,
         },
       })
 
@@ -458,22 +604,41 @@ export class CartController {
           where: { id: existingCartItem.id },
           data: {
             quantity: existingCartItem.quantity + quantity,
+            ...(notes ? { notes } : {}),
           },
           include: {
             product: true,
+            service: true,
           },
         })
       } else {
         // Create new cart item
+        const createData = {
+          cartId: cart.id,
+          itemType: itemType,
+          ...(productId ? { productId } : {}),
+          ...(serviceId ? { serviceId } : {}),
+          quantity,
+          ...(notes ? { notes } : {}),
+        }
+
+        logger.info(`🔨 Creating cart item with data:`, createData)
+
         cartItem = await prisma.cartItems.create({
-          data: {
-            cartId: cart.id,
-            productId: productId,
-            quantity,
-          },
+          data: createData,
           include: {
             product: true,
+            service: true,
           },
+        })
+
+        logger.info(`✅ Cart item created:`, {
+          id: cartItem.id,
+          itemType: cartItem.itemType,
+          productId: cartItem.productId,
+          serviceId: cartItem.serviceId,
+          hasProduct: !!cartItem.product,
+          hasService: !!cartItem.service,
         })
       }
 
@@ -484,34 +649,66 @@ export class CartController {
           items: {
             include: {
               product: true,
+              service: true,
             },
           },
         },
       })
 
       const totalAmount = cartWithItems!.items.reduce((sum, item) => {
-        // 🎯 TASK: Handle missing product gracefully
-        if (!item.product) {
-          console.warn(
-            `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
-          )
-          return sum
+        // Handle product items
+        if (item.itemType === "PRODUCT") {
+          if (!item.product) {
+            console.warn(
+              `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
+            )
+            return sum
+          }
+          return sum + (item.product.price || 0) * item.quantity
         }
-        return sum + (item.product.price || 0) * item.quantity
+
+        // Handle service items
+        if (item.itemType === "SERVICE") {
+          if (!item.service) {
+            console.warn(
+              `⚠️ Cart item ${item.id} has missing service (serviceId: ${item.serviceId})`
+            )
+            return sum
+          }
+          return sum + (item.service.price || 0) * item.quantity
+        }
+
+        return sum
       }, 0)
 
-      logger.info(`[CART] Item added to cart ${cart.id} via token`)
+      logger.info(
+        `[CART] Item added to cart ${cart.id} via token - ${itemType}: ${productId || serviceId}`
+      )
 
       res.json({
         success: true,
         cartItem: {
           id: cartItem.id,
-          type: "product",
-          name: cartItem.product?.name || `Product ${cartItem.productId}`,
-          formato: cartItem.product?.formato || null,
-          price: cartItem.product?.price || 0,
+          type: itemType.toLowerCase(), // Use actual itemType (product or service)
+          itemType: itemType, // Include full itemType for frontend
+          name:
+            itemType === "PRODUCT"
+              ? cartItem.product?.name || `Product ${cartItem.productId}`
+              : cartItem.service?.name || `Service ${cartItem.serviceId}`,
+          formato:
+            itemType === "PRODUCT" ? cartItem.product?.formato || null : null,
+          duration:
+            itemType === "SERVICE" ? cartItem.service?.duration || null : null,
+          notes: cartItem.notes || null,
+          price:
+            itemType === "PRODUCT"
+              ? cartItem.product?.price || 0
+              : cartItem.service?.price || 0,
           quantity: cartItem.quantity,
-          total: (cartItem.product?.price || 0) * cartItem.quantity,
+          total:
+            itemType === "PRODUCT"
+              ? (cartItem.product?.price || 0) * cartItem.quantity
+              : (cartItem.service?.price || 0) * cartItem.quantity,
         },
         cart: {
           totalAmount: totalAmount,
@@ -533,11 +730,11 @@ export class CartController {
   async updateCartItem(req: Request, res: Response): Promise<void> {
     try {
       const token = req.params.token
-      const productId = req.params.productId
-      const { quantity } = req.body
+      const itemId = req.params.productId // Keep param name for backwards compatibility
+      const { quantity, itemType = "PRODUCT" } = req.body
 
       logger.info(
-        `[CART] UPDATE ITEM - Token: ${token?.substring(0, 10)}..., ProductId: ${productId}, Quantity: ${quantity}`
+        `[CART] UPDATE ITEM - Token: ${token?.substring(0, 10)}..., ItemId: ${itemId}, ItemType: ${itemType}, Quantity: ${quantity}`
       )
 
       if (quantity === undefined) {
@@ -597,14 +794,18 @@ export class CartController {
 
       logger.info(`[CART] UPDATE - Cart found: ${cart.id}`)
 
-      // Find cart item by productId
+      // Find cart item by productId or serviceId depending on itemType
       const cartItem = await prisma.cartItems.findFirst({
         where: {
-          productId: productId,
           cartId: cart.id,
+          itemType: itemType,
+          ...(itemType === "PRODUCT"
+            ? { productId: itemId }
+            : { serviceId: itemId }),
         },
         include: {
           product: true,
+          service: true,
         },
       })
 
@@ -614,7 +815,7 @@ export class CartController {
 
       if (!cartItem) {
         logger.error(
-          `[CART] UPDATE - Cart item not found for productId: ${productId} in cart: ${cart.id}`
+          `[CART] UPDATE - Cart item not found for ${itemType}: ${itemId} in cart: ${cart.id}`
         )
         res.status(400).json({
           success: false,
@@ -634,6 +835,7 @@ export class CartController {
           data: { quantity },
           include: {
             product: true,
+            service: true,
           },
         })
 
@@ -654,36 +856,51 @@ export class CartController {
           items: {
             include: {
               product: true,
+              service: true,
             },
           },
         },
       })
 
       const totalAmount = cartWithItems!.items.reduce((sum, item) => {
-        // 🎯 TASK: Handle missing product gracefully
-        if (!item.product) {
-          console.warn(
-            `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
-          )
-          return sum
-        }
-        return sum + (item.product.price || 0) * item.quantity
+        const price =
+          item.itemType === "PRODUCT"
+            ? item.product?.price || 0
+            : item.service?.price || 0
+        return sum + price * item.quantity
       }, 0)
 
       logger.info(
         `[CART] Item ${cartItem.id} updated in cart ${cart.id} via token`
       )
 
+      const itemData =
+        updatedCartItem.itemType === "PRODUCT"
+          ? {
+              id: updatedCartItem.id,
+              type: "product",
+              itemType: "PRODUCT",
+              name:
+                updatedCartItem.product?.name ||
+                `Product ${updatedCartItem.productId}`,
+              formato: updatedCartItem.product?.formato || null,
+              price: updatedCartItem.product?.price || 0,
+            }
+          : {
+              id: updatedCartItem.id,
+              type: "service",
+              itemType: "SERVICE",
+              name:
+                updatedCartItem.service?.name ||
+                `Service ${updatedCartItem.serviceId}`,
+              description: updatedCartItem.service?.description || null,
+              price: updatedCartItem.service?.price || 0,
+            }
+
       res.json({
         success: true,
         cartItem: {
-          id: updatedCartItem.id,
-          type: "product",
-          name:
-            updatedCartItem.product?.name ||
-            `Product ${updatedCartItem.productId}`,
-          formato: updatedCartItem.product?.formato || null,
-          price: updatedCartItem.product?.price || 0,
+          ...itemData,
           quantity: updatedCartItem.quantity,
           total:
             (updatedCartItem.product?.price || 0) * updatedCartItem.quantity,
@@ -708,7 +925,8 @@ export class CartController {
   async removeCartItem(req: Request, res: Response): Promise<void> {
     try {
       const token = req.params.token
-      const productId = req.params.productId
+      const itemId = req.params.productId // Keep param name for backwards compatibility
+      const { itemType = "PRODUCT" } = req.body
 
       const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
 
@@ -756,11 +974,14 @@ export class CartController {
         return
       }
 
-      // Find cart item by productId
+      // Find cart item by productId or serviceId
       const cartItem = await prisma.cartItems.findFirst({
         where: {
-          productId: productId,
           cartId: cart.id,
+          itemType: itemType,
+          ...(itemType === "PRODUCT"
+            ? { productId: itemId }
+            : { serviceId: itemId }),
         },
       })
 
@@ -784,24 +1005,22 @@ export class CartController {
           items: {
             include: {
               product: true,
+              service: true,
             },
           },
         },
       })
 
       const totalAmount = cartWithItems!.items.reduce((sum, item) => {
-        // 🎯 TASK: Handle missing product gracefully
-        if (!item.product) {
-          console.warn(
-            `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
-          )
-          return sum
-        }
-        return sum + (item.product.price || 0) * item.quantity
+        const price =
+          item.itemType === "PRODUCT"
+            ? item.product?.price || 0
+            : item.service?.price || 0
+        return sum + price * item.quantity
       }, 0)
 
       logger.info(
-        `[CART] Item with productId ${productId} removed from cart ${cart.id} via token`
+        `[CART] Item ${itemType} ${itemId} removed from cart ${cart.id} via token`
       )
 
       res.json({
@@ -852,6 +1071,7 @@ export class CartController {
           items: {
             include: {
               product: true,
+              service: true, // ✅ Include services
             },
           },
           customer: true,
@@ -867,14 +1087,29 @@ export class CartController {
       }
 
       const totalAmount = cart.items.reduce((sum, item) => {
-        // 🎯 TASK: Handle missing product gracefully
-        if (!item.product) {
-          console.warn(
-            `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
-          )
-          return sum
+        // Handle PRODUCT items
+        if (item.itemType === "PRODUCT") {
+          if (!item.product) {
+            console.warn(
+              `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
+            )
+            return sum
+          }
+          return sum + (item.product.price || 0) * item.quantity
         }
-        return sum + (item.product.price || 0) * item.quantity
+        
+        // Handle SERVICE items
+        if (item.itemType === "SERVICE") {
+          if (!item.service) {
+            console.warn(
+              `⚠️ Cart item ${item.id} has missing service (serviceId: ${item.serviceId})`
+            )
+            return sum
+          }
+          return sum + (item.service.price || 0) * item.quantity
+        }
+        
+        return sum
       }, 0)
 
       // Generate unique order code - 5 uppercase letters
@@ -896,23 +1131,62 @@ export class CartController {
           shippingAddress: shippingAddress || cart.customer.address,
           items: {
             create: cart.items.map((item) => {
-              // 🎯 TASK: Handle missing product gracefully
-              if (!item.product) {
-                console.warn(
-                  `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
-                )
+              // Handle PRODUCT items
+              if (item.itemType === "PRODUCT") {
+                if (!item.product) {
+                  console.warn(
+                    `⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`
+                  )
+                  return {
+                    itemType: "PRODUCT",
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    unitPrice: 0,
+                    totalPrice: 0,
+                  }
+                }
                 return {
+                  itemType: "PRODUCT",
                   productId: item.productId,
                   quantity: item.quantity,
-                  unitPrice: 0,
-                  totalPrice: 0,
+                  unitPrice: item.product.price || 0,
+                  totalPrice: (item.product.price || 0) * item.quantity,
                 }
               }
+              
+              // Handle SERVICE items
+              if (item.itemType === "SERVICE") {
+                if (!item.service) {
+                  console.warn(
+                    `⚠️ Cart item ${item.id} has missing service (serviceId: ${item.serviceId})`
+                  )
+                  return {
+                    itemType: "SERVICE",
+                    serviceId: item.serviceId,
+                    quantity: item.quantity,
+                    unitPrice: 0,
+                    totalPrice: 0,
+                  }
+                }
+                return {
+                  itemType: "SERVICE",
+                  serviceId: item.serviceId,
+                  quantity: item.quantity,
+                  unitPrice: item.service.price || 0,
+                  totalPrice: (item.service.price || 0) * item.quantity,
+                }
+              }
+              
+              // Fallback for unknown item types
+              console.warn(
+                `⚠️ Cart item ${item.id} has unknown itemType: ${item.itemType}`
+              )
               return {
+                itemType: "PRODUCT",
                 productId: item.productId,
                 quantity: item.quantity,
-                unitPrice: item.product.price || 0,
-                totalPrice: (item.product.price || 0) * item.quantity,
+                unitPrice: 0,
+                totalPrice: 0,
               }
             }),
           },

@@ -77,5 +77,5 @@ class RateLimiter {
   }
 }
 
-// Rate limiter for /chat/recent endpoint: max 15 requests per minute per IP (increased for polling hooks)
-export const recentChatsRateLimiter = new RateLimiter(60000, 15)
+// Rate limiter for /chat/recent endpoint: max 50 requests per 10 seconds per IP
+export const recentChatsRateLimiter = new RateLimiter(10000, 50)

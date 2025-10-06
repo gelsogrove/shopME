@@ -1426,10 +1426,9 @@ router.use("/workspaces/:workspaceId/categories", categoriesRouterInstance)
 router.use("/categories", categoriesRouterInstance)
 logger.info("Registered categories router with workspace routes")
 
-// Mount services routes
+// Mount services routes (with authentication)
 const servicesRouterInstance = servicesRouter(servicesController)
 router.use("/workspaces/:workspaceId/services", servicesRouterInstance)
-// router.use("/services", servicesRouterInstance) // REMOVED: legacy route, now only workspace scoped
 logger.info("Registered services router with workspace routes")
 
 // Mount FAQs router

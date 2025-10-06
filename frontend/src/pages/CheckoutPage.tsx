@@ -7,15 +7,17 @@ import { SearchBar, useProductSearch } from "../components/ui/SearchBar"
 import { TokenError } from "../components/ui/TokenError"
 import UnifiedLoading from "../components/ui/UnifiedLoading"
 import { useCheckoutTokenValidation } from "../hooks/useTokenValidation"
-import { getProductIcon } from "../utils/productIcons"
+import { getProductIcon, getServiceIcon } from "../utils/productIcons"
 import { getPublicPageTexts } from "../utils/publicPageTranslations"
 
 interface Product {
   id: string // Cart item ID
-  productId: string // Product ID
+  productId?: string // Product ID (optional for services)
+  serviceId?: string // Service ID (optional for products)
+  itemType?: "PRODUCT" | "SERVICE" // Type of item
   codice: string
   descrizione: string
-  formato?: string // 🧀 Include formato field
+  formato?: string // 🧀 Include formato field (products only)
   qty: number
   quantita?: number // Alias for qty
   prezzo: number
@@ -24,6 +26,8 @@ interface Product {
   scontoApplicato?: number
   fonteSconto?: string
   nomeSconto?: string
+  duration?: number // Service duration in minutes
+  notes?: string // Service notes
 }
 
 interface Customer {
@@ -110,13 +114,18 @@ const CheckoutPage: React.FC = () => {
     error: "",
   })
   const [showAddProducts, setShowAddProducts] = useState(false)
+  const [showAddServices, setShowAddServices] = useState(false)
   const [availableProducts, setAvailableProducts] = useState<any[]>([])
+  const [availableServices, setAvailableServices] = useState<any[]>([])
   const [loadingProducts, setLoadingProducts] = useState(false)
+  const [loadingServices, setLoadingServices] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [productToDelete, setProductToDelete] = useState<{
     index: number
     name: string
+    itemType: "PRODUCT" | "SERVICE"
+    itemId: string // productId or serviceId
   } | null>(null)
 
   // 🔍 Search states for products
@@ -307,8 +316,13 @@ const CheckoutPage: React.FC = () => {
   }
 
   // Show delete confirmation
-  const showDeleteConfirmation = (index: number, productName: string) => {
-    setProductToDelete({ index, name: productName })
+  const showDeleteConfirmation = (
+    index: number,
+    itemName: string,
+    itemType: "PRODUCT" | "SERVICE",
+    itemId: string
+  ) => {
+    setProductToDelete({ index, name: itemName, itemType, itemId })
     setShowDeleteConfirm(true)
   }
 
@@ -316,37 +330,44 @@ const CheckoutPage: React.FC = () => {
   const removeProduct = async () => {
     if (!productToDelete) return
     if (!token) {
-      toast.error("Token non valido per rimuovere il prodotto")
+      toast.error("Token non valido per rimuovere l'elemento")
       return
     }
 
     try {
-      const product = prodotti[productToDelete.index]
-      if (!product.productId) {
-        toast.error("ID prodotto non valido")
+      const { itemId, itemType, name } = productToDelete
+
+      if (!itemId) {
+        toast.error("ID elemento non valido")
         return
       }
 
-      // 🚀 Call backend API to remove product
-      const response = await fetch(
-        `/api/cart/${token}/items/${product.productId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
+      logger.info(`🗑️ Removing ${itemType}: ${itemId}`)
+
+      // 🚀 Call backend API to remove item (product or service)
+      const response = await fetch(`/api/cart/${token}/items/${itemId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          itemType: itemType, // 🎯 CRITICAL: Send itemType to backend
+        }),
+      })
 
       if (!response.ok) {
-        throw new Error("Failed to remove product")
+        throw new Error(`Failed to remove ${itemType.toLowerCase()}`)
       }
 
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error(result.error || "Failed to remove product")
+        throw new Error(
+          result.error || `Failed to remove ${itemType.toLowerCase()}`
+        )
       }
+
+      logger.info(`✅ ${itemType} removed successfully`)
 
       // 🔄 Refresh cart data from backend
       await refreshCartFromBackend()
@@ -356,10 +377,10 @@ const CheckoutPage: React.FC = () => {
       setProductToDelete(null)
 
       // Show success message
-      toast.success(`${productToDelete.name} rimosso dal carrello`)
+      toast.success(`${name} rimosso dal carrello`)
     } catch (error) {
-      logger.error("Error removing product:", error)
-      toast.error("Errore nel rimuovere il prodotto")
+      logger.error("Error removing item:", error)
+      toast.error("Errore nel rimuovere l'elemento")
     }
   }
 
@@ -382,27 +403,56 @@ const CheckoutPage: React.FC = () => {
 
       const result = await response.json()
 
+      logger.info("🔍 Backend response:", result)
+      logger.info("🔍 result.data:", result.data)
+      logger.info("🔍 result.data.items:", result.data?.items)
+      logger.info("🔍 result.prodotti:", result.prodotti)
+
       if (result.success && result.data) {
         // Convert backend cart items to frontend format
         const updatedProdotti = result.data.items.map((item: any) => {
-          return {
-            id: item.id,
-            productId: item.productId,
-            codice: item.productCode || "Non disponibile",
-            descrizione: item.name || "Prodotto senza nome", // Fix: use item.name instead of item.product.name
-            formato: item.formato || null,
-            prezzo: item.originalPrice || 0,
-            prezzoOriginale: item.originalPrice || 0,
-            prezzoScontato: item.finalPrice || item.originalPrice || 0,
-            scontoApplicato: item.appliedDiscount || 0,
-            fonteSconto: null,
-            nomeSconto: null,
-            qty: item.quantity,
-            quantita: item.quantity, // Add both qty and quantita for compatibility
+          // 🎯 Handle both PRODUCT and SERVICE items
+          if (item.itemType === "SERVICE") {
+            return {
+              id: item.id,
+              serviceId: item.serviceId,
+              itemType: "SERVICE",
+              codice: item.serviceCode || "N/A",
+              descrizione: item.name || "Servizio senza nome",
+              formato: null,
+              prezzo: item.originalPrice || 0,
+              prezzoOriginale: item.originalPrice || 0,
+              prezzoScontato: item.finalPrice || item.originalPrice || 0,
+              scontoApplicato: item.appliedDiscount || 0,
+              fonteSconto: null,
+              nomeSconto: null,
+              qty: 1, // Services always have quantity 1
+              quantita: 1,
+              duration: item.duration || null,
+              notes: item.notes || null,
+            }
+          } else {
+            return {
+              id: item.id,
+              productId: item.productId,
+              itemType: "PRODUCT",
+              codice: item.productCode || "Non disponibile",
+              descrizione: item.name || "Prodotto senza nome",
+              formato: item.formato || null,
+              prezzo: item.originalPrice || 0,
+              prezzoOriginale: item.originalPrice || 0,
+              prezzoScontato: item.finalPrice || item.originalPrice || 0,
+              scontoApplicato: item.appliedDiscount || 0,
+              fonteSconto: null,
+              nomeSconto: null,
+              qty: item.quantity,
+              quantita: item.quantity,
+            }
           }
         })
 
         setProdotti(updatedProdotti)
+        logger.info(`🔄 Cart refreshed: ${updatedProdotti.length} items`)
       }
     } catch (error) {
       logger.error("Error refreshing cart from backend:", error)
@@ -445,6 +495,60 @@ const CheckoutPage: React.FC = () => {
       logger.error("Error loading products:", error)
     } finally {
       setLoadingProducts(false)
+    }
+  }
+
+  // Load available services for adding to cart
+  const loadAvailableServices = async () => {
+    const workspaceId = tokenData?.workspaceId
+    logger.info("🔍 LoadAvailableServices called, workspaceId:", workspaceId)
+    logger.info("🔍 Full tokenData:", tokenData)
+
+    if (!workspaceId) {
+      logger.error("❌ No workspaceId found in tokenData:", tokenData)
+      toast.error("Workspace ID non trovato")
+      return
+    }
+
+    setLoadingServices(true)
+    try {
+      const url = "/api/services/public"
+      logger.info(`🌐 Fetching services from: ${url}`)
+      logger.info(`🌐 With workspace ID: ${workspaceId}`)
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-workspace-id": workspaceId,
+        },
+      })
+
+      logger.info(`📡 Response status: ${response.status}`)
+      const result = await response.json()
+      logger.info(`📦 Response data:`, result)
+
+      if (result.success) {
+        const cleanedServices = (result.data || []).map((service: any) => ({
+          ...service,
+          name: service.name || "Servizio senza nome",
+        }))
+
+        logger.info(
+          `✅ Setting ${cleanedServices.length} services:`,
+          cleanedServices
+        )
+        setAvailableServices(cleanedServices)
+        toast.success(`${cleanedServices.length} servizi caricati`)
+      } else {
+        logger.error("❌ API returned success: false", result)
+        toast.error("Errore nel caricamento dei servizi")
+      }
+    } catch (error) {
+      logger.error("❌ Error loading services:", error)
+      toast.error("Errore di rete nel caricamento servizi")
+    } finally {
+      setLoadingServices(false)
     }
   }
 
@@ -516,6 +620,56 @@ const CheckoutPage: React.FC = () => {
     } catch (error) {
       logger.error("❌ Error adding product to cart:", error)
       toast.error("Errore nell'aggiungere il prodotto al carrello")
+    }
+  }
+
+  // Add service to cart (treated as a special product)
+  const addServiceToCart = async (service: any) => {
+    if (!token) {
+      toast.error("Token non valido per aggiungere servizi al carrello")
+      return
+    }
+
+    try {
+      logger.info("🛒 Adding service to cart:", service)
+
+      // 🚀 Call backend API to add service to cart
+      const response = await fetch(`/api/cart/${token}/items`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          serviceId: service.id,
+          itemType: "SERVICE",
+          quantity: 1,
+          notes: service.description || null,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to add service to cart")
+      }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to add service")
+      }
+
+      logger.info("✅ Service added successfully")
+
+      // 🔄 Refresh cart data from backend
+      await refreshCartFromBackend()
+
+      // Close popup
+      setShowAddServices(false)
+
+      // Show success message
+      toast.success(`${service.name || "Servizio"} aggiunto al carrello!`)
+    } catch (error) {
+      logger.error("❌ Error adding service to cart:", error)
+      toast.error("Errore nell'aggiungere il servizio al carrello")
     }
   }
 
@@ -791,118 +945,196 @@ const CheckoutPage: React.FC = () => {
           {currentStep === 1 && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-bold">📦 {texts.yourProducts}</h2>
-                <button
-                  onClick={() => {
-                    setShowAddProducts(true)
-                    loadAvailableProducts()
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                >
-                  {texts.addProducts}
-                </button>
+                <h2 className="text-lg font-bold">{texts.yourProducts}</h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowAddProducts(true)
+                      loadAvailableProducts()
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    {texts.addProducts || "Aggiungi Prodotti"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAddServices(true)
+                      loadAvailableServices()
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    {texts.addServices || "Aggiungi Servizi"}
+                  </button>
+                </div>
               </div>
 
-              {/* Products List */}
+              {/* Products and Services List */}
               <div className="space-y-4 mb-6">
-                {prodotti.map((prodotto, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        {/* Product Code */}
-                        <div className="text-sm font-mono text-gray-500 mb-1">
-                          {prodotto.codice !== "N/A"
-                            ? prodotto.codice
-                            : "Non disponibile"}
-                        </div>
+                {prodotti.map((prodotto, index) => {
+                  const isService = prodotto.itemType === "SERVICE"
+                  const icon = isService
+                    ? getServiceIcon(prodotto.descrizione)
+                    : getProductIcon(
+                        prodotto.descrizione,
+                        prodotto.formato || ""
+                      )
 
-                        {/* Product Name */}
-                        <div className="text-lg font-semibold text-gray-900 mb-1">
-                          {prodotto.descrizione}
-                        </div>
-
-                        {/* Format */}
-                        {prodotto.formato && (
-                          <div className="text-sm text-blue-600 mb-2 font-medium">
-                            Format: {prodotto.formato}
-                          </div>
-                        )}
-
-                        {/* Quantity and Price */}
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() =>
-                                handleQuantityChange(index, prodotto.qty - 1)
-                              }
-                              className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
-                              disabled={prodotto.qty <= 1}
+                  return (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          {/* Icon and Type Badge */}
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-2xl">{icon}</span>
+                            <span
+                              className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                isService
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-green-100 text-green-700"
+                              }`}
                             >
-                              -
-                            </button>
-                            <span className="w-8 text-center font-semibold">
-                              {prodotto.qty}
+                              {isService
+                                ? texts.serviceBadge
+                                : texts.productBadge}
                             </span>
-                            <button
-                              onClick={() =>
-                                handleQuantityChange(index, prodotto.qty + 1)
-                              }
-                              className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
-                            >
-                              +
-                            </button>
                           </div>
 
-                          <div className="flex items-center space-x-2">
-                            {prodotto.prezzoOriginale &&
-                            prodotto.prezzoOriginale > prodotto.prezzo ? (
-                              <>
+                          {/* Code */}
+                          <div className="text-sm font-mono text-gray-500 mb-1">
+                            {prodotto.codice !== "N/A"
+                              ? prodotto.codice
+                              : "Non disponibile"}
+                          </div>
+
+                          {/* Name */}
+                          <div className="text-lg font-semibold text-gray-900 mb-1">
+                            {prodotto.descrizione}
+                          </div>
+
+                          {/* Format (only for products) */}
+                          {prodotto.formato && !isService && (
+                            <div className="text-sm text-blue-600 mb-2 font-medium">
+                              {texts.format}: {prodotto.formato}
+                            </div>
+                          )}
+
+                          {/* Duration (only for services) */}
+                          {isService && prodotto.duration && (
+                            <div className="text-sm text-blue-600 mb-2 font-medium">
+                              {texts.duration}: {prodotto.duration} min
+                            </div>
+                          )}
+
+                          {/* Notes (only for services) */}
+                          {isService && prodotto.notes && (
+                            <div className="text-sm text-gray-600 mb-2 italic">
+                              {texts.notes}: {prodotto.notes}
+                            </div>
+                          )}
+
+                          {/* Quantity and Price */}
+                          <div className="flex items-center space-x-4">
+                            {/* Quantity controls - only for products */}
+                            {!isService && (
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() =>
+                                    handleQuantityChange(
+                                      index,
+                                      prodotto.qty - 1
+                                    )
+                                  }
+                                  className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
+                                  disabled={prodotto.qty <= 1}
+                                >
+                                  -
+                                </button>
+                                <span className="w-8 text-center font-semibold">
+                                  {prodotto.qty}
+                                </span>
+                                <button
+                                  onClick={() =>
+                                    handleQuantityChange(
+                                      index,
+                                      prodotto.qty + 1
+                                    )
+                                  }
+                                  className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Services always have qty 1 */}
+                            {isService && (
+                              <div className="text-sm text-gray-600">
+                                {texts.quantity}: 1
+                              </div>
+                            )}
+
+                            <div className="flex items-center space-x-2">
+                              {prodotto.prezzoOriginale &&
+                              prodotto.prezzoOriginale > prodotto.prezzo ? (
+                                <>
+                                  <span className="text-sm text-gray-600">
+                                    a €{prodotto.prezzo.toFixed(2)} cad.
+                                  </span>
+                                  <span className="text-sm text-gray-500 line-through">
+                                    (era €{prodotto.prezzoOriginale.toFixed(2)})
+                                  </span>
+                                  {prodotto.scontoApplicato &&
+                                    prodotto.scontoApplicato > 0 && (
+                                      <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                                        -{prodotto.scontoApplicato}%
+                                      </span>
+                                    )}
+                                </>
+                              ) : (
                                 <span className="text-sm text-gray-600">
                                   a €{prodotto.prezzo.toFixed(2)} cad.
                                 </span>
-                                <span className="text-sm text-gray-500 line-through">
-                                  (era €{prodotto.prezzoOriginale.toFixed(2)})
-                                </span>
-                                {prodotto.scontoApplicato &&
-                                  prodotto.scontoApplicato > 0 && (
-                                    <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                                      -{prodotto.scontoApplicato}%
-                                    </span>
-                                  )}
-                              </>
-                            ) : (
-                              <span className="text-sm text-gray-600">
-                                a €{prodotto.prezzo.toFixed(2)} cad.
-                              </span>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <p className="font-bold text-lg text-green-600">
-                            €
-                            {(
-                              (prodotto.prezzoScontato || prodotto.prezzo) *
-                              (prodotto.qty || prodotto.quantita || 1)
-                            ).toFixed(2)}
-                          </p>
+                        <div className="flex items-center space-x-4">
+                          <div className="text-right">
+                            <p className="font-bold text-lg text-green-600">
+                              €
+                              {(
+                                (prodotto.prezzoScontato || prodotto.prezzo) *
+                                (prodotto.qty || prodotto.quantita || 1)
+                              ).toFixed(2)}
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() =>
+                              showDeleteConfirmation(
+                                index,
+                                prodotto.descrizione,
+                                isService ? "SERVICE" : "PRODUCT",
+                                isService
+                                  ? prodotto.serviceId!
+                                  : prodotto.productId!
+                              )
+                            }
+                            className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"
+                            title={
+                              isService
+                                ? "Rimuovi servizio"
+                                : "Rimuovi prodotto"
+                            }
+                          >
+                            🗑️
+                          </button>
                         </div>
-
-                        <button
-                          onClick={() =>
-                            showDeleteConfirmation(index, prodotto.descrizione)
-                          }
-                          className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"
-                          title="Rimuovi prodotto"
-                        >
-                          🗑️
-                        </button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
 
               {/* Empty cart message */}
@@ -1608,8 +1840,79 @@ const CheckoutPage: React.FC = () => {
                   onClick={() => setShowAddProducts(false)}
                   className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
                 >
-                  Chiudi
+                  {texts.close}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Services Popup */}
+        {showAddServices && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+                <h3 className="text-xl font-bold">🛠️ Seleziona Servizi</h3>
+                <button
+                  onClick={() => setShowAddServices(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="p-6">
+                {loadingServices ? (
+                  <div className="text-center py-6">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-600">Caricamento servizi...</p>
+                  </div>
+                ) : availableServices.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {availableServices.map((service) => (
+                      <div
+                        key={service.id}
+                        className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                      >
+                        <h5 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                          <span className="text-2xl">
+                            {getServiceIcon(service.name)}
+                          </span>
+                          <span>{service.name}</span>
+                        </h5>
+                        {service.description && (
+                          <p className="text-xs text-gray-600 mb-3">
+                            {service.description}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <p className="text-lg font-bold text-blue-600">
+                            €{(service.price || 0).toFixed(2)}
+                          </p>
+                          <button
+                            onClick={() => addServiceToCart(service)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                          >
+                            {texts.addToCart}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Nessun servizio disponibile</p>
+                  </div>
+                )}
+
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => setShowAddServices(false)}
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
+                  >
+                    {texts.close}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

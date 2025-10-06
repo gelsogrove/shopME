@@ -173,6 +173,51 @@ app.post("/api/workspaces/:workspaceId/customers/:id/block", (req, res) => {
 import { shortUrlRoutes } from "./interfaces/http/routes/short-url.routes"
 app.use("/", shortUrlRoutes)
 
+// PUBLIC SERVICES ENDPOINT (no auth required for checkout page)
+import { PrismaClient } from "@prisma/client"
+import { workspaceValidationMiddleware } from "./interfaces/http/middlewares/workspace-validation.middleware"
+const prismaPub = new PrismaClient()
+
+app.get(
+  "/api/services/public",
+  workspaceValidationMiddleware,
+  async (req, res) => {
+    try {
+      const workspaceId = (req as any).workspaceId
+
+      if (!workspaceId) {
+        return res.status(400).json({
+          success: false,
+          error: "Workspace ID is required",
+        })
+      }
+
+      logger.info(`📦 PUBLIC: Getting services for workspace: ${workspaceId}`)
+
+      const services = await prismaPub.services.findMany({
+        where: {
+          workspaceId: workspaceId,
+        },
+        orderBy: { name: "asc" },
+      })
+
+      logger.info(`📦 PUBLIC: Found ${services.length} services`)
+
+      return res.json({
+        success: true,
+        data: services,
+      })
+    } catch (error) {
+      logger.error("❌ PUBLIC: Error getting services:", error)
+      return res.status(500).json({
+        success: false,
+        error: "Failed to get services",
+      })
+    }
+  }
+)
+logger.info("✅ Registered PUBLIC services endpoint at /api/services/public")
+
 // Versioned routes
 app.use("/api/v1", apiRouter)
 

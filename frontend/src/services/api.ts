@@ -86,30 +86,23 @@ api.interceptors.response.use(
 
     // Handle authentication errors (401)
     if (error.response && error.response.status === 401) {
-      // Special case for settings page
-      const isSettingsPage = window.location.pathname.includes("/settings")
-
-      if (isSettingsPage) {
-        // Per la pagina settings, mostra solo il toast senza redirect immediato
-        toast.error("Sessione scaduta. Effettua nuovamente il login.")
-
-        // Redirect dopo un ritardo per permettere all'utente di vedere il toast
-        setTimeout(() => {
-          sessionStorage.removeItem("currentWorkspace")
-          window.location.href = "/auth/login"
-        }, 2000)
-      } else if (window.location.pathname === "/auth/login") {
-        // Se già nella pagina di login, ricarica semplicemente la pagina
-        sessionStorage.removeItem("currentWorkspace")
-        window.location.reload()
-      } else {
-        // Per altre pagine, mostra toast e redirect
-        toast.error("Sessione scaduta. Effettua nuovamente il login.")
-        setTimeout(() => {
-          sessionStorage.removeItem("currentWorkspace")
-          window.location.href = "/auth/login"
-        }, 2000)
+      // Skip if already on login page to avoid loops
+      if (window.location.pathname === "/auth/login") {
+        return Promise.reject(error)
       }
+
+      // Clear workspace data immediately
+      localStorage.removeItem("currentWorkspace")
+      sessionStorage.removeItem("currentWorkspace")
+
+      // Show toast
+      toast.error("Sessione scaduta. Effettua nuovamente il login.")
+
+      // Redirect immediately to prevent retry loops
+      window.location.href = "/auth/login"
+
+      // Prevent further retries by throwing an error that won't be retried
+      throw new Error("Authentication expired")
     }
 
     return Promise.reject(error)
@@ -119,7 +112,8 @@ api.interceptors.response.use(
 // API endpoints
 export const auth = {
   login: async (credentials: { email: string; password: string }) => {
-    // Pulisci la sessionStorage prima del login
+    // Pulisci la localStorage prima del login
+    localStorage.removeItem("currentWorkspace")
     sessionStorage.removeItem("currentWorkspace")
 
     // Ora tenta il login con stato pulito

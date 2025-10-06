@@ -6,6 +6,7 @@ import { Badge } from "../components/ui/badge"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Label } from "../components/ui/label"
+import { getProductIcon, getServiceIcon } from "../utils/productIcons"
 
 interface OrderItem {
   itemType: "PRODUCT" | "SERVICE"
@@ -302,87 +303,95 @@ const OrderSummaryPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {items.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-4 border rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2">
-                            {item.itemType === "PRODUCT" ? (
-                              <Package className="h-5 w-5 text-blue-600" />
-                            ) : (
-                              <Truck className="h-5 w-5 text-green-600" />
-                            )}
-                            <Badge
-                              variant={
-                                item.itemType === "PRODUCT"
-                                  ? "default"
-                                  : "secondary"
-                              }
-                            >
-                              {item.itemType === "PRODUCT"
-                                ? "Product"
-                                : "Service"}
-                            </Badge>
-                          </div>
-                          <div>
-                            <h4 className="font-medium">{item.name}</h4>
-                            <p className="text-sm text-gray-500">
-                              Code:{" "}
-                              {item.itemType === "PRODUCT"
-                                ? item.productCode
-                                : item.serviceCode}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              €{item.unitPrice.toFixed(2)} cad.
-                            </p>
-                          </div>
-                        </div>
+                    {items.map((item, index) => {
+                      const icon =
+                        item.itemType === "PRODUCT"
+                          ? getProductIcon(item.name, "")
+                          : getServiceIcon(item.name)
 
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2">
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-4 border rounded-lg"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl">{icon}</span>
+                              {item.itemType === "PRODUCT" ? (
+                                <Package className="h-5 w-5 text-blue-600" />
+                              ) : (
+                                <Truck className="h-5 w-5 text-green-600" />
+                              )}
+                              <Badge
+                                variant={
+                                  item.itemType === "PRODUCT"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
+                                {item.itemType === "PRODUCT"
+                                  ? "Product"
+                                  : "Service"}
+                              </Badge>
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{item.name}</h4>
+                              <p className="text-sm text-gray-500">
+                                Code:{" "}
+                                {item.itemType === "PRODUCT"
+                                  ? item.productCode
+                                  : item.serviceCode}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                €{item.unitPrice.toFixed(2)} cad.
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  updateQuantity(index, item.quantity - 1)
+                                }
+                                disabled={item.quantity <= 1}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <Label className="w-12 text-center">
+                                {item.quantity}
+                              </Label>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  updateQuantity(index, item.quantity + 1)
+                                }
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
+
+                            <div className="text-right">
+                              <p className="font-medium">
+                                €{item.totalPrice.toFixed(2)}
+                              </p>
+                            </div>
+
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() =>
-                                updateQuantity(index, item.quantity - 1)
-                              }
-                              disabled={item.quantity <= 1}
+                              onClick={() => removeItem(index)}
+                              className="text-red-600 hover:text-red-700"
                             >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                            <Label className="w-12 text-center">
-                              {item.quantity}
-                            </Label>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                updateQuantity(index, item.quantity + 1)
-                              }
-                            >
-                              <Plus className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
-
-                          <div className="text-right">
-                            <p className="font-medium">
-                              €{item.totalPrice.toFixed(2)}
-                            </p>
-                          </div>
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeItem(index)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </CardContent>

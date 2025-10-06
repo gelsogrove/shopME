@@ -31,11 +31,17 @@ FASE 1
 
 FASE 2
 
+- servizi add
+- unformare migration.sql?
+- fociuxd on the link
+- recent troppo frequenti
+
 POPUP NUOVO ORDINE
 
 - pulire il DB
 - system log come possiamo migliorarlo ? o spostarlo?
 - 2AUYH
+- mail
 - sicurezza
 - wip services
 - GDPR deve essere in linuga
@@ -55,10 +61,8 @@ SICUREZZA:
 - login di sicurezza
 
 > > TODO <<
+
 > > DEPLOY
 > > WHATSAPP INTEGRATION
 > > SECUIRTY
 > > CRM INTEGRATION
-
-> > COSTI 80
-> > PIATTAFORMA
