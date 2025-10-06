@@ -5,6 +5,7 @@
 Anche dopo aver aggiunto `service: true` in tutte le query Prisma, i servizi continuavano ad apparire come "Unknown Product" nella pagina admin Orders.
 
 ### Symptoms
+
 - ❌ Badge mostrava "PRODUCT" invece di "SERVICE"
 - ❌ Nome servizio mostrava "Unknown Product"
 - ❌ Quantità mostrata per servizi (dovrebbe essere nascosta)
@@ -31,12 +32,12 @@ Anche dopo aver aggiunto `service: true` in tutte le query Prisma, i servizi con
 items: data.items?.map((item: any) => ({
   id: item.id,
   orderId: item.orderId,
-  productId: item.productId,          // Solo product fields
+  productId: item.productId, // Solo product fields
   quantity: item.quantity,
   unitPrice: item.unitPrice,
   totalPrice: item.totalPrice,
   productVariant: item.productVariant,
-  product: item.product,              // Solo product relation
+  product: item.product, // Solo product relation
   createdAt: item.createdAt,
   updatedAt: item.updatedAt,
   // ❌ Mancano: itemType, serviceId, service
@@ -80,15 +81,15 @@ items: data.items?.map((item: any) => ({
 items: data.items?.map((item: any) => ({
   id: item.id,
   orderId: item.orderId,
-  itemType: item.itemType,        // ✅ AGGIUNTO
+  itemType: item.itemType, // ✅ AGGIUNTO
   productId: item.productId,
-  serviceId: item.serviceId,      // ✅ AGGIUNTO
+  serviceId: item.serviceId, // ✅ AGGIUNTO
   quantity: item.quantity,
   unitPrice: item.unitPrice,
   totalPrice: item.totalPrice,
   productVariant: item.productVariant,
   product: item.product,
-  service: item.service,          // ✅ AGGIUNTO
+  service: item.service, // ✅ AGGIUNTO
   createdAt: item.createdAt,
   updatedAt: item.updatedAt,
 })) || []
@@ -113,8 +114,8 @@ items: data.items?.map((item: any) => ({
   "orderId": "order456",
   "productId": null,
   "quantity": 1,
-  "unitPrice": 5.00,
-  "totalPrice": 5.00,
+  "unitPrice": 5.0,
+  "totalPrice": 5.0,
   "product": null
   // ❌ itemType: MISSING
   // ❌ serviceId: MISSING
@@ -123,6 +124,7 @@ items: data.items?.map((item: any) => ({
 ```
 
 **Frontend Logic:**
+
 ```typescript
 const itemType = item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT")
 // itemType = undefined || (undefined ? "SERVICE" : "PRODUCT")
@@ -140,17 +142,18 @@ const itemName = item.service?.name || "Unknown Product"
 {
   "id": "item123",
   "orderId": "order456",
-  "itemType": "SERVICE",           // ✅ PRESENTE
+  "itemType": "SERVICE", // ✅ PRESENTE
   "productId": null,
-  "serviceId": "srv789",            // ✅ PRESENTE
+  "serviceId": "srv789", // ✅ PRESENTE
   "quantity": 1,
-  "unitPrice": 5.00,
-  "totalPrice": 5.00,
+  "unitPrice": 5.0,
+  "totalPrice": 5.0,
   "product": null,
-  "service": {                      // ✅ PRESENTE
+  "service": {
+    // ✅ PRESENTE
     "id": "srv789",
     "name": "Haircut",
-    "price": 5.00,
+    "price": 5.0,
     "duration": 30,
     "code": "SRV001"
   }
@@ -158,6 +161,7 @@ const itemName = item.service?.name || "Unknown Product"
 ```
 
 **Frontend Logic:**
+
 ```typescript
 const itemType = item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT")
 // itemType = "SERVICE" ✅ CORRECT!
@@ -174,6 +178,7 @@ const icon = getServiceIcon("Haircut")
 ## 🧪 Verification Tests
 
 ### Test 1: View Order with Services
+
 1. Navigate to `/admin/orders`
 2. Click on order with services
 3. **Expected Results:**
@@ -184,6 +189,7 @@ const icon = getServiceIcon("Haircut")
    - ✅ Duration shown (e.g., "30 min")
 
 ### Test 2: Edit Order with Services
+
 1. Open order with services
 2. Click "Edit Order"
 3. **Expected Results:**
@@ -193,6 +199,7 @@ const icon = getServiceIcon("Haircut")
    - ✅ Service metadata preserved
 
 ### Test 3: Mixed Order (Products + Services)
+
 1. Order with 2 products + 1 service
 2. View/edit order
 3. **Expected Results:**
@@ -254,6 +261,7 @@ const icon = getServiceIcon("Haircut")
 ### Prevention Strategies
 
 #### 1. Create Helper for Common Mapping
+
 ```typescript
 // order-item.mapper.ts
 export function mapOrderItem(prismaItem: any): OrderItem {
@@ -276,36 +284,38 @@ export function mapOrderItem(prismaItem: any): OrderItem {
 ```
 
 #### 2. Add Integration Tests
+
 ```typescript
-describe('OrderRepository', () => {
-  it('should map service fields correctly', async () => {
+describe("OrderRepository", () => {
+  it("should map service fields correctly", async () => {
     const order = await repository.findById(orderId, workspaceId)
-    const serviceItem = order.items.find(i => i.itemType === 'SERVICE')
-    
+    const serviceItem = order.items.find((i) => i.itemType === "SERVICE")
+
     expect(serviceItem).toBeDefined()
     expect(serviceItem.serviceId).toBeDefined()
     expect(serviceItem.service).toBeDefined()
-    expect(serviceItem.service.name).toBe('Haircut')
+    expect(serviceItem.service.name).toBe("Haircut")
   })
 })
 ```
 
 #### 3. TypeScript Strict Mode
+
 Use stricter TypeScript to catch missing fields at compile time.
 
 ---
 
 ## 🎯 Summary
 
-| Issue | Status |
-|-------|--------|
-| **Bug Type** | Critical - Data Loss in Mapping Layer |
-| **Affected Components** | All order operations (view, edit, list) |
-| **Root Cause** | `mapToDomainEntity()` not updated when services added |
-| **Fix Complexity** | Simple - 3 lines added |
-| **Fix Time** | 5 minutes |
-| **Deployment Risk** | None - Pure bug fix |
-| **Testing Required** | Manual verification in admin UI |
+| Issue                   | Status                                                |
+| ----------------------- | ----------------------------------------------------- |
+| **Bug Type**            | Critical - Data Loss in Mapping Layer                 |
+| **Affected Components** | All order operations (view, edit, list)               |
+| **Root Cause**          | `mapToDomainEntity()` not updated when services added |
+| **Fix Complexity**      | Simple - 3 lines added                                |
+| **Fix Time**            | 5 minutes                                             |
+| **Deployment Risk**     | None - Pure bug fix                                   |
+| **Testing Required**    | Manual verification in admin UI                       |
 
 ---
 

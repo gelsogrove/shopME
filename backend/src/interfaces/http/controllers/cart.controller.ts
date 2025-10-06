@@ -1097,7 +1097,7 @@ export class CartController {
           }
           return sum + (item.product.price || 0) * item.quantity
         }
-        
+
         // Handle SERVICE items
         if (item.itemType === "SERVICE") {
           if (!item.service) {
@@ -1108,7 +1108,7 @@ export class CartController {
           }
           return sum + (item.service.price || 0) * item.quantity
         }
-        
+
         return sum
       }, 0)
 
@@ -1153,7 +1153,7 @@ export class CartController {
                   totalPrice: (item.product.price || 0) * item.quantity,
                 }
               }
-              
+
               // Handle SERVICE items
               if (item.itemType === "SERVICE") {
                 if (!item.service) {
@@ -1176,7 +1176,7 @@ export class CartController {
                   totalPrice: (item.service.price || 0) * item.quantity,
                 }
               }
-              
+
               // Fallback for unknown item types
               console.warn(
                 `⚠️ Cart item ${item.id} has unknown itemType: ${item.itemType}`

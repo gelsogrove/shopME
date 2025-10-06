@@ -221,11 +221,11 @@ export class OrderRepository implements IOrderRepository {
         orderBy: { createdAt: "desc" },
         include: {
           customer: true,
-          items: { 
-            include: { 
+          items: {
+            include: {
               product: true,
               service: true, // ✅ Include services
-            } 
+            },
           },
         },
       })

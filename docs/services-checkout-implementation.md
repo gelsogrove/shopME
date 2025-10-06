@@ -12,6 +12,7 @@
 #### Metodo: `checkoutByToken()` (linea ~1060-1180)
 
 **✅ Modifica 1:** Include servizi nella query del carrello
+
 ```typescript
 include: {
   items: {
@@ -25,6 +26,7 @@ include: {
 ```
 
 **✅ Modifica 2:** Calcolo totali per PRODUCT + SERVICE
+
 ```typescript
 const totalAmount = cart.items.reduce((sum, item) => {
   // Handle PRODUCT items
@@ -32,18 +34,19 @@ const totalAmount = cart.items.reduce((sum, item) => {
     if (!item.product) return sum
     return sum + (item.product.price || 0) * item.quantity
   }
-  
+
   // Handle SERVICE items ✅ AGGIUNTO
   if (item.itemType === "SERVICE") {
     if (!item.service) return sum
     return sum + (item.service.price || 0) * item.quantity
   }
-  
+
   return sum
 }, 0)
 ```
 
 **✅ Modifica 3:** Creazione OrderItems per servizi
+
 ```typescript
 items: {
   create: cart.items.map((item) => {
@@ -57,7 +60,7 @@ items: {
         totalPrice: (item.product.price || 0) * item.quantity,
       }
     }
-    
+
     // Handle SERVICE items ✅ AGGIUNTO
     if (item.itemType === "SERVICE") {
       return {
@@ -68,7 +71,7 @@ items: {
         totalPrice: (item.service.price || 0) * item.quantity,
       }
     }
-    
+
     // Fallback
     return { ...fallbackItem }
   }),
@@ -82,6 +85,7 @@ items: {
 #### Metodo: `submitOrder()` (linea ~280-360)
 
 **✅ Modifica 1:** Separazione prodotti e servizi
+
 ```typescript
 // Separate products from services ✅ AGGIUNTO
 const productItems = prodotti.filter(
@@ -93,12 +97,13 @@ const serviceItems = prodotti.filter(
 ```
 
 **✅ Modifica 2:** Lookup servizi da database
+
 ```typescript
 // Find services by serviceId ✅ AGGIUNTO
 const serviceIds = serviceItems
   .map((item: any) => item.serviceId)
   .filter(Boolean)
-  
+
 const services = await prisma.services.findMany({
   where: {
     id: { in: serviceIds },
@@ -114,6 +119,7 @@ services.forEach((service) => {
 ```
 
 **✅ Modifica 3:** Creazione OrderItems separati per PRODUCT e SERVICE
+
 ```typescript
 items: {
   create: [
@@ -130,7 +136,7 @@ items: {
         formato: item.formato,
       },
     })),
-    
+
     // SERVICE items ✅ AGGIUNTO
     ...serviceItems.map((item: any) => {
       const service = serviceMap.get(item.serviceId)
@@ -159,6 +165,7 @@ items: {
 Il frontend era **già pronto** per gestire i servizi:
 
 ### **CheckoutPage.tsx**
+
 - ✅ Bottone "Aggiungi Servizi"
 - ✅ Modal selezione servizi
 - ✅ Icone emoji per servizi
@@ -167,6 +174,7 @@ Il frontend era **già pronto** per gestire i servizi:
 - ✅ Calcolo totali prodotti + servizi
 
 ### **OrdersPage.tsx**
+
 - ✅ Distinzione visuale PRODUCT vs SERVICE
 - ✅ Badge "Service" per servizi
 - ✅ Icone specifiche per servizi
@@ -178,6 +186,7 @@ Il frontend era **già pronto** per gestire i servizi:
 ## 🧪 TEST SCENARI
 
 ### **Scenario 1: Carrello Misto**
+
 1. ✅ Aggiungi 2 prodotti al carrello
 2. ✅ Aggiungi 1 servizio al carrello
 3. ✅ Vai al checkout → prezzi corretti
@@ -185,12 +194,14 @@ Il frontend era **già pronto** per gestire i servizi:
 5. ✅ **Risultato:** Ordine con 2 PRODUCT items + 1 SERVICE item
 
 ### **Scenario 2: Solo Servizi**
+
 1. ✅ Carrello vuoto
 2. ✅ Aggiungi 2 servizi
 3. ✅ Checkout
 4. ✅ **Risultato:** Ordine con 2 SERVICE items
 
 ### **Scenario 3: Con Sconti Cliente**
+
 1. ✅ Cliente con sconto 10%
 2. ✅ Aggiungi servizio €100
 3. ✅ **Prezzo finale:** €90
@@ -202,16 +213,19 @@ Il frontend era **già pronto** per gestire i servizi:
 ## 📊 COPERTURA COMPLETA
 
 ### **Database** ✅ 100%
+
 - CartItems: `itemType`, `serviceId`, `notes`
 - OrderItems: `itemType`, `serviceId`
 - Services: tabella completa
 
 ### **Backend API** ✅ 100%
+
 - Cart Operations: Aggiungi/Modifica/Elimina servizi
 - Checkout: Validazione token con servizi
 - Order Creation: PRODUCT + SERVICE items
 
 ### **Frontend UI** ✅ 100%
+
 - Checkout: Selezione e visualizzazione servizi
 - Orders: Visualizzazione ordini con servizi
 - Icone e Badge: Distinzione visuale completa
@@ -222,7 +236,7 @@ Il frontend era **già pronto** per gestire i servizi:
 
 **Nessun errore di compilazione**  
 **Tutti i test scenari coperti**  
-**Frontend già preparato**  
+**Frontend già preparato**
 
 ✅ **La feature è PRONTA per la produzione!**
 
@@ -231,12 +245,14 @@ Il frontend era **già pronto** per gestire i servizi:
 ## 📝 NOTE TECNICHE
 
 ### Calcolo Prezzi Servizi
+
 - Prezzo base: `service.price`
 - Sconto cliente: `customer.discount` (%)
 - Prezzo finale: `price - (price * discount / 100)`
 - **NO offer-based discounts per servizi** (solo customer discount)
 
 ### ProductVariant per Servizi
+
 ```typescript
 productVariant: {
   codice: service.code,
@@ -247,6 +263,7 @@ productVariant: {
 ```
 
 ### ItemType Enum
+
 ```typescript
 enum ItemType {
   PRODUCT
