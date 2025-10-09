@@ -381,15 +381,10 @@ export class CartController {
             continue
           }
 
-          // 🎯 Services: use direct price (no complex discount calculation for now)
-          // TODO: Implement service-specific discount logic if needed
+          // 🎯 Services: NEVER have discounts - always use base price
           const originalPrice = item.service.price || 0
-
-          // Apply customer discount if present
-          const appliedDiscount = customerDiscount || 0
-          const discountAmount =
-            appliedDiscount > 0 ? (originalPrice * appliedDiscount) / 100 : 0
-          const finalPrice = originalPrice - discountAmount
+          const finalPrice = originalPrice // Services are NEVER discounted
+          const appliedDiscount = 0 // Services have NO discount
 
           const itemTotal = finalPrice * item.quantity
           totalAmount += itemTotal
@@ -405,8 +400,8 @@ export class CartController {
             duration: item.service.duration || null,
             originalPrice: originalPrice,
             finalPrice: finalPrice,
-            discountAmount: discountAmount,
-            appliedDiscount: appliedDiscount,
+            discountAmount: 0, // Services NEVER have discount amount
+            appliedDiscount: 0, // Services NEVER have applied discount
             quantity: item.quantity,
             notes: item.notes || null,
             total: itemTotal,

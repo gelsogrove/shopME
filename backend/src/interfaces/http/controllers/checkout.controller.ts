@@ -116,15 +116,10 @@ export class CheckoutController {
       let totalAmount = 0
       const cartItems =
         cart?.items.map((item) => {
-          // Handle SERVICE items
+          // Handle SERVICE items - Services are NEVER discounted
           if (item.itemType === "SERVICE" && item.service) {
             const originalPrice = item.service.price || 0
-            const customerDiscount = customer.discount || 0
-            const discountAmount =
-              customerDiscount > 0
-                ? (originalPrice * customerDiscount) / 100
-                : 0
-            const finalPrice = originalPrice - discountAmount
+            const finalPrice = originalPrice // Services NEVER have discount
             const itemTotal = finalPrice * item.quantity
             totalAmount += itemTotal
 
@@ -139,10 +134,9 @@ export class CheckoutController {
               notes: item.notes,
               prezzo: finalPrice,
               prezzoOriginale: originalPrice,
-              scontoApplicato: customerDiscount,
-              fonteSconto: customerDiscount > 0 ? "customer" : undefined,
-              nomeSconto:
-                customerDiscount > 0 ? "Customer Discount" : undefined,
+              scontoApplicato: 0, // Services NEVER have discount
+              fonteSconto: undefined,
+              nomeSconto: undefined,
               qty: item.quantity,
               total: itemTotal,
             }

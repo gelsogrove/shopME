@@ -26,8 +26,6 @@ ho 4 prodotti che sono arrivati scaduti cosa devo fare?
 Voglio parlare con un operatore.
 
 FASE 1
-che sconto ho ?
-che sconto ho sui prodotti?
 
 FASE 2
 
@@ -37,13 +35,16 @@ FASE 2
 
 POPUP NUOVO ORDINE
 
+- wip services
+- login in sicurezza
 - unformare migration.sql?
 - pulire il DB
 - system log come possiamo migliorarlo ? o spostarlo?
+
 - 2AUYH
 - mail
 - sicurezza
-- wip services
+
 - GDPR deve essere in linuga
 - metterei i prezzo nella tabella della history e nel DEBUG
 - pulizia codice di FE
@@ -55,7 +56,6 @@ POPUP NUOVO ORDINE
 - cateogorie si possoon tigliere?
 - rate LImit
 - siamo sicuri che passiamo sempre il workspceID
-- login in sicurezza
 
 > > TODO <<
 

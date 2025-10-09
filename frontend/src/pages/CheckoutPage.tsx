@@ -240,10 +240,12 @@ const CheckoutPage: React.FC = () => {
     }
   }, [valid, tokenData])
 
-  // Calculate total using discounted prices
+  // Calculate total using discounted prices (only for products, not services)
   const calculateTotal = () => {
     return prodotti.reduce((sum, prodotto) => {
-      const finalPrice = prodotto.prezzoScontato || prodotto.prezzo
+      const isService = prodotto.itemType === "SERVICE"
+      // Services always use base price, products can use discounted price
+      const finalPrice = isService ? prodotto.prezzo : (prodotto.prezzoScontato || prodotto.prezzo)
       const quantity = prodotto.qty || prodotto.quantita || 1
       return sum + finalPrice * quantity
     }, 0)
@@ -422,8 +424,8 @@ const CheckoutPage: React.FC = () => {
               formato: null,
               prezzo: item.originalPrice || 0,
               prezzoOriginale: item.originalPrice || 0,
-              prezzoScontato: item.finalPrice || item.originalPrice || 0,
-              scontoApplicato: item.appliedDiscount || 0,
+              prezzoScontato: undefined, // Services are NEVER discounted
+              scontoApplicato: 0, // Services have NO discount
               fonteSconto: null,
               nomeSconto: null,
               qty: 1, // Services always have quantity 1
@@ -451,8 +453,15 @@ const CheckoutPage: React.FC = () => {
           }
         })
 
-        setProdotti(updatedProdotti)
-        logger.info(`🔄 Cart refreshed: ${updatedProdotti.length} items`)
+        // 🔧 Sort: PRODUCTS first, SERVICES after
+        const sortedProdotti = updatedProdotti.sort((a, b) => {
+          if (a.itemType === "PRODUCT" && b.itemType === "SERVICE") return -1
+          if (a.itemType === "SERVICE" && b.itemType === "PRODUCT") return 1
+          return 0
+        })
+
+        setProdotti(sortedProdotti)
+        logger.info(`🔄 Cart refreshed: ${sortedProdotti.length} items`)
       }
     } catch (error) {
       logger.error("Error refreshing cart from backend:", error)
@@ -952,8 +961,9 @@ const CheckoutPage: React.FC = () => {
                       setShowAddProducts(true)
                       loadAvailableProducts()
                     }}
-                    className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                    className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
                   >
+                    <span className="text-xl font-bold">+</span>
                     {texts.addProducts || "Aggiungi Prodotti"}
                   </button>
                   <button
@@ -961,8 +971,9 @@ const CheckoutPage: React.FC = () => {
                       setShowAddServices(true)
                       loadAvailableServices()
                     }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
                   >
+                    <span className="text-xl font-bold">+</span>
                     {texts.addServices || "Aggiungi Servizi"}
                   </button>
                 </div>
@@ -1018,20 +1029,6 @@ const CheckoutPage: React.FC = () => {
                             </div>
                           )}
 
-                          {/* Duration (only for services) */}
-                          {isService && prodotto.duration && (
-                            <div className="text-sm text-blue-600 mb-2 font-medium">
-                              {texts.duration}: {prodotto.duration} min
-                            </div>
-                          )}
-
-                          {/* Notes (only for services) */}
-                          {isService && prodotto.notes && (
-                            <div className="text-sm text-gray-600 mb-2 italic">
-                              {texts.notes}: {prodotto.notes}
-                            </div>
-                          )}
-
                           {/* Quantity and Price */}
                           <div className="flex items-center space-x-4">
                             {/* Quantity controls - only for products */}
@@ -1066,36 +1063,32 @@ const CheckoutPage: React.FC = () => {
                               </div>
                             )}
 
-                            {/* Services always have qty 1 */}
-                            {isService && (
-                              <div className="text-sm text-gray-600">
-                                {texts.quantity}: 1
-                              </div>
-                            )}
-
-                            <div className="flex items-center space-x-2">
-                              {prodotto.prezzoOriginale &&
-                              prodotto.prezzoOriginale > prodotto.prezzo ? (
-                                <>
+                            {/* Price per unit - only for products */}
+                            {!isService && (
+                              <div className="flex items-center space-x-2">
+                                {prodotto.prezzoOriginale &&
+                                prodotto.prezzoOriginale > prodotto.prezzo ? (
+                                  <>
+                                    <span className="text-sm text-gray-600">
+                                      a €{prodotto.prezzo.toFixed(2)} cad.
+                                    </span>
+                                    <span className="text-sm text-gray-500 line-through">
+                                      (era €{prodotto.prezzoOriginale.toFixed(2)})
+                                    </span>
+                                    {prodotto.scontoApplicato &&
+                                      prodotto.scontoApplicato > 0 && (
+                                        <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                                          -{prodotto.scontoApplicato}%
+                                        </span>
+                                      )}
+                                  </>
+                                ) : (
                                   <span className="text-sm text-gray-600">
                                     a €{prodotto.prezzo.toFixed(2)} cad.
                                   </span>
-                                  <span className="text-sm text-gray-500 line-through">
-                                    (era €{prodotto.prezzoOriginale.toFixed(2)})
-                                  </span>
-                                  {prodotto.scontoApplicato &&
-                                    prodotto.scontoApplicato > 0 && (
-                                      <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                                        -{prodotto.scontoApplicato}%
-                                      </span>
-                                    )}
-                                </>
-                              ) : (
-                                <span className="text-sm text-gray-600">
-                                  a €{prodotto.prezzo.toFixed(2)} cad.
-                                </span>
-                              )}
-                            </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -1104,7 +1097,7 @@ const CheckoutPage: React.FC = () => {
                             <p className="font-bold text-lg text-green-600">
                               €
                               {(
-                                (prodotto.prezzoScontato || prodotto.prezzo) *
+                                (isService ? prodotto.prezzo : (prodotto.prezzoScontato || prodotto.prezzo)) *
                                 (prodotto.qty || prodotto.quantita || 1)
                               ).toFixed(2)}
                             </p>
@@ -1504,33 +1497,36 @@ const CheckoutPage: React.FC = () => {
                 <h3 className="text-lg font-semibold mb-4">
                   {texts.productSummary}
                 </h3>
-                {prodotti.map((prodotto, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between py-2 border-b"
-                  >
-                    <div className="flex-1">
-                      <div>
-                        <span>
-                          {prodotto.qty || prodotto.quantita || 1}x{" "}
-                          {prodotto.descrizione}
-                        </span>
-                        {prodotto.formato && (
-                          <div className="text-sm text-blue-600">
-                            Format: {prodotto.formato}
-                          </div>
-                        )}
+                {prodotti.map((prodotto, index) => {
+                  const isService = prodotto.itemType === "SERVICE"
+                  return (
+                    <div
+                      key={index}
+                      className="flex justify-between py-2 border-b"
+                    >
+                      <div className="flex-1">
+                        <div>
+                          <span>
+                            {prodotto.qty || prodotto.quantita || 1}x{" "}
+                            {prodotto.descrizione}
+                          </span>
+                          {prodotto.formato && (
+                            <div className="text-sm text-blue-600">
+                              Format: {prodotto.formato}
+                            </div>
+                          )}
+                        </div>
                       </div>
+                      <span>
+                        €
+                        {(
+                          (isService ? prodotto.prezzo : (prodotto.prezzoScontato || prodotto.prezzo)) *
+                          (prodotto.qty || prodotto.quantita || 1)
+                        ).toFixed(2)}
+                      </span>
                     </div>
-                    <span>
-                      €
-                      {(
-                        (prodotto.prezzoScontato || prodotto.prezzo) *
-                        (prodotto.qty || prodotto.quantita || 1)
-                      ).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+                  )
+                })}
                 <div className="flex justify-between py-2 text-xl font-bold border-t-2 mt-2">
                   <span>Totale:</span>
                   <span className="text-green-600">
@@ -1775,19 +1771,21 @@ const CheckoutPage: React.FC = () => {
                                   <div className="mb-2">
                                     {product.finalPrice &&
                                     product.finalPrice < product.price ? (
-                                      <div className="flex items-center space-x-2">
+                                      <div className="flex flex-col">
                                         <p className="text-lg font-bold text-green-600">
                                           €{product.finalPrice.toFixed(2)}
                                         </p>
-                                        <p className="text-sm text-gray-500 line-through">
-                                          €{product.price.toFixed(2)}
-                                        </p>
-                                        {product.appliedDiscount &&
-                                          product.appliedDiscount > 0 && (
-                                            <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                                              -{product.appliedDiscount}%
-                                            </span>
-                                          )}
+                                        <div className="flex items-center space-x-2">
+                                          <p className="text-sm text-gray-500 line-through">
+                                            €{product.price.toFixed(2)}
+                                          </p>
+                                          {product.appliedDiscount &&
+                                            product.appliedDiscount > 0 && (
+                                              <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                                                -{product.appliedDiscount}%
+                                              </span>
+                                            )}
+                                        </div>
                                       </div>
                                     ) : (
                                       <p className="text-lg font-bold text-green-600">
@@ -1798,21 +1796,9 @@ const CheckoutPage: React.FC = () => {
                                   <div className="flex justify-center">
                                     <button
                                       onClick={() => addProductToCart(product)}
-                                      className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded text-sm transition-colors flex items-center gap-2 min-w-[120px]"
+                                      className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded text-sm transition-colors flex items-center gap-2 min-w-[120px] justify-center"
                                     >
-                                      <svg
-                                        className="w-4 h-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5M7 13v6a1 1 0 001 1h8a1 1 0 001-1v-6m-9 0h10"
-                                        />
-                                      </svg>
+                                      <span className="text-xl font-bold">+</span>
                                       {texts.addToCart}
                                     </button>
                                   </div>
@@ -1874,17 +1860,12 @@ const CheckoutPage: React.FC = () => {
                         key={service.id}
                         className="border rounded-lg p-4 hover:shadow-md transition-shadow"
                       >
-                        <h5 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                        <h5 className="font-semibold text-sm mb-3 flex items-center gap-2">
                           <span className="text-2xl">
                             {getServiceIcon(service.name)}
                           </span>
                           <span>{service.name}</span>
                         </h5>
-                        {service.description && (
-                          <p className="text-xs text-gray-600 mb-3">
-                            {service.description}
-                          </p>
-                        )}
                         <div className="flex items-center justify-between">
                           <p className="text-lg font-bold text-blue-600">
                             €{(service.price || 0).toFixed(2)}

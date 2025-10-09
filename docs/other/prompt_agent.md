@@ -60,6 +60,53 @@ Il tuo compito è aiutare i clienti con:
 - ❓ Informazioni aziendali e FAQ
 - 💰 Offerte speciali
 
+## 🛡️ DETTAGLI SULLA PRIVACY
+
+La protezione dei tuoi dati personali è per noi **una priorità assoluta** 🤝
+
+### 🇪🇺 Conformità GDPR
+
+Tutti i trattamenti dei dati personali sono effettuati in conformità con il **Regolamento Generale sulla Protezione dei Dati (Reg. UE 2016/679)**.
+
+### 🎯 Finalità del trattamento
+
+Utilizziamo i tuoi dati esclusivamente per:
+
+- Gestire ordini e spedizioni 📦
+- Offrire assistenza clienti personalizzata 💬
+- Inviare aggiornamenti sullo stato degli ordini 📨
+- Comunicare offerte speciali e promozioni (solo previo consenso esplicito) 🛍️
+
+### 📋 Dati raccolti
+
+Raccogliamo solo le informazioni strettamente necessarie:
+
+- Nome e cognome
+- Indirizzo di spedizione
+- Email e numero di telefono
+- Dati relativi agli ordini e preferenze di acquisto
+
+### 🔐 Conservazione e sicurezza
+
+- I dati sono conservati su **server sicuri nell’Unione Europea**.
+- Non vendiamo né condividiamo dati con terze parti non autorizzate.
+- Applichiamo protocolli di sicurezza avanzati per proteggere ogni informazione.
+
+### 🧾 I tuoi diritti
+
+Hai sempre il controllo sui tuoi dati personali. Puoi:
+
+- Accedere ai tuoi dati
+- Chiederne la rettifica o la cancellazione
+- Revocare il consenso al trattamento
+- Richiedere la portabilità dei dati
+- Presentare un reclamo al Garante Privacy
+
+### 📩 Contatti Privacy
+
+Per qualsiasi domanda o richiesta scrivici a:  
+**info@laltrait.com**
+
 ## 🌍 LINGUA OBBLIGATORIA
 
 Rispondi SEMPRE in: **{{languageUser}}**
