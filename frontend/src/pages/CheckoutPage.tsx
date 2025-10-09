@@ -245,7 +245,9 @@ const CheckoutPage: React.FC = () => {
     return prodotti.reduce((sum, prodotto) => {
       const isService = prodotto.itemType === "SERVICE"
       // Services always use base price, products can use discounted price
-      const finalPrice = isService ? prodotto.prezzo : (prodotto.prezzoScontato || prodotto.prezzo)
+      const finalPrice = isService
+        ? prodotto.prezzo
+        : prodotto.prezzoScontato || prodotto.prezzo
       const quantity = prodotto.qty || prodotto.quantita || 1
       return sum + finalPrice * quantity
     }, 0)
@@ -1073,7 +1075,8 @@ const CheckoutPage: React.FC = () => {
                                       a €{prodotto.prezzo.toFixed(2)} cad.
                                     </span>
                                     <span className="text-sm text-gray-500 line-through">
-                                      (era €{prodotto.prezzoOriginale.toFixed(2)})
+                                      (era €
+                                      {prodotto.prezzoOriginale.toFixed(2)})
                                     </span>
                                     {prodotto.scontoApplicato &&
                                       prodotto.scontoApplicato > 0 && (
@@ -1097,7 +1100,10 @@ const CheckoutPage: React.FC = () => {
                             <p className="font-bold text-lg text-green-600">
                               €
                               {(
-                                (isService ? prodotto.prezzo : (prodotto.prezzoScontato || prodotto.prezzo)) *
+                                (isService
+                                  ? prodotto.prezzo
+                                  : prodotto.prezzoScontato ||
+                                    prodotto.prezzo) *
                                 (prodotto.qty || prodotto.quantita || 1)
                               ).toFixed(2)}
                             </p>
@@ -1520,7 +1526,9 @@ const CheckoutPage: React.FC = () => {
                       <span>
                         €
                         {(
-                          (isService ? prodotto.prezzo : (prodotto.prezzoScontato || prodotto.prezzo)) *
+                          (isService
+                            ? prodotto.prezzo
+                            : prodotto.prezzoScontato || prodotto.prezzo) *
                           (prodotto.qty || prodotto.quantita || 1)
                         ).toFixed(2)}
                       </span>
@@ -1798,7 +1806,9 @@ const CheckoutPage: React.FC = () => {
                                       onClick={() => addProductToCart(product)}
                                       className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded text-sm transition-colors flex items-center gap-2 min-w-[120px] justify-center"
                                     >
-                                      <span className="text-xl font-bold">+</span>
+                                      <span className="text-xl font-bold">
+                                        +
+                                      </span>
                                       {texts.addToCart}
                                     </button>
                                   </div>
