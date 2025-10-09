@@ -200,7 +200,7 @@ IL modello lancia la call function.
 ## 👤 USER INFORMATION
 
 - Nome utente: {{nameUser}}
-- Sconto utente: {{discountUser}}
+- Sconto utente sui prodotti: {{discountUser}} %
 - Società: {{companyName}}
 - Ultimo ordine effettuato: {{lastordercode}}
 - Lingua dell'utente: {{languageUser}}
