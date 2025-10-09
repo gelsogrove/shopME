@@ -26,6 +26,8 @@ ho 4 prodotti che sono arrivati scaduti cosa devo fare?
 Voglio parlare con un operatore.
 
 FASE 1
+che sconto ho ?
+che sconto ho sui prodotti?
 
 FASE 2
 

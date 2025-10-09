@@ -306,6 +306,13 @@ export function ChatPage() {
   useEffect(() => {
     if (polledMessages.length > 0 && selectedChat) {
       setMessages(polledMessages)
+
+      // 🔧 FIX: Re-fetch customer details to sync activeChatbot status
+      // This ensures that when ContactOperator() is called, we update isChatbotActive
+      if (selectedChat.customerId) {
+        fetchCustomerDetails(selectedChat.customerId)
+      }
+
       // Scroll to bottom only if user is already at bottom
       setTimeout(() => {
         if (messagesEndRef.current) {
@@ -378,8 +385,14 @@ export function ChatPage() {
       )
       const customerData = response.data
 
-      // Update the activeChatbot state based on the customer data using context
-      updateActiveChatbot(selectedChat.id, customerData.activeChatbot !== false) // Default to true if undefined
+      const chatbotStatus = customerData.activeChatbot !== false // Default to true if undefined
+
+      // 🔧 FIX: Update BOTH context and local state
+      updateActiveChatbot(selectedChat.id, chatbotStatus)
+      setIsChatbotActive(chatbotStatus) // Update local state immediately
+
+      // 🔧 FIX: Invalidate chats to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["chats"] })
     } catch (error) {
       logger.error("Error fetching customer details:", error)
     }
@@ -1277,8 +1290,15 @@ export function ChatPage() {
                     )
                   })
                 ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    {loadingChat ? "Loading messages..." : "No messages yet"}
+                  <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                    {loadingChat ? (
+                      <>
+                        <Loader2 className="h-8 w-8 animate-spin text-green-600 mb-2" />
+                        <p className="text-sm">Loading messages...</p>
+                      </>
+                    ) : (
+                      <p className="text-sm">No messages yet</p>
+                    )}
                   </div>
                 )}
                 <div ref={messagesEndRef} />
