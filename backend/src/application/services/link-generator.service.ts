@@ -23,13 +23,14 @@ export class LinkGeneratorService {
     linkType: string = "generic"
   ): Promise<string> {
     try {
-      // Create short URL
+      // Create short URL - now returns full URL from workspace.url
       const shortResult = await this.urlShortenerService.createShortUrl(
         originalUrl,
         workspaceId
       )
 
-      const shortUrl = `http://localhost:3001${shortResult.shortUrl}`
+      // shortResult.shortUrl already contains the full URL (e.g., http://localhost:3000/s/abc123)
+      const shortUrl = shortResult.shortUrl
 
       logger.info(
         `📎 Created short ${linkType} link: ${shortUrl} → ${originalUrl}`

@@ -31,7 +31,7 @@ export class ShortUrlTestController {
           results.push({
             originalUrl,
             shortCode,
-            shortUrl: `http://localhost:3000${shortUrl}`,
+            shortUrl, // Already includes the full URL from getWorkspaceURL
             status: "success",
           })
         } catch (error) {

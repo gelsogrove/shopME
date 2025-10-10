@@ -12,6 +12,14 @@ export interface Workspace {
   description?: string
   isActive: boolean
   isDelete: boolean
+  currency?: string
+  url?: string
+  whatsappPhoneNumber?: string
+  whatsappApiKey?: string
+  adminEmail?: string
+  debugMode?: boolean
+  welcomeMessages?: any
+  wipMessages?: any
   createdAt: string
   updatedAt: string
 }

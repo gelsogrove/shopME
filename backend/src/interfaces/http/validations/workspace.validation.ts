@@ -17,6 +17,7 @@ export const updateWorkspaceSchema = Joi.object({
   isActive: Joi.boolean(),
   currency: Joi.string().valid('EUR', 'USD', 'GBP'),
   language: Joi.string().valid('en', 'it', 'es', 'pr','fr','de'),
+  url: Joi.string().uri().allow(null, ""),
   welcomeMessages: Joi.object({
     it: Joi.string().allow(null, ""),
     en: Joi.string().allow(null, ""),

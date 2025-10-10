@@ -506,7 +506,8 @@ export class CallingFunctionsService {
           dhlTrackingUrl,
           request.workspaceId
         )
-        const shortTrackingUrl = `http://localhost:3001${shortResult.shortUrl}`
+        // shortResult.shortUrl already contains the full URL from workspace.url
+        const shortTrackingUrl = shortResult.shortUrl
 
         console.log(
           `📎 Created short tracking link: ${shortTrackingUrl} → ${dhlTrackingUrl}`

@@ -249,4 +249,17 @@ export const workspaceService = {
     })
     return promptRow?.content || null
   },
+
+  /**
+   * Get workspace URL or return default localhost
+   * @param workspaceId string
+   * @returns string
+   */
+  async getWorkspaceURL(workspaceId: string): Promise<string> {
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { url: true },
+    })
+    return workspace?.url || "http://localhost:3000"
+  },
 }

@@ -12,6 +12,7 @@ interface Workspace {
   isActive: boolean;
   currency?: string;
   language?: string;
+  url?: string;
   createdAt: string;
   updatedAt: string;
 }

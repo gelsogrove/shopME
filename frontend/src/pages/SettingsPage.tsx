@@ -46,6 +46,7 @@ interface WorkspaceData {
   whatsappApiKey: string
   adminEmail: string
   currency: string
+  url: string
   isActive: boolean
   debugMode: boolean
   welcomeMessages: {
@@ -77,6 +78,7 @@ export default function SettingsPage() {
     whatsappApiKey: "",
     adminEmail: "",
     currency: "EUR",
+    url: "http://localhost:3000",
     isActive: true,
     debugMode: true,
     welcomeMessages: {
@@ -163,6 +165,7 @@ export default function SettingsPage() {
         whatsappApiKey: workspace.whatsappApiKey || "",
         adminEmail: workspace.adminEmail || "",
         currency: workspace.currency || "EUR",
+        url: workspace.url || "http://localhost:3000",
         isActive: workspace.isActive ?? true,
         debugMode: workspace.debugMode ?? true,
         welcomeMessages,
@@ -263,6 +266,8 @@ export default function SettingsPage() {
       whatsappPhoneNumber: formData.whatsappPhoneNumber,
       whatsappApiKey: formData.whatsappApiKey,
       adminEmail: formData.adminEmail,
+      currency: formData.currency,
+      url: formData.url || "http://localhost:3000",
       isActive: formData.isActive,
       debugMode: formData.debugMode,
     }
@@ -412,6 +417,21 @@ export default function SettingsPage() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Workspace URL */}
+          <div className="space-y-2">
+            <Label htmlFor="url">Workspace URL</Label>
+            <Input
+              id="url"
+              type="url"
+              value={formData.url}
+              onChange={(e) => handleFieldChange("url", e.target.value)}
+              placeholder="http://localhost:3000"
+            />
+            <p className="text-xs text-muted-foreground">
+              Base URL for generating short links and redirects (e.g., http://yourdomain.com)
+            </p>
           </div>
 
           {/* Welcome Messages */}

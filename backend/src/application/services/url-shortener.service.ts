@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import logger from "../../utils/logger"
+import { workspaceService } from "../../services/workspace.service"
 
 const prisma = new PrismaClient()
 
@@ -70,7 +71,9 @@ export class UrlShortenerService {
         },
       })
 
-      const shortUrl = `/s/${shortCode}`
+      // Get workspace base URL
+      const baseUrl = await workspaceService.getWorkspaceURL(workspaceId)
+      const shortUrl = `${baseUrl}/s/${shortCode}`
 
       logger.info(
         `📎 Short URL created: ${shortUrl} → ${originalUrl.substring(0, 50)}...`

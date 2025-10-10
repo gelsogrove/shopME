@@ -21,48 +21,43 @@ export function MessageRenderer({
     compact: "leading-normal",
   }
 
-  // 🚀 SOLUZIONE SEMPLICE: Converti \n in <br> per rispettare gli a capo
-  const formatContent = (text: string): string => {
-    const result = text
-      .replace(/\n/g, "<br />") // Converti tutti i \n in <br />
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Converti **text** in <strong>
-      .replace(/\*(.*?)\*/g, "<em>$1</em>") // Converti *text* in <em>
-      .replace(/~~(.*?)~~/g, '<s style="text-decoration: line-through;">$1</s>') // Converti ~~text~~ in testo barrato
-      .replace(/→\s*(€[\d.,]+)/g, "→ <strong>$1</strong>") // Converti prezzo finale dopo → in grassetto
-      // 🔧 FIX: Rimuovi punteggiatura dai link prima di convertirli
-      .replace(/(https?:\/\/[^\s.,!?;:]+)[.,!?;:]+(\s|$)/g, "$1$2") // Rimuovi punteggiatura HTTPS/HTTP
-      .replace(
-        /(http:\/\/localhost:300[01]\/s\/[a-zA-Z0-9]+)[.,!?;:]+(\s|$)/g,
-        "$1$2"
-      ) // Rimuovi punteggiatura localhost
-      // 🎯 CONVERSIONE LINK MARKDOWN [testo](url) → HTML <a>
-      .replace(
-        /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
-        '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>'
-      )
-      // 🎯 CONVERSIONE SPECIFICA per i nostri short URLs localhost
-      .replace(
-        /(http:\/\/localhost:300[01]\/s\/[a-zA-Z0-9]+)/g,
-        '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>'
-      )
-      // 🔧 CONVERSIONE GENERALE per tutti gli altri URL (ESCLUSI localhost che sono già processati)
-      .replace(
-        /(https?:\/\/(?!localhost)[^\s.,!?;:]+)/g,
-        '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>'
-      )
-
-    // Debug: mostra il risultato della conversione
-
-    return result
+  // SOLUZIONE BRUTALE: Spacca il testo e trova tutti gli URL
+  const renderWithLinks = (text: string) => {
+    // Regex SEMPLICE per trovare URL
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    const parts = text.split(urlRegex)
+    
+    return parts.map((part, index) => {
+      // Se inizia con http:// o https:// è un link
+      if (part.match(/^https?:\/\//)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline cursor-pointer"
+          >
+            {part}
+          </a>
+        )
+      }
+      // Altrimenti è testo normale - gestisci formattazione
+      const formatted = part
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/→\s*(€[\d.,]+)/g, '→ <strong>$1</strong>')
+      
+      return <span key={index} dangerouslySetInnerHTML={{ __html: formatted }} />
+    })
   }
 
-  // Se è chat, usa HTML diretto invece di markdown per rispettare gli a capo
+  // Se è chat, splitta e renderizza con link
   if (variant === "chat") {
     return (
-      <div
-        className={`${baseClasses} ${variantClasses[variant]} ${className}`}
-        dangerouslySetInnerHTML={{ __html: formatContent(content) }}
-      />
+      <div className={`${baseClasses} ${variantClasses[variant]} ${className}`} style={{ whiteSpace: "pre-wrap" }}>
+        {renderWithLinks(content)}
+      </div>
     )
   }
 
