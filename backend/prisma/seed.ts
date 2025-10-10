@@ -909,6 +909,309 @@ async function main() {
     }
   }
 
+  // Create sales (salespeople) for the main workspace
+  console.log(`Creating sales for workspace: ${createdWorkspaces[0].name}`)
+  const salesData = [
+    {
+      firstName: "Marco",
+      lastName: "Rossi",
+      email: "marco.rossi@example.com",
+      phone: "+39 333 1234567",
+    },
+    {
+      firstName: "Giulia",
+      lastName: "Bianchi",
+      email: "giulia.bianchi@example.com",
+      phone: "+39 333 2345678",
+    },
+    {
+      firstName: "Alessandro",
+      lastName: "Ferrari",
+      email: "alessandro.ferrari@example.com",
+      phone: "+39 333 3456789",
+    },
+    {
+      firstName: "Francesca",
+      lastName: "Romano",
+      email: "francesca.romano@example.com",
+      phone: "+39 333 4567890",
+    },
+    {
+      firstName: "Luca",
+      lastName: "Esposito",
+      email: "luca.esposito@example.com",
+      phone: "+39 333 5678901",
+    },
+    {
+      firstName: "Sofia",
+      lastName: "Colombo",
+      email: "sofia.colombo@example.com",
+      phone: "+39 333 6789012",
+    },
+    {
+      firstName: "Matteo",
+      lastName: "Ricci",
+      email: "matteo.ricci@example.com",
+      phone: "+39 333 7890123",
+    },
+    {
+      firstName: "Chiara",
+      lastName: "Marino",
+      email: "chiara.marino@example.com",
+      phone: "+39 333 8901234",
+    },
+    {
+      firstName: "Lorenzo",
+      lastName: "Greco",
+      email: "lorenzo.greco@example.com",
+      phone: "+39 333 9012345",
+    },
+    {
+      firstName: "Martina",
+      lastName: "Bruno",
+      email: "martina.bruno@example.com",
+      phone: "+39 333 0123456",
+    },
+    {
+      firstName: "Andrea",
+      lastName: "Gallo",
+      email: "andrea.gallo@example.com",
+      phone: "+39 334 1234567",
+    },
+    {
+      firstName: "Valentina",
+      lastName: "Costa",
+      email: "valentina.costa@example.com",
+      phone: "+39 334 2345678",
+    },
+    {
+      firstName: "Davide",
+      lastName: "Fontana",
+      email: "davide.fontana@example.com",
+      phone: "+39 334 3456789",
+    },
+    {
+      firstName: "Elena",
+      lastName: "Barbieri",
+      email: "elena.barbieri@example.com",
+      phone: "+39 334 4567890",
+    },
+    {
+      firstName: "Simone",
+      lastName: "Villa",
+      email: "simone.villa@example.com",
+      phone: "+39 334 5678901",
+    },
+    {
+      firstName: "Serena",
+      lastName: "Lombardi",
+      email: "serena.lombardi@example.com",
+      phone: "+39 334 6789012",
+    },
+    {
+      firstName: "Riccardo",
+      lastName: "Moretti",
+      email: "riccardo.moretti@example.com",
+      phone: "+39 334 7890123",
+    },
+    {
+      firstName: "Elisa",
+      lastName: "Barbieri",
+      email: "elisa.barbieri@example.com",
+      phone: "+39 334 8901234",
+    },
+    {
+      firstName: "Federico",
+      lastName: "Conti",
+      email: "federico.conti@example.com",
+      phone: "+39 334 9012345",
+    },
+    {
+      firstName: "Alessia",
+      lastName: "De Luca",
+      email: "alessia.deluca@example.com",
+      phone: "+39 334 0123456",
+    },
+    {
+      firstName: "Giovanni",
+      lastName: "Mancini",
+      email: "giovanni.mancini@example.com",
+      phone: "+39 335 1234567",
+    },
+    {
+      firstName: "Laura",
+      lastName: "Santoro",
+      email: "laura.santoro@example.com",
+      phone: "+39 335 2345678",
+    },
+    {
+      firstName: "Paolo",
+      lastName: "Marini",
+      email: "paolo.marini@example.com",
+      phone: "+39 335 3456789",
+    },
+    {
+      firstName: "Silvia",
+      lastName: "Giordano",
+      email: "silvia.giordano@example.com",
+      phone: "+39 335 4567890",
+    },
+    {
+      firstName: "Stefano",
+      lastName: "Ferri",
+      email: "stefano.ferri@example.com",
+      phone: "+39 335 5678901",
+    },
+    {
+      firstName: "Anna",
+      lastName: "Pellegrini",
+      email: "anna.pellegrini@example.com",
+      phone: "+39 335 6789012",
+    },
+    {
+      firstName: "Nicola",
+      lastName: "Rossetti",
+      email: "nicola.rossetti@example.com",
+      phone: "+39 335 7890123",
+    },
+    {
+      firstName: "Cristina",
+      lastName: "Martini",
+      email: "cristina.martini@example.com",
+      phone: "+39 335 8901234",
+    },
+    {
+      firstName: "Daniele",
+      lastName: "Leone",
+      email: "daniele.leone@example.com",
+      phone: "+39 335 9012345",
+    },
+    {
+      firstName: "Marta",
+      lastName: "Longo",
+      email: "marta.longo@example.com",
+      phone: "+39 335 0123456",
+    },
+    {
+      firstName: "Roberto",
+      lastName: "Benedetti",
+      email: "roberto.benedetti@example.com",
+      phone: "+39 336 1234567",
+    },
+    {
+      firstName: "Beatrice",
+      lastName: "Sala",
+      email: "beatrice.sala@example.com",
+      phone: "+39 336 2345678",
+    },
+    {
+      firstName: "Fabio",
+      lastName: "Gentile",
+      email: "fabio.gentile@example.com",
+      phone: "+39 336 3456789",
+    },
+    {
+      firstName: "Michela",
+      lastName: "Monti",
+      email: "michela.monti@example.com",
+      phone: "+39 336 4567890",
+    },
+    {
+      firstName: "Emanuele",
+      lastName: "Parisi",
+      email: "emanuele.parisi@example.com",
+      phone: "+39 336 5678901",
+    },
+    {
+      firstName: "Claudia",
+      lastName: "Negri",
+      email: "claudia.negri@example.com",
+      phone: "+39 336 6789012",
+    },
+    {
+      firstName: "Filippo",
+      lastName: "Pagano",
+      email: "filippo.pagano@example.com",
+      phone: "+39 336 7890123",
+    },
+    {
+      firstName: "Barbara",
+      lastName: "Gatti",
+      email: "barbara.gatti@example.com",
+      phone: "+39 336 8901234",
+    },
+    {
+      firstName: "Massimo",
+      lastName: "Orlando",
+      email: "massimo.orlando@example.com",
+      phone: "+39 336 9012345",
+    },
+    {
+      firstName: "Roberta",
+      lastName: "Testa",
+      email: "roberta.testa@example.com",
+      phone: "+39 336 0123456",
+    },
+    {
+      firstName: "Antonio",
+      lastName: "Guerra",
+      email: "antonio.guerra@example.com",
+      phone: "+39 337 1234567",
+    },
+    {
+      firstName: "Ilaria",
+      lastName: "Ferrara",
+      email: "ilaria.ferrara@example.com",
+      phone: "+39 337 2345678",
+    },
+    {
+      firstName: "Vincenzo",
+      lastName: "Caruso",
+      email: "vincenzo.caruso@example.com",
+      phone: "+39 337 3456789",
+    },
+    {
+      firstName: "Giorgia",
+      lastName: "Vitale",
+      email: "giorgia.vitale@example.com",
+      phone: "+39 337 4567890",
+    },
+    {
+      firstName: "Tommaso",
+      lastName: "Silvestri",
+      email: "tommaso.silvestri@example.com",
+      phone: "+39 337 5678901",
+    },
+  ]
+
+  for (const sale of salesData) {
+    const existingSale = await prisma.sales.findFirst({
+      where: {
+        email: sale.email,
+        workspaceId: mainWorkspaceId,
+      },
+    })
+
+    if (!existingSale) {
+      await prisma.sales.create({
+        data: {
+          ...sale,
+          isActive: true,
+          workspace: {
+            connect: {
+              id: mainWorkspaceId,
+            },
+          },
+        },
+      })
+      console.log(`Salesperson created: ${sale.firstName} ${sale.lastName}`)
+    } else {
+      console.log(
+        `Salesperson already exists: ${sale.firstName} ${sale.lastName}`
+      )
+    }
+  }
+
   // Create available languages only if they don't exist
   const languageCodes = ["it", "en", "es", "pt"]
   const existingLanguages = await prisma.languages.findMany({

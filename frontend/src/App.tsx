@@ -34,6 +34,7 @@ import ProfilePage from "./pages/ProfilePage"
 import RegisterPage from "./pages/register"
 import RegistrationSuccess from "./pages/registration-success"
 import { ResetPasswordPage } from "./pages/ResetPasswordPage"
+import SalesPage from "./pages/SalesPage"
 import { ServicesPage } from "./pages/ServicesPage"
 import { CategoriesPage as SettingsCategoriesPage } from "./pages/settings/CategoriesPage"
 import { ChannelTypesPage } from "./pages/settings/ChannelTypesPage"
@@ -103,6 +104,9 @@ export function App() {
                 <Route path="/clients" element={<Layout />}>
                   <Route index element={<ClientsPage />} />
                   <Route path=":id" element={<ClientsPage />} />
+                </Route>
+                <Route path="/sales" element={<Layout />}>
+                  <Route index element={<SalesPage />} />
                 </Route>
                 <Route path="/admin/orders" element={<Layout />}>
                   <Route index element={<OrdersPage />} />

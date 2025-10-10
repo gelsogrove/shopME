@@ -42,6 +42,7 @@ export interface Client {
   createdAt: string
   updatedAt: string
   invoiceAddress?: InvoiceAddress
+  salesId?: string | null
 }
 
 export interface CreateClientData {
@@ -61,6 +62,7 @@ export interface CreateClientData {
   pushNotificationsConsent?: boolean
   activeChatbot?: boolean
   workspaceId: string
+  salesId?: string | null
 }
 
 export interface UpdateClientData extends Partial<CreateClientData> {
@@ -95,7 +97,9 @@ export const getAllForWorkspace = async (
     return response.data.data || []
   } catch (error) {
     throw new Error(
-      `Error fetching clients: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Error fetching clients: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
     )
   }
 }
@@ -109,7 +113,9 @@ export const getById = async (id: string): Promise<Client> => {
     return response.data.data
   } catch (error) {
     throw new Error(
-      `Error fetching client by ID: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Error fetching client by ID: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
     )
   }
 }
@@ -123,7 +129,9 @@ export const create = async (clientData: CreateClientData): Promise<Client> => {
     return response.data.data
   } catch (error) {
     throw new Error(
-      `Error creating client: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Error creating client: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
     )
   }
 }
@@ -144,7 +152,9 @@ export const update = async (
     return response.data.data
   } catch (error) {
     throw new Error(
-      `Error updating client: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Error updating client: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
     )
   }
 }
@@ -157,7 +167,9 @@ export const deleteClient = async (id: string): Promise<void> => {
     await api.delete(`/customers/${id}`)
   } catch (error) {
     throw new Error(
-      `Error deleting client: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Error deleting client: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
     )
   }
 }

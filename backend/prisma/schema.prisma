@@ -45,6 +45,7 @@ model Workspace {
   offers                    Offers[]
   orders                    Orders[]
   products                  Products[]
+  sales                     Sales[]
   secureTokens              SecureToken[]
   services                  Services[]
   billings                  Billing[]
@@ -69,6 +70,22 @@ model Categories {
 
   @@unique([slug, workspaceId])
   @@map("categories")
+}
+
+model Sales {
+  id          String      @id @default(uuid())
+  firstName   String
+  lastName    String
+  email       String
+  phone       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  isActive    Boolean     @default(true)
+  workspaceId String
+  customers   Customers[]
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id])
+
+  @@map("sales")
 }
 
 model Languages {
@@ -133,8 +150,10 @@ model Customers {
   push_notifications_consent_at DateTime?
   activeChatbot                 Boolean       @default(true)
   invoiceAddress                Json?
+  salesId                       String?
   cart                          Carts?
   chatSessions                  ChatSession[]
+  sales                         Sales?        @relation(fields: [salesId], references: [id])
   workspace                     Workspace     @relation(fields: [workspaceId], references: [id])
   orders                        Orders[]
   usage                         Usage[]

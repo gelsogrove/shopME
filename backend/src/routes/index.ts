@@ -299,6 +299,7 @@ import {
   customersRouter,
   workspaceCustomersRouter,
 } from "../interfaces/http/routes/customers.routes"
+import { salesRouter } from "../interfaces/http/routes/sales.routes"
 
 import { faqsRouter } from "../interfaces/http/routes/faqs.routes"
 import { createLanguagesRouter } from "../interfaces/http/routes/languages.routes"
@@ -1425,6 +1426,12 @@ const categoriesRouterInstance = categoriesRouter()
 router.use("/workspaces/:workspaceId/categories", categoriesRouterInstance)
 router.use("/categories", categoriesRouterInstance)
 logger.info("Registered categories router with workspace routes")
+
+// Mount sales routes
+const salesRouterInstance = salesRouter()
+router.use("/workspaces/:workspaceId/sales", salesRouterInstance)
+router.use("/sales", salesRouterInstance)
+logger.info("Registered sales router with workspace routes")
 
 // Mount services routes (with authentication)
 const servicesRouterInstance = servicesRouter(servicesController)

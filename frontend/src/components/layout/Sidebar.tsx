@@ -1,15 +1,16 @@
 import { cn } from "@/lib/utils"
 import {
-    BarChart3,
-    HelpCircle,
-    LucideIcon,
-    MessageSquare,
-    Package2,
-    Percent,
-    ShoppingCart,
-    Tag,
-    Users,
-    Wrench
+  BarChart3,
+  HelpCircle,
+  LucideIcon,
+  MessageSquare,
+  Package2,
+  Percent,
+  ShoppingCart,
+  Tag,
+  UserCircle,
+  Users,
+  Wrench,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
@@ -31,24 +32,24 @@ export function Sidebar() {
   const workspace = null
   const location = useLocation()
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({
-    products: false // Inizialmente chiuso
+    products: false, // Inizialmente chiuso
   })
 
   // Controlla se siamo in una pagina che fa parte del sottomenu Products
   useEffect(() => {
     const productPages = ["/products", "/categories", "/offers"]
-    if (productPages.some(page => location.pathname.startsWith(page))) {
-      setExpandedItems(prev => ({
+    if (productPages.some((page) => location.pathname.startsWith(page))) {
+      setExpandedItems((prev) => ({
         ...prev,
-        products: true
+        products: true,
       }))
     }
   }, [location.pathname])
 
   const toggleExpand = (key: string) => {
-    setExpandedItems(prev => ({
+    setExpandedItems((prev) => ({
       ...prev,
-      [key]: !prev[key]
+      [key]: !prev[key],
     }))
   }
 
@@ -70,20 +71,20 @@ export function Sidebar() {
       icon: Users,
     },
     // Catalog removed, add its children as top-level links
-        {
-          href: "/products",
-          label: "Products",
-          icon: Package2,
-        },
-        {
-          href: "/categories",
-          label: "Categories",
-          icon: Tag,
-        },
-        {
-          href: "/offers",
-          label: "Offers",
-          icon: Percent,
+    {
+      href: "/products",
+      label: "Products",
+      icon: Package2,
+    },
+    {
+      href: "/categories",
+      label: "Categories",
+      icon: Tag,
+    },
+    {
+      href: "/offers",
+      label: "Offers",
+      icon: Percent,
     },
     {
       href: "/services",
@@ -96,10 +97,15 @@ export function Sidebar() {
       icon: HelpCircle,
     },
     {
-              href: "/admin/orders",
+      href: "/sales",
+      label: "Sales",
+      icon: UserCircle,
+    },
+    {
+      href: "/admin/orders",
       label: "Orders",
       icon: ShoppingCart,
-    } 
+    },
   ]
 
   return (
@@ -115,10 +121,10 @@ export function Sidebar() {
               {link.children ? (
                 <div className="mb-1">
                   <button
-                    onClick={() => toggleExpand(link.key || 'unknown')}
+                    onClick={() => toggleExpand(link.key || "unknown")}
                     className={cn(
                       "flex w-full items-center justify-between gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                      expandedItems[link.key || 'unknown']
+                      expandedItems[link.key || "unknown"]
                         ? "bg-green-50 text-green-600"
                         : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                     )}
@@ -129,7 +135,7 @@ export function Sidebar() {
                     </div>
                     <svg
                       className={`h-4 w-4 transition-transform ${
-                        expandedItems[link.key || 'unknown'] ? "rotate-180" : ""
+                        expandedItems[link.key || "unknown"] ? "rotate-180" : ""
                       }`}
                       fill="none"
                       viewBox="0 0 24 24"
@@ -143,8 +149,8 @@ export function Sidebar() {
                       />
                     </svg>
                   </button>
-                  
-                  {expandedItems[link.key || 'unknown'] && (
+
+                  {expandedItems[link.key || "unknown"] && (
                     <div className="ml-6 mt-1 space-y-1">
                       {link.children.map((child) => (
                         <NavLink

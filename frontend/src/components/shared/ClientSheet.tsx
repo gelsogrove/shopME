@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { logger } from "@/lib/logger"
 import { Client } from "@/pages/ClientsPage"
+import { salesApi } from "@/services/salesApi"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "../../lib/toast"
@@ -110,6 +111,10 @@ export function ClientSheet({
     useState(false)
   const [isBlacklisted, setIsBlacklisted] = useState(false)
   const [activeChatbot, setActiveChatbot] = useState(true)
+  const [salesId, setSalesId] = useState<string>("")
+  const [salesList, setSalesList] = useState<
+    Array<{ id: string; firstName: string; lastName: string }>
+  >([])
 
   // Invoice address state
   const [invoiceFirstName, setInvoiceFirstName] = useState("")
@@ -196,6 +201,13 @@ export function ClientSheet({
           : true
       )
 
+      const loadedSalesId = (fetchedClient as any).salesId || ""
+      console.log("=== LOADING CLIENT SALES ID ===")
+      console.log("fetchedClient.salesId:", (fetchedClient as any).salesId)
+      console.log("loadedSalesId:", loadedSalesId)
+      console.log("===============================")
+      setSalesId(loadedSalesId)
+
       // Set invoice address data
       if (fetchedClient.invoiceAddress) {
         setInvoiceFirstName(fetchedClient.invoiceAddress.firstName || "")
@@ -218,7 +230,8 @@ export function ClientSheet({
         setInvoiceVatNumber("")
         setInvoicePhone("")
       }
-    } else {
+    } else if (!open) {
+      // Only reset when closing the sheet
       setName("")
       setEmail("")
       setCompany("")
@@ -233,6 +246,7 @@ export function ClientSheet({
       setPushNotificationsConsent(false)
       setIsBlacklisted(false)
       setActiveChatbot(true)
+      setSalesId("")
 
       // Reset invoice address fields
       setInvoiceFirstName("")
@@ -253,9 +267,47 @@ export function ClientSheet({
     logger.info("Current client data:", client)
   }, [open])
 
-  // Fetch client if client is a string (ID)
+  // Fetch sales list when sheet opens
   useEffect(() => {
-    if (typeof client === "string" && open) {
+    const fetchSales = async () => {
+      const workspaceId = getWorkspaceId()
+      if (workspaceId && open) {
+        try {
+          const salesData = await salesApi.getAllForWorkspace(workspaceId)
+          console.log("=== SALES LIST LOADED ===")
+          console.log("salesData:", salesData)
+          console.log("salesData.length:", salesData?.length)
+          console.log("========================")
+          setSalesList(salesData)
+        } catch (error) {
+          logger.error("Error fetching sales:", error)
+        }
+      }
+    }
+    fetchSales()
+  }, [open])
+
+  // Fetch client if client is a string (ID) OR object (to get fresh data)
+  useEffect(() => {
+    console.log("=== CLIENT SHEET FETCH EFFECT ===")
+    console.log("client:", client)
+    console.log("typeof client:", typeof client)
+    console.log("open:", open)
+    console.log("mode:", mode)
+
+    // Get client ID from either string or object
+    const clientId = typeof client === "string" ? client : client?.id
+    console.log("clientId:", clientId)
+    console.log("Condition check:", {
+      clientId: !!clientId,
+      open,
+      mode,
+      matches: clientId && open && mode === "edit",
+    })
+
+    if (clientId && open && mode === "edit") {
+      // ALWAYS fetch fresh data from API for edit mode
+      console.log("✅ Entering FETCH branch")
       setLoadingClient(true)
       setFetchError(null)
       const workspaceId = getWorkspaceId()
@@ -265,29 +317,40 @@ export function ClientSheet({
         setFetchError("Workspace ID not found.")
         return
       }
-      fetch(`/api/workspaces/${workspaceId}/customers/${client}`)
+
+      console.log("🔄 Fetching fresh client data for ID:", clientId)
+
+      fetch(`/api/workspaces/${workspaceId}/customers/${clientId}`)
         .then((res) => {
           if (!res.ok) throw new Error("Failed to fetch client")
           return res.json()
         })
         .then((data) => {
           if (!data || !data.id) throw new Error("Client not found")
+          console.log("✅ Fresh client data loaded:", data)
+          console.log("✅ salesId from API:", data.salesId)
           setFetchedClient(data)
           setLoadingClient(false)
         })
         .catch((err) => {
+          console.error("❌ Error fetching client:", err)
           setFetchedClient(null)
           setLoadingClient(false)
           setFetchError("Client not found or error loading client data.")
         })
     } else if (typeof client === "object" && client !== null) {
+      // Use object directly for view mode
+      console.log("⚠️ Using object directly (view mode)")
+      console.log("client object salesId:", (client as any).salesId)
       setFetchedClient(client)
       setFetchError(null)
     } else {
+      console.log("❌ No client data")
       setFetchedClient(null)
       setFetchError(null)
     }
-  }, [client, open])
+    console.log("=================================")
+  }, [client, open, mode])
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -305,6 +368,7 @@ export function ClientSheet({
       push_notifications_consent: pushNotificationsConsent,
       isBlacklisted: isBlacklisted,
       activeChatbot: activeChatbot,
+      salesId: salesId || null,
       invoiceAddress: {
         firstName: invoiceFirstName,
         lastName: invoiceLastName,
@@ -318,6 +382,15 @@ export function ClientSheet({
       },
     }
     const clientId = typeof client === "string" ? client : fetchedClient?.id
+
+    // Debug log
+    console.log("=== CLIENT SUBMIT DEBUG ===")
+    console.log("salesId state:", salesId)
+    console.log("customerData.salesId:", customerData.salesId)
+    console.log("clientId:", clientId)
+    console.log("Full customerData:", customerData)
+    console.log("=========================")
+
     try {
       await onSubmit(customerData, clientId)
       toast.success("Client updated successfully")
@@ -478,6 +551,36 @@ export function ClientSheet({
                         onChange={(e) => setDiscount(e.target.value)}
                         required
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="salesId" className="text-sm font-medium">
+                        Salesperson (Optional)
+                      </Label>
+                      <Select
+                        value={salesId || "none"}
+                        onValueChange={(value) =>
+                          setSalesId(value === "none" ? "" : value)
+                        }
+                      >
+                        <SelectTrigger id="salesId" name="salesId">
+                          <SelectValue placeholder="Select salesperson" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {salesList &&
+                            salesList.length > 0 &&
+                            salesList.map((sale) =>
+                              sale?.id && sale?.firstName && sale?.lastName ? (
+                                <SelectItem key={sale.id} value={sale.id}>
+                                  {`${sale.firstName} ${sale.lastName}`}
+                                </SelectItem>
+                              ) : null
+                            )}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>

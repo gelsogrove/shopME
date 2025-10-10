@@ -10,7 +10,7 @@ const invoiceAddressSchema = Joi.object({
   postalCode: Joi.string().allow(null, "").max(10),
   country: Joi.string().allow(null, "").max(50),
   vatNumber: Joi.string().allow(null, "").max(20),
-  phone: Joi.string().allow(null, "").max(20)
+  phone: Joi.string().allow(null, "").max(20),
 }).allow(null)
 
 export const createCustomerSchema = Joi.object({
@@ -20,8 +20,8 @@ export const createCustomerSchema = Joi.object({
   address: Joi.string().allow(null, ""),
   company: Joi.string().allow(null, ""),
   discount: Joi.number().min(0).max(100).default(0),
-  language: Joi.string().valid('ENG', 'IT', 'ES', 'PT').default('ENG'),
-  currency: Joi.string().valid('EUR', 'USD', 'GBP').default('EUR'),
+  language: Joi.string().valid("ENG", "IT", "ES", "PT").default("ENG"),
+  currency: Joi.string().valid("EUR", "USD", "GBP").default("EUR"),
   notes: Joi.string().allow(null, ""),
   serviceIds: Joi.array().items(Joi.string()).default([]),
   isBlacklisted: Joi.boolean().default(false),
@@ -30,7 +30,8 @@ export const createCustomerSchema = Joi.object({
   privacy_accepted_at: Joi.date().allow(null),
   push_notifications_consent: Joi.boolean().default(false),
   activeChatbot: Joi.boolean().default(true),
-  invoiceAddress: invoiceAddressSchema
+  invoiceAddress: invoiceAddressSchema,
+  salesId: Joi.string().allow(null, ""),
 })
 
 export const updateCustomerSchema = Joi.object({
@@ -40,8 +41,8 @@ export const updateCustomerSchema = Joi.object({
   address: Joi.string().allow(null, ""),
   company: Joi.string().allow(null, ""),
   discount: Joi.number().min(0).max(100),
-  language: Joi.string().valid('ENG', 'IT', 'ES', 'PT'),
-  currency: Joi.string().valid('EUR', 'USD', 'GBP'),
+  language: Joi.string().valid("ENG", "IT", "ES", "PT"),
+  currency: Joi.string().valid("EUR", "USD", "GBP"),
   notes: Joi.string().allow(null, ""),
   serviceIds: Joi.array().items(Joi.string()),
   isBlacklisted: Joi.boolean(),
@@ -50,7 +51,8 @@ export const updateCustomerSchema = Joi.object({
   push_notifications_consent: Joi.boolean(),
   push_notifications_consent_at: Joi.date(),
   activeChatbot: Joi.boolean(),
-  invoiceAddress: invoiceAddressSchema
+  invoiceAddress: invoiceAddressSchema,
+  salesId: Joi.string().allow(null, ""),
 }).min(1)
 
 export const customerQuerySchema = Joi.object({
@@ -58,5 +60,5 @@ export const customerQuerySchema = Joi.object({
   isBlacklisted: Joi.boolean(),
   search: Joi.string().allow(null, ""),
   page: Joi.number().integer().min(1).default(1),
-  limit: Joi.number().integer().min(1).max(100).default(10)
-}) 
+  limit: Joi.number().integer().min(1).max(100).default(10),
+})

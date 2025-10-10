@@ -1,7 +1,7 @@
-import { Customer, CustomerProps } from "../domain/entities/customer.entity";
-import { ICustomerRepository } from "../domain/repositories/customer.repository.interface";
-import { prisma } from "../lib/prisma";
-import logger from "../utils/logger";
+import { Customer, CustomerProps } from "../domain/entities/customer.entity"
+import { ICustomerRepository } from "../domain/repositories/customer.repository.interface"
+import { prisma } from "../lib/prisma"
+import logger from "../utils/logger"
 
 /**
  * Implementation of Customer Repository using Prisma
@@ -33,8 +33,9 @@ export class CustomerRepository implements ICustomerRepository {
       createdAt: customerData.createdAt,
       updatedAt: customerData.updatedAt,
       activeChatbot: customerData.activeChatbot,
-      invoiceAddress: customerData.invoiceAddress
-    });
+      invoiceAddress: customerData.invoiceAddress,
+      salesId: customerData.salesId,
+    })
   }
 
   /**
@@ -44,16 +45,18 @@ export class CustomerRepository implements ICustomerRepository {
     try {
       const customers = await prisma.customers.findMany({
         where: { workspaceId },
-        orderBy: { createdAt: 'desc' }
-      });
-      
-      return customers ? customers.map(customer => this.toDomainEntity(customer)) : [];
+        orderBy: { createdAt: "desc" },
+      })
+
+      return customers
+        ? customers.map((customer) => this.toDomainEntity(customer))
+        : []
     } catch (error) {
-      logger.error("Error finding all customers:", error);
-      return [];
+      logger.error("Error finding all customers:", error)
+      return []
     }
   }
-  
+
   /**
    * Find all active customers in a workspace
    */
@@ -62,15 +65,17 @@ export class CustomerRepository implements ICustomerRepository {
       const customers = await prisma.customers.findMany({
         where: {
           workspaceId,
-          isActive: true
+          isActive: true,
         },
-        orderBy: { createdAt: 'desc' }
-      });
-      
-      return customers ? customers.map(customer => this.toDomainEntity(customer)) : [];
+        orderBy: { createdAt: "desc" },
+      })
+
+      return customers
+        ? customers.map((customer) => this.toDomainEntity(customer))
+        : []
     } catch (error) {
-      logger.error("Error finding active customers:", error);
-      return [];
+      logger.error("Error finding active customers:", error)
+      return []
     }
   }
 
@@ -82,55 +87,61 @@ export class CustomerRepository implements ICustomerRepository {
       const customer = await prisma.customers.findFirst({
         where: {
           id,
-          workspaceId
-        }
-      });
-      
-      return customer ? this.toDomainEntity(customer) : null;
+          workspaceId,
+        },
+      })
+
+      return customer ? this.toDomainEntity(customer) : null
     } catch (error) {
-      logger.error(`Error finding customer ${id}:`, error);
-      return null;
+      logger.error(`Error finding customer ${id}:`, error)
+      return null
     }
   }
-  
+
   /**
    * Find a customer by email
    */
-  async findByEmail(email: string, workspaceId: string): Promise<Customer | null> {
+  async findByEmail(
+    email: string,
+    workspaceId: string
+  ): Promise<Customer | null> {
     try {
       const customer = await prisma.customers.findFirst({
         where: {
           email,
-          workspaceId
-        }
-      });
-      
-      return customer ? this.toDomainEntity(customer) : null;
+          workspaceId,
+        },
+      })
+
+      return customer ? this.toDomainEntity(customer) : null
     } catch (error) {
-      logger.error(`Error finding customer by email ${email}:`, error);
-      return null;
+      logger.error(`Error finding customer by email ${email}:`, error)
+      return null
     }
   }
-  
+
   /**
    * Find a customer by phone
    */
-  async findByPhone(phone: string, workspaceId: string): Promise<Customer | null> {
+  async findByPhone(
+    phone: string,
+    workspaceId: string
+  ): Promise<Customer | null> {
     try {
       const customer = await prisma.customers.findFirst({
         where: {
           phone,
-          workspaceId
-        }
-      });
-      
-      return customer ? this.toDomainEntity(customer) : null;
+          workspaceId,
+        },
+      })
+
+      return customer ? this.toDomainEntity(customer) : null
     } catch (error) {
-      logger.error(`Error finding customer by phone ${phone}:`, error);
-      return null;
+      logger.error(`Error finding customer by phone ${phone}:`, error)
+      return null
     }
   }
-  
+
   /**
    * Create a new customer
    */
@@ -154,21 +165,22 @@ export class CustomerRepository implements ICustomerRepository {
         privacy_accepted_at: data.privacy_accepted_at,
         push_notifications_consent: data.push_notifications_consent || false,
         push_notifications_consent_at: data.push_notifications_consent_at,
-        activeChatbot: data.activeChatbot !== undefined ? data.activeChatbot : true,
-        invoiceAddress: data.invoiceAddress
-      };
-      
+        activeChatbot:
+          data.activeChatbot !== undefined ? data.activeChatbot : true,
+        invoiceAddress: data.invoiceAddress,
+      }
+
       const customer = await prisma.customers.create({
-        data: customerData
-      });
-      
-      return this.toDomainEntity(customer);
+        data: customerData,
+      })
+
+      return this.toDomainEntity(customer)
     } catch (error) {
-      logger.error("Error creating customer:", error);
-      throw error;
+      logger.error("Error creating customer:", error)
+      throw error
     }
   }
-  
+
   /**
    * Update a customer record
    * @param id Customer ID
@@ -176,50 +188,75 @@ export class CustomerRepository implements ICustomerRepository {
    * @param data Customer data to update
    * @returns Updated customer record
    */
-  async update(id: string, workspaceId: string, data: Partial<CustomerProps>): Promise<Customer | null> {
+  async update(
+    id: string,
+    workspaceId: string,
+    data: Partial<CustomerProps>
+  ): Promise<Customer | null> {
     try {
       // Verify customer belongs to this workspace
-      const existing = await this.findById(id, workspaceId);
+      const existing = await this.findById(id, workspaceId)
       if (!existing) {
-        return null;
+        return null
       }
 
       // Manually map fields that can be updated, excluding workspaceId and id
-      const updateData: any = {};
-      
-      if (data.name !== undefined) updateData.name = data.name;
-      if (data.email !== undefined) updateData.email = data.email;
-      if (data.phone !== undefined) updateData.phone = data.phone;
-      if (data.address !== undefined) updateData.address = data.address;
-      if (data.company !== undefined) updateData.company = data.company;
-      if (data.discount !== undefined) updateData.discount = data.discount;
-      if (data.language !== undefined) updateData.language = data.language;
-      if (data.currency !== undefined) updateData.currency = data.currency;
-      if (data.notes !== undefined) updateData.notes = data.notes;
-      if (data.serviceIds !== undefined) updateData.serviceIds = data.serviceIds;
-      if (data.isBlacklisted !== undefined) updateData.isBlacklisted = data.isBlacklisted;
-      if (data.isActive !== undefined) updateData.isActive = data.isActive;
-      if (data.last_privacy_version_accepted !== undefined) updateData.last_privacy_version_accepted = data.last_privacy_version_accepted;
-      if (data.privacy_accepted_at !== undefined) updateData.privacy_accepted_at = data.privacy_accepted_at;
-      if (data.push_notifications_consent !== undefined) updateData.push_notifications_consent = data.push_notifications_consent;
-      if (data.push_notifications_consent_at !== undefined) updateData.push_notifications_consent_at = data.push_notifications_consent_at;
-      if (data.activeChatbot !== undefined) updateData.activeChatbot = data.activeChatbot;
-      if (data.invoiceAddress !== undefined) updateData.invoiceAddress = data.invoiceAddress;
+      const updateData: any = {}
+
+      if (data.name !== undefined) updateData.name = data.name
+      if (data.email !== undefined) updateData.email = data.email
+      if (data.phone !== undefined) updateData.phone = data.phone
+      if (data.address !== undefined) updateData.address = data.address
+      if (data.company !== undefined) updateData.company = data.company
+      if (data.discount !== undefined) updateData.discount = data.discount
+      if (data.language !== undefined) updateData.language = data.language
+      if (data.currency !== undefined) updateData.currency = data.currency
+      if (data.notes !== undefined) updateData.notes = data.notes
+      if (data.serviceIds !== undefined) updateData.serviceIds = data.serviceIds
+      if (data.isBlacklisted !== undefined)
+        updateData.isBlacklisted = data.isBlacklisted
+      if (data.isActive !== undefined) updateData.isActive = data.isActive
+      if (data.last_privacy_version_accepted !== undefined)
+        updateData.last_privacy_version_accepted =
+          data.last_privacy_version_accepted
+      if (data.privacy_accepted_at !== undefined)
+        updateData.privacy_accepted_at = data.privacy_accepted_at
+      if (data.push_notifications_consent !== undefined)
+        updateData.push_notifications_consent = data.push_notifications_consent
+      if (data.push_notifications_consent_at !== undefined)
+        updateData.push_notifications_consent_at =
+          data.push_notifications_consent_at
+      if (data.activeChatbot !== undefined)
+        updateData.activeChatbot = data.activeChatbot
+      if (data.invoiceAddress !== undefined)
+        updateData.invoiceAddress = data.invoiceAddress
+      if (data.salesId !== undefined) updateData.salesId = data.salesId
+
+      // Debug log
+      logger.info("=== REPOSITORY UPDATE DEBUG ===")
+      logger.info("data.salesId:", data.salesId)
+      logger.info("updateData.salesId:", updateData.salesId)
+      logger.info("Full updateData:", updateData)
+      logger.info("==============================")
 
       // Update the customer record
       const updatedCustomer = await prisma.customers.update({
         where: { id },
-        data: updateData
-      });
-      
+        data: updateData,
+      })
+
+      console.log("=== PRISMA UPDATE RESULT ===")
+      console.log("updatedCustomer.salesId:", updatedCustomer.salesId)
+      console.log("===========================")
+
       // Convert to domain entity
-      return this.toDomainEntity(updatedCustomer);
+      return this.toDomainEntity(updatedCustomer)
     } catch (error) {
-      logger.error(`Error updating customer ${id}:`, error);
-      return null;
+      logger.error(`Error updating customer ${id}:`, error)
+      return null
     }
   }
-  
+
   /**
    * Soft delete a customer (mark as inactive)
    */
@@ -228,20 +265,20 @@ export class CustomerRepository implements ICustomerRepository {
       await prisma.customers.update({
         where: {
           id,
-          workspaceId
+          workspaceId,
         },
         data: {
-          isActive: false
-        }
-      });
-      
-      return true;
+          isActive: false,
+        },
+      })
+
+      return true
     } catch (error) {
-      logger.error(`Error soft-deleting customer ${id}:`, error);
-      return false;
+      logger.error(`Error soft-deleting customer ${id}:`, error)
+      return false
     }
   }
-  
+
   /**
    * Hard delete a customer (remove from database)
    */
@@ -251,28 +288,28 @@ export class CustomerRepository implements ICustomerRepository {
       const customer = await prisma.customers.findFirst({
         where: {
           id,
-          workspaceId
-        }
-      });
-      
+          workspaceId,
+        },
+      })
+
       if (!customer) {
-        return false;
+        return false
       }
-      
+
       // Delete the customer
       await prisma.customers.delete({
         where: {
-          id
-        }
-      });
-      
-      return true;
+          id,
+        },
+      })
+
+      return true
     } catch (error) {
-      logger.error(`Error hard-deleting customer ${id}:`, error);
-      return false;
+      logger.error(`Error hard-deleting customer ${id}:`, error)
+      return false
     }
   }
-  
+
   /**
    * Count customers with a specific name in a workspace
    */
@@ -282,17 +319,17 @@ export class CustomerRepository implements ICustomerRepository {
         where: {
           name,
           workspaceId,
-          isActive: true
-        }
-      });
-      
-      return count;
+          isActive: true,
+        },
+      })
+
+      return count
     } catch (error) {
-      logger.error(`Error counting customers with name ${name}:`, error);
-      throw error;
+      logger.error(`Error counting customers with name ${name}:`, error)
+      throw error
     }
   }
-  
+
   /**
    * Check if customer has related records (orders, chat sessions)
    */
@@ -300,51 +337,54 @@ export class CustomerRepository implements ICustomerRepository {
     try {
       // Check for orders
       const ordersCount = await prisma.orders.count({
-        where: { customerId: id }
-      });
-      
+        where: { customerId: id },
+      })
+
       // Check for chat sessions
       const chatSessionsCount = await prisma.chatSession.count({
-        where: { customerId: id }
-      });
-      
-      return ordersCount > 0 || chatSessionsCount > 0;
+        where: { customerId: id },
+      })
+
+      return ordersCount > 0 || chatSessionsCount > 0
     } catch (error) {
-      logger.error(`Error checking if customer ${id} has related records:`, error);
-      throw error;
+      logger.error(
+        `Error checking if customer ${id} has related records:`,
+        error
+      )
+      throw error
     }
   }
-  
+
   /**
    * Delete related records before deleting the customer
    */
   async deleteRelatedRecords(id: string): Promise<void> {
     try {
-      logger.info(`Starting to delete related records for customer ${id}`);
-      
+      logger.info(`Starting to delete related records for customer ${id}`)
+
       // Delete messages from chat sessions
       await prisma.message.deleteMany({
         where: {
           chatSession: {
-            customerId: id
-          }
-        }
-      });
-      
+            customerId: id,
+          },
+        },
+      })
+
       // Delete chat sessions
       await prisma.chatSession.deleteMany({
-        where: { customerId: id }
-      });
-      
+        where: { customerId: id },
+      })
+
       // Delete orders
       await prisma.orders.deleteMany({
-        where: { customerId: id }
-      });
-      
-      logger.info(`Successfully deleted all related records for customer ${id}`);
+        where: { customerId: id },
+      })
+
+      logger.info(`Successfully deleted all related records for customer ${id}`)
     } catch (error) {
-      logger.error(`Error deleting related records for customer ${id}:`, error);
-      throw error;
+      logger.error(`Error deleting related records for customer ${id}:`, error)
+      throw error
     }
   }
-} 
+}

@@ -246,6 +246,11 @@ export default function ClientsPage(): JSX.Element {
     if (!workspace?.id) return
 
     try {
+      console.log("=== FRONTEND UPDATE DEBUG ===")
+      console.log("customerData.salesId:", customerData.salesId)
+      console.log("Full customerData:", customerData)
+      console.log("============================")
+
       logger.info("Updating customer with data:", customerData)
       logger.info("Customer ID:", clientId)
       logger.info("Workspace ID:", workspace.id)

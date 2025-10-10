@@ -74,6 +74,7 @@ export class CustomersController {
         activeChatbot,
         isBlacklisted,
         invoiceAddress,
+        salesId,
       } = req.body
 
       const customerData = {
@@ -107,6 +108,7 @@ export class CustomersController {
             ? new Date()
             : undefined,
         invoiceAddress,
+        salesId: salesId || undefined,
       }
 
       const customer = await this.customerService.create(customerData)
@@ -128,6 +130,16 @@ export class CustomersController {
   async updateCustomer(req: Request, res: Response, next: NextFunction) {
     try {
       const { id, workspaceId } = req.params
+
+      // DIRECT console.log - NOT logger!
+      console.log("=== CONTROLLER RAW BODY ===")
+      console.log("typeof req.body:", typeof req.body)
+      console.log("req.body:", req.body)
+      console.log("req.body.salesId:", req.body.salesId)
+      console.log("'salesId' in req.body:", "salesId" in req.body)
+      console.log("Object.keys(req.body):", Object.keys(req.body))
+      console.log("===========================")
+
       const {
         name,
         email,
@@ -146,7 +158,15 @@ export class CustomersController {
         activeChatbot,
         invoiceAddress,
         isBlacklisted,
+        salesId,
       } = req.body
+
+      console.log("=== AFTER DESTRUCTURING ===")
+      console.log("salesId variable:", salesId)
+      console.log("typeof salesId:", typeof salesId)
+      console.log("salesId === undefined:", salesId === undefined)
+      console.log("salesId === null:", salesId === null)
+      console.log("===========================")
 
       // Get original customer data to compare changes
       const originalCustomer = await this.customerService.getById(
@@ -215,12 +235,17 @@ export class CustomersController {
         customerData.invoiceAddress = invoiceAddress
       if (isBlacklisted !== undefined)
         customerData.isBlacklisted = isBlacklisted
+      if (salesId !== undefined) customerData.salesId = salesId
 
+      logger.info("=== UPDATE CUSTOMER DEBUG ===")
+      logger.info("salesId from req.body:", salesId)
+      logger.info("salesId in customerData:", customerData.salesId)
       logger.info("Updating customer with data:", {
         id,
         workspaceId,
         ...customerData,
       })
+      logger.info("=============================")
 
       const updatedCustomer = await this.customerService.update(
         id,
