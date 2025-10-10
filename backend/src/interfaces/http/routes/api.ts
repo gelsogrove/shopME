@@ -5,7 +5,6 @@ import { createAuthRouter } from "./auth.routes"
 import { categoriesRouter } from "./categories.routes"
 import { chatRouter } from "./chat.routes"
 import { customersRouter } from "./customers.routes"
-import documentRoutes from "./documentRoutes"
 
 import { createCartTokenRouter } from "./cart-token.routes"
 import { faqsRouter } from "./faqs.routes"
@@ -96,10 +95,6 @@ export const apiRouter = (): Router => {
 
   // Cart token routes
   router.use("/cart-tokens", createCartTokenRouter())
-
-  // Mount document routes
-  router.use("/workspaces/:workspaceId/documents", documentRoutes)
-  router.use("/documents", documentRoutes)
 
   // Mount products routes with workspace context
   router.use("/workspaces/:workspaceId/products", productsRouter())

@@ -13,7 +13,6 @@ import { ChatTestPage } from "./pages/ChatTestPage"
 import ClientsPage from "./pages/ClientsPage"
 
 import DataProtectionPage from "./pages/data-protection"
-import DocumentsPage from "./pages/DocumentsPage"
 
 import CheckoutSuccessPage from "./pages/checkout-success"
 import CheckoutPage from "./pages/CheckoutPage"
@@ -113,9 +112,6 @@ export function App() {
                 </Route>
                 <Route path="/cart" element={<Layout />}>
                   <Route index element={<CheckoutPage />} />
-                </Route>
-                <Route path="/documents" element={<Layout />}>
-                  <Route index element={<DocumentsPage />} />
                 </Route>
                 <Route path="/products" element={<Layout />}>
                   <Route index element={<ProductsPage />} />

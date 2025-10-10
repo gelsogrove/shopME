@@ -321,8 +321,6 @@ import { SettingsController } from "../interfaces/http/controllers/settings.cont
 import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"
 import createPromptsRouter from "../interfaces/http/routes/prompts.routes"
 import { createUserRouter } from "../interfaces/http/routes/user.routes"
-// Import document routes
-import documentRoutes from "../interfaces/http/routes/documentRoutes"
 // Import analytics routes
 import analyticsRoutes from "../interfaces/http/routes/analytics.routes"
 // Import public orders routes (for secure token validation)
@@ -1460,21 +1458,6 @@ logger.info("Registered orders router with workspace routes")
 import ordersPublicRoutes from "../interfaces/http/routes/orders.routes"
 router.use("/orders", ordersPublicRoutes)
 logger.info("Registered public orders routes with JWT authentication")
-
-// Mount document routes with debug middleware
-router.use(
-  "/workspaces/:workspaceId/documents",
-  (req, res, next) => {
-    logger.info("=== DOCUMENT ROUTES DEBUG ===")
-    logger.info("URL:", req.originalUrl)
-    logger.info("Method:", req.method)
-    logger.info("Params:", req.params)
-    logger.info("WorkspaceId:", req.params.workspaceId)
-    next()
-  },
-  documentRoutes
-)
-logger.info("Registered document router with workspace and upload endpoints")
 
 // Mount analytics routes
 router.use("/analytics", analyticsRoutes)

@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 // import { getAllProducts } from "../../chatbot/calling-functions/getAllProducts" // REMOVED - file no longer exists
 import { MessageRepository } from "../../repositories/message.repository"
-import { documentService } from "../../services/documentService"
 import logger from "../../utils/logger"
 import { PriceCalculationService } from "./price-calculation.service"
 import { TokenService } from "./token.service"
@@ -563,25 +562,11 @@ export class FunctionHandlerService {
    * Cerca nei documenti
    */
   async searchDocuments(query: string, workspaceId: string): Promise<any> {
-    try {
-      logger.info(
-        `🔍 Ricerca documenti per query: "${query}" in workspace ${workspaceId}`
-      )
-
-      const results = await documentService.searchDocuments(query, workspaceId)
-
-      return {
-        success: true,
-        results,
-        query,
-        workspaceId,
-      }
-    } catch (error) {
-      logger.error("❌ Errore in searchDocuments:", error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Errore interno",
-      }
+    logger.warn("⚠️  searchDocuments called but RAG feature is disabled")
+    return {
+      success: false,
+      error: "RAG/Documents feature not available",
+      results: [],
     }
   }
 
