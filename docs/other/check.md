@@ -1,5 +1,6 @@
 pulire frontend
 instruction
+prd ? memory bank
 
 - estrella
 - test di DHL
