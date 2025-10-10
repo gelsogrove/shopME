@@ -201,12 +201,8 @@ export function ClientSheet({
           : true
       )
 
-      const loadedSalesId = (fetchedClient as any).salesId || ""
-      console.log("=== LOADING CLIENT SALES ID ===")
-      console.log("fetchedClient.salesId:", (fetchedClient as any).salesId)
-      console.log("loadedSalesId:", loadedSalesId)
-      console.log("===============================")
-      setSalesId(loadedSalesId)
+      // Note: salesId is set in a separate useEffect AFTER salesList is loaded
+      // to avoid timing issues with the Select component
 
       // Set invoice address data
       if (fetchedClient.invoiceAddress) {
@@ -261,11 +257,15 @@ export function ClientSheet({
     }
   }, [fetchedClient, availableLanguages, open])
 
-  // Add a separate effect for the open state to better debug the issue
+  // Set salesId ONLY after salesList is loaded to avoid timing issues
   useEffect(() => {
-    logger.info("ClientSheet open state changed:", open)
-    logger.info("Current client data:", client)
-  }, [open])
+    if (fetchedClient && salesList.length > 0 && mode === "edit") {
+      const loadedSalesId = (fetchedClient as any).salesId
+      if (loadedSalesId) {
+        setSalesId(loadedSalesId)
+      }
+    }
+  }, [fetchedClient, salesList, mode])
 
   // Fetch sales list when sheet opens
   useEffect(() => {
@@ -274,10 +274,6 @@ export function ClientSheet({
       if (workspaceId && open) {
         try {
           const salesData = await salesApi.getAllForWorkspace(workspaceId)
-          console.log("=== SALES LIST LOADED ===")
-          console.log("salesData:", salesData)
-          console.log("salesData.length:", salesData?.length)
-          console.log("========================")
           setSalesList(salesData)
         } catch (error) {
           logger.error("Error fetching sales:", error)
@@ -289,25 +285,11 @@ export function ClientSheet({
 
   // Fetch client if client is a string (ID) OR object (to get fresh data)
   useEffect(() => {
-    console.log("=== CLIENT SHEET FETCH EFFECT ===")
-    console.log("client:", client)
-    console.log("typeof client:", typeof client)
-    console.log("open:", open)
-    console.log("mode:", mode)
-
     // Get client ID from either string or object
     const clientId = typeof client === "string" ? client : client?.id
-    console.log("clientId:", clientId)
-    console.log("Condition check:", {
-      clientId: !!clientId,
-      open,
-      mode,
-      matches: clientId && open && mode === "edit",
-    })
 
     if (clientId && open && mode === "edit") {
       // ALWAYS fetch fresh data from API for edit mode
-      console.log("✅ Entering FETCH branch")
       setLoadingClient(true)
       setFetchError(null)
       const workspaceId = getWorkspaceId()
@@ -318,8 +300,6 @@ export function ClientSheet({
         return
       }
 
-      console.log("🔄 Fetching fresh client data for ID:", clientId)
-
       fetch(`/api/workspaces/${workspaceId}/customers/${clientId}`)
         .then((res) => {
           if (!res.ok) throw new Error("Failed to fetch client")
@@ -327,29 +307,23 @@ export function ClientSheet({
         })
         .then((data) => {
           if (!data || !data.id) throw new Error("Client not found")
-          console.log("✅ Fresh client data loaded:", data)
-          console.log("✅ salesId from API:", data.salesId)
           setFetchedClient(data)
           setLoadingClient(false)
         })
         .catch((err) => {
-          console.error("❌ Error fetching client:", err)
+          logger.error("Error fetching client:", err)
           setFetchedClient(null)
           setLoadingClient(false)
           setFetchError("Client not found or error loading client data.")
         })
     } else if (typeof client === "object" && client !== null) {
       // Use object directly for view mode
-      console.log("⚠️ Using object directly (view mode)")
-      console.log("client object salesId:", (client as any).salesId)
       setFetchedClient(client)
       setFetchError(null)
     } else {
-      console.log("❌ No client data")
       setFetchedClient(null)
       setFetchError(null)
     }
-    console.log("=================================")
   }, [client, open, mode])
 
   // Handle form submission

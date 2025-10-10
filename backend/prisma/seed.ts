@@ -218,6 +218,10 @@ async function main() {
     await prisma.billing.deleteMany({})
     console.log("✅ Deleted all billing records")
 
+    // Delete sales before workspaces (foreign key)
+    await prisma.sales.deleteMany({})
+    console.log("✅ Deleted all sales records")
+
     // Delete workspaces and users
     await prisma.workspace.deleteMany({})
     await prisma.user.deleteMany({})
@@ -942,6 +946,10 @@ async function main() {
       email: "luca.esposito@example.com",
       phone: "+39 333 5678901",
     },
+  ]
+
+  // === COMMENTED OUT: Extra salespeople (kept for reference) ===
+  /*
     {
       firstName: "Sofia",
       lastName: "Colombo",
@@ -1182,8 +1190,9 @@ async function main() {
       email: "tommaso.silvestri@example.com",
       phone: "+39 337 5678901",
     },
-  ]
+  */
 
+  const createdSales = []
   for (const sale of salesData) {
     const existingSale = await prisma.sales.findFirst({
       where: {
@@ -1193,7 +1202,7 @@ async function main() {
     })
 
     if (!existingSale) {
-      await prisma.sales.create({
+      const createdSale = await prisma.sales.create({
         data: {
           ...sale,
           isActive: true,
@@ -1204,13 +1213,18 @@ async function main() {
           },
         },
       })
+      createdSales.push(createdSale)
       console.log(`Salesperson created: ${sale.firstName} ${sale.lastName}`)
     } else {
+      createdSales.push(existingSale)
       console.log(
         `Salesperson already exists: ${sale.firstName} ${sale.lastName}`
       )
     }
   }
+
+  // Store sales IDs for later use
+  const [marcoRossi, giuliaBianchi, alessandroFerrari, francescaRomano, lucaEsposito] = createdSales
 
   // Create available languages only if they don't exist
   const languageCodes = ["it", "en", "es", "pt"]
@@ -2888,6 +2902,7 @@ async function main() {
       currency: "EUR",
       notes: "Cliente premium - Preferisce prodotti DOP",
       workspaceId: mainWorkspaceId,
+      salesId: marcoRossi.id, // Assigned to Marco Rossi
       invoiceAddress: {
         firstName: "Mario",
         lastName: "Rossi",
@@ -2925,6 +2940,7 @@ async function main() {
       currency: "EUR",
       notes: "VIP customer - Prefers organic products",
       workspaceId: mainWorkspaceId,
+      salesId: giuliaBianchi.id, // Assigned to Giulia Bianchi
       invoiceAddress: {
         firstName: "John",
         lastName: "Smith",
@@ -2963,6 +2979,7 @@ async function main() {
       currency: "EUR",
       notes: "Cliente frecuente - Le gustan los productos artesanales",
       workspaceId: mainWorkspaceId,
+      salesId: alessandroFerrari.id, // Assigned to Alessandro Ferrari
       invoiceAddress: {
         firstName: "Maria",
         lastName: "Garcia",
@@ -3000,6 +3017,7 @@ async function main() {
       currency: "EUR",
       notes: "Novo cliente - Interessado em produtos gourmet",
       workspaceId: mainWorkspaceId,
+      salesId: francescaRomano.id, // Assigned to Francesca Romano
       invoiceAddress: {
         firstName: "João",
         lastName: "Silva",
