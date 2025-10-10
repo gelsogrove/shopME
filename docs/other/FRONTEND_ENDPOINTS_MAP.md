@@ -97,12 +97,12 @@ Lista completa degli endpoint API chiamati dal frontend
 - `PUT /api/workspaces/:workspaceId/faqs/:id` - Aggiorna FAQ
 - `DELETE /api/workspaces/:workspaceId/faqs/:id` - Elimina FAQ
 
-## Documents (RAG)
+## ~~Documents (RAG)~~ - ❌ FEATURE RIMOSSA
 
-- `GET /api/workspaces/:workspaceId/documents` - Lista documenti
-- `POST /api/workspaces/:workspaceId/documents/upload` - Upload documento
-- `POST /api/workspaces/:workspaceId/documents/search` - Ricerca semantica
-- `DELETE /api/workspaces/:workspaceId/documents/:id` - Elimina documento
+**NOTA**: Feature completamente rimossa (commit 6db3fde6)
+- Frontend: rimossi DocumentsPage.tsx, documentsApi.ts
+- Backend: rimossi documentController.ts, documentRoutes.ts, documentService.ts, search*.ts
+- Motivo: endpoint non utilizzato dal frontend
 
 ## Agent Configuration
 
@@ -154,10 +154,3 @@ Lista completa degli endpoint API chiamati dal frontend
 ## Health
 
 - `GET /api/health` - Health check
-
-## NON usati dal frontend (da rimuovere):
-
-- Tutti gli endpoint `/api/messages/*` (deprecated)
-- Endpoint `/api/whatsapp/*` tranne webhook
-- Endpoint `/api/openai/test` (solo test)
-- Route duplicate o di test
