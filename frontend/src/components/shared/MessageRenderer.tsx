@@ -26,7 +26,7 @@ export function MessageRenderer({
     // Regex SEMPLICE per trovare URL
     const urlRegex = /(https?:\/\/[^\s]+)/g
     const parts = text.split(urlRegex)
-    
+
     return parts.map((part, index) => {
       // Se inizia con http:// o https:// è un link
       if (part.match(/^https?:\/\//)) {
@@ -44,18 +44,23 @@ export function MessageRenderer({
       }
       // Altrimenti è testo normale - gestisci formattazione
       const formatted = part
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/→\s*(€[\d.,]+)/g, '→ <strong>$1</strong>')
-      
-      return <span key={index} dangerouslySetInnerHTML={{ __html: formatted }} />
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*(.*?)\*/g, "<em>$1</em>")
+        .replace(/→\s*(€[\d.,]+)/g, "→ <strong>$1</strong>")
+
+      return (
+        <span key={index} dangerouslySetInnerHTML={{ __html: formatted }} />
+      )
     })
   }
 
   // Se è chat, splitta e renderizza con link
   if (variant === "chat") {
     return (
-      <div className={`${baseClasses} ${variantClasses[variant]} ${className}`} style={{ whiteSpace: "pre-wrap" }}>
+      <div
+        className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+        style={{ whiteSpace: "pre-wrap" }}
+      >
         {renderWithLinks(content)}
       </div>
     )

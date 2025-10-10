@@ -430,7 +430,8 @@ export default function SettingsPage() {
               placeholder="http://localhost:3000"
             />
             <p className="text-xs text-muted-foreground">
-              Base URL for generating short links and redirects (e.g., http://yourdomain.com)
+              Base URL for generating short links and redirects (e.g.,
+              http://yourdomain.com)
             </p>
           </div>
 

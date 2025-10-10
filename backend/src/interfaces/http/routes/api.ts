@@ -10,7 +10,6 @@ import documentRoutes from "./documentRoutes"
 import { createCartTokenRouter } from "./cart-token.routes"
 import { faqsRouter } from "./faqs.routes"
 import { offersRouter } from "./offers.routes"
-import { createOpenAIRouter } from "./openai.routes"
 import { createOrderRouter } from "./order.routes"
 import productsRouter from "./products.routes"
 import { servicesRouter } from "./services.routes"
@@ -20,14 +19,12 @@ import { createUserRouter } from "./user.routes"
 // Removed whatsappRouter import
 import { workspaceRouter } from "./workspace.routes"
 
-import { CategoriesController } from "../controllers/categories.controller"
 import { ChatController } from "../controllers/chat.controller"
 import { CustomersController } from "../controllers/customers.controller"
 
 import { FaqController } from "../controllers/faq.controller"
 // Removed MessageController import
 import { OfferController } from "../controllers/offer.controller"
-import { OpenAIController } from "../controllers/openai.controller"
 import { ProductController } from "../controllers/product.controller"
 import { ServicesController } from "../controllers/services.controller"
 import { SettingsController } from "../controllers/settings.controller"
@@ -61,7 +58,6 @@ const faqService = new FaqService()
 const productController = new ProductController()
 const servicesController = new ServicesController()
 const userController = new UserController(userService)
-const categoriesController = new CategoriesController()
 const workspaceController = new WorkspaceController()
 const chatController = new ChatController()
 const customersController = new CustomersController()
@@ -75,7 +71,6 @@ const authController = new AuthController(
 
 const offerController = new OfferController()
 const faqController = new FaqController()
-const openaiController = new OpenAIController()
 
 export const apiRouter = (): Router => {
   const router = express.Router()
@@ -93,8 +88,7 @@ export const apiRouter = (): Router => {
   router.use("/offers", offersRouter())
   router.use("/customers", customersRouter(customersController))
   router.use("/faqs", faqsRouter())
-  // Removed messages and whatsapp routes
-  router.use("/openai", createOpenAIRouter(openaiController))
+  // Removed messages, whatsapp, and openai test routes
 
   // Orders routes
   router.use("/orders", createOrderRouter())

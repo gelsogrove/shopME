@@ -1104,16 +1104,6 @@ export class MessageRepository {
       )
       const priceMap = new Map(priceResult.products.map((p) => [p.id, p]))
 
-      // 🔧 DEBUG: Controlla risultati pricing
-      console.log("🔧 DEBUG getActiveProducts:")
-      console.log("  - customerDiscount:", customerDiscount)
-      console.log("  - productIds count:", productIds.length)
-      console.log(
-        "  - priceResult.products count:",
-        priceResult.products.length
-      )
-      console.log("  - Sample price data:", priceResult.products.slice(0, 2))
-
       // Raggruppa i prodotti per categoria con prezzi scontati
       const productsByCategory = products.reduce(
         (acc, product) => {

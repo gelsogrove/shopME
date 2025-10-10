@@ -15,8 +15,8 @@ export const updateWorkspaceSchema = Joi.object({
   whatsappApiToken: Joi.string().allow(null, ""),
   whatsappWebhookUrl: Joi.string().uri().allow(null, ""),
   isActive: Joi.boolean(),
-  currency: Joi.string().valid('EUR', 'USD', 'GBP'),
-  language: Joi.string().valid('en', 'it', 'es', 'pr','fr','de'),
+  currency: Joi.string().valid("EUR", "USD", "GBP"),
+  language: Joi.string().valid("en", "it", "es", "pr", "fr", "de"),
   url: Joi.string().uri().allow(null, ""),
   welcomeMessages: Joi.object({
     it: Joi.string().allow(null, ""),
@@ -24,6 +24,6 @@ export const updateWorkspaceSchema = Joi.object({
     es: Joi.string().allow(null, ""),
     pr: Joi.string().allow(null, ""),
     fr: Joi.string().allow(null, ""),
-    de: Joi.string().allow(null, "")
-  }).allow(null)
+    de: Joi.string().allow(null, ""),
+  }).allow(null),
 }).min(1)

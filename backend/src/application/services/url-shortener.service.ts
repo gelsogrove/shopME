@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
-import logger from "../../utils/logger"
 import { workspaceService } from "../../services/workspace.service"
+import logger from "../../utils/logger"
 
 const prisma = new PrismaClient()
 

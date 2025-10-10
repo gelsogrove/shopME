@@ -306,8 +306,6 @@ import { createLanguagesRouter } from "../interfaces/http/routes/languages.route
 // Removed messagesRouter import
 import { offersRouter } from "../interfaces/http/routes/offers.routes"
 import { createOrderRouter } from "../interfaces/http/routes/order.routes"
-import { createPushMessagingRouter } from "../interfaces/http/routes/push-messaging.router"
-import { createPushTestingRouter } from "../interfaces/http/routes/push-testing.router"
 import createRegistrationRouter from "../interfaces/http/routes/registration.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
@@ -1370,13 +1368,7 @@ logger.info("Registered cart routes for shopping cart operations")
 router.use("/auth", authRouter(authController))
 router.use("/registration", createRegistrationRouter())
 router.use("/chat", chatRouter(chatController))
-// Removed messages route
-router.use("/push", createPushMessagingRouter())
-logger.info(
-  "Registered push messaging routes for centralized push notifications"
-)
-router.use("/admin", createPushTestingRouter())
-logger.info("Registered push testing routes for admin dashboard")
+// Removed messages, push-messaging, and push-testing routes (not used by frontend)
 router.use("/users", createUserRouter())
 // Mount customer routes on both legacy and workspace paths to ensure backward compatibility
 router.use("/", customersRouter(customersController))
