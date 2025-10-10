@@ -112,6 +112,9 @@ npx prisma migrate dev --name description_of_change
 
 # Generate Prisma client after schema update
 npx prisma generate
+
+# Update agent prompt from docs/prompt_agent.md to database
+cd backend && npm run update-prompt
 ```
 
 ### Testing
