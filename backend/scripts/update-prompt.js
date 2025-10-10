@@ -22,7 +22,6 @@ async function updatePrompt() {
       "..",
       "..",
       "docs",
-      "other",
       "prompt_agent.md"
     )
     const promptContent = fs.readFileSync(promptFilePath, "utf8")

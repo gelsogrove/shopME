@@ -50,11 +50,30 @@ async function updatePrompt() {
         updatedAt: new Date(),
       },
     })
-
     console.log(`✅ Updated ${updatedAgentConfig.count} agent config(s)`)
 
-    // Also update prompts table if it exists
+    // Update the Prompts table (field: content)
     try {
       const updatedPrompts = await prisma.prompts.updateMany({
-        where: {
-          workspaceId: workspace.id,
+        where: { workspaceId: workspace.id },
+        data: {
+          content: promptContent,
+          updatedAt: new Date(),
+        },
+      })
+      console.log(`✅ Updated ${updatedPrompts.count} prompts(s)`)
+    } catch (err) {
+      console.error("❌ Error updating Prompts table:", err)
+    }
+
+    console.log("🎉 Prompt update completed successfully!")
+    console.log("🔄 The chatbot will now use the updated prompt")
+  } catch (error) {
+    console.error("❌ Error updating prompt:", error)
+    process.exit(1)
+  } finally {
+    await prisma.$disconnect()
+  }
+}
+
+updatePrompt()
