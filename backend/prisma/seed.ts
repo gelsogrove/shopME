@@ -1224,7 +1224,13 @@ async function main() {
   }
 
   // Store sales IDs for later use
-  const [marcoRossi, giuliaBianchi, alessandroFerrari, francescaRomano, lucaEsposito] = createdSales
+  const [
+    marcoRossi,
+    giuliaBianchi,
+    alessandroFerrari,
+    francescaRomano,
+    lucaEsposito,
+  ] = createdSales
 
   // Create available languages only if they don't exist
   const languageCodes = ["it", "en", "es", "pt"]
