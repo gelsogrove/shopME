@@ -9,7 +9,6 @@ import { AgentPage } from "./pages/AgentPage"
 import { AnalyticsPage } from "./pages/AnalyticsPage"
 import SignupPage from "./pages/auth/SignupPage"
 import { ChatPage } from "./pages/ChatPage"
-import { ChatTestPage } from "./pages/ChatTestPage"
 import ClientsPage from "./pages/ClientsPage"
 
 import DataProtectionPage from "./pages/data-protection"
@@ -20,9 +19,7 @@ import ExpiredPage from "./pages/expired"
 import { FAQPage } from "./pages/FAQPage"
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
 import { LoginPage } from "./pages/LoginPage"
-import MessageTestPage from "./pages/MessageTestPage"
 import NotFoundPage from "./pages/not-found"
-import NotificationsPage from "./pages/NotificationsPage"
 import { OffersPage } from "./pages/OffersPage"
 import OrdersPage from "./pages/OrdersPage"
 import OrderSummaryPage from "./pages/OrderSummaryPage"
@@ -44,7 +41,6 @@ import { ProductsPage as SettingsProductsPage } from "./pages/settings/ProductsP
 import { Suspense, lazy } from "react"
 import { ChatListProvider } from "./contexts/ChatListContext"
 import { WorkspaceProvider } from "./contexts/WorkspaceContext"
-import SurveysPage from "./pages/SurveysPage"
 import { VerifyOtpPage } from "./pages/VerifyOtpPage"
 import { WorkspacePage } from "./pages/WorkspacePage"
 import { WorkspaceSelectionPage } from "./pages/WorkspaceSelectionPage"
@@ -76,9 +72,6 @@ export function App() {
               {/* Direct route for /forgot-password to avoid 404 */}
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-              {/* Development/Test Routes */}
-              <Route path="/message-test" element={<MessageTestPage />} />
-
               {/* Protected Routes - richiedono autenticazione */}
               <Route element={<ProtectedRoute />}>
                 {/* Workspace Selection */}
@@ -90,9 +83,6 @@ export function App() {
                 {/* Layout con sidebar */}
                 <Route path="/chat" element={<Layout />}>
                   <Route index element={<ChatPage />} />
-                </Route>
-                <Route path="/chat-test" element={<Layout />}>
-                  <Route index element={<ChatTestPage />} />
                 </Route>
                 <Route path="/analytics" element={<Layout />}>
                   <Route index element={<AnalyticsPage />} />
@@ -127,12 +117,6 @@ export function App() {
                   <Route index element={<FAQPage />} />
                 </Route>
 
-                <Route path="/surveys" element={<Layout />}>
-                  <Route index element={<SurveysPage />} />
-                </Route>
-                <Route path="/notifications" element={<Layout />}>
-                  <Route index element={<NotificationsPage />} />
-                </Route>
                 <Route path="/profile" element={<Layout />}>
                   <Route index element={<ProfilePage />} />
                 </Route>
