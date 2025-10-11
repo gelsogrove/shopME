@@ -1,8 +1,10 @@
 - sessionID
+- OWASOP
 - Clean DB
-- estrella
+- FOTO DEI PRODOTTI
 
+- estrella
 - heroku
 - whatsapp
 
-- test di DHL
+- testPRIAM DI MAX

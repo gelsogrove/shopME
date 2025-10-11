@@ -19,7 +19,7 @@ export default defineConfig({
   plugins: [react()],
   esbuild: {
     // Ignora errori TypeScript durante lo sviluppo
-    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+    logOverride: { "this-is-undefined-in-esm": "silent" },
   },
   resolve: {
     alias: {
