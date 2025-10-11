@@ -8,7 +8,12 @@ ShopME is a **WhatsApp-based e-commerce platform** with AI chatbot integration. 
 
 ---
 
-## 🚨 CRITICAL RULES - ALWAYS FOLLOW
+## 🚨 CRITICAL RULES - ALWAYS FOLLOW (Andrea's Requirements)
+
+### 0. **Address User by Name**
+
+- **ALWAYS** call the user "Andrea" in discussions and messages
+- Example: "Andrea, I've completed the task" or "Andrea, what do you think?"
 
 ### 1. **Database-First Architecture**
 
@@ -16,6 +21,7 @@ ShopME is a **WhatsApp-based e-commerce platform** with AI chatbot integration. 
 - **ALL** configuration (prompts, agent configs, prices) comes from database
 - If data is missing: return proper error, don't invent defaults
 - Example: Agent prompts MUST come from `agentConfig` table, never from constants
+- **NO STATIC PROMPTS**: everything must be dynamic from database
 
 ### 2. **Workspace Isolation**
 
@@ -31,15 +37,31 @@ ShopME is a **WhatsApp-based e-commerce platform** with AI chatbot integration. 
 
 ### 4. **Environment Protection**
 
-- Before ANY `.env` interaction: `cp .env .env.backup.$(date +%Y%m%d_%H%M%S)`
+- **MANDATORY**: Before ANY `.env` interaction: `cp .env .env.backup.$(date +%Y%m%d_%H%M%S)`
+- Always inform Andrea when creating backups
 - Never commit `.env` files to git
-- Use `.env.example` as template reference
+- If `.env` is lost: restore from most recent `.env.backup.*` file
 
-### 5. **Swagger Documentation**
+### 5. **PDF File Protection**
+
+- **NEVER** delete, modify, or touch `backend/prisma/temp/international-transportation-law.pdf`
+- This file is CRITICAL for system operation
+- Never remove files from `backend/prisma/temp/` directory
+- Never modify seed script to remove PDF file creation
+
+### 6. **Swagger Documentation**
 
 - Update `backend/src/swagger.yaml` immediately after API changes
 - All endpoints must have JSDoc comments with `@swagger` tags
 - Run `npm run build` to regenerate swagger.json
+- **AFTER EVERY API CHANGE**: verify swagger is updated and working
+
+### 7. **Test Before "Done"**
+
+- Never say task is completed without verifying it works
+- Run tests: `npm run test:unit` or `npm run test:coverage`
+- Integration tests require backend running (`npm run dev`)
+- If tests fail: verify backend (port 3001), database, seed
 
 ---
 
@@ -310,19 +332,25 @@ const userId = (req as any).user.id // Set by authMiddleware
 
 ❌ Hardcoded data or fallback values  
 ❌ Queries without `workspaceId` filter  
-❌ Generic catch blocks without error details  
-❌ Modifying layout/graphics without approval  
-❌ Running `git push` (user does this manually)  
+❌ Generic catch blocks without error details (always show full stack)  
+❌ Modifying layout/graphics without Andrea's explicit approval  
+❌ Running `git push` (Andrea does this manually)  
 ❌ Creating test/placeholder pages marked "WIP"  
-❌ Duplicating components instead of reusing existing ones
+❌ Duplicating components instead of reusing existing ones  
+❌ Using OpenAI directly (use OpenRouter instead)  
+❌ Creating fake/mock functions outside test environments  
+❌ Inventing features not documented in PRD  
+❌ Touching `.env` without backup
 
 ✅ Always pull from database  
 ✅ Always filter by workspace  
 ✅ Always log full error stack  
 ✅ Always respect existing design system  
-✅ Always create git commits for user to push  
+✅ Always create git commits for Andrea to push  
 ✅ Always build production-ready features  
-✅ Always check for existing implementations first
+✅ Always check for existing implementations first  
+✅ Always ask Andrea before inventing new features  
+✅ Always update database seed if schema changes
 
 IMPORTANTE !!!
 NON DEVI FARE COMMIT CI PENSa L'UTENTE !!!!
