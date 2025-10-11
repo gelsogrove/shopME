@@ -12,12 +12,12 @@ import {
   ShoppingCart,
   Zap,
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
 import * as z from "zod"
 import { toast } from "../lib/toast"
-import { auth } from "../services/api"
+import { api, auth, getSessionId, setSessionId } from "../services/api"
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -29,6 +29,7 @@ type LoginForm = z.infer<typeof loginSchema>
 export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [isValidatingSession, setIsValidatingSession] = useState(true)
   const navigate = useNavigate()
 
   // Prefill credentials only in development
@@ -42,6 +43,32 @@ export function LoginPage() {
     } as LoginForm,
   })
 
+  // 🆕 AUTO-REDIRECT IF SESSION IS ALREADY VALID
+  useEffect(() => {
+    checkExistingSession()
+  }, [])
+
+  const checkExistingSession = async () => {
+    try {
+      const sessionId = getSessionId()
+      
+      // Se NON c'è sessionId, mostra form login
+      if (!sessionId) {
+        logger.info("🔓 No existing sessionId - showing login form")
+        setIsValidatingSession(false)
+        return
+      }
+
+      // Se c'è sessionId, facciamo redirect diretto (ProtectedRoute farà validazione vera)
+      logger.info(`✅ SessionId found: ${sessionId.substring(0, 8)}... - redirecting to workspace selection`)
+      toast.success("Sessione già attiva, reindirizzamento...")
+      navigate("/workspace-selection", { replace: true })
+    } catch (error: any) {
+      logger.error("❌ Error checking session:", error)
+      setIsValidatingSession(false)
+    }
+  }
+
   const onSubmit = async (data: LoginForm) => {
     setError("")
     setIsLoading(true)
@@ -54,10 +81,23 @@ export function LoginPage() {
 
     try {
       // Usa await esplicitamente e salva la risposta
-      const response = await auth.login(data)
+      const response = await auth.login({
+        email: data.email!,
+        password: data.password!,
+      })
       logger.info("Login successful:", response.data)
 
       if (response.data && response.data.user) {
+        // 🆕 SAVE SESSION ID FROM RESPONSE FIRST (BEFORE navigate!)
+        if (response.data.sessionId) {
+          setSessionId(response.data.sessionId)
+          logger.info(`✅ SessionID saved to localStorage: ${response.data.sessionId.substring(0, 8)}...`)
+        } else {
+          logger.error("❌ No sessionId in login response!")
+          throw new Error("No sessionId in login response")
+        }
+
+        // Save user data
         localStorage.setItem("user", JSON.stringify(response.data.user))
 
         // JWT token is automatically saved as HTTP-only cookie by backend
@@ -65,9 +105,8 @@ export function LoginPage() {
 
         toast.success("Login successful!")
 
-        setTimeout(() => {
-          navigate("/workspace-selection")
-        }, 300)
+        // Navigate WITHOUT setTimeout - sessionId is already saved
+        navigate("/workspace-selection")
       } else {
         throw new Error("Invalid response format from the server.")
       }
@@ -93,6 +132,20 @@ export function LoginPage() {
     register,
     formState: { errors },
   } = form
+
+  // 🆕 SHOW LOADING SPINNER WHILE VALIDATING EXISTING SESSION
+  if (isValidatingSession) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground">
+            Validating session...
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">

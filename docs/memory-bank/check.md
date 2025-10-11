@@ -1,10 +1,12 @@
-- sessionID
+- sessionID PASSIAMO COME BARRER '
 - OWASOP
+- HOTEL RESTAURANT FUORI
 - Clean DB
 - FOTO DEI PRODOTTI
-
+- SWAGGER
+- CURRENCY TOGLI DA SETTTINGS
+- WIP MESSAGE
 - estrella
 - heroku
 - whatsapp
-
 - testPRIAM DI MAX

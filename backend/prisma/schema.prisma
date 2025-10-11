@@ -52,6 +52,7 @@ model Workspace {
   shortUrls                 ShortUrls[]
   usage                     Usage[]
   whatsappSettings          WhatsappSettings?
+  adminSessions             AdminSession[]
 }
 
 model Categories {
@@ -276,6 +277,7 @@ model User {
   workspaces      UserWorkspace[]
   otpTokens       OtpToken[]
   passwordResets  PasswordReset[]
+  adminSessions   AdminSession[]
 
   @@map("users")
 }
@@ -767,4 +769,25 @@ enum BillingType {
   PUSH_MESSAGE
   NEW_FAQ
   ACTIVE_OFFER
+}
+
+model AdminSession {
+  id             String     @id @default(cuid())
+  sessionId      String     @unique @db.VarChar(64)
+  userId         String
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt      DateTime   @default(now())
+  expiresAt      DateTime
+  lastActivityAt DateTime   @default(now())
+  ipAddress      String?    @db.VarChar(45)
+  userAgent      String?    @db.Text
+  isActive       Boolean    @default(true)
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([isActive])
+  @@map("admin_sessions")
 }

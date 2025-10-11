@@ -319,12 +319,15 @@ import workspaceRoutesLegacy from "./workspace.routes"
 import { PromptsController } from "../interfaces/http/controllers/prompts.controller"
 import { SettingsController } from "../interfaces/http/controllers/settings.controller"
 import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"
+import { sessionValidationMiddleware } from "../interfaces/http/middlewares/session-validation.middleware"
 import createPromptsRouter from "../interfaces/http/routes/prompts.routes"
 import { createUserRouter } from "../interfaces/http/routes/user.routes"
 // Import analytics routes
 import analyticsRoutes from "../interfaces/http/routes/analytics.routes"
 // Import public orders routes (for secure token validation)
 import publicOrdersRoutes from "../interfaces/http/routes/public-orders.routes"
+// Import session routes (for sessionId management)
+import { sessionRoutes } from "../interfaces/http/routes/session.routes"
 
 // Simple logging middleware
 const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -355,7 +358,41 @@ const router = Router()
 // Add logging middleware
 router.use(loggingMiddleware)
 
-// 🛒 Cart Token Routes (for support interface)
+// � SESSION VALIDATION MIDDLEWARE (with exceptions)
+const SESSION_EXEMPT_ROUTES = [
+  "/auth/login",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/register",
+  "/health",
+  "/session/validate",
+  "/whatsapp/webhook",
+  "/chat", // WhatsApp compatibility endpoint
+  "/cart-tokens", // Support interface
+]
+
+router.use((req: Request, res: Response, next: NextFunction) => {
+  const path = req.path
+
+  // Skip sessionId validation for exempt routes
+  if (SESSION_EXEMPT_ROUTES.some((route) => path.startsWith(route))) {
+    logger.debug(`🔓 SessionID check SKIPPED for exempt route: ${path}`)
+    return next()
+  }
+
+  // Skip sessionId validation for internal routes (JWT-based)
+  if (path.startsWith("/internal/")) {
+    logger.debug(`🔓 SessionID check SKIPPED for internal route: ${path}`)
+    return next()
+  }
+
+  // Apply sessionId validation for all other routes
+  logger.debug(`🔒 SessionID validation REQUIRED for: ${path}`)
+  return sessionValidationMiddleware(req, res, next)
+})
+logger.info("✅ Session validation middleware registered with exceptions")
+
+// �🛒 Cart Token Routes (for support interface)
 router.post("/cart-tokens", (req, res) =>
   cartTokenController.getCartToken(req, res)
 )
@@ -1369,6 +1406,8 @@ logger.info("Registered cart routes for shopping cart operations")
 
 router.use("/auth", authRouter(authController))
 router.use("/registration", createRegistrationRouter())
+router.use("/session", sessionRoutes)
+logger.info("✅ Registered session routes (/api/session/validate, /api/session/stats)")
 router.use("/chat", chatRouter(chatController))
 // Removed messages, push-messaging, and push-testing routes (not used by frontend)
 router.use("/users", createUserRouter())

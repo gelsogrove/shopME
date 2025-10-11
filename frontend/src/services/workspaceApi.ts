@@ -37,7 +37,15 @@ export interface UpdateWorkspaceData {
 
 const workspaceApi = {
   async getAll(): Promise<Workspace[]> {
-    const response = await api.get("/workspaces")
+    // 🆕 FORCE sessionId in headers
+    const sessionId = localStorage.getItem("sessionId")
+    console.log("🔍 [workspaceApi.getAll] Forcing X-Session-Id header:", sessionId ? sessionId.substring(0, 8) + "..." : "NULL")
+    
+    const response = await api.get("/workspaces", {
+      headers: {
+        "X-Session-Id": sessionId || ""
+      }
+    })
     return response.data
   },
 
