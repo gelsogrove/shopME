@@ -1407,7 +1407,9 @@ logger.info("Registered cart routes for shopping cart operations")
 router.use("/auth", authRouter(authController))
 router.use("/registration", createRegistrationRouter())
 router.use("/session", sessionRoutes)
-logger.info("✅ Registered session routes (/api/session/validate, /api/session/stats)")
+logger.info(
+  "✅ Registered session routes (/api/session/validate, /api/session/stats)"
+)
 router.use("/chat", chatRouter(chatController))
 // Removed messages, push-messaging, and push-testing routes (not used by frontend)
 router.use("/users", createUserRouter())

@@ -15,7 +15,9 @@ export const getSessionId = (): string | null => {
 
 export const setSessionId = (sessionId: string): void => {
   localStorage.setItem("sessionId", sessionId)
-  logger.info(`✅ SessionID saved to localStorage: ${sessionId.substring(0, 8)}...`)
+  logger.info(
+    `✅ SessionID saved to localStorage: ${sessionId.substring(0, 8)}...`
+  )
 }
 
 export const clearSessionId = (): void => {
@@ -72,14 +74,24 @@ api.interceptors.request.use(
 
     if (!isExemptRoute) {
       const sessionId = getSessionId()
-      logger.info(`🔍 [INTERCEPTOR] URL: ${url}, sessionId from localStorage: ${sessionId || 'NULL'}`)
-      
+      logger.info(
+        `🔍 [INTERCEPTOR] URL: ${url}, sessionId from localStorage: ${
+          sessionId || "NULL"
+        }`
+      )
+
       if (sessionId) {
         config.headers["X-Session-Id"] = sessionId
-        logger.info(`🔒 Added X-Session-Id header: ${sessionId.substring(0, 8)}...`)
+        logger.info(
+          `🔒 Added X-Session-Id header: ${sessionId.substring(0, 8)}...`
+        )
       } else {
-        logger.error(`❌ CRITICAL: No sessionId in localStorage for URL: ${url}`)
-        logger.error(`❌ localStorage contents: ${JSON.stringify(localStorage)}`)
+        logger.error(
+          `❌ CRITICAL: No sessionId in localStorage for URL: ${url}`
+        )
+        logger.error(
+          `❌ localStorage contents: ${JSON.stringify(localStorage)}`
+        )
       }
     } else {
       logger.debug(`🔓 SessionID skipped for exempt route: ${url}`)
@@ -151,7 +163,9 @@ api.interceptors.response.use(
 
       // Show appropriate toast message
       if (isSessionError) {
-        toast.error("Sessione scaduta o invalida. Effettua nuovamente il login.")
+        toast.error(
+          "Sessione scaduta o invalida. Effettua nuovamente il login."
+        )
         logger.warn("🔒 Session expired or invalid - redirecting to login")
       } else {
         toast.error("Sessione scaduta. Effettua nuovamente il login.")
@@ -169,8 +183,10 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 400) {
       const errorMessage = error.response?.data?.error || ""
       if (errorMessage.toLowerCase().includes("sessionid")) {
-        logger.error("❌ SessionID is missing - clearing and redirecting to login")
-        
+        logger.error(
+          "❌ SessionID is missing - clearing and redirecting to login"
+        )
+
         // Clear all auth data
         localStorage.removeItem("currentWorkspace")
         sessionStorage.removeItem("currentWorkspace")

@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
 import * as z from "zod"
 import { toast } from "../lib/toast"
-import { api, auth, getSessionId, setSessionId } from "../services/api"
+import { auth, getSessionId, setSessionId } from "../services/api"
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -51,7 +51,7 @@ export function LoginPage() {
   const checkExistingSession = async () => {
     try {
       const sessionId = getSessionId()
-      
+
       // Se NON c'è sessionId, mostra form login
       if (!sessionId) {
         logger.info("🔓 No existing sessionId - showing login form")
@@ -60,7 +60,12 @@ export function LoginPage() {
       }
 
       // Se c'è sessionId, facciamo redirect diretto (ProtectedRoute farà validazione vera)
-      logger.info(`✅ SessionId found: ${sessionId.substring(0, 8)}... - redirecting to workspace selection`)
+      logger.info(
+        `✅ SessionId found: ${sessionId.substring(
+          0,
+          8
+        )}... - redirecting to workspace selection`
+      )
       toast.success("Sessione già attiva, reindirizzamento...")
       navigate("/workspace-selection", { replace: true })
     } catch (error: any) {
@@ -91,7 +96,12 @@ export function LoginPage() {
         // 🆕 SAVE SESSION ID FROM RESPONSE FIRST (BEFORE navigate!)
         if (response.data.sessionId) {
           setSessionId(response.data.sessionId)
-          logger.info(`✅ SessionID saved to localStorage: ${response.data.sessionId.substring(0, 8)}...`)
+          logger.info(
+            `✅ SessionID saved to localStorage: ${response.data.sessionId.substring(
+              0,
+              8
+            )}...`
+          )
         } else {
           logger.error("❌ No sessionId in login response!")
           throw new Error("No sessionId in login response")
@@ -139,9 +149,7 @@ export function LoginPage() {
       <div className="flex h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">
-            Validating session...
-          </p>
+          <p className="text-sm text-muted-foreground">Validating session...</p>
         </div>
       </div>
     )

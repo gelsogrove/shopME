@@ -5,15 +5,15 @@ import { api, getSessionId } from "../services/api"
 
 /**
  * 🔒 PROTECTED ROUTE COMPONENT
- * 
+ *
  * Validates sessionId before rendering protected content.
- * 
+ *
  * Behavior:
  * 1. On mount: validates sessionId via /api/session/validate
  * 2. If valid: renders <Outlet /> (nested routes)
  * 3. If invalid/missing: redirects to /auth/login
  * 4. Shows loading spinner during validation
- * 
+ *
  * Usage in App.tsx:
  * ```tsx
  * <Route element={<ProtectedRoute />}>
@@ -60,12 +60,12 @@ export function ProtectedRoute() {
       }
     } catch (error: any) {
       logger.error("❌ Session validation failed:", error)
-      
+
       // Check if it's a 401 (expired/invalid session)
       if (error.response?.status === 401) {
         logger.warn("🔒 Session expired or invalid (401)")
       }
-      
+
       setIsValid(false)
     } finally {
       setIsValidating(false)
@@ -78,9 +78,7 @@ export function ProtectedRoute() {
       <div className="flex h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">
-            Validating session...
-          </p>
+          <p className="text-sm text-muted-foreground">Validating session...</p>
         </div>
       </div>
     )

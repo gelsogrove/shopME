@@ -39,12 +39,15 @@ const workspaceApi = {
   async getAll(): Promise<Workspace[]> {
     // 🆕 FORCE sessionId in headers
     const sessionId = localStorage.getItem("sessionId")
-    console.log("🔍 [workspaceApi.getAll] Forcing X-Session-Id header:", sessionId ? sessionId.substring(0, 8) + "..." : "NULL")
-    
+    console.log(
+      "🔍 [workspaceApi.getAll] Forcing X-Session-Id header:",
+      sessionId ? sessionId.substring(0, 8) + "..." : "NULL"
+    )
+
     const response = await api.get("/workspaces", {
       headers: {
-        "X-Session-Id": sessionId || ""
-      }
+        "X-Session-Id": sessionId || "",
+      },
     })
     return response.data
   },

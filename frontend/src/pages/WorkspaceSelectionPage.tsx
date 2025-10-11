@@ -36,22 +36,33 @@ export function WorkspaceSelectionPage() {
     try {
       // 🆕 CRITICAL: Verify sessionId exists before making API call
       const sessionId = localStorage.getItem("sessionId")
-      console.log("🔍 [WorkspaceSelectionPage] SessionId in localStorage:", sessionId ? sessionId.substring(0, 8) + "..." : "NULL")
-      
+      console.log(
+        "🔍 [WorkspaceSelectionPage] SessionId in localStorage:",
+        sessionId ? sessionId.substring(0, 8) + "..." : "NULL"
+      )
+
       if (!sessionId) {
-        console.error("❌ [WorkspaceSelectionPage] CRITICAL: No sessionId found, redirecting to login")
+        console.error(
+          "❌ [WorkspaceSelectionPage] CRITICAL: No sessionId found, redirecting to login"
+        )
         setErrorMessage("Session expired, please login again")
         // Don't call API without sessionId
         return
       }
 
       setIsLoading(true)
-      console.log("🔍 [WorkspaceSelectionPage] Calling getWorkspaces() with sessionId:", sessionId.substring(0, 8) + "...")
+      console.log(
+        "🔍 [WorkspaceSelectionPage] Calling getWorkspaces() with sessionId:",
+        sessionId.substring(0, 8) + "..."
+      )
       const workspaces = await getWorkspaces()
       // Set workspaces without filtering for isDelete
       setWorkspaces(workspaces)
     } catch (error) {
-      console.error("❌ [WorkspaceSelectionPage] Error loading workspaces:", error)
+      console.error(
+        "❌ [WorkspaceSelectionPage] Error loading workspaces:",
+        error
+      )
       setErrorMessage("Failed to load workspaces")
     } finally {
       setIsLoading(false)

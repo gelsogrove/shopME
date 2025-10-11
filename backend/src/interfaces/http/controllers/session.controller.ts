@@ -10,23 +10,23 @@ export class SessionController {
   /**
    * Valida sessionId corrente
    * GET /api/session/validate
-   * 
+   *
    * Headers:
    * - X-Session-Id: {sessionId}
-   * 
+   *
    * Response:
    * - 200: { valid: true, session: {...} }
    * - 401: { valid: false, error: "Session expired" }
    */
   async validate(req: Request, res: Response): Promise<void> {
     try {
-      const sessionId = req.headers['x-session-id'] as string
+      const sessionId = req.headers["x-session-id"] as string
 
       if (!sessionId) {
         logger.warn("⚠️ SessionID missing in validate request")
         res.status(401).json({
           valid: false,
-          error: "SessionID missing"
+          error: "SessionID missing",
         })
         return
       }
@@ -36,7 +36,7 @@ export class SessionController {
       if (!validation.valid) {
         res.status(401).json({
           valid: false,
-          error: validation.error
+          error: validation.error,
         })
         return
       }
@@ -50,18 +50,20 @@ export class SessionController {
           role: validation.session.user.role,
           expiresAt: validation.session.expiresAt,
           lastActivityAt: validation.session.lastActivityAt,
-          workspace: validation.session.workspace ? {
-            id: validation.session.workspace.id,
-            name: validation.session.workspace.name,
-            slug: validation.session.workspace.slug
-          } : null
-        }
+          workspace: validation.session.workspace
+            ? {
+                id: validation.session.workspace.id,
+                name: validation.session.workspace.name,
+                slug: validation.session.workspace.slug,
+              }
+            : null,
+        },
       })
     } catch (error) {
       logger.error("❌ Session validation endpoint error:", error)
       res.status(500).json({
         valid: false,
-        error: "Validation failed"
+        error: "Validation failed",
       })
     }
   }
@@ -69,20 +71,20 @@ export class SessionController {
   /**
    * Ottiene statistiche sessioni attive
    * GET /api/session/stats
-   * 
+   *
    * Richiede autenticazione (solo per admin)
    */
   async getStats(req: Request, res: Response): Promise<void> {
     try {
       const count = await adminSessionService.getActiveSessionsCount()
-      
+
       res.status(200).json({
-        activeSessions: count
+        activeSessions: count,
       })
     } catch (error) {
       logger.error("❌ Error getting session stats:", error)
       res.status(500).json({
-        error: "Failed to get stats"
+        error: "Failed to get stats",
       })
     }
   }

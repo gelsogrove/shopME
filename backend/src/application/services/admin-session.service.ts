@@ -8,7 +8,7 @@ export class AdminSessionService {
   /**
    * Crea una nuova sessione admin al login
    * POLICY: Una sola sessione attiva per user, la vecchia viene revocata
-   * 
+   *
    * @param userId - ID utente
    * @param workspaceId - ID workspace selezionato (opzionale)
    * @param ipAddress - IP address del client
@@ -25,14 +25,14 @@ export class AdminSessionService {
       // 1. Revoca tutte le sessioni esistenti per questo user
       await prisma.adminSession.updateMany({
         where: { userId, isActive: true },
-        data: { isActive: false }
+        data: { isActive: false },
       })
 
       logger.info(`🔒 Revoked existing sessions for user ${userId}`)
 
       // 2. Genera nuovo sessionId univoco
       const sessionId = randomUUID()
-      
+
       // 3. Calcola scadenza: +1 ora FISSA dalla creazione
       const now = new Date()
       const expiresAt = new Date(now.getTime() + 60 * 60 * 1000) // +1h
@@ -47,12 +47,14 @@ export class AdminSessionService {
           lastActivityAt: now,
           ipAddress: ipAddress?.substring(0, 45), // Limita lunghezza IP
           userAgent: userAgent?.substring(0, 1000), // Limita user agent
-          isActive: true
-        }
+          isActive: true,
+        },
       })
 
-      logger.info(`🔐 Admin session created for user ${userId}: ${sessionId.substring(0, 8)}... (expires: ${expiresAt.toISOString()})`)
-      
+      logger.info(
+        `🔐 Admin session created for user ${userId}: ${sessionId.substring(0, 8)}... (expires: ${expiresAt.toISOString()})`
+      )
+
       return sessionId
     } catch (error) {
       logger.error("❌ Error creating admin session:", error)
@@ -64,7 +66,7 @@ export class AdminSessionService {
    * Valida una sessione esistente
    * Verifica: esistenza, isActive, non scaduta
    * Aggiorna lastActivityAt se valida
-   * 
+   *
    * @param sessionId - ID sessione da validare
    * @returns { valid: boolean, session?: AdminSession, error?: string }
    */
@@ -77,9 +79,17 @@ export class AdminSessionService {
       const session = await prisma.adminSession.findUnique({
         where: { sessionId },
         include: {
-          user: { select: { id: true, email: true, role: true, firstName: true, lastName: true } },
-          workspace: { select: { id: true, name: true, slug: true } }
-        }
+          user: {
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+          workspace: { select: { id: true, name: true, slug: true } },
+        },
       })
 
       // 1. Sessione non trovata
@@ -96,24 +106,28 @@ export class AdminSessionService {
 
       // 3. Sessione scaduta (>1h dalla creazione)
       if (session.expiresAt < new Date()) {
-        logger.warn(`⚠️ Session expired: ${sessionId.substring(0, 8)}... (expired: ${session.expiresAt.toISOString()})`)
-        
+        logger.warn(
+          `⚠️ Session expired: ${sessionId.substring(0, 8)}... (expired: ${session.expiresAt.toISOString()})`
+        )
+
         // Auto-revoca sessione scaduta
         await prisma.adminSession.update({
           where: { id: session.id },
-          data: { isActive: false }
+          data: { isActive: false },
         })
-        
+
         return { valid: false, error: "Session expired" }
       }
 
       // 4. Sessione valida → Aggiorna lastActivityAt
       await prisma.adminSession.update({
         where: { id: session.id },
-        data: { lastActivityAt: new Date() }
+        data: { lastActivityAt: new Date() },
       })
 
-      logger.debug(`✅ Session valid for user ${session.user.email} (${sessionId.substring(0, 8)}...)`)
+      logger.debug(
+        `✅ Session valid for user ${session.user.email} (${sessionId.substring(0, 8)}...)`
+      )
 
       return { valid: true, session }
     } catch (error) {
@@ -124,16 +138,16 @@ export class AdminSessionService {
 
   /**
    * Revoca una sessione (logout)
-   * 
+   *
    * @param sessionId - ID sessione da revocare
    */
   async revokeSession(sessionId: string): Promise<void> {
     try {
       await prisma.adminSession.updateMany({
         where: { sessionId },
-        data: { isActive: false }
+        data: { isActive: false },
       })
-      
+
       logger.info(`🔒 Session revoked: ${sessionId.substring(0, 8)}...`)
     } catch (error) {
       logger.error("❌ Error revoking session:", error)
@@ -144,7 +158,7 @@ export class AdminSessionService {
   /**
    * Cleanup automatico sessioni scadute
    * Chiamato da scheduler (ogni 1h) o manualmente
-   * 
+   *
    * @returns Numero di sessioni eliminate
    */
   async cleanupExpiredSessions(): Promise<number> {
@@ -152,14 +166,16 @@ export class AdminSessionService {
       const result = await prisma.adminSession.deleteMany({
         where: {
           OR: [
-            { expiresAt: { lt: new Date() } },  // Scadute
-            { isActive: false }                  // Revocate
-          ]
-        }
+            { expiresAt: { lt: new Date() } }, // Scadute
+            { isActive: false }, // Revocate
+          ],
+        },
       })
 
       if (result.count > 0) {
-        logger.info(`🧹 Cleaned up ${result.count} expired/revoked admin sessions`)
+        logger.info(
+          `🧹 Cleaned up ${result.count} expired/revoked admin sessions`
+        )
       }
 
       return result.count
@@ -172,7 +188,7 @@ export class AdminSessionService {
   /**
    * Ottiene statistiche sessioni attive
    * Utile per monitoring
-   * 
+   *
    * @returns Numero di sessioni attive totali
    */
   async getActiveSessionsCount(): Promise<number> {
@@ -180,8 +196,8 @@ export class AdminSessionService {
       const count = await prisma.adminSession.count({
         where: {
           isActive: true,
-          expiresAt: { gt: new Date() }
-        }
+          expiresAt: { gt: new Date() },
+        },
       })
 
       return count
