@@ -3,6 +3,7 @@
 ## 📋 Panoramica
 
 **Requisito Andrea**: Implementare un sistema di **SessionID separato dal JWT** per tracciare le sessioni attive degli utenti admin panel con:
+
 - SessionID generato al login
 - Salvato in localStorage (non nella URL)
 - Passato in TUTTI gli endpoints (esclusi: login, forgotPassword, health)
@@ -11,6 +12,7 @@
 - Validazione backend con middleware
 
 **Differenza JWT vs SessionID**:
+
 - **JWT Token**: Autenticazione utente (chi sei), validità 24h, HTTP-only cookie
 - **SessionID**: Tracciamento sessione admin (sessione attiva), validità 1h, localStorage + header
 
@@ -28,17 +30,17 @@ model AdminSession {
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspaceId   String?                             // Workspace selezionato (optional)
   workspace     Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  
+
   // Gestione scadenza e attività
   createdAt     DateTime  @default(now())           // Creazione sessione
   expiresAt     DateTime                            // Scadenza (createdAt + 1h)
   lastActivityAt DateTime @default(now())           // Ultimo accesso API
-  
+
   // Metadata utili
   ipAddress     String?   @db.VarChar(45)           // IP login
   userAgent     String?   @db.Text                  // Browser/device info
   isActive      Boolean   @default(true)            // Flag attiva/revocata
-  
+
   @@index([sessionId])
   @@index([userId])
   @@index([expiresAt])
@@ -48,10 +50,12 @@ model AdminSession {
 ```
 
 **Relazioni**:
+
 - `User.adminSessions` (one-to-many): Un utente può avere UNA sola sessione attiva alla volta
 - `Workspace.adminSessions` (one-to-many): Workspace selezionato nella sessione
 
 **Policy**:
+
 - **UNA sessione attiva per user**: Al nuovo login, la vecchia sessione viene disattivata/eliminata
 - **NO storico sessioni**: Solo tracking sessione corrente
 - **Auto-cleanup**: Sessioni scadute (expiresAt < now()) vengono eliminate periodicamente
@@ -84,12 +88,12 @@ export class AdminSessionService {
       // 1. Revoca tutte le sessioni esistenti per questo user
       await prisma.adminSession.updateMany({
         where: { userId, isActive: true },
-        data: { isActive: false }
+        data: { isActive: false },
       })
 
       // 2. Genera nuovo sessionId univoco
       const sessionId = randomUUID()
-      
+
       // 3. Calcola scadenza: +1 ora
       const now = new Date()
       const expiresAt = new Date(now.getTime() + 60 * 60 * 1000) // +1h
@@ -104,12 +108,17 @@ export class AdminSessionService {
           lastActivityAt: now,
           ipAddress,
           userAgent,
-          isActive: true
-        }
+          isActive: true,
+        },
       })
 
-      logger.info(`🔐 Admin session created for user ${userId}: ${sessionId.substring(0, 8)}...`)
-      
+      logger.info(
+        `🔐 Admin session created for user ${userId}: ${sessionId.substring(
+          0,
+          8
+        )}...`
+      )
+
       return sessionId
     } catch (error) {
       logger.error("❌ Error creating admin session:", error)
@@ -130,8 +139,8 @@ export class AdminSessionService {
       const session = await prisma.adminSession.findUnique({
         where: { sessionId },
         include: {
-          user: { select: { id: true, email: true, role: true } }
-        }
+          user: { select: { id: true, email: true, role: true } },
+        },
       })
 
       // 1. Sessione non trovata
@@ -149,7 +158,7 @@ export class AdminSessionService {
         // Auto-revoca sessione scaduta
         await prisma.adminSession.update({
           where: { id: session.id },
-          data: { isActive: false }
+          data: { isActive: false },
         })
         return { valid: false, error: "Session expired" }
       }
@@ -157,7 +166,7 @@ export class AdminSessionService {
       // 4. Sessione valida → Aggiorna lastActivityAt
       await prisma.adminSession.update({
         where: { id: session.id },
-        data: { lastActivityAt: new Date() }
+        data: { lastActivityAt: new Date() },
       })
 
       return { valid: true, session }
@@ -173,7 +182,7 @@ export class AdminSessionService {
   async revokeSession(sessionId: string): Promise<void> {
     await prisma.adminSession.updateMany({
       where: { sessionId },
-      data: { isActive: false }
+      data: { isActive: false },
     })
     logger.info(`🔒 Session revoked: ${sessionId.substring(0, 8)}...`)
   }
@@ -186,10 +195,10 @@ export class AdminSessionService {
     const result = await prisma.adminSession.deleteMany({
       where: {
         OR: [
-          { expiresAt: { lt: new Date() } },  // Scadute
-          { isActive: false }                  // Revocate
-        ]
-      }
+          { expiresAt: { lt: new Date() } }, // Scadute
+          { isActive: false }, // Revocate
+        ],
+      },
     })
 
     if (result.count > 0) {
@@ -216,13 +225,13 @@ import logger from "../../../utils/logger"
 
 /**
  * Middleware di validazione SessionID
- * 
+ *
  * POLICY:
  * - Estrae sessionId da header 'X-Session-Id'
  * - Verifica esistenza e validità (non scaduto, isActive)
  * - Aggiorna lastActivityAt automaticamente
  * - Allega session a req.session
- * 
+ *
  * ECCEZIONI (non applicare middleware):
  * - /api/auth/login
  * - /api/auth/forgot-password
@@ -238,13 +247,13 @@ export const sessionValidationMiddleware = async (
 ): Promise<void> => {
   try {
     // Estrai sessionId da header
-    const sessionId = req.headers['x-session-id'] as string
+    const sessionId = req.headers["x-session-id"] as string
 
-    if (!sessionId || sessionId.trim() === '') {
+    if (!sessionId || sessionId.trim() === "") {
       logger.warn(`⚠️ SessionID missing for ${req.method} ${req.url}`)
       res.status(400).json({
         error: "SessionID is required",
-        message: "Missing X-Session-Id header"
+        message: "Missing X-Session-Id header",
       })
       return
     }
@@ -256,13 +265,13 @@ export const sessionValidationMiddleware = async (
       logger.warn(`⚠️ Invalid session: ${validation.error}`)
       res.status(401).json({
         error: "Invalid session",
-        message: validation.error
+        message: validation.error,
       })
       return
     }
 
     // Allega session a request
-    (req as any).session = validation.session
+    ;(req as any).session = validation.session
     logger.debug(`✅ Session valid for user ${validation.session.user.email}`)
 
     next()
@@ -270,7 +279,7 @@ export const sessionValidationMiddleware = async (
     logger.error("❌ Session validation error:", error)
     res.status(500).json({
       error: "Session validation failed",
-      message: "Internal server error"
+      message: "Internal server error",
     })
   }
 }
@@ -346,23 +355,23 @@ import { sessionValidationMiddleware } from "../interfaces/http/middlewares/sess
 
 // ECCEZIONI: Routes senza sessionId validation
 const SESSION_EXEMPT_ROUTES = [
-  '/api/auth/login',
-  '/api/auth/forgot-password',
-  '/api/auth/reset-password',
-  '/api/auth/register',
-  '/api/health',
-  '/api/whatsapp/webhook'
+  "/api/auth/login",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/auth/register",
+  "/api/health",
+  "/api/whatsapp/webhook",
 ]
 
 // Middleware globale con eccezioni
 router.use((req, res, next) => {
   // Skip session validation per route esenti
-  if (SESSION_EXEMPT_ROUTES.some(route => req.path.startsWith(route))) {
+  if (SESSION_EXEMPT_ROUTES.some((route) => req.path.startsWith(route))) {
     return next()
   }
 
   // Skip per /api/internal/* (usano JWT token nel query)
-  if (req.path.startsWith('/api/internal/')) {
+  if (req.path.startsWith("/api/internal/")) {
     return next()
   }
 
@@ -384,7 +393,7 @@ import axios from "axios"
 
 export const api = axios.create({
   baseURL: "/api",
-  withCredentials: true  // JWT cookie (esistente)
+  withCredentials: true, // JWT cookie (esistente)
 })
 
 // 🆕 Helper per gestire sessionId
@@ -405,20 +414,22 @@ api.interceptors.request.use(
   (config) => {
     // ECCEZIONI: Non aggiungere sessionId per questi endpoints
     const exemptPaths = [
-      '/auth/login',
-      '/auth/forgot-password',
-      '/auth/reset-password',
-      '/auth/register',
-      '/health'
+      "/auth/login",
+      "/auth/forgot-password",
+      "/auth/reset-password",
+      "/auth/register",
+      "/health",
     ]
 
-    const isExempt = exemptPaths.some(path => config.url?.includes(path))
+    const isExempt = exemptPaths.some((path) => config.url?.includes(path))
 
     if (!isExempt) {
       const sessionId = getSessionId()
       if (sessionId) {
-        config.headers['X-Session-Id'] = sessionId
-        console.log(`🔐 Added X-Session-Id header: ${sessionId.substring(0, 8)}...`)
+        config.headers["X-Session-Id"] = sessionId
+        console.log(
+          `🔐 Added X-Session-Id header: ${sessionId.substring(0, 8)}...`
+        )
       } else {
         console.warn(`⚠️ No sessionId found for ${config.url}`)
       }
@@ -438,7 +449,10 @@ api.interceptors.response.use(
       const errorMessage = error.response?.data?.error
 
       // SessionID invalido/scaduto → Redirect a login
-      if (errorMessage === "Invalid session" || errorMessage === "SessionID is required") {
+      if (
+        errorMessage === "Invalid session" ||
+        errorMessage === "SessionID is required"
+      ) {
         console.error("❌ Session invalid, redirecting to login")
         clearSessionId()
         window.location.href = "/login"
@@ -488,7 +502,7 @@ const handleLogin = async (email: string, password: string) => {
 
 const handleLogout = async () => {
   try {
-    await api.post("/auth/logout")  // Header X-Session-Id aggiunto automaticamente
+    await api.post("/auth/logout") // Header X-Session-Id aggiunto automaticamente
     clearSessionId()
     localStorage.removeItem("user")
     navigate("/login")
@@ -506,7 +520,7 @@ const handleLogout = async () => {
 
 ```
 1. User: POST /api/auth/login { email, password }
-2. Backend: 
+2. Backend:
    - Verifica credenziali
    - Genera JWT token → Cookie HTTP-only (24h)
    - 🆕 Genera sessionId → Risposta JSON
@@ -571,6 +585,7 @@ const handleLogout = async () => {
 ## ⚠️ Eccezioni - Routes SENZA SessionID
 
 **Backend (non applicare `sessionValidationMiddleware`)**:
+
 1. `/api/auth/login` - Login iniziale
 2. `/api/auth/forgot-password` - Reset password
 3. `/api/auth/reset-password` - Conferma reset
@@ -580,6 +595,7 @@ const handleLogout = async () => {
 7. `/api/internal/*` - Public access con JWT token nel query
 
 **Frontend (non aggiungere header `X-Session-Id`)**:
+
 - Stesse routes sopra (automatico via interceptor)
 
 ---
@@ -609,12 +625,12 @@ curl -b cookies.txt -X POST http://localhost:3001/api/auth/logout \
 
 ```sql
 -- Sessioni attive
-SELECT 
-  sessionId, 
-  user.email, 
-  workspace.name, 
-  createdAt, 
-  expiresAt, 
+SELECT
+  sessionId,
+  user.email,
+  workspace.name,
+  createdAt,
+  expiresAt,
   lastActivityAt,
   isActive
 FROM "admin_sessions"
@@ -628,7 +644,7 @@ SELECT COUNT(*) FROM "admin_sessions"
 WHERE expiresAt < NOW() OR isActive = false;
 
 -- Ultima attività per user
-SELECT 
+SELECT
   user.email,
   MAX(lastActivityAt) as last_activity
 FROM "admin_sessions"
@@ -661,6 +677,7 @@ grep "🔐\|🔒" backend/logs/*.log
 **Causa**: Frontend non sta inviando header `X-Session-Id`
 
 **Soluzioni**:
+
 1. Verifica sessionId in localStorage: `localStorage.getItem("sessionId")`
 2. Verifica interceptor axios in `frontend/src/services/api.ts`
 3. Controlla console browser per log interceptor
@@ -671,6 +688,7 @@ grep "🔐\|🔒" backend/logs/*.log
 **Causa**: expiresAt troppo corto o no aggiornamento lastActivityAt
 
 **Soluzioni**:
+
 1. Verifica durata in `adminSessionService.createSession()`: `+ 60 * 60 * 1000` (1h)
 2. Verifica che middleware aggiorni `lastActivityAt` ad ogni chiamata
 3. Query DB per vedere scadenze: `SELECT expiresAt, lastActivityAt FROM admin_sessions WHERE isActive = true`
@@ -680,6 +698,7 @@ grep "🔐\|🔒" backend/logs/*.log
 **Causa**: Policy "una sessione per user" non applicata
 
 **Soluzioni**:
+
 1. Verifica `adminSessionService.createSession()` chiami `updateMany({ userId }, { isActive: false })`
 2. Query DB: `SELECT COUNT(*) FROM admin_sessions WHERE userId = 'xxx' AND isActive = true` (deve essere 1)
 
@@ -688,6 +707,7 @@ grep "🔐\|🔒" backend/logs/*.log
 **Causa**: Response interceptor non configurato
 
 **Soluzioni**:
+
 1. Verifica interceptor in `api.ts` gestisca `401` + `error: "Invalid session"`
 2. Verifica `clearSessionId()` e `window.location.href = "/login"`
 3. Testa manualmente con sessionId finto: `localStorage.setItem("sessionId", "invalid")`
@@ -760,10 +780,12 @@ grep "🔐\|🔒" backend/logs/*.log
 ## 🛡️ Protected Routes Pattern (Frontend)
 
 **Requisito Andrea**: Ogni pagina deve verificare sessionId all'ingresso:
+
 - ✅ SessionID presente + valido → Accesso pagina
 - ❌ SessionID assente/invalido → Redirect a `/auth/login`
 
 **Eccezione Login Page**:
+
 - ✅ SessionID valido → Redirect automatico a `/workspace-selection`
 - ❌ SessionID assente → Mostra form login
 
@@ -782,7 +804,7 @@ interface ProtectedRouteProps {
 
 /**
  * Protected Route Component
- * 
+ *
  * POLICY:
  * - Verifica sessionId presente in localStorage
  * - Valida sessionId con backend (GET /api/session/validate)
@@ -809,7 +831,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       try {
         // Valida sessionId con backend
         const response = await api.get("/session/validate")
-        
+
         if (response.data.valid) {
           console.log("✅ Session valid")
           setIsValid(true)
@@ -912,7 +934,7 @@ import { api, getSessionId, setSessionId, clearSessionId } from "@/services/api"
 
 /**
  * Login Page con Auto-Redirect
- * 
+ *
  * POLICY:
  * - Se sessionId valido presente → Redirect automatico a /workspace-selection
  * - Se sessionId assente/invalido → Mostra form login
@@ -934,9 +956,11 @@ export const LoginPageWithRedirect = () => {
       try {
         // Verifica se sessionId ancora valido
         const response = await api.get("/session/validate")
-        
+
         if (response.data.valid) {
-          console.log("✅ Valid session found, redirecting to workspace-selection")
+          console.log(
+            "✅ Valid session found, redirecting to workspace-selection"
+          )
           navigate("/workspace-selection", { replace: true })
         } else {
           console.log("Session invalid, showing login form")
@@ -983,9 +1007,7 @@ export const LoginPageWithRedirect = () => {
   return (
     <div className="login-container">
       {/* ... UI form login esistente */}
-      <button onClick={() => handleLogin(email, password)}>
-        Login
-      </button>
+      <button onClick={() => handleLogin(email, password)}>Login</button>
     </div>
   )
 }
@@ -1079,22 +1101,22 @@ export class SessionController {
   /**
    * Valida sessionId corrente
    * GET /api/session/validate
-   * 
+   *
    * Headers:
    * - X-Session-Id: {sessionId}
-   * 
+   *
    * Response:
    * - 200: { valid: true, session: {...} }
    * - 401: { valid: false, error: "Session expired" }
    */
   async validate(req: Request, res: Response): Promise<void> {
     try {
-      const sessionId = req.headers['x-session-id'] as string
+      const sessionId = req.headers["x-session-id"] as string
 
       if (!sessionId) {
         res.status(401).json({
           valid: false,
-          error: "SessionID missing"
+          error: "SessionID missing",
         })
         return
       }
@@ -1104,7 +1126,7 @@ export class SessionController {
       if (!validation.valid) {
         res.status(401).json({
           valid: false,
-          error: validation.error
+          error: validation.error,
         })
         return
       }
@@ -1115,14 +1137,14 @@ export class SessionController {
           userId: validation.session.userId,
           email: validation.session.user.email,
           expiresAt: validation.session.expiresAt,
-          lastActivityAt: validation.session.lastActivityAt
-        }
+          lastActivityAt: validation.session.lastActivityAt,
+        },
       })
     } catch (error) {
       logger.error("❌ Session validation endpoint error:", error)
       res.status(500).json({
         valid: false,
-        error: "Validation failed"
+        error: "Validation failed",
       })
     }
   }
@@ -1161,16 +1183,16 @@ import { sessionRoutes } from "../interfaces/http/routes/session.routes"
 
 // Eccezioni middleware
 const SESSION_EXEMPT_ROUTES = [
-  '/api/auth/login',
-  '/api/auth/forgot-password',
-  '/api/auth/reset-password',
-  '/api/health',
-  '/api/session/validate',  // 🆕 AGGIUNTO
-  '/api/whatsapp/webhook'
+  "/api/auth/login",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/health",
+  "/api/session/validate", // 🆕 AGGIUNTO
+  "/api/whatsapp/webhook",
 ]
 
 // Routes
-router.use("/session", sessionRoutes)  // 🆕 REGISTRA /api/session/*
+router.use("/session", sessionRoutes) // 🆕 REGISTRA /api/session/*
 ```
 
 ---
@@ -1180,19 +1202,23 @@ router.use("/session", sessionRoutes)  // 🆕 REGISTRA /api/session/*
 ### Perché SessionID + Protected Routes?
 
 1. **Doppia barriera difensiva**:
+
    - JWT cookie: Autenticazione (chi sei)
    - SessionID: Autorizzazione sessione attiva (sei ancora loggato?)
 
 2. **Controllo scadenza preciso**:
+
    - JWT: 24h (long-lived token)
    - SessionID: 1h fissa (short-lived session)
    - Anche con JWT valido, session può essere scaduta/revocata
 
 3. **Revoca immediata**:
+
    - Logout → Revoca session backend (isActive = false)
    - JWT rimane valido, ma sessionId invalido = no accesso
 
 4. **Frontend protected**:
+
    - Ogni route verifica sessionId PRIMA di renderizzare
    - User non può bypassare controllando solo JWT
    - Anche URL diretti controllati (es: /dashboard)
