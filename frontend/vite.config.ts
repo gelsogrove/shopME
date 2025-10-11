@@ -55,6 +55,18 @@ export default defineConfig({
           })
         },
       },
+      "/s/": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, _options) => {
+          proxy.on("error", (err, _req, _res) => {
+            if (process.env.NODE_ENV === "development") {
+              console.error("Proxy error for short URLs:", err)
+            }
+          })
+        },
+      },
     },
   },
   assetsInclude: ["**/*.svg"],

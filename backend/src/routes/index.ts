@@ -1357,6 +1357,10 @@ const faqController = new FaqController()
 const settingsController = new SettingsController()
 
 // Public routes (MUST BE BEFORE AUTH ROUTES)
+import { shortUrlRoutes } from "../interfaces/http/routes/short-url.routes"
+router.use(shortUrlRoutes)
+logger.info("Registered short URL routes for /s/:shortCode redirection")
+
 router.use("/checkout", checkoutRouter)
 logger.info("Registered checkout routes for order processing")
 

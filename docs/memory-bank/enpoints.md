@@ -6,18 +6,37 @@ Lista completa degli endpoint API chiamati dal frontend
 
 **TUTTI gli endpoint richiedono `workspaceId` come parametro obbligatorio**, eccetto:
 
-- Endpoints in sezione "SIN WORKSPACEID parameters" (in fondo al documento)
-- Public endpoints con token (`/api/internal/*`)
+- Endpoints in sezione "ECCEZIONI" (in fondo al documento)
+- Public endpoints con token (`/api/internal/*` - workspaceId nel token JWT)
 - Webhook esterni (`/api/whatsapp/webhook`)
 
-**Se workspaceId manca**: L'endpoint DEVE lanciare eccezione `400 Bad Request`:
+**Se workspaceId manca**:
+
+- **Status Code**: `400 Bad Request`
+- **Middleware**: `workspaceValidationMiddleware`
+- **Response Format**:
 
 ```json
 {
-  "error": "Workspace ID is required",
-  "message": "Missing required parameter: workspaceId"
+  "message": "Workspace ID is required",
+  "debug": {
+    "url": "/api/endpoint-path",
+    "method": "GET",
+    "workspaceIdSources": {
+      "fromParams": null,
+      "fromQuery": null,
+      "fromHeaders": null
+    }
+  }
 }
 ```
+
+**Implementazione Backend**:
+
+- Middleware: `backend/src/interfaces/http/middlewares/workspace-validation.middleware.ts`
+- Estrae workspaceId da: `params.workspaceId`, `query.workspaceId`, `headers['x-workspace-id']`
+- Valida esistenza workspace nel database
+- Verifica workspace attivo (`isActive: true`, `isDelete: false`)
 
 ---
 
